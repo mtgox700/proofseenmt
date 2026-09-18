@@ -1,0 +1,31 @@
+{
+  "name": "proofseen",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.18.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "build": "pnpm -r --filter ./apps/* build",
+    "sim:run": "tsx apps/cli/src/main.ts run",
+    "sim:extract": "tsx apps/cli/src/main.ts extract",
+    "sim:report": "tsx apps/cli/src/main.ts report",
+    "sim:purge": "tsx apps/cli/src/main.ts purge"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.1",
+    "@vitest/coverage-v8": "^5.0.1",
+    "eslint": "^10.10.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.1"
+  }
+}

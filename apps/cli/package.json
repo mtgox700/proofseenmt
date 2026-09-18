@@ -1,0 +1,19 @@
+{
+  "name": "@proofseen/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@proofseen/core": "workspace:*",
+    "@proofseen/engines": "workspace:*",
+    "@proofseen/extract": "workspace:*",
+    "@proofseen/stats": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}

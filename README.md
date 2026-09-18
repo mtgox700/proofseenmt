@@ -6,8 +6,8 @@ Proofseen mesure si un freelance tech apparaît quand un recruteur utilise un as
 
 > **EN** — Proofseen measures whether a tech freelancer shows up when a recruiter uses an AI assistant to source candidates for a job description, explains why, helps fix it honestly, and re-measures to prove the change. Measurement first, white-hat only.
 
-> **Statut : phase P0 « Preuve » (septembre à novembre 2026).** Aucun code produit n'existe encore. Le projet commence par une expérience
-> de mesure sur le profil du fondateur, avant toute construction de plateforme. Voir [Feuille de route](#feuille-de-route).
+> **Statut : phase P0 « Preuve » (septembre à novembre 2026).** L'instrument de mesure V0 (CLI) est livré ; aucune plateforme n'est construite
+> avant le point de décision du 27/11/2026. Première mesure réelle : le 28/09/2026, sur le profil du fondateur. Voir [Feuille de route](#feuille-de-route).
 
 ---
 
@@ -66,7 +66,7 @@ Chaque phase est conditionnée par des seuils de décision fixés **avant** la m
 |---|---|
 | Langage | TypeScript (Node 22), monorepo pnpm |
 | V0 (instrument) | CLI `sim-run` / `sim-extract` / `sim-report`, fichiers JSONL |
-| Moteurs mesurés | OpenAI (recherche web), Anthropic (recherche web), Perplexity Sonar, via leurs API officielles |
+| Moteurs mesurés | OpenAI (Responses + recherche web), Anthropic (Messages + recherche web), Perplexity (Agent API, `perplexity/sonar`), via leurs API officielles |
 | V1 (plateforme) | Next.js (SSG/ISR), Inngest, Postgres (Neon) + Prisma, Clerk, Stripe, Resend |
 | Statistiques | Intervalles de Wilson, bootstrap par grappe, différence-de-différences avec offres témoins |
 
@@ -81,7 +81,24 @@ apps/
   web       landing et plateforme (V1)
 ```
 
-*La structure de code sera créée au sprint 1 ; elle n'existe pas encore dans ce dépôt.*
+### Démarrage rapide (V0, instrument de mesure)
+
+```bash
+pnpm install
+pnpm test            # 105 tests
+pnpm test:coverage   # seuils 80 % sur stats/ et extract/
+pnpm typecheck && pnpm lint && pnpm build
+```
+
+Simulation sans aucun appel réseau ni coût (données fictives, rapport marqué « DRY-RUN ») :
+
+```bash
+pnpm sim:run --manifest .war-room/experiment0/templates/manifest.template.json --identity .war-room/experiment0/templates/identity.template.json --dry-run --runs-dir runs-dryrun
+pnpm sim:report --wave J0 --runs-dir runs-dryrun
+```
+
+Une vague réelle exige un manifeste **gelé** (`frozenAt`), les clés dans `.env` (voir `.env.example`) et `--confirm-spend`.
+Le plafond de coût du manifeste est un arrêt net.
 
 ## Documentation
 

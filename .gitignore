@@ -1,0 +1,25 @@
+# Dependencies & builds
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Measurement data (raw, pseudonymised or personal) — never commit
+runs/
+runs-*/
+extract/
+report/
+.war-room/experiment0/private/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
