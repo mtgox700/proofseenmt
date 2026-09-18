@@ -1,0 +1,113 @@
+# Proofseen
+
+**Quand un recruteur cherche avec l'IA, êtes-vous trouvé ?**
+
+Proofseen mesure si un freelance tech apparaît quand un recruteur utilise un assistant IA (ChatGPT, Claude, Perplexity…) pour trouver des profils correspondant à une offre de mission. L'outil explique **pourquoi** le profil ressort ou non, aide à le **corriger honnêtement**, puis **re-mesure** pour prouver l'évolution.
+
+> **EN** — Proofseen measures whether a tech freelancer shows up when a recruiter uses an AI assistant to source candidates for a job description, explains why, helps fix it honestly, and re-measures to prove the change. Measurement first, white-hat only.
+
+> **Statut : phase P0 « Preuve » (septembre à novembre 2026).** Aucun code produit n'existe encore. Le projet commence par une expérience
+> de mesure sur le profil du fondateur, avant toute construction de plateforme. Voir [Feuille de route](#feuille-de-route).
+
+---
+
+## Le problème
+
+Les recruteurs utilisent de plus en plus l'IA pour sourcer des profils : ils demandent directement des noms à un assistant doté d'une recherche web, ou lui font écrire des requêtes booléennes qu'ils lancent ensuite sur Google, LinkedIn ou GitHub. Côté freelance, personne ne sait :
+
+- s'il apparaît dans ces recherches ;
+- quelles sources l'IA consulte pour son métier (LinkedIn, GitHub, Malt, site personnel…) ;
+- ce qu'il faudrait corriger pour être trouvé.
+
+Les outils existants mesurent la visibilité des **marques** dans l'IA, ou optimisent un **CV envoyé** à un ATS. Aucun ne mesure la visibilité d'une **personne** face à une **offre de mission**.
+
+## Comment ça marche
+
+```
+  Offre cible  ──►  Recruiter Simulator  ──►  Rapport de visibilité  ──►  Plan de correction
+  (fournie par      Formulations de            Probabilité d'apparaître,     Site statique lisible
+   le freelance)    recruteur, plusieurs       intervalle de confiance,      par les IA, conseils
+                    moteurs, tirages           sources citées, étape         LinkedIn / GitHub / Malt,
+                    répétés                    qui bloque                    preuves tierces
+        ▲                                                                           │
+        └──────────────────────── re-mesure à intervalle régulier ◄─────────────────┘
+```
+
+1. **Mesurer.** Les réponses d'un LLM varient d'un appel à l'autre. On ne mesure donc jamais « un rang », mais une **probabilité d'apparition** avec son intervalle de confiance, sur un grand nombre de tirages.
+2. **Expliquer.** Un funnel en cinq étapes montre où le profil décroche : indexé → récupéré par la recherche → nommé → dans le top 5 → cité comme source.
+3. **Corriger.** Des actions priorisées et vérifiables : un site statique lisible par les robots des IA, des réécritures factuelles des profils, des preuves publiées par des tiers.
+4. **Prouver.** Une re-mesure avec le même protocole, comparée à des offres témoins pour neutraliser les variations des moteurs.
+
+## Principes non négociables
+
+- **Mesure, pas promesse.** Des tendances avec leur fourchette, jamais de « n°1 garanti ».
+- **Aucune manipulation des IA.** Pas de texte caché, pas d'instruction adressée aux modèles, pas de cloaking. Les profils clients sont scannés.
+- **Uniquement des informations vraies.** Le produit refuse de générer une compétence, une expérience ou un chiffre que le client n'a pas.
+- **Aucune automatisation sur les plateformes tierces.** Pas de scraping, pas de publication automatique sur LinkedIn ou Malt.
+- **Protection des tiers.** Les noms des autres professionnels cités par les IA sont masqués avant tout stockage.
+- **Résultats privés.** Quand une entreprise offre Proofseen à ses consultants, elle ne voit que des statistiques agrégées.
+- **Possession vérifiée.** On ne mesure que les profils dont le client prouve être propriétaire.
+- **Conditions d'usage respectées.** Seuls les moteurs dont les conditions autorisent l'analyse des réponses sont mesurés automatiquement.
+
+## Feuille de route
+
+| Phase | Période | Objectif |
+|---|---|---|
+| **P0 — Preuve** | sept. → nov. 2026 | Instrument de mesure en CLI, expérience sur le profil du fondateur, interviews de recruteurs, pré-ventes. Point de décision le 27/11/2026. |
+| P1 — Service | déc. 2026 → févr. 2027 | Audits réalisés à la main, landing page, premières études de cas, pilotes avec des sociétés de portage |
+| P2 — Plateforme V1 | févr. → avr. 2027 | SaaS : comptes, tableau de bord, monitoring, offre entreprises |
+| P3 → P5 | 2027 → 2029 | Montée en charge en France, ESN, international |
+
+Chaque phase est conditionnée par des seuils de décision fixés **avant** la mesure.
+
+## Architecture prévue
+
+| Couche | Choix |
+|---|---|
+| Langage | TypeScript (Node 22), monorepo pnpm |
+| V0 (instrument) | CLI `sim-run` / `sim-extract` / `sim-report`, fichiers JSONL |
+| Moteurs mesurés | OpenAI (recherche web), Anthropic (recherche web), Perplexity Sonar, via leurs API officielles |
+| V1 (plateforme) | Next.js (SSG/ISR), Inngest, Postgres (Neon) + Prisma, Clerk, Stripe, Resend |
+| Statistiques | Intervalles de Wilson, bootstrap par grappe, différence-de-différences avec offres témoins |
+
+```
+packages/
+  core      schémas et types partagés (validation zod)
+  engines   un adaptateur par moteur, interface commune
+  extract   extraction des candidats, appariement, masquage des tiers
+  stats     intervalles de confiance, funnel, score de visibilité
+apps/
+  cli       instrument de mesure (V0)
+  web       landing et plateforme (V1)
+```
+
+*La structure de code sera créée au sprint 1 ; elle n'existe pas encore dans ce dépôt.*
+
+## Documentation
+
+Les documents de conception se trouvent dans [`.war-room/`](.war-room/) :
+
+| Document | Contenu |
+|---|---|
+| [`ROADMAP.md`](.war-room/ROADMAP.md) | Référence unique : phases, sprints, points de décision, risques |
+| [`foundations/CAHIER_DES_CHARGES.md`](.war-room/foundations/CAHIER_DES_CHARGES.md) | User stories, critères d'acceptation, exigences |
+| [`foundations/STRATEGIE.md`](.war-room/foundations/STRATEGIE.md) | Personas, positionnement, tarification, go-to-market |
+| [`foundations/MARQUE.md`](.war-room/foundations/MARQUE.md) | Plateforme de marque, design tokens, charte d'honnêteté |
+| [`foundations/CONFORMITE.md`](.war-room/foundations/CONFORMITE.md) | RGPD, AI Act, conditions des fournisseurs |
+| [`MEASUREMENT_SPEC.md`](.war-room/MEASUREMENT_SPEC.md) | Protocole de mesure et statistiques |
+| [`EXPERIMENT_0.md`](.war-room/EXPERIMENT_0.md) | Protocole pré-enregistré de la première expérience |
+| [`RESEARCH_GROUND_TRUTH.md`](.war-room/RESEARCH_GROUND_TRUTH.md) | Synthèse sourcée : comment les LLM récupèrent le web |
+
+## Limites connues
+
+- La mesure passe par les **API** des moteurs ; les réponses des applications grand public peuvent différer. Un étalonnage manuel est prévu à chaque vague.
+- Les moteurs dont les conditions interdisent l'analyse des résultats (Gemini, Vertex AI et Bing grounding) ne sont **pas** mesurés automatiquement.
+- La part des recruteurs qui sourcent via un LLM n'est chiffrée par aucune étude publique à ce jour ; le projet la documente par ses propres interviews.
+
+## Licence
+
+Tous droits réservés. Ce dépôt n'est pas sous licence open source à ce stade.
+
+---
+
+*Proofseen est un nom de marque en cours de vérification.*
