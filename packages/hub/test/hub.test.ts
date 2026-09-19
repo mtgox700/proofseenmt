@@ -166,6 +166,27 @@ describe("buildSite", () => {
     expect(minimal.map((s) => s.path)).not.toContain("missions/pipeline-temps-reel/index.html");
   });
 
+  it("derives the proof counter from the data and shows every fact with its source", () => {
+    const facts = base.missions.reduce((n, m) => n + m.facts.length, 0);
+    const home = file("index.html");
+    expect(home).toContain(`${base.missions.length} mission`);
+    expect(home).toContain(`${facts} fait`);
+    const mission = file("missions/pipeline-temps-reel/index.html");
+    expect(mission).toContain("Source : code du dépôt");
+    expect(file("en/missions/pipeline-temps-reel/index.html")).toMatch(/Source: /);
+  });
+
+  it("links a mission page only to the same person's other missions (one person per page)", () => {
+    const two = buildSite(
+      HubProfileSchema.parse({ ...base, missions: [base.missions[0], { ...base.missions[0], slug: "seconde-mission" }] }),
+    );
+    const page = two.find((s) => s.path === "missions/pipeline-temps-reel/index.html")!.content;
+    expect(page).toContain('href="/missions/seconde-mission/"');
+    const hrefs = [...page.matchAll(/href="([^"]+)"/g)].map((m) => m[1]!);
+    hrefs.filter((h) => h.startsWith("/")).forEach((h) => expect(h).toMatch(/^\/(en\/)?(missions\/[a-z0-9-]+\/)?$/));
+    expect(file("missions/pipeline-temps-reel/index.html")).not.toContain('class="more"');
+  });
+
   it("omits the verification file when there is no token", () => {
     const noToken = buildSite(HubProfileSchema.parse({ ...base, verificationToken: null }));
     expect(noToken.some((s) => s.path.startsWith(".well-known"))).toBe(false);

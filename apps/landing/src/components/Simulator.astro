@@ -1,0 +1,200 @@
+---
+import type { Dictionary, Locale } from "../i18n";
+import { POOL, RUNS, hitsUpTo, pct, shortlist, wilson } from "../scripts/sim-math";
+
+interface Props {
+  readonly t: Dictionary;
+  readonly locale: Locale;
+}
+const { t, locale } = Astro.props;
+const s = t.hero.sim;
+const n = RUNS.length;
+const hits = hitsUpTo(n);
+const ci = wilson(hits, n);
+const unit = locale === "fr" ? " %" : "%"; // French typography: space before %
+const last = shortlist(n - 1);
+const summary = s.summary
+  .replace("{n}", String(n))
+  .replace("{hits}", String(hits))
+  .replace("{p}", pct(ci.p))
+  .replace("{lo}", pct(ci.lo))
+  .replace("{hi}", pct(ci.hi));
+// Server render = the FINAL state: complete and truthful without JS or with reduced motion. The script replays it.
+---
+<figure class="sim" aria-labelledby="sim-label" data-sim data-you={s.you} data-unit={unit}>
+  <div class="sim-head">
+    <span class="sim-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+    <strong id="sim-label">{s.label}</strong>
+    <span class="sim-tag">{s.tag}</span>
+  </div>
+  <p class="sr-only">{summary}</p>
+  <div class="sim-body" aria-hidden="true">
+    <div class="sim-prompt">
+      <span class="sim-who">{s.recruiter}</span>
+      <p><span data-sim-typed>{s.prompt}</span><span class="sim-rest" data-sim-rest></span></p>
+    </div>
+    <div class="sim-answer">
+      <div class="sim-meta">
+        <span>{s.engine}</span>
+        <span>{s.run} <b data-sim-run>{n}</b>/{n}</span>
+      </div>
+      <p class="sim-caption">{s.answer}</p>
+      <ol class="sim-list" data-sim-list>
+        {last.map((idx, i) => (
+          <li class={idx === -1 ? "is-you" : undefined}>
+            <span class="rank">{i + 1}</span>
+            <span class="name">{idx === -1 ? s.you : POOL[idx]}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="sim-outside" data-sim-outside>{s.outside}</p>
+    </div>
+    <div class="sim-tally">
+      <ol data-sim-tally>{RUNS.map((r) => <li class={r === null ? "miss" : "hit"}></li>)}</ol>
+      <p>{s.tally}</p>
+    </div>
+    <div class="sim-estimate">
+      <div class="sim-figure">
+        <span>{s.estimate}</span>
+        <b data-sim-p>{pct(ci.p)}{unit}</b>
+        <span class="sim-ci" data-sim-ci>[{pct(ci.lo)}–{pct(ci.hi)}{unit}]</span>
+      </div>
+      <span class="sim-track" data-sim-track style={`--p:${ci.p.toFixed(3)};--lo:${ci.lo.toFixed(3)};--hi:${ci.hi.toFixed(3)}`}>
+        <span class="fill"></span>
+        <span class="tick lo"></span>
+        <span class="span"></span>
+        <span class="tick hi"></span>
+      </span>
+    </div>
+  </div>
+</figure>
+
+<script>
+  import "../scripts/sim";
+</script>
+
+<style>
+  /* The instrument: an opaque panel (no backdrop-filter: blurring an animated canvas would repaint every frame). */
+  .sim {
+    margin: 0;
+    width: 100%;
+    max-width: 34rem;
+    justify-self: end;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--ink)), var(--surface));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 50px 100px -50px rgb(0 0 0 / 0.9),
+      0 0 140px -50px color-mix(in srgb, var(--proof) 55%, transparent);
+    font-size: var(--step--1);
+    overflow: hidden;
+  }
+  @media (max-width: 63.99rem) {
+    .sim { justify-self: stretch; max-width: none; }
+  }
+  .sim-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.75rem;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .sim-head strong { font: 500 0.95rem / 1 var(--sans); letter-spacing: -0.005em; white-space: nowrap; }
+  .sim-lights { display: inline-flex; gap: 0.35rem; }
+  .sim-lights i { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--line-strong); opacity: 0.55; }
+  .sim-lights i:first-child { background: var(--proof); opacity: 1; }
+  .sim-tag {
+    margin-left: auto;
+    font: 500 0.68rem / 1.2 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--signal);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem;
+    white-space: nowrap;
+  }
+  .sim-body { display: grid; gap: 1.1rem; padding: 1.1rem 1.1rem 1.25rem; }
+
+  .sim-prompt { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; }
+  .sim-who {
+    font: 500 0.68rem / 1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 0.3rem 0.4rem;
+  }
+  .sim-prompt p { font: 400 0.95rem / 1.5 var(--sans); color: var(--ink); }
+  .sim-rest { color: transparent; }
+  .sim.is-live [data-sim-typed]::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 1px;
+    vertical-align: -0.12em;
+    background: var(--proof);
+    animation: caret 1s steps(1) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  .sim-answer { border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 0.9rem 0.7rem; background: color-mix(in srgb, var(--bg) 55%, var(--surface)); }
+  .sim-meta { display: flex; justify-content: space-between; gap: 1rem; font: 500 0.72rem / 1 var(--mono); color: var(--muted); }
+  .sim-meta b { color: var(--ink); font-weight: 600; display: inline-block; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .sim-caption { margin: 0.7rem 0 0.45rem; font: 500 0.72rem / 1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .sim-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; transition: opacity 180ms var(--ease), transform 180ms var(--ease); }
+  .sim-list.is-swapping { opacity: 0; transform: translateY(4px); }
+  .sim-list li {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    align-items: center;
+    height: 1.9rem;
+    padding-inline: 0.5rem;
+    border-radius: 7px;
+    color: var(--muted);
+  }
+  .sim-list .rank { font: 500 0.75rem / 1 var(--mono); color: var(--line-strong); }
+  .sim-list .name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .sim-list li.is-you {
+    color: var(--ink);
+    font-weight: 600;
+    background: color-mix(in srgb, var(--proof) 16%, transparent);
+    box-shadow: inset 2px 0 0 var(--proof);
+  }
+  .sim-list li.is-you .rank { color: var(--proof); }
+  .sim-outside { margin-top: 0.45rem; font: 500 0.72rem / 1.3 var(--mono); color: var(--signal); visibility: hidden; }
+  .sim[data-outside] .sim-outside { visibility: visible; }
+
+  .sim-tally ol { list-style: none; margin: 0 0 0.5rem; padding: 0; display: grid; grid-template-columns: repeat(15, 1fr); gap: 0.4rem; }
+  .sim-tally li {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    opacity: 0.45;
+    transition: transform 260ms var(--ease), opacity 260ms var(--ease), background-color 260ms var(--ease);
+  }
+  .sim-tally li.hit { background: var(--proof); border-color: var(--proof); opacity: 1; box-shadow: 0 0 12px -2px color-mix(in srgb, var(--proof) 80%, transparent); }
+  .sim-tally li.miss { background: var(--line-strong); border-color: var(--line-strong); opacity: 0.7; }
+  .sim.is-live .sim-tally li.hit, .sim.is-live .sim-tally li.miss { animation: pop 420ms var(--ease); }
+  @keyframes pop { from { transform: scale(0.2); } }
+  .sim-tally p { font-size: 0.78rem; color: var(--muted); }
+
+  .sim-estimate { display: grid; gap: 0.7rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .sim-figure { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  .sim-figure span:first-child { font: 500 0.72rem / 1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-right: auto; }
+  .sim-figure b { font: 500 2.4rem / 1 var(--serif); letter-spacing: -0.03em; color: var(--proof); min-width: 3.2ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .sim-ci { font: 500 0.8rem / 1 var(--mono); color: var(--ink); min-width: 10ch; font-variant-numeric: tabular-nums; }
+
+  /* Interval track: every moving part is a transform (composited), never left/width. */
+  .sim-track { position: relative; display: block; height: 0.55rem; border-radius: 999px; background: color-mix(in srgb, var(--line) 80%, transparent); }
+  .sim-track > span { position: absolute; inset: 0; transform-origin: left center; transition: transform 500ms var(--ease); }
+  .sim-track .fill { border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--proof) 50%, transparent), var(--proof)); transform: scaleX(var(--p)); }
+  .sim-track .tick { top: -0.4rem; bottom: -0.4rem; border-left: 2px solid var(--ink); }
+  .sim-track .lo { transform: translateX(calc(var(--lo) * 100%)); }
+  .sim-track .hi { transform: translateX(calc(var(--hi) * 100% - 2px)); }
+  .sim-track .span { top: 50%; bottom: auto; height: 0; border-top: 1px solid var(--ink); transform: translateX(calc(var(--lo) * 100%)) scaleX(calc(var(--hi) - var(--lo))); }
+</style>

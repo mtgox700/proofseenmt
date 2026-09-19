@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { en } from "../src/i18n/en";
 import { fr } from "../src/i18n/fr";
-import { buildGrid, gridSizeFor, parseHex, project, reveal, shouldAnimate, targetNode, toPixels, MIN_WEBGL_WIDTH } from "../src/scripts/field-math";
+import { buildGrid, parseHex, shouldAnimate, MIN_WEBGL_WIDTH } from "../src/scripts/field-math";
+import { POOL, RUNS, TOP, hitsUpTo, pct, shortlist, wilson } from "../src/scripts/sim-math";
 
 /** Recursively lists every string with its path, so FR and EN can be compared field by field. */
 const leaves = (value: unknown, path = ""): [string, string][] => {
@@ -42,32 +43,6 @@ describe("field maths", () => {
     expect(() => buildGrid(1, 3)).toThrow(RangeError);
   });
 
-  it("keeps the proof point inside the visible field on every screen size", () => {
-    [320, 800, 1920].forEach((w) => {
-      const { cols, rows } = gridSizeFor(w);
-      const t = targetNode(buildGrid(cols, rows));
-      const clip = project(t.x, t.y, 3, w / 800);
-      expect(Math.abs(clip.x)).toBeLessThan(1);
-      expect(Math.abs(clip.y)).toBeLessThan(1);
-      const px = toPixels(clip, w, 800);
-      expect(px.x).toBeGreaterThan(0);
-      expect(px.x).toBeLessThan(w);
-    });
-  });
-
-  it("never projects to Infinity on a zero-size box", () => {
-    const p = project(0.2, 0.1, 1, 0);
-    expect(Number.isFinite(p.x)).toBe(true);
-    expect(Number.isFinite(p.y)).toBe(true);
-  });
-
-  it("reveals the proof point progressively after a delay", () => {
-    expect(reveal(0)).toBe(0);
-    expect(reveal(1.4)).toBe(0);
-    expect(reveal(2.2)).toBeGreaterThan(0);
-    expect(reveal(10)).toBe(1);
-  });
-
   it("runs WebGL only on capable desktop-class devices (performance budget)", () => {
     const desktop = { reducedMotion: false, saveData: false, webgl2: true, cores: 8, width: 1440, finePointer: true };
     expect(shouldAnimate(desktop)).toBe(true);
@@ -83,5 +58,41 @@ describe("field maths", () => {
     expect(parseHex("#0b6e54")).toEqual([11 / 255, 110 / 255, 84 / 255]);
     expect(parseHex(" #3FCF9C ")).not.toBeNull();
     expect(parseHex("rgb(0,0,0)")).toBeNull();
+  });
+});
+
+describe("hero simulator (fictitious data)", () => {
+  it("computes the Wilson interval like the measurement package", () => {
+    const ci = wilson(11, 30);
+    expect(ci.p).toBeCloseTo(0.3667, 4);
+    expect(ci.lo).toBeCloseTo(0.2187, 3);
+    expect(ci.hi).toBeCloseTo(0.5448, 3);
+    expect(wilson(0, 10).lo).toBe(0);
+    expect(wilson(10, 10).hi).toBe(1);
+    expect(wilson(3, 0)).toEqual({ p: 0, lo: 0, hi: 1 });
+    expect(wilson(5, 3)).toEqual({ p: 0, lo: 0, hi: 1 });
+  });
+
+  it("tells a consistent story: 30 answers, 11 in the top 5, ending on a hit", () => {
+    expect(RUNS).toHaveLength(30);
+    expect(hitsUpTo(RUNS.length)).toBe(11);
+    expect(RUNS.at(-1)).not.toBeNull();
+    RUNS.forEach((r) => r === null || expect(r >= 1 && r <= TOP).toBe(true));
+    expect(pct(wilson(11, 30).p)).toBe("37");
+  });
+
+  it("builds a top 5 of distinct fictitious profiles with 'you' at its rank", () => {
+    RUNS.forEach((rank, run) => {
+      const list = shortlist(run);
+      expect(list).toHaveLength(TOP);
+      expect(new Set(list).size).toBe(TOP);
+      list.forEach((idx) => expect(idx === -1 || (idx >= 0 && idx < POOL.length)).toBe(true));
+      if (rank === null) expect(list).not.toContain(-1);
+      else expect(list.indexOf(-1)).toBe(rank - 1);
+    });
+  });
+
+  it("never names a real-looking person: initials only", () => {
+    POOL.forEach((p) => expect(p).toMatch(/^\p{Lu}\. \p{Lu}\. · /u));
   });
 });

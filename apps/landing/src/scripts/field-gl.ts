@@ -1,4 +1,4 @@
-import { buildGrid, reveal, targetNode, type Grid } from "./field-math";
+import { buildGrid, type Grid } from "./field-math";
 
 /*
  * The WebGL2 renderer of the hero field. It runs inside a Worker on an OffscreenCanvas (see field.worker.ts): measured on
@@ -7,36 +7,34 @@ import { buildGrid, reveal, targetNode, type Grid } from "./field-math";
 
 const VERTEX = `#version 300 es
 in vec2 a_grid;
-uniform float u_time, u_aspect, u_dpr, u_reveal;
-uniform vec2 u_target;
+uniform float u_time, u_aspect, u_dpr;
 out float v_depth;
-out float v_target;
+out float v_tint;
 float waveZ(vec2 p, float t) { return sin(p.x * 3.1 + t * 0.55) * 0.07 + cos(p.y * 4.3 + t * 0.4) * 0.05; }
 void main() {
   float z = waveZ(a_grid, u_time);
   float depth = 1.0 + (a_grid.y + 1.0) * 0.22;
   float spread = u_aspect >= 1.0 ? 1.08 : 1.25 / u_aspect;
   gl_Position = vec4((a_grid.x * spread) / depth, a_grid.y * 0.62 + z * 0.9 - 0.08, 0.0, 1.0);
-  v_target = step(distance(a_grid, u_target), 0.0001);
   v_depth = clamp(0.5 + z * 5.0, 0.0, 1.0);
-  gl_PointSize = u_dpr * (mix(1.4, 2.6, v_depth) / depth + v_target * u_reveal * 7.0);
+  // The field warms towards the instrument (right side): answers turning into proof.
+  v_tint = smoothstep(-0.1, 1.0, a_grid.x) * smoothstep(-1.0, 0.4, a_grid.y);
+  gl_PointSize = u_dpr * mix(1.4, 2.6, v_depth) / depth;
 }`;
 
-// highp: a uniform shared by both stages (u_reveal) must have the same precision, or the program fails to link.
 const FRAGMENT = `#version 300 es
 precision highp float;
 uniform vec3 u_ink, u_proof;
-uniform float u_reveal;
 in float v_depth;
-in float v_target;
+in float v_tint;
 out vec4 color;
 void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d = length(c);
   if (d > 0.5) discard;
   float edge = smoothstep(0.5, 0.35, d);
-  vec3 rgb = mix(u_ink, u_proof, v_target * u_reveal);
-  float alpha = mix(0.10 + v_depth * 0.22, 0.95, v_target * u_reveal) * edge;
+  vec3 rgb = mix(u_ink, u_proof, v_tint * 0.75);
+  float alpha = (0.08 + v_depth * 0.2 + v_tint * 0.14) * edge;
   color = vec4(rgb * alpha, alpha);
 }`;
 
@@ -93,8 +91,8 @@ export const createRenderer = (gl: WebGL2RenderingContext): Renderer | null => {
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   const u = (name: string): WebGLUniformLocation | null => gl.getUniformLocation(prog, name);
-  const uTime = u("u_time"), uAspect = u("u_aspect"), uDpr = u("u_dpr"), uReveal = u("u_reveal");
-  const uTarget = u("u_target"), uInk = u("u_ink"), uProof = u("u_proof");
+  const uTime = u("u_time"), uAspect = u("u_aspect"), uDpr = u("u_dpr");
+  const uInk = u("u_ink"), uProof = u("u_proof");
 
   let grid: Grid | null = null;
   let aspect = 1;
@@ -109,8 +107,6 @@ export const createRenderer = (gl: WebGL2RenderingContext): Renderer | null => {
       if (grid?.cols !== cols || grid.rows !== rows) {
         grid = buildGrid(cols, rows);
         gl.bufferData(gl.ARRAY_BUFFER, grid.positions, gl.STATIC_DRAW);
-        const target = targetNode(grid);
-        gl.uniform2f(uTarget, target.x, target.y);
       }
     },
     colors: (ink, proof) => {
@@ -123,7 +119,6 @@ export const createRenderer = (gl: WebGL2RenderingContext): Renderer | null => {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(uTime, t);
       gl.uniform1f(uAspect, aspect);
-      gl.uniform1f(uReveal, reveal(t));
       gl.drawArrays(gl.POINTS, 0, grid.cols * grid.rows);
       return true;
     },

@@ -14,7 +14,7 @@ const t = DICTIONARIES[locale];
 <Base locale={locale} t={t}>
   <Header locale={locale} t={t} />
   <main id="main">
-    <Hero t={t} />
+    <Hero t={t} locale={locale} />
 
     <section class="section" aria-labelledby="problem-title">
       <div class="wrap">
@@ -124,3 +124,7 @@ const t = DICTIONARIES[locale];
     <div class="wrap"><p>{t.footer.line}</p><p>{t.footer.legal}</p></div>
   </footer>
 </Base>
+
+<script>
+  import "../scripts/anchors";
+</script>

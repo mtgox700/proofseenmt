@@ -21,7 +21,29 @@ export interface Faq {
 export interface Dictionary {
   readonly meta: { readonly title: string; readonly description: string };
   readonly nav: { readonly method: string; readonly offers: string; readonly companies: string; readonly charter: string; readonly otherLang: string; readonly skip: string };
-  readonly hero: { readonly eyebrow: string; readonly title: string; readonly lead: string; readonly cta: string; readonly secondary: string; readonly note: string };
+  readonly hero: {
+    readonly eyebrow: string;
+    readonly title: string;
+    readonly lead: string;
+    readonly cta: string;
+    readonly secondary: string;
+    readonly note: string;
+    /** Live simulator (fictitious data). {hits} {n} {p} {lo} {hi} are replaced at render time. */
+    readonly sim: {
+      readonly label: string;
+      readonly tag: string;
+      readonly engine: string;
+      readonly recruiter: string;
+      readonly prompt: string;
+      readonly answer: string;
+      readonly you: string;
+      readonly outside: string;
+      readonly run: string;
+      readonly tally: string;
+      readonly estimate: string;
+      readonly summary: string;
+    };
+  };
   readonly problem: { readonly kicker: string; readonly title: string; readonly steps: readonly Step[] };
   readonly method: {
     readonly kicker: string;

@@ -22,9 +22,7 @@ export const LABELS = {
     stack: "Compétences techniques",
     missions: "Missions",
     facts: "Faits vérifiables",
-    fact: "Fait",
-    value: "Valeur",
-    source: "Source",
+    source: "Source :",
     links: "Liens",
     contact: "Contact",
     client: "Contexte",
@@ -32,6 +30,9 @@ export const LABELS = {
     role: "Rôle",
     ongoing: "aujourd'hui",
     back: "Retour au profil",
+    otherMissions: "Autres missions",
+    proof: (missions: number, facts: number) =>
+      `${missions} mission${missions > 1 ? "s" : ""} · ${facts} fait${facts > 1 ? "s" : ""} vérifiable${facts > 1 ? "s" : ""}, chacun avec sa source`,
     otherLang: "English version",
   },
   en: {
@@ -44,9 +45,7 @@ export const LABELS = {
     stack: "Technical skills",
     missions: "Missions",
     facts: "Verifiable facts",
-    fact: "Fact",
-    value: "Value",
-    source: "Source",
+    source: "Source:",
     links: "Links",
     contact: "Contact",
     client: "Context",
@@ -54,6 +53,9 @@ export const LABELS = {
     role: "Role",
     ongoing: "present",
     back: "Back to profile",
+    otherMissions: "Other missions",
+    proof: (missions: number, facts: number) =>
+      `${missions} mission${missions > 1 ? "s" : ""} · ${facts} verifiable fact${facts > 1 ? "s" : ""}, each with its source`,
     otherLang: "Version française",
   },
 } as const;
