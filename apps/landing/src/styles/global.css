@@ -59,7 +59,10 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; }
 h2 { font-size: var(--step-3); line-height: 1.02; }
 h3 { font-size: var(--step-1); line-height: 1.2; }
-p { margin: 0; text-wrap: pretty; }
+p { margin: 0; }
+/* text-wrap: pretty only where a lonely last word shows (measured 2026-09-19: on every paragraph it roughly doubled the cost of a
+   full relayout on emulated mobile). */
+.hero .lead, .section-head p { text-wrap: pretty; }
 .muted { color: var(--muted); }
 .rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
 
