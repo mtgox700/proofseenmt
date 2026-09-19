@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { IdentitySchema, ManifestSchema } from "@proofseen/core";
 import { readSealed } from "@proofseen/extract";
-import { commandExtract, commandPurge, commandReport, commandRun } from "../src/commands";
+import { commandExtract, commandHub, commandPurge, commandReport, commandRun } from "../src/commands";
 import { CliError, readJsonl, wavePaths } from "../src/files";
 import { parseManualCsv } from "../src/manual";
 import { StoredDrawSchema } from "../src/records";
@@ -81,7 +81,7 @@ describe("experiment 0 templates", () => {
 describe("sim-run --dry-run → sim-extract → sim-report", () => {
   it("runs the whole pipeline without network and writes a DRY-RUN report", async () => {
     const inputs = await writeInputs(manifest());
-    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" });
+    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false });
     const paths = wavePaths(join(dir, "runs"), "J0");
     const draws = await readJsonl(paths.draws, StoredDrawSchema);
     expect(draws).toHaveLength(3 * 3 * 2 * 3);
@@ -98,7 +98,7 @@ describe("sim-run --dry-run → sim-extract → sim-report", () => {
 
   it("never writes a third-party name to disk, even inside the sealed answers", async () => {
     const inputs = await writeInputs(manifest());
-    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" });
+    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false });
     const paths = wavePaths(join(dir, "runs"), "J0");
     const disk = await allFilesText(join(dir, "runs"));
     const draws = await readJsonl(paths.draws, StoredDrawSchema);
@@ -109,7 +109,7 @@ describe("sim-run --dry-run → sim-extract → sim-report", () => {
 
   it("resumes an interrupted wave without re-running finished draws", async () => {
     const inputs = await writeInputs(manifest());
-    const run = () => commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" });
+    const run = () => commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false });
     await run();
     await run();
     expect(await readJsonl(wavePaths(join(dir, "runs"), "J0").draws, StoredDrawSchema)).toHaveLength(54);
@@ -117,7 +117,7 @@ describe("sim-run --dry-run → sim-extract → sim-report", () => {
 
   it("stops before the budget cap", async () => {
     const inputs = await writeInputs(manifest({ costCapUsd: 0.5 }));
-    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" });
+    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false });
     const meta = JSON.parse(await readFile(wavePaths(join(dir, "runs"), "J0").wave, "utf8"));
     expect(meta.stoppedReason).toMatch(/budget cap/);
     expect(meta.draws).toBeLessThan(54);
@@ -126,7 +126,7 @@ describe("sim-run --dry-run → sim-extract → sim-report", () => {
 
   it("purges sealed answers after 72 h", async () => {
     const inputs = await writeInputs(manifest());
-    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" });
+    await commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false });
     await commandPurge({ ...common(), now: () => new Date("2026-10-01T09:00:01Z") });
     expect(await readdir(wavePaths(join(dir, "runs"), "J0").sealed)).toEqual([]);
   });
@@ -135,28 +135,61 @@ describe("sim-run --dry-run → sim-extract → sim-report", () => {
 describe("safety guards on a real wave", () => {
   it("refuses an unfrozen manifest", async () => {
     const inputs = await writeInputs(manifest());
-    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: true, extractorModel: "claude-haiku-4-5" })).rejects.toThrow(/not frozen/);
+    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: true, extractorModel: "claude-haiku-4-5", useJudge: false })).rejects.toThrow(/not frozen/);
   });
 
   it("refuses to spend without --confirm-spend", async () => {
     const inputs = await writeInputs(manifest({ frozenAt: "2026-09-27T18:00:00Z" }));
-    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: false, extractorModel: "claude-haiku-4-5" })).rejects.toThrow(/confirm-spend/);
+    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false })).rejects.toThrow(/confirm-spend/);
   });
 
   it("refuses to run without API keys", async () => {
     const inputs = await writeInputs(manifest({ frozenAt: "2026-09-27T18:00:00Z" }));
-    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: true, extractorModel: "claude-haiku-4-5" })).rejects.toThrow(/OPENAI_API_KEY is missing/);
+    await expect(commandRun({ ...common(), ...inputs, dryRun: false, confirmSpend: true, extractorModel: "claude-haiku-4-5", useJudge: false })).rejects.toThrow(/OPENAI_API_KEY is missing/);
   });
 
   it("refuses a job description that contains the client's identity", async () => {
     const m = manifest();
     const inputs = await writeInputs({ ...m, jobDescriptions: [{ ...m.jobDescriptions[0], text: "Profil type Ayoub Hammoudi recherché, Paris" }] });
-    await expect(commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" })).rejects.toBeInstanceOf(CliError);
+    await expect(commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false })).rejects.toBeInstanceOf(CliError);
   });
 
   it("explains an invalid manifest instead of crashing", async () => {
     const inputs = await writeInputs(manifest({ engines: ["gemini"] }));
-    await expect(commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5" })).rejects.toThrow(/manifest: .* is invalid/);
+    await expect(commandRun({ ...common(), ...inputs, dryRun: true, confirmSpend: false, extractorModel: "claude-haiku-4-5", useJudge: false })).rejects.toThrow(/manifest: .* is invalid/);
+  });
+});
+
+describe("hub command", () => {
+  const profile = {
+    version: 1,
+    baseUrl: "https://alex-martin.example",
+    person: {
+      name: "Alex Martin",
+      headline: { fr: "Développeur freelance", en: "Freelance developer" },
+      city: "Paris",
+      workMode: { fr: "Remote", en: "Remote" },
+      summary: { fr: "Résumé.", en: "Summary." },
+      stack: ["TypeScript"],
+      links: [],
+      contactEmail: null,
+    },
+    availability: { status: "available", from: null, updatedAt: "2026-09-18" },
+    rate: null,
+    missions: [],
+    verificationToken: null,
+  };
+
+  it("writes the static site to the output directory", async () => {
+    await writeFile(join(dir, "profile.json"), JSON.stringify(profile));
+    const paths = await commandHub({ ...common(), profilePath: join(dir, "profile.json"), outDir: join(dir, "site") });
+    expect(paths.sort()).toEqual(["en/index.html", "index.html", "robots.txt", "sitemap.xml"]);
+    expect(await readFile(join(dir, "site", "en", "index.html"), "utf8")).toContain("Freelance developer");
+  });
+
+  it("explains an invalid profile", async () => {
+    await writeFile(join(dir, "profile.json"), JSON.stringify({ ...profile, baseUrl: "http://insecure.example" }));
+    await expect(commandHub({ ...common(), profilePath: join(dir, "profile.json"), outDir: join(dir, "site") })).rejects.toThrow(/hub profile: .* is invalid/);
   });
 });
 

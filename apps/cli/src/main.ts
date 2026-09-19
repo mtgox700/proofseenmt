@@ -1,13 +1,14 @@
 import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { CliError } from "./files";
-import { commandExtract, commandPurge, commandReport, commandRun } from "./commands";
+import { commandExtract, commandHub, commandPurge, commandReport, commandRun } from "./commands";
 
 const USAGE = `Proofseen CLI (V0)
-  run      --manifest <file> --identity <file> [--dry-run | --confirm-spend] [--extractor-model claude-haiku-4-5]
+  run      --manifest <file> --identity <file> [--dry-run | --confirm-spend] [--judge] [--extractor-model claude-haiku-4-5]
   extract  --identity <file> --wave <id>
   report   --wave <id> [--baseline <id>] [--manual <csv>] [--report-dir report]
   purge
+  hub      --profile <file> [--out hub-dist]
 Common: [--runs-dir runs]`;
 
 const main = async (argv: readonly string[]): Promise<void> => {
@@ -20,10 +21,13 @@ const main = async (argv: readonly string[]): Promise<void> => {
       wave: { type: "string" },
       baseline: { type: "string" },
       manual: { type: "string" },
+      profile: { type: "string" },
+      out: { type: "string", default: "hub-dist" },
       "runs-dir": { type: "string", default: "runs" },
       "report-dir": { type: "string", default: "report" },
       "dry-run": { type: "boolean", default: false },
       "confirm-spend": { type: "boolean", default: false },
+      judge: { type: "boolean", default: false },
       "extractor-model": { type: "string", default: "claude-haiku-4-5" },
     },
   });
@@ -49,6 +53,7 @@ const main = async (argv: readonly string[]): Promise<void> => {
         dryRun: values["dry-run"],
         confirmSpend: values["confirm-spend"],
         extractorModel: values["extractor-model"],
+        useJudge: values.judge,
       });
     case "extract":
       return commandExtract({ ...common, identityPath: need("identity", values.identity), waveId: need("wave", values.wave) });
@@ -57,6 +62,9 @@ const main = async (argv: readonly string[]): Promise<void> => {
       return;
     case "purge":
       return commandPurge(common);
+    case "hub":
+      await commandHub({ ...common, profilePath: need("profile", values.profile), outDir: values.out });
+      return;
     default:
       throw new CliError(USAGE);
   }

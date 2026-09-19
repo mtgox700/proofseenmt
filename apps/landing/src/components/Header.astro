@@ -1,0 +1,23 @@
+---
+import Logo from "./Logo.astro";
+import { pathFor, type Dictionary, type Locale } from "../i18n";
+
+interface Props {
+  readonly locale: Locale;
+  readonly t: Dictionary;
+}
+const { locale, t } = Astro.props;
+const other: Locale = locale === "fr" ? "en" : "fr";
+---
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href={pathFor(locale)} aria-label="Proofseen"><Logo /> Proofseen</a>
+    <nav class="nav" aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
+      <a href="#methode">{t.nav.method}</a>
+      <a href="#offres">{t.nav.offers}</a>
+      <a href="#entreprises">{t.nav.companies}</a>
+      <a href="#charte">{t.nav.charter}</a>
+      <a class="lang" href={pathFor(other)} hreflang={other} lang={other}>{t.nav.otherLang}</a>
+    </nav>
+  </div>
+</header>

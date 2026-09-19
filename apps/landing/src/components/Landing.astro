@@ -1,0 +1,126 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "./Header.astro";
+import Hero from "./Hero.astro";
+import ReportPreview from "./ReportPreview.astro";
+import { CONTACT_EMAIL, DICTIONARIES, PRESALE_OPEN, type Locale } from "../i18n";
+
+interface Props {
+  readonly locale: Locale;
+}
+const { locale } = Astro.props;
+const t = DICTIONARIES[locale];
+---
+<Base locale={locale} t={t}>
+  <Header locale={locale} t={t} />
+  <main id="main">
+    <Hero t={t} />
+
+    <section class="section" aria-labelledby="problem-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.problem.kicker}</p>
+          <h2 id="problem-title">{t.problem.title}</h2>
+        </div>
+        <ol class="steps" role="list">
+          {t.problem.steps.map((s) => (
+            <li class="step reveal"><h3>{s.title}</h3><p>{s.text}</p></li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="methode" aria-labelledby="method-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.method.kicker}</p>
+          <h2 id="method-title">{t.method.title}</h2>
+        </div>
+        <div class="method-grid">
+          <ol class="steps" role="list">
+            {t.method.steps.map((s) => (
+              <li class="step reveal"><h3>{s.title}</h3><p>{s.text}</p></li>
+            ))}
+          </ol>
+          <ReportPreview t={t} />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="proof-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.proof.kicker}</p>
+          <h2 id="proof-title">{t.proof.title}</h2>
+        </div>
+        <dl class="facts">
+          {t.proof.facts.map((f) => (
+            <div class="fact reveal"><dt><b>{f.value}</b></dt><dd class="muted">{f.label}</dd></div>
+          ))}
+        </dl>
+      </div>
+    </section>
+
+    <section class="section" id="offres" aria-labelledby="offers-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.offers.kicker}</p>
+          <h2 id="offers-title">{t.offers.title}</h2>
+        </div>
+        <div class="offers">
+          {t.offers.list.map((o) => (
+            <article class="offer reveal">
+              <h3>{o.name}</h3>
+              <p class="price">{o.price}<small>{o.unit}</small></p>
+              <ul role="list">{o.items.map((i) => <li>{i}</li>)}</ul>
+              {PRESALE_OPEN
+                ? <a class="btn btn-primary" href="#offres">{o.name} <span class="arrow" aria-hidden="true">→</span></a>
+                : <button type="button" class="btn btn-ghost" disabled>{t.offers.closed}</button>}
+            </article>
+          ))}
+        </div>
+        <p class="offers-legal">{t.offers.legal}</p>
+      </div>
+    </section>
+
+    <section class="section companies" id="entreprises" aria-labelledby="companies-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.companies.kicker}</p>
+          <h2 id="companies-title">{t.companies.title}</h2>
+          <p class="muted">{t.companies.text}</p>
+        </div>
+        <ul class="points" role="list">{t.companies.points.map((p) => <li class="reveal">{p}</li>)}</ul>
+        {CONTACT_EMAIL === null
+          ? <button type="button" class="btn" disabled>{t.companies.cta}</button>
+          : <a class="btn" href={`mailto:${CONTACT_EMAIL}`}>{t.companies.cta} <span class="arrow" aria-hidden="true">→</span></a>}
+      </div>
+    </section>
+
+    <section class="section" id="charte" aria-labelledby="charter-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.charter.kicker}</p>
+          <h2 id="charter-title">{t.charter.title}</h2>
+        </div>
+        <div class="charter">
+          {t.charter.items.map((c) => (
+            <div class="reveal"><h3>{c.title}</h3><p class="muted">{c.text}</p></div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq" aria-labelledby="faq-title">
+      <div class="wrap">
+        <div class="section-head reveal"><h2 id="faq-title">{t.faq.title}</h2></div>
+        {t.faq.items.map((f) => (
+          <details><summary>{f.q}</summary><p>{f.a}</p></details>
+        ))}
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap"><p>{t.footer.line}</p><p>{t.footer.legal}</p></div>
+  </footer>
+</Base>

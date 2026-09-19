@@ -1,0 +1,57 @@
+---
+import newsreaderLatin from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
+import newsreaderExt from "@fontsource-variable/newsreader/files/newsreader-latin-ext-wght-normal.woff2?url";
+import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import interExt from "@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url";
+import "../styles/global.css";
+import { pathFor, type Dictionary, type Locale } from "../i18n";
+
+interface Props {
+  readonly locale: Locale;
+  readonly t: Dictionary;
+}
+const { locale, t } = Astro.props;
+const site = Astro.site?.toString().replace(/\/$/, "") ?? "";
+const canonical = `${site}${pathFor(locale)}`;
+const LATIN = "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD";
+const EXT = "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF";
+const face = (family: string, src: string, range: string, weight: string) =>
+  `@font-face{font-family:"${family}";src:url(${src}) format("woff2");font-weight:${weight};font-style:normal;font-display:swap;unicode-range:${range}}`;
+const fonts = [
+  face("Newsreader", newsreaderLatin, LATIN, "200 800"),
+  face("Newsreader", newsreaderExt, EXT, "200 800"),
+  face("Inter", interLatin, LATIN, "100 900"),
+  face("Inter", interExt, EXT, "100 900"),
+  // Metric-matched fallbacks (capsize metrics, next/font method): the swap to the web font moves nothing (CLS 0 by
+  // construction, even on a slow network). Newsreader 500 is the heading weight; values computed on 2026-09-19.
+  `@font-face{font-family:"Newsreader Fallback";src:local("Georgia");size-adjust:98.36%;ascent-override:74.72%;descent-override:26.94%;line-gap-override:0%}`,
+  `@font-face{font-family:"Inter Fallback";src:local("Arial");size-adjust:107.12%;ascent-override:90.44%;descent-override:22.52%;line-gap-override:0%}`,
+].join("");
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="fr" href={`${site}/`} />
+    <link rel="alternate" hreflang="en" href={`${site}/en/`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <style set:html={fonts}></style>
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.nav.skip}</a>
+    <slot />
+  </body>
+</html>

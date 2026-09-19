@@ -1,0 +1,103 @@
+---
+import type { Dictionary } from "../i18n";
+
+interface Props {
+  readonly t: Dictionary;
+}
+const { t } = Astro.props;
+// Emphasis on the question after the comma; a title without comma renders plain (no hard-coded punctuation).
+const comma = t.hero.title.indexOf(",");
+const before = comma < 0 ? t.hero.title : t.hero.title.slice(0, comma);
+const after = comma < 0 ? null : t.hero.title.slice(comma + 1).trim();
+---
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-field" data-field aria-hidden="true">
+    <div class="poster"></div>
+    <div class="poster-signal"><span class="dot"></span><span class="range"></span></div>
+    <canvas></canvas>
+    <div class="bracket"><span></span></div>
+  </div>
+  <div class="wrap">
+    <p class="signal"><i></i>{t.hero.eyebrow}</p>
+    <h1 id="hero-title">{after === null ? before : <Fragment>{before},{" "}<em>{after}</em></Fragment>}</h1>
+    <p class="lead">{t.hero.lead}</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#methode">{t.hero.cta} <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="btn btn-ghost" href="#offres">{t.hero.secondary}</a>
+    </div>
+    <p class="note">{t.hero.note}</p>
+  </div>
+</section>
+
+<script>
+  import "../scripts/field";
+</script>
+
+<style>
+  /* CSS-only signal (phones, reduced data, no WebGL): same story, zero main-thread cost. Hidden once WebGL is live. */
+  .poster-signal {
+    position: absolute;
+    left: 78%;
+    top: 74%;
+    width: 0;
+    height: 0;
+    transition: opacity 600ms var(--ease);
+  }
+  .hero-field:has(canvas.is-live) .poster-signal {
+    opacity: 0;
+  }
+  .poster-signal .dot {
+    position: absolute;
+    left: -0.45rem;
+    top: -0.45rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: var(--proof);
+    box-shadow: 0 0 1.4rem color-mix(in srgb, var(--proof) 60%, transparent);
+    animation: seen 1.4s var(--ease) 0.9s both;
+  }
+  .poster-signal .range {
+    position: absolute;
+    left: -1.8rem;
+    top: -0.75rem;
+    width: 3.6rem;
+    height: 1.5rem;
+    border-inline: 2px solid var(--proof);
+    animation: framed 1.2s var(--ease) 1.6s both;
+  }
+  @keyframes seen {
+    from { opacity: 0; transform: scale(0.2); }
+  }
+  @keyframes framed {
+    from { opacity: 0; transform: scaleX(2.2); }
+  }
+
+  /* Interval brackets that frame the proof point (moved with transform only: composited). */
+  .bracket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  .bracket span {
+    position: absolute;
+    left: -1.6rem;
+    top: -0.7rem;
+    width: 3.2rem;
+    height: 1.4rem;
+    border-inline: 2px solid var(--proof);
+  }
+  .bracket span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1px solid color-mix(in srgb, var(--proof) 60%, transparent);
+  }
+</style>

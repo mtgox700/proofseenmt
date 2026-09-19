@@ -6,6 +6,7 @@ export default defineConfig({
     // End-to-end CLI tests write dozens of encrypted files; Windows + coverage instrumentation needs headroom.
     testTimeout: 60_000,
     include: ["packages/*/test/**/*.test.ts", "apps/*/test/**/*.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**"],
     coverage: {
       provider: "v8",
       include: ["packages/*/src/**/*.ts", "apps/*/src/**/*.ts"],
@@ -14,6 +15,7 @@ export default defineConfig({
       thresholds: {
         "packages/stats/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
         "packages/extract/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
+        "packages/hub/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
       },
     },
   },

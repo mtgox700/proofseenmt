@@ -24,6 +24,8 @@ export interface RunOptions {
   readonly dryRun: boolean;
   readonly adapters: Readonly<Partial<Record<EngineId, EngineAdapter>>>;
   readonly extract: ExtractFn;
+  /** Optional judge for name-only matches (--judge); rare calls, cost folded into the extractor estimate. */
+  readonly judge?: ExtractFn | undefined;
   readonly key: Buffer;
   readonly now: () => Date;
   readonly log: (message: string) => void;
@@ -77,7 +79,7 @@ const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: E
   const prompt = renderPrompt(step.prompt, { jd: sanitizeJobDescription(step.jd.text), brief: step.jd.brief });
   try {
     const answer = await adapter.runDraw(prompt);
-    const analysis = await analyzeAnswer({ answer, identity: opts.identity, extract: opts.extract });
+    const analysis = await analyzeAnswer({ answer, identity: opts.identity, extract: opts.extract, judge: opts.judge });
     await writeSealed(paths.sealed, id, analysis.maskedText, opts.key, opts.now());
     if (analysis.outcome.match !== null) {
       await appendJsonl(paths.matches, { drawId: id, identityId: opts.identity.id, ...analysis.outcome.match });

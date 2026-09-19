@@ -23,3 +23,5 @@ report/
 Thumbs.db
 .vscode/
 .idea/
+hub-dist/
+.astro/

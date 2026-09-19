@@ -1,0 +1,70 @@
+---
+import type { Dictionary } from "../i18n";
+
+interface Props {
+  readonly t: Dictionary;
+}
+const { t } = Astro.props;
+
+/** FICTITIOUS values for the illustration only (value, low, high in %) — labelled as such on the page. */
+const DATA: readonly (readonly (readonly [number, number, number])[])[] = [
+  [[92, 84, 97], [58, 46, 69], [34, 24, 45], [22, 14, 32], [12, 6, 20]],
+  [[92, 84, 97], [41, 30, 53], [19, 11, 29], [11, 5, 20], [6, 2, 14]],
+  [[92, 84, 97], [27, 18, 38], [9, 4, 18], [4, 1, 11], [3, 1, 10]],
+];
+const ids = ["eng-a", "eng-b", "eng-c"] as const;
+const panels = ["panel-a", "panel-b", "panel-c"] as const;
+// The CSS panel switch is keyed on these three ids: fail the BUILD, not the page, if the copy drifts.
+if (t.method.preview.engines.length !== DATA.length || DATA.some((rows) => rows.length !== t.method.preview.stages.length)) {
+  throw new Error("ReportPreview: engines/stages in the dictionary must match the illustrative DATA (3 engines × 5 stages)");
+}
+---
+<figure class="report reveal" aria-labelledby="report-caption">
+  <div class="report-head">
+    <strong id="report-caption">{t.method.preview.caption}</strong>
+    <span class="legend-tag">{t.method.preview.legend}</span>
+  </div>
+  <fieldset class="tabs">
+    <legend class="sr-only">{t.method.preview.caption}</legend>
+    {t.method.preview.engines.map((name, i) => (
+      <Fragment>
+        <input type="radio" name="engine" id={ids[i]} checked={i === 0} />
+        <label for={ids[i]}>{name}</label>
+      </Fragment>
+    ))}
+  </fieldset>
+  {/* No aria-live: panels switch in CSS (no DOM mutation). The native radio group ("1 of 3", arrow keys) is the accessible control. */}
+  <div>
+  {DATA.map((rows, e) => (
+    <div class={`panel ${panels[e]}`}>
+      {rows.map(([v, lo, hi], s) => (
+        <div class="bar">
+          <span>{t.method.preview.stages[s]}</span>
+          <span class="track" style={`--v:${v}%;--lo:${lo}%;--hi:${hi}%`} role="img" aria-label={`${t.method.preview.stages[s]} : ${v} % (${lo}–${hi} %)`}>
+            <span class="fill"></span>
+            <span class="ci"></span>
+          </span>
+          <output>{v} %</output>
+        </div>
+      ))}
+    </div>
+  ))}
+  </div>
+  <figcaption class="report-foot">{t.method.preview.score}</figcaption>
+</figure>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  fieldset {
+    border: 0;
+    margin: 0 0 1.4rem;
+    padding: 0;
+  }
+</style>

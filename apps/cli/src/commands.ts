@@ -13,6 +13,7 @@ import {
   type Transport,
 } from "@proofseen/engines";
 import { parseKey, purgeExpired, type ExtractFn } from "@proofseen/extract";
+import { buildSite, HubProfileSchema } from "@proofseen/hub";
 import { CliError, loadJson, readJsonl, sha256File, wavePaths, writeText } from "./files";
 import { loadManualCsv } from "./manual";
 import { RescoreRecordSchema, StoredDrawSchema, WaveMetaSchema } from "./records";
@@ -53,6 +54,7 @@ export interface RunCommand extends CommonOptions {
   readonly dryRun: boolean;
   readonly confirmSpend: boolean;
   readonly extractorModel: string;
+  readonly useJudge: boolean;
 }
 
 export const commandRun = async (o: RunCommand): Promise<void> => {
@@ -64,6 +66,7 @@ export const commandRun = async (o: RunCommand): Promise<void> => {
 
   let adapters: Partial<Record<EngineId, EngineAdapter>>;
   let extract: ExtractFn;
+  let judge: ExtractFn | undefined;
   let key: Buffer;
   if (o.dryRun) {
     const transport = createSimulatedTransport(identity, 20260928);
@@ -76,6 +79,7 @@ export const commandRun = async (o: RunCommand): Promise<void> => {
     key = parseKey(o.env.PROOFSEEN_ENC_KEY);
     adapters = buildAdapters(manifest, fetchTransport, (e) => requireEnv(o.env, ENV_KEYS[e]));
     extract = createToolFreeCompletion({ apiKey: requireEnv(o.env, "ANTHROPIC_API_KEY"), model: o.extractorModel, transport: fetchTransport });
+    judge = o.useJudge ? extract : undefined;
   }
 
   const meta = await runWave({
@@ -86,6 +90,7 @@ export const commandRun = async (o: RunCommand): Promise<void> => {
     dryRun: o.dryRun,
     adapters,
     extract,
+    judge,
     key,
     now: o.now,
     log: o.log,
@@ -133,6 +138,20 @@ export const commandReport = async (o: ReportCommand): Promise<string> => {
   await writeText(out, renderReport(data));
   o.log(`Report written: ${out}`);
   return out;
+};
+
+export interface HubCommand extends CommonOptions {
+  readonly profilePath: string;
+  readonly outDir: string;
+}
+
+/** Generates the static hub (A1-A2). Local files only: publishing is the founder's call, after the API baseline. */
+export const commandHub = async (o: HubCommand): Promise<string[]> => {
+  const profile = await loadJson(o.profilePath, HubProfileSchema, "hub profile");
+  const files = buildSite(profile);
+  await Promise.all(files.map((f) => writeText(join(o.outDir, ...f.path.split("/")), f.content)));
+  o.log(`Hub written to ${o.outDir}: ${files.length} files (${files.filter((f) => f.path.endsWith(".html")).length} pages, no JavaScript).`);
+  return files.map((f) => f.path);
 };
 
 export const commandPurge = async (o: CommonOptions): Promise<void> => {
