@@ -15,7 +15,7 @@ import {
 import { parseKey, purgeExpired, type ExtractFn } from "@proofseen/extract";
 import { buildSite, HubProfileSchema } from "@proofseen/hub";
 import { CliError, loadJson, readJsonl, sha256File, wavePaths, writeText } from "./files";
-import { loadManualCsv } from "./manual";
+import { checkManualSample, loadManualCsv } from "./manual";
 import { RescoreRecordSchema, StoredDrawSchema, WaveMetaSchema } from "./records";
 import { buildReportData, type WaveData } from "./report-data";
 import { renderReport } from "./report-md";
@@ -152,6 +152,15 @@ export const commandHub = async (o: HubCommand): Promise<string[]> => {
   await Promise.all(files.map((f) => writeText(join(o.outDir, ...f.path.split("/")), f.content)));
   o.log(`Hub written to ${o.outDir}: ${files.length} files (${files.filter((f) => f.path.endsWith(".html")).length} pages, no JavaScript).`);
   return files.map((f) => f.path);
+};
+
+/** Validates the hand-filled manual sample on its own (usable before the wave exists): exits 1 on any protocol problem. */
+export const commandCheckManual = async (o: Pick<CommonOptions, "log"> & { readonly manualPath: string }): Promise<void> => {
+  const { problems, summary } = checkManualSample(await loadManualCsv(o.manualPath));
+  const apps = Object.entries(summary.byApp).map(([app, n]) => `${app} ${n}`).join(", ");
+  o.log(`${summary.total} rows · client present in ${summary.present} · ${apps || "no app"}`);
+  if (problems.length > 0) throw new CliError([`manual sample: ${problems.length} problem(s)`, ...problems.map((p) => `- ${p}`)].join("\n"));
+  o.log("manual sample OK");
 };
 
 export const commandPurge = async (o: CommonOptions): Promise<void> => {

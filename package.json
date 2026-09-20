@@ -16,6 +16,7 @@
     "sim:extract": "tsx apps/cli/src/main.ts extract",
     "sim:report": "tsx apps/cli/src/main.ts report",
     "sim:purge": "tsx apps/cli/src/main.ts purge",
+    "sim:check-manual": "tsx apps/cli/src/main.ts check-manual",
     "hub:build": "tsx apps/cli/src/main.ts hub",
     "landing:build": "pnpm --filter @proofseen/landing build:site",
     "landing:dev": "pnpm --filter @proofseen/landing dev",

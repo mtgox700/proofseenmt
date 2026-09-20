@@ -7,7 +7,7 @@ import { IdentitySchema, ManifestSchema } from "@proofseen/core";
 import { readSealed } from "@proofseen/extract";
 import { commandExtract, commandHub, commandPurge, commandReport, commandRun } from "../src/commands";
 import { CliError, readJsonl, wavePaths } from "../src/files";
-import { parseManualCsv } from "../src/manual";
+import { checkManualSample, parseManualCsv } from "../src/manual";
 import { StoredDrawSchema } from "../src/records";
 
 const TEMPLATES = join(__dirname, "..", "..", "..", ".war-room", "experiment0", "templates");
@@ -205,5 +205,46 @@ describe("manual sample CSV", () => {
   it("rejects free text in notes and a wrong header", () => {
     expect(() => parseManualCsv(`${header}\nJ0,T01,chatgpt,2026-09-28T14:05Z,true,false,,Jean Dupont cité`)).toThrow(CliError);
     expect(() => parseManualCsv("a,b\n1,2")).toThrow(/header/);
+  });
+
+  it("reads a file saved by a French Excel: BOM, semicolons, CRLF, quoted field, VRAI/FAUX", () => {
+    const excel =
+      "﻿" +
+      header.replaceAll(",", ";") +
+      "\r\nJ0;T01;chatgpt;2026-09-28T14:05Z;VRAI;FAUX;;\"h0=nomme;src=malt\"\r\nJ0;T02;claude;2026-09-28T14:20Z;faux;vrai;2;\r\n";
+    const rows = parseManualCsv(excel);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ logged_out: "true", client_present: "false", notes_sans_nom: "h0=nomme;src=malt" });
+    expect(rows[1]).toMatchObject({ logged_out: "false", client_present: "true", client_rank: "2" });
+  });
+
+  it("accepts oui/non and 1/0 for yes-no columns, and a quoted field without separator", () => {
+    const rows = parseManualCsv(`${header}\nJ0,T01,perplexity,2026-09-28T15:00Z,oui,0,,"a=b"\nJ0,T01,copilot,2026-09-28T15:05Z,NON,1,1,`);
+    expect(rows.map((r) => [r.logged_out, r.client_present])).toEqual([
+      ["true", "false"],
+      ["false", "true"],
+    ]);
+  });
+
+  it("checks the protocol rules of a manual sample and summarises it", () => {
+    const ok = parseManualCsv(`${header}\nJ0,T01,chatgpt,d,true,true,2,\nJ0,T01,claude,d,true,false,,\nJ0,T02,chatgpt,d,true,false,,`);
+    const good = checkManualSample(ok, 3);
+    expect(good.problems).toEqual([]);
+    expect(good.summary).toEqual({ total: 3, present: 1, byApp: { chatgpt: 2, claude: 1 } });
+
+    const bad = parseManualCsv(
+      `${header}\nJ0,T01,chatgpt,d,true,true,,\nJ0,T01,chatgpt,d,true,false,3,\nJ1,T02,claude,d,true,false,,`,
+    );
+    const problems = checkManualSample(bad, 50).problems.join("\n");
+    expect(problems).toMatch(/line 2: client_rank is required/);
+    expect(problems).toMatch(/line 3: client_rank must be empty/);
+    expect(problems).toMatch(/line 3: duplicate J0 × T01 × chatgpt/);
+    expect(problems).toMatch(/several waves: J0, J1/);
+    expect(problems).toMatch(/3 rows, 50 expected/);
+  });
+
+  it("gives a precise error for a broken line instead of guessing", () => {
+    expect(() => parseManualCsv(`${header}\nJ0,T01,chatgpt,2026-09-28T14:05Z,true,false,,"unclosed`)).toThrow(/line 2/);
+    expect(() => parseManualCsv(`${header}\nJ0,T01,chatgpt,2026-09-28T14:05Z,peut-être,false,,`)).toThrow(/line 2/);
   });
 });

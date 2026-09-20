@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { CliError } from "./files";
-import { commandExtract, commandHub, commandPurge, commandReport, commandRun } from "./commands";
+import { commandCheckManual, commandExtract, commandHub, commandPurge, commandReport, commandRun } from "./commands";
 
 const USAGE = `Proofseen CLI (V0)
   run      --manifest <file> --identity <file> [--dry-run | --confirm-spend] [--judge] [--extractor-model claude-haiku-4-5]
   extract  --identity <file> --wave <id>
   report   --wave <id> [--baseline <id>] [--manual <csv>] [--report-dir report]
+  check-manual --manual <csv>
   purge
   hub      --profile <file> [--out hub-dist]
 Common: [--runs-dir runs]`;
@@ -60,6 +61,8 @@ const main = async (argv: readonly string[]): Promise<void> => {
     case "report":
       await commandReport({ ...common, waveId: need("wave", values.wave), baselineWaveId: values.baseline, manualPath: values.manual, reportDir: values["report-dir"] });
       return;
+    case "check-manual":
+      return commandCheckManual({ log: common.log, manualPath: need("manual", values.manual) });
     case "purge":
       return commandPurge(common);
     case "hub":

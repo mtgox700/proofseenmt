@@ -16,18 +16,91 @@ export const ManualRowSchema = z.object({
 export type ManualRow = z.infer<typeof ManualRowSchema>;
 
 const COLUMNS = ["wave_id", "jd_id", "app", "date_utc", "logged_out", "client_present", "client_rank", "notes_sans_nom"] as const;
+const YES_NO_COLUMNS = new Set<string>(["logged_out", "client_present"]);
+
+/**
+ * The file is filled by hand, often in a spreadsheet. A French Excel saves with ";" and a UTF-8 BOM, quotes any field
+ * containing the separator, and turns typed booleans into VRAI/FAUX. All of that is accepted; anything else fails loudly.
+ */
+const YES = new Set(["true", "vrai", "oui", "yes", "1"]);
+const NO = new Set(["false", "faux", "non", "no", "0"]);
+const yesNo = (value: string): string => {
+  const v = value.toLowerCase();
+  if (YES.has(v)) return "true";
+  if (NO.has(v)) return "false";
+  return value; // left as is: the schema rejects it with the line number
+};
+
+/** Splits one CSV record (RFC 4180 quoting). Returns null when a quoted field is never closed. */
+const splitRecord = (line: string, separator: string): string[] | null => {
+  const fields: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const c = line[i]!;
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') {
+        field += '"';
+        i += 1;
+      } else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"' && field === "") quoted = true;
+    else if (c === separator) {
+      fields.push(field);
+      field = "";
+    } else field += c;
+  }
+  if (quoted) return null;
+  fields.push(field);
+  return fields;
+};
 
 export const parseManualCsv = (content: string): ManualRow[] => {
-  const lines = content.split(/\r?\n/).filter((l) => l.trim() !== "");
+  const lines = content
+    .replace(/^\uFEFF/u, "") // escaped, never a literal BOM in the source
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== "");
   if (lines.length === 0) return [];
-  if (lines[0]!.trim() !== COLUMNS.join(",")) throw new CliError(`manual sample: header must be ${COLUMNS.join(",")}`);
+  const head = lines[0]!.trim();
+  const separator = [",", ";"].find((s) => head === COLUMNS.join(s));
+  if (separator === undefined) throw new CliError(`manual sample: header must be ${COLUMNS.join(",")} (or the same with ";")`);
   return lines.slice(1).map((line, i) => {
-    const fields = line.split(",");
-    if (fields.length !== COLUMNS.length) throw new CliError(`manual sample: line ${i + 2} must have ${COLUMNS.length} fields`);
-    const parsed = ManualRowSchema.safeParse(Object.fromEntries(COLUMNS.map((c, j) => [c, fields[j]!.trim()])));
-    if (!parsed.success) throw new CliError(`manual sample: line ${i + 2}: ${parsed.error.issues[0]?.message ?? "invalid"}`);
+    const at = `manual sample: line ${i + 2}`;
+    const fields = splitRecord(line, separator);
+    if (fields === null) throw new CliError(`${at}: a quoted field is not closed`);
+    if (fields.length !== COLUMNS.length) throw new CliError(`${at} must have ${COLUMNS.length} fields, found ${fields.length}`);
+    const record = Object.fromEntries(COLUMNS.map((c, j) => [c, YES_NO_COLUMNS.has(c) ? yesNo(fields[j]!.trim()) : fields[j]!.trim()]));
+    const parsed = ManualRowSchema.safeParse(record);
+    if (!parsed.success) throw new CliError(`${at}: ${parsed.error.issues[0]?.path.join(".") ?? ""} ${parsed.error.issues[0]?.message ?? "invalid"}`.trim());
     return parsed.data;
   });
+};
+
+/** 10 target JDs × 5 apps on J0 (PROTOCOLE_ECHANTILLON_MANUEL.md §5). */
+export const EXPECTED_MANUAL_ROWS = 50;
+
+export interface ManualCheck {
+  readonly problems: readonly string[];
+  readonly summary: { readonly total: number; readonly present: number; readonly byApp: Readonly<Record<string, number>> };
+}
+
+/** Protocol rules the schema alone cannot see. Line numbers match the file (header = line 1). */
+export const checkManualSample = (rows: readonly ManualRow[], expected = EXPECTED_MANUAL_ROWS): ManualCheck => {
+  const problems: string[] = [];
+  const seen = new Set<string>();
+  rows.forEach((r, i) => {
+    const at = `line ${i + 2}`;
+    if (r.client_present === "true" && r.client_rank === "") problems.push(`${at}: client_rank is required when client_present=true`);
+    if (r.client_present === "false" && r.client_rank !== "") problems.push(`${at}: client_rank must be empty when client_present=false`);
+    const key = `${r.wave_id} × ${r.jd_id} × ${r.app}`;
+    if (seen.has(key)) problems.push(`${at}: duplicate ${key}`);
+    seen.add(key);
+  });
+  const waves = [...new Set(rows.map((r) => r.wave_id))];
+  if (waves.length > 1) problems.push(`several waves: ${waves.join(", ")} (one file per wave)`);
+  if (rows.length !== expected) problems.push(`${rows.length} rows, ${expected} expected`);
+  const byApp = rows.reduce<Record<string, number>>((acc, r) => ({ ...acc, [r.app]: (acc[r.app] ?? 0) + 1 }), {});
+  return { problems, summary: { total: rows.length, present: rows.filter((r) => r.client_present === "true").length, byApp } };
 };
 
 export const loadManualCsv = async (path: string): Promise<ManualRow[]> => {
