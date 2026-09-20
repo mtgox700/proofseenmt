@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { z } from "zod";
+import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { IdentitySchema, ManifestSchema, MatchSchema, type EngineId, type Identity, type Manifest } from "@proofseen/core";
@@ -13,9 +15,11 @@ import {
   type Transport,
 } from "@proofseen/engines";
 import { parseKey, purgeExpired, type ExtractFn } from "@proofseen/extract";
-import { buildSite, HubProfileSchema } from "@proofseen/hub";
+import { buildSite, HubProfileSchema, urlsToFetch, verifyHub, type Fetched } from "@proofseen/hub";
+import { PrivateIdentitySchema, assertNoLeaks, buildProfilesSite, buildPublicProfile, reidentificationRisk } from "@proofseen/profiles";
 import { CliError, loadJson, readJsonl, sha256File, wavePaths, writeText } from "./files";
 import { checkManualSample, loadManualCsv } from "./manual";
+import { preflight } from "./preflight";
 import { RescoreRecordSchema, StoredDrawSchema, WaveMetaSchema } from "./records";
 import { buildReportData, type WaveData } from "./report-data";
 import { renderReport } from "./report-md";
@@ -154,6 +158,63 @@ export const commandHub = async (o: HubCommand): Promise<string[]> => {
   return files.map((f) => f.path);
 };
 
+export interface HubVerifyCommand extends Pick<CommonOptions, "log"> {
+  readonly profilePath: string;
+  readonly timeoutMs: number;
+}
+
+/** Checks the DEPLOYED hub as a crawler sees it: raw HTML, no JavaScript executed (ROADMAP S2, definition of done). */
+export const commandHubVerify = async (o: HubVerifyCommand): Promise<void> => {
+  const profile = await loadJson(o.profilePath, HubProfileSchema, "hub profile");
+  const urls = urlsToFetch(profile);
+  o.log(`Fetching ${urls.length} URLs from ${profile.baseUrl} (no JavaScript, like a crawler)…`);
+  const responses = new Map<string, Fetched>();
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(o.timeoutMs) });
+      responses.set(url, { status: response.status, body: await response.text(), contentType: response.headers.get("content-type") ?? "" });
+    } catch {
+      responses.set(url, { status: 0, body: "", contentType: "" }); // unreachable: reported as a failed check, never as a crash
+    }
+  }
+  const report = verifyHub(profile, (url) => responses.get(url) ?? { status: 404, body: "", contentType: "" });
+  const mark = { ok: "[ ok ]", warn: "[warn]", fail: "[FAIL]" };
+  report.checks.forEach((c) => o.log(`${mark[c.status]} ${c.name}: ${c.detail}`));
+  if (!report.ok) throw new CliError("the deployed hub does not meet the definition of done (see the [FAIL] lines).");
+  o.log("Deployed hub OK: an AI crawler reads the whole text without running any script.");
+};
+const ProfilesInputSchema = z.object({
+  baseUrl: z.url({ protocol: /^https$/ }).refine((u) => !u.endsWith("/"), "baseUrl ne doit pas finir par /"),
+  entries: z
+    .array(z.object({ identity: PrivateIdentitySchema, profile: z.unknown() }))
+    .min(1)
+    .max(500),
+});
+
+export interface ProfilesCommand extends CommonOptions {
+  readonly inputPath: string;
+  readonly outDir: string;
+}
+
+/**
+ * Builds the public pseudonymous site. Three gates before anything is written: the Identity Firewall on each draft,
+ * the re-identification risk on each profile, and a final sweep of every produced file against every private identity.
+ */
+export const commandProfiles = async (o: ProfilesCommand): Promise<string[]> => {
+  const input = await loadJson(o.inputPath, ProfilesInputSchema, "profils");
+  const profiles = input.entries.map((entry) => buildPublicProfile(entry.identity, entry.profile));
+  profiles.forEach((profile) => {
+    const risk = reidentificationRisk(profile);
+    o.log(`${profile.id} — risque de ré-identification ${risk.score}/100${risk.blocking ? " (BLOQUANT)" : ""}`);
+    risk.reasons.forEach((r) => o.log(`    ${r.signal} (+${r.points}) : ${r.detail}`));
+    risk.suggestions.forEach((s) => o.log(`    → ${s}`));
+  });
+  const files = buildProfilesSite(profiles, { baseUrl: input.baseUrl });
+  assertNoLeaks(input.entries.map((entry) => entry.identity), files);
+  await Promise.all(files.map((f) => writeText(join(o.outDir, ...f.path.split("/")), f.content)));
+  o.log(`Site public écrit dans ${o.outDir} : ${files.length} fichiers (${files.filter((f) => f.path.endsWith(".html")).length} pages, aucun JavaScript).`);
+  return files.map((f) => f.path);
+};
 /** Validates the hand-filled manual sample on its own (usable before the wave exists): exits 1 on any protocol problem. */
 export const commandCheckManual = async (o: Pick<CommonOptions, "log"> & { readonly manualPath: string }): Promise<void> => {
   const { problems, summary } = checkManualSample(await loadManualCsv(o.manualPath));
@@ -163,6 +224,17 @@ export const commandCheckManual = async (o: Pick<CommonOptions, "log"> & { reado
   o.log("manual sample OK");
 };
 
+/** Dry check of everything that could sink a real wave. Reads the env only to say whether a key is present. */
+export const commandPreflight = async (o: CommonOptions & { readonly manifestPath: string; readonly identityPath: string }): Promise<void> => {
+  const manifest = await loadJson(o.manifestPath, ManifestSchema, "manifest");
+  const identity: Identity = await loadJson(o.identityPath, IdentitySchema, "identity");
+  const report = preflight({ manifest, identity, env: o.env, waveExists: existsSync(join(o.runsDir, manifest.waveId)), now: o.now() });
+  const mark = { ok: "[ ok ]", warn: "[warn]", fail: "[FAIL]" };
+  report.checks.forEach((c) => o.log(`${mark[c.status]} ${c.name}: ${c.detail}`));
+  o.log(`manifest sha256 ${await sha256File(o.manifestPath)}`);
+  if (!report.go) throw new CliError("NO-GO: fix the [FAIL] lines above before spending.");
+  o.log("GO: sim:run --confirm-spend can be launched.");
+};
 export const commandPurge = async (o: CommonOptions): Promise<void> => {
   let waves: string[];
   try {

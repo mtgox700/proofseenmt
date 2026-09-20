@@ -16,6 +16,8 @@ export default defineConfig({
         "packages/stats/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
         "packages/extract/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
         "packages/hub/src/**": { lines: 80, functions: 80, branches: 80, statements: 80 },
+        // Identity Firewall: une fuite serait irréversible (indexation LLM) — seuil plus haut que les autres.
+        "packages/profiles/src/**": { lines: 90, functions: 90, branches: 85, statements: 90 },
       },
     },
   },

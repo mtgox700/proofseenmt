@@ -12,7 +12,8 @@
     "@proofseen/extract": "workspace:*",
     "@proofseen/stats": "workspace:*",
     "zod": "^4.6.5",
-    "@proofseen/hub": "workspace:*"
+    "@proofseen/hub": "workspace:*",
+    "@proofseen/profiles": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1"
