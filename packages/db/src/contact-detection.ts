@@ -46,16 +46,26 @@ export const NO_CONTACT = "pas de coordonnées";
 
 const DECIMAL_DIGIT = /\p{Nd}/u;
 
+// La valeur de chaque chiffre déjà rencontré : un texte piégé de 10 000 chiffres arabes ne refait pas le calcul 10 000 fois.
+const digitValues = new Map<number, string>();
+
+const digitValue = (code: number): string => {
+  const known = digitValues.get(code);
+  if (known !== undefined) return known;
+  // Les chiffres de chaque écriture sont contigus, de 0 à 9 : la position dans la suite donne la valeur.
+  let start = code;
+  while (start > code - 60 && DECIMAL_DIGIT.test(String.fromCodePoint(start - 1))) start -= 1;
+  const value = String((code - start) % 10);
+  digitValues.set(code, value);
+  return value;
+};
+
 /** « ٠٦١٢ » ou « ０６１２ » : tout chiffre décimal d'une autre écriture est lu comme le chiffre ASCII qu'il vaut. */
-const asciiDigits = (text: string): string =>
-  text.replace(/\p{Nd}/gu, (c) => {
-    if (c >= "0" && c <= "9") return c;
-    // Les chiffres de chaque écriture sont contigus, de 0 à 9 : la position dans la suite donne la valeur.
-    const code = c.codePointAt(0) ?? 0;
-    let start = code;
-    while (start > code - 60 && DECIMAL_DIGIT.test(String.fromCodePoint(start - 1))) start -= 1;
-    return String((code - start) % 10);
-  });
+const asciiDigits = (text: string): string => {
+  // Le cas courant, un texte sans chiffre d'une autre écriture, ne paie rien.
+  if (!/[^\t\n\r\x20-\x7E]/.test(text)) return text;
+  return text.replace(/\p{Nd}/gu, (c) => (c >= "0" && c <= "9" ? c : digitValue(c.codePointAt(0) ?? 0)));
+};
 
 const normalise = (raw: string): string => asciiDigits(raw.normalize("NFKC").replace(INVISIBLE, "").replace(KEYCAP, ""));
 
