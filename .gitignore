@@ -18,6 +18,12 @@ extract/
 report/
 .war-room/experiment0/private/
 
+# Client files: identity, contact e-mail, signed consent, job ads — personal data, never in the repository
+clients/
+
+# Generated public site (hub build) and its Vercel link: rebuilt from proofseen-dist.build.json
+proofseen-dist/
+
 # OS / editors
 .DS_Store
 Thumbs.db
@@ -25,3 +31,12 @@ Thumbs.db
 .idea/
 hub-dist/
 .astro/
+
+# Messages and other personal data written by the web app
+.store/
+
+# Client Prisma généré : régénéré à chaque installation, jamais commité
+packages/db/src/generated/
+
+# Browser automation artefacts
+.playwright-mcp/

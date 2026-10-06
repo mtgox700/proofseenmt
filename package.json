@@ -21,6 +21,7 @@
     "hub:build": "tsx apps/cli/src/main.ts hub",
     "hub:verify": "tsx apps/cli/src/main.ts hub-verify",
     "profiles:build": "tsx apps/cli/src/main.ts profiles",
+    "sim:ldr": "tsx apps/cli/src/main.ts ldr",
     "landing:build": "pnpm --filter @proofseen/landing build:site",
     "landing:dev": "pnpm --filter @proofseen/landing dev",
     "landing:check": "pnpm --filter @proofseen/landing check"

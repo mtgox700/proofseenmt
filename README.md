@@ -65,40 +65,80 @@ Chaque phase est conditionnée par des seuils de décision fixés **avant** la m
 | Couche | Choix |
 |---|---|
 | Langage | TypeScript (Node 22), monorepo pnpm |
-| V0 (instrument) | CLI `sim-run` / `sim-extract` / `sim-report`, fichiers JSONL |
+| V0 (instrument) | CLI `proofseen` (23 commandes : mesure, preuve de possession, contrôle de surface, rapport client), fichiers JSONL |
 | Moteurs mesurés | OpenAI (Responses + recherche web), Anthropic (Messages + recherche web), Perplexity (Agent API, `perplexity/sonar`), via leurs API officielles |
 | V1 (plateforme) | Next.js (SSG/ISR), Inngest, Postgres (Neon) + Prisma, Clerk, Stripe, Resend |
 | Statistiques | Intervalles de Wilson, bootstrap par grappe, différence-de-différences avec offres témoins |
 
 ```
 packages/
-  core      schémas et types partagés (validation zod)
-  engines   un adaptateur par moteur, interface commune
-  extract   extraction des candidats, appariement, masquage des tiers
-  stats     intervalles de confiance, funnel, score de visibilité
+  core         schémas partagés (zod) et protocole de mesure figé
+  engines      un adaptateur par moteur, interface commune
+  extract      extraction des candidats, appariement, masquage des tiers
+  stats        intervalles de confiance, funnel, score de visibilité
+  profiles     fiches publiques, preuve de possession, détection des manipulations
+  hub          site-portfolio statique d'un client
+  deliverable  rapport client : modèle de document, rendus Markdown et HTML
+  presale      journal des pré-paiements, gate commerciale, suivi de livraison
 apps/
-  cli       instrument de mesure (V0)
-  web       landing et plateforme (V1)
+  cli          instrument de mesure et chaîne de livraison (V0)
+  landing      site public (Astro, FR/EN)
+  web          landing, espace freelance, espace entreprise (Next.js 15, FR/EN), lit les données via un instantané
+  mcp          serveur MCP
 ```
 
 ### Démarrage rapide (V0, instrument de mesure)
 
 ```bash
 pnpm install
-pnpm test            # 105 tests
-pnpm test:coverage   # seuils 80 % sur stats/ et extract/
-pnpm typecheck && pnpm lint && pnpm build
+pnpm test            # 726 tests
+pnpm test:coverage   # 80 % minimum
+pnpm typecheck && pnpm lint
 ```
 
 Simulation sans aucun appel réseau ni coût (données fictives, rapport marqué « DRY-RUN ») :
 
 ```bash
 pnpm sim:run --manifest .war-room/experiment0/templates/manifest.template.json --identity .war-room/experiment0/templates/identity.template.json --dry-run --runs-dir runs-dryrun
-pnpm sim:report --wave J0 --runs-dir runs-dryrun
+# --report-dir est indispensable : sans lui, le rapport d'essai ÉCRASE le rapport réel dans report/.
+pnpm sim:report --wave J0 --runs-dir runs-dryrun --report-dir report-dryrun
+```
+
+Espace web (données tirées de la vague J0 réelle, jamais inventées) :
+
+```bash
+pnpm --filter @proofseen/web snapshot   # régénère apps/web/data depuis runs/ et proofseen-dist/
+pnpm --filter @proofseen/web build && pnpm --filter @proofseen/web start   # http://localhost:3100
 ```
 
 Une vague réelle exige un manifeste **gelé** (`frozenAt`), les clés dans `.env` (voir `.env.example`) et `--confirm-spend`.
 Le plafond de coût du manifeste est un arrêt net.
+
+### Chaîne d'un audit client
+
+Chaque étape refuse d'avancer si la précédente n'a pas eu lieu — et dit pourquoi.
+
+```bash
+proofseen client-init --reference FR-XXXXX --name <nom> --url <url,url>   # ouvre le dossier
+#   → remplir identity.json et request.json, déposer T01..T03 et C01 dans offres/
+proofseen possession --identity clients/FR-XXXXX/identity.json            # consignes de preuve
+proofseen possession --identity clients/FR-XXXXX/identity.json --verify   # lit la preuve posée
+proofseen surface-check --identity clients/FR-XXXXX/identity.json         # refuse un profil manipulé
+proofseen client-wave --request clients/FR-XXXXX/request.json             # chemins déduits du dossier
+#   → figer frozenAt dans manifest.json
+proofseen preflight --manifest clients/FR-XXXXX/manifest.json --identity clients/FR-XXXXX/identity.json
+proofseen run --manifest clients/FR-XXXXX/manifest.json --identity clients/FR-XXXXX/identity.json --confirm-spend
+proofseen audit --wave AUDIT-FR-XXXXX --request clients/FR-XXXXX/request.json   # le livrable : .html et .md
+
+proofseen client-status   # où en est chaque client, et la prochaine action
+```
+
+Trois verrous ne se contournent pas par étourderie : **pas de mesure sans preuve de possession**, **pas de mesure sans
+contrôle de surface de moins de 30 jours**, **pas de dépense sans manifeste figé**. Et une offre qui nomme le client
+est refusée à trois endroits : elle fausserait la mesure.
+
+`proofseen` désigne ici `npx tsx apps/cli/src/main.ts`. `proofseen --help` n'existe pas : lancer la commande sans
+argument affiche la liste.
 
 ## Documentation
 

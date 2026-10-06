@@ -1,0 +1,82 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "landing-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@proofseen/landing",
+        "preview",
+        "--port",
+        "4321",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 4321
+    },
+    {
+      "name": "web-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@proofseen/web",
+        "start"
+      ],
+      "port": 3100,
+      "env": {
+        "NEXT_DIST_DIR": ".next-design"
+      }
+    },
+    {
+      "name": "web-c1",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@proofseen/web",
+        "exec",
+        "next",
+        "start",
+        "--port",
+        "3102"
+      ],
+      "port": 3102,
+      "env": {
+        "NEXT_DIST_DIR": ".next-c1"
+      }
+    },
+    {
+      "name": "web-c1-localdb",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@proofseen/web",
+        "exec",
+        "next",
+        "start",
+        "--port",
+        "3103"
+      ],
+      "port": 3103,
+      "env": {
+        "NEXT_DIST_DIR": ".next-c1",
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:5433/postgres",
+        "DATABASE_POOL_MAX": "2"
+      }
+    },
+    {
+      "name": "web-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@proofseen/web",
+        "exec",
+        "next",
+        "dev",
+        "--port",
+        "3101"
+      ],
+      "port": 3101
+    }
+  ]
+}
