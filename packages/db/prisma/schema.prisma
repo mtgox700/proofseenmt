@@ -236,6 +236,10 @@ model BillingIdentity {
   siret     String?
   vatNumber String?
   address   Json
+  /// Taux de TVA facturé par le freelance, en points de base : 0 en franchise (art. 293 B du CGI), 2000 au taux normal.
+  vatRateBp Int      @default(0)
+  /// Compte Stripe Connect qui reçoit les versements. Nul tant que le freelance n'a pas terminé l'inscription chez Stripe.
+  stripeAccountId String? @unique
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -485,6 +489,9 @@ model Payment {
   /// Identifiant Stripe : unique, pour qu'un même paiement ne soit jamais enregistré deux fois.
   stripeIntentId  String        @unique
   status          PaymentStatus @default(pending)
+  /// Virement au compte du freelance, une fois la prestation validée.
+  transferId      String?       @unique
+  releasedAt      DateTime?     @db.Timestamptz(3)
   createdAt       DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -503,27 +510,44 @@ model StripeEvent {
   @@index([receivedAt])
 }
 
-/// Numérotation continue des factures, par année : exigée en France, ce qu'une séquence Postgres (qui laisse des trous
-/// à chaque annulation) ne garantit pas.
+/// Numérotation continue des factures, **par émetteur et par année** : exigée en France, ce qu'une séquence Postgres (qui
+/// laisse des trous à chaque annulation) ne garantit pas. Proofseen facture au nom et pour le compte de chaque freelance
+/// (mandat de facturation) : chaque freelance a sa propre série, Proofseen la sienne pour ses commissions.
 model InvoiceSequence {
-  year Int @id
-  last Int @default(0)
+  /// Identifiant du profil émetteur, ou « proofseen » pour les factures de commission.
+  issuer String
+  year   Int
+  last   Int    @default(0)
+
+  @@id([issuer, year])
+}
+
+enum InvoiceKind {
+  mission    // la prestation : émise au nom du freelance, adressée à l'entreprise
+  commission // la commission : émise par Proofseen, adressée au freelance
 }
 
 /// Une facture émise est immuable : un déclencheur refuse toute modification et toute suppression.
 model Invoice {
-  id             String   @id @default(uuid(7)) @db.Uuid
-  number         String   @unique
-  contractId     String   @db.Uuid
+  id             String      @id @default(uuid(7)) @db.Uuid
+  /// Préfixé par l'émetteur : unique sur toute la plateforme, continu dans la série de chaque émetteur.
+  number         String      @unique
+  kind           InvoiceKind
+  issuer         String
+  contractId     String      @db.Uuid
+  label          String
   netCents       Int
   vatCents       Int
   /// Taux de TVA en points de base (2000 = 20 %).
   vatRateBp      Int
   totalCents     Int
-  currency       String   @db.Char(3)
+  currency       String      @db.Char(3)
   sellerSnapshot Json
   buyerSnapshot  Json
-  issuedAt       DateTime @default(now()) @db.Timestamptz(3)
+  issuedAt       DateTime    @default(now()) @db.Timestamptz(3)
+  dueOn          DateTime    @db.Date
+  /// Une facture de chaque sorte par contrat : un paiement notifié deux fois n'émet jamais deux factures.
+  @@unique([contractId, kind])
 
   contract Contract @relation(fields: [contractId, currency], references: [id, currency], onDelete: Restrict, onUpdate: Restrict)
 
@@ -594,6 +618,7 @@ enum NotificationKind {
   message_received     // nouveau message dans un fil
   application_status   // la candidature avance (freelance)
   mission_match        // nouvelles missions pour une alerte enregistrée (freelance)
+  contract_update      // contrat à signer, actif, prestation validée
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a

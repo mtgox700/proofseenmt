@@ -41,7 +41,10 @@ CREATE TYPE "ContractStatus" AS ENUM ('pending_signatures', 'active', 'completed
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'held', 'released', 'refunded', 'disputed', 'failed', 'canceled');
 
 -- CreateEnum
-CREATE TYPE "NotificationKind" AS ENUM ('contact_received', 'application_received', 'message_received', 'application_status', 'mission_match');
+CREATE TYPE "InvoiceKind" AS ENUM ('mission', 'commission');
+
+-- CreateEnum
+CREATE TYPE "NotificationKind" AS ENUM ('contact_received', 'application_received', 'message_received', 'application_status', 'mission_match', 'contract_update');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -111,6 +114,8 @@ CREATE TABLE "BillingIdentity" (
     "siret" TEXT,
     "vatNumber" TEXT,
     "address" JSONB NOT NULL,
+    "vatRateBp" INTEGER NOT NULL DEFAULT 0,
+    "stripeAccountId" TEXT,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -281,6 +286,8 @@ CREATE TABLE "Payment" (
     "currency" CHAR(3) NOT NULL,
     "stripeIntentId" TEXT NOT NULL,
     "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "transferId" TEXT,
+    "releasedAt" TIMESTAMPTZ(3),
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -298,17 +305,21 @@ CREATE TABLE "StripeEvent" (
 
 -- CreateTable
 CREATE TABLE "InvoiceSequence" (
+    "issuer" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "last" INTEGER NOT NULL DEFAULT 0,
 
-    CONSTRAINT "InvoiceSequence_pkey" PRIMARY KEY ("year")
+    CONSTRAINT "InvoiceSequence_pkey" PRIMARY KEY ("issuer","year")
 );
 
 -- CreateTable
 CREATE TABLE "Invoice" (
     "id" UUID NOT NULL,
     "number" TEXT NOT NULL,
+    "kind" "InvoiceKind" NOT NULL,
+    "issuer" TEXT NOT NULL,
     "contractId" UUID NOT NULL,
+    "label" TEXT NOT NULL,
     "netCents" INTEGER NOT NULL,
     "vatCents" INTEGER NOT NULL,
     "vatRateBp" INTEGER NOT NULL,
@@ -317,6 +328,7 @@ CREATE TABLE "Invoice" (
     "sellerSnapshot" JSONB NOT NULL,
     "buyerSnapshot" JSONB NOT NULL,
     "issuedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dueOn" DATE NOT NULL,
 
     CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
 );
@@ -434,6 +446,9 @@ CREATE INDEX "FreelanceProfile_public_city_idx" ON "FreelanceProfile"("cityKey",
 CREATE UNIQUE INDEX "BillingIdentity_profileId_key" ON "BillingIdentity"("profileId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "BillingIdentity_stripeAccountId_key" ON "BillingIdentity"("stripeAccountId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Skill_key_key" ON "Skill"("key");
 
 -- CreateIndex
@@ -515,6 +530,9 @@ CREATE UNIQUE INDEX "Contract_id_currency_key" ON "Contract"("id", "currency");
 CREATE UNIQUE INDEX "Payment_stripeIntentId_key" ON "Payment"("stripeIntentId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Payment_transferId_key" ON "Payment"("transferId");
+
+-- CreateIndex
 CREATE INDEX "Payment_contractId_idx" ON "Payment"("contractId");
 
 -- CreateIndex
@@ -525,6 +543,9 @@ CREATE UNIQUE INDEX "Invoice_number_key" ON "Invoice"("number");
 
 -- CreateIndex
 CREATE INDEX "Invoice_contractId_idx" ON "Invoice"("contractId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Invoice_contractId_kind_key" ON "Invoice"("contractId", "kind");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Review_contractId_key" ON "Review"("contractId");
@@ -895,6 +916,17 @@ BEGIN
   IF NEW."refundedCents" < OLD."refundedCents" THEN
     RAISE EXCEPTION 'un remboursement ne s''annule pas';
   END IF;
+  IF OLD."transferId" IS NOT NULL AND NEW."transferId" IS DISTINCT FROM OLD."transferId" THEN
+    RAISE EXCEPTION 'un versement ne se réécrit pas';
+  END IF;
+  -- Parcours fermé : payé puis bloqué, puis versé, remboursé ou contesté. Un versement n'est jamais rejoué.
+  IF NEW."status" <> OLD."status" AND NOT (
+       (OLD."status" = 'pending' AND NEW."status" IN ('held', 'failed', 'canceled'))
+    OR (OLD."status" = 'held' AND NEW."status" IN ('released', 'refunded', 'disputed'))
+    OR (OLD."status" = 'disputed' AND NEW."status" IN ('held', 'refunded'))
+  ) THEN
+    RAISE EXCEPTION 'passage de statut refusé : % vers %', OLD."status", NEW."status";
+  END IF;
   RETURN NEW;
 END $fn$;
 CREATE TRIGGER "Payment_update" BEFORE UPDATE ON "Payment"
@@ -1079,3 +1111,14 @@ CREATE TRIGGER "Quote_guard" BEFORE INSERT OR UPDATE ON "Quote"
 ALTER TABLE "User" ADD CONSTRAINT "User_lang_chk" CHECK ("lang" IN ('fr','en'));
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_attempts_chk" CHECK ("attempts" BETWEEN 0 AND 20);
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_error_chk" CHECK ("lastError" IS NULL OR char_length("lastError") <= 200);
+
+-- ═══ Facturation ═══════════════════════════════════════════════════════════════════════════════════════════════════
+-- Taux de TVA d'un freelance : franchise (0), taux réduits, taux normal. Rien d'autre n'existe en France métropolitaine.
+ALTER TABLE "BillingIdentity" ADD CONSTRAINT "BillingIdentity_vat_chk" CHECK ("vatRateBp" IN (0, 210, 550, 1000, 2000));
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_text_chk" CHECK (char_length("label") BETWEEN 1 AND 300 AND char_length("number") BETWEEN 3 AND 80);
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_issuer_chk" CHECK ("issuer" = 'proofseen' OR "issuer" ~ '^[0-9a-f-]{36}$');
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_due_chk" CHECK ("dueOn" >= ("issuedAt" AT TIME ZONE 'UTC')::date);
+ALTER TABLE "InvoiceSequence" ADD CONSTRAINT "InvoiceSequence_issuer_chk" CHECK ("issuer" = 'proofseen' OR "issuer" ~ '^[0-9a-f-]{36}$');
+-- Un paiement versé porte son virement et sa date, dès l'insertion.
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_released_chk" CHECK ("status" <> 'released' OR ("transferId" IS NOT NULL AND "releasedAt" IS NOT NULL));
+ALTER TABLE "BillingIdentity" ADD CONSTRAINT "BillingIdentity_stripe_chk" CHECK ("stripeAccountId" IS NULL OR "stripeAccountId" ~ '^acct_[A-Za-z0-9]{6,64}$');

@@ -132,8 +132,8 @@ describe("migration init", () => {
     const org = await organisation(await user("inv-org@x.fr"));
     const c = await contract(org, await profile(await user("inv@x.fr"), "FR-INV23"), "active");
     const invoice = await id(
-      `INSERT INTO "Invoice" ("id","number","contractId","netCents","vatCents","vatRateBp","totalCents","currency","sellerSnapshot","buyerSnapshot")
-       VALUES (gen_random_uuid(), '2026-000001', $1, 600000, 120000, 2000, 720000, 'EUR', $2, $2)`,
+      `INSERT INTO "Invoice" ("id","number","kind","issuer","label","dueOn","contractId","netCents","vatCents","vatRateBp","totalCents","currency","sellerSnapshot","buyerSnapshot")
+       VALUES (gen_random_uuid(), '2026-000001', 'commission', 'proofseen', 'Commission', '2099-01-01', $1, 600000, 120000, 2000, 720000, 'EUR', $2, $2)`,
       [c, SNAPSHOT],
     );
     await rejects(`UPDATE "Invoice" SET "netCents" = 1 WHERE "id" = $1`, [invoice], /immuable/);
@@ -207,13 +207,13 @@ describe("migration init", () => {
     await db.query(`INSERT INTO "Conversation" ("id","organisationId","profileId","applicationId","status","decidedAt") VALUES (gen_random_uuid(), $1, $2, $3, 'accepted', now())`, [org, p, app]);
     const c = await contract(org, p, "completed");
     await db.query(
-      `INSERT INTO "Payment" ("id","contractId","amountCents","commissionCents","currency","stripeIntentId","status")
-       VALUES (gen_random_uuid(), $1, 600000, 60000, 'EUR', 'pi_gdpr', 'released')`,
+      `INSERT INTO "Payment" ("id","contractId","amountCents","commissionCents","currency","stripeIntentId","status","transferId","releasedAt")
+       VALUES (gen_random_uuid(), $1, 600000, 60000, 'EUR', 'pi_gdpr', 'released', 'tr_gdpr', now())`,
       [c],
     );
     await db.query(
-      `INSERT INTO "Invoice" ("id","number","contractId","netCents","vatCents","vatRateBp","totalCents","currency","sellerSnapshot","buyerSnapshot")
-       VALUES (gen_random_uuid(), '2026-000002', $1, 600000, 120000, 2000, 720000, 'EUR', $2, $2)`,
+      `INSERT INTO "Invoice" ("id","number","kind","issuer","label","dueOn","contractId","netCents","vatCents","vatRateBp","totalCents","currency","sellerSnapshot","buyerSnapshot")
+       VALUES (gen_random_uuid(), '2026-000002', 'commission', 'proofseen', 'Commission', '2099-01-01', $1, 600000, 120000, 2000, 720000, 'EUR', $2, $2)`,
       [c, SNAPSHOT],
     );
     await db.query(`INSERT INTO "Review" ("id","contractId","authorUserId","targetProfileId","rating","body") VALUES (gen_random_uuid(), $1, $2, $3, 5, 'Bien')`, [c, orgUser, p]);
@@ -256,7 +256,9 @@ describe("migration init", () => {
       [done],
     );
     await rejects(`UPDATE "Payment" SET "contractId" = $2 WHERE "id" = $1`, [payment, pending], /ne change ni de contrat/);
+    await db.query(`UPDATE "Payment" SET "status" = 'held' WHERE "id" = $1`, [payment]);
     await db.query(`UPDATE "Payment" SET "refundedCents" = 1000, "status" = 'refunded' WHERE "id" = $1`, [payment]);
+    await rejects(`UPDATE "Payment" SET "status" = 'held' WHERE "id" = $1`, [payment], /statut refusé/);
     await rejects(`UPDATE "Payment" SET "refundedCents" = 0 WHERE "id" = $1`, [payment], /ne s'annule pas/);
 
     await rejects(`UPDATE "Contract" SET "status" = 'pending_signatures' WHERE "id" = $1`, [done], /passage de statut refusé/);

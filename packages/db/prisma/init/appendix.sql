@@ -235,6 +235,17 @@ BEGIN
   IF NEW."refundedCents" < OLD."refundedCents" THEN
     RAISE EXCEPTION 'un remboursement ne s''annule pas';
   END IF;
+  IF OLD."transferId" IS NOT NULL AND NEW."transferId" IS DISTINCT FROM OLD."transferId" THEN
+    RAISE EXCEPTION 'un versement ne se réécrit pas';
+  END IF;
+  -- Parcours fermé : payé puis bloqué, puis versé, remboursé ou contesté. Un versement n'est jamais rejoué.
+  IF NEW."status" <> OLD."status" AND NOT (
+       (OLD."status" = 'pending' AND NEW."status" IN ('held', 'failed', 'canceled'))
+    OR (OLD."status" = 'held' AND NEW."status" IN ('released', 'refunded', 'disputed'))
+    OR (OLD."status" = 'disputed' AND NEW."status" IN ('held', 'refunded'))
+  ) THEN
+    RAISE EXCEPTION 'passage de statut refusé : % vers %', OLD."status", NEW."status";
+  END IF;
   RETURN NEW;
 END $fn$;
 CREATE TRIGGER "Payment_update" BEFORE UPDATE ON "Payment"
@@ -419,3 +430,14 @@ CREATE TRIGGER "Quote_guard" BEFORE INSERT OR UPDATE ON "Quote"
 ALTER TABLE "User" ADD CONSTRAINT "User_lang_chk" CHECK ("lang" IN ('fr','en'));
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_attempts_chk" CHECK ("attempts" BETWEEN 0 AND 20);
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_error_chk" CHECK ("lastError" IS NULL OR char_length("lastError") <= 200);
+
+-- ═══ Facturation ═══════════════════════════════════════════════════════════════════════════════════════════════════
+-- Taux de TVA d'un freelance : franchise (0), taux réduits, taux normal. Rien d'autre n'existe en France métropolitaine.
+ALTER TABLE "BillingIdentity" ADD CONSTRAINT "BillingIdentity_vat_chk" CHECK ("vatRateBp" IN (0, 210, 550, 1000, 2000));
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_text_chk" CHECK (char_length("label") BETWEEN 1 AND 300 AND char_length("number") BETWEEN 3 AND 80);
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_issuer_chk" CHECK ("issuer" = 'proofseen' OR "issuer" ~ '^[0-9a-f-]{36}$');
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_due_chk" CHECK ("dueOn" >= ("issuedAt" AT TIME ZONE 'UTC')::date);
+ALTER TABLE "InvoiceSequence" ADD CONSTRAINT "InvoiceSequence_issuer_chk" CHECK ("issuer" = 'proofseen' OR "issuer" ~ '^[0-9a-f-]{36}$');
+-- Un paiement versé porte son virement et sa date, dès l'insertion.
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_released_chk" CHECK ("status" <> 'released' OR ("transferId" IS NOT NULL AND "releasedAt" IS NOT NULL));
+ALTER TABLE "BillingIdentity" ADD CONSTRAINT "BillingIdentity_stripe_chk" CHECK ("stripeAccountId" IS NULL OR "stripeAccountId" ~ '^acct_[A-Za-z0-9]{6,64}$');

@@ -45,9 +45,9 @@ const seed = async () => {
     },
     select: { id: true },
   });
-  await t.db.payment.create({ data: { contractId: contract.id, amountCents: 600000, commissionCents: 60000, currency: "EUR", stripeIntentId: `pi_${contract.id}`, status: "released" } });
+  await t.db.payment.create({ data: { contractId: contract.id, amountCents: 600000, commissionCents: 60000, currency: "EUR", stripeIntentId: `pi_${contract.id}`, status: "released", transferId: `tr_${contract.id}`, releasedAt: new Date() } });
   await t.db.invoice.create({
-    data: { number: `2026-${contract.id}`, contractId: contract.id, netCents: 600000, vatCents: 120000, vatRateBp: 2000, totalCents: 720000, currency: "EUR", sellerSnapshot: SNAPSHOT, buyerSnapshot: SNAPSHOT },
+    data: { number: `2026-${contract.id}`, kind: "commission", issuer: "proofseen", label: "Commission", dueOn: new Date("2099-01-01"), contractId: contract.id, netCents: 600000, vatCents: 120000, vatRateBp: 2000, totalCents: 720000, currency: "EUR", sellerSnapshot: SNAPSHOT, buyerSnapshot: SNAPSHOT },
   });
   await t.db.review.create({ data: { contractId: contract.id, authorUserId: recruiter, targetProfileId: profile, rating: 5, body: "Très bien" } });
   return { recruiter, freelance, org, profile, email, contract: contract.id, conversation: conv.id };
