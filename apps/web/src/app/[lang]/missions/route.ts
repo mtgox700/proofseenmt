@@ -3,6 +3,7 @@ import { renderJobIndex, type JobIndexFilters } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { clientAddress, throttled } from "@/data/throttle";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /*
  * Public index of open missions with a GET filter form: works without JavaScript, every search has its own address.
@@ -55,7 +56,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const page = renderJobIndex(published, { baseUrl: publicBaseUrl(request), lang, filters, hasMore });
     return html(page, 200, "public, max-age=0, s-maxage=120, stale-while-revalidate=600");
   } catch (error) {
-    console.error("missions index: not rendered", error instanceof Error ? error.name : "unknown");
+    logError("missions index: not rendered", error);
     return html("Les missions sont momentanément indisponibles.", 500, "no-store");
   }
 }

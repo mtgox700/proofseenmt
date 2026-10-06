@@ -4,6 +4,7 @@ import { gatewayFromEnv } from "@proofseen/payments";
 import { throttled } from "@/data/throttle";
 import { caller, fail, ok, sameOrigin } from "@/lib/api";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /*
  * The freelancer's payout account: returns the payment provider's onboarding link, where they give their identity and
@@ -33,7 +34,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     if (result.kind === "identity_missing") return fail("identité de facturation requise");
     return result.kind === "link" ? ok({ url: result.url }) : fail("profil requis");
   } catch (error) {
-    console.error("payout account failed", error instanceof Error ? error.name : "unknown");
+    logError("payout account failed", error);
     return fail("erreur serveur");
   }
 }

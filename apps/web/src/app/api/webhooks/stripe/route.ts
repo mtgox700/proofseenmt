@@ -1,6 +1,7 @@
 import { getDb, payments } from "@proofseen/db";
 import { toPaymentEvent, verifyStripeSignature } from "@proofseen/payments";
 import { hasDatabase } from "@/data/intake-sink";
+import { logError } from "@/lib/log";
 
 /*
  * Stripe webhook. The raw body is verified against the endpoint secret (STRIPE_WEBHOOK_SECRET) before anything is
@@ -32,7 +33,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ received: true, applied });
   } catch (error) {
     // 500 makes Stripe retry later, which is what a transient database failure needs.
-    console.error("stripe webhook failed", error instanceof Error ? error.name : "unknown");
+    logError("stripe webhook failed", error);
     return new Response("erreur serveur", { status: 500 });
   }
 }

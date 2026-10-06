@@ -1,6 +1,7 @@
 import { getDb, invoices } from "@proofseen/db";
 import { renderInvoice } from "@proofseen/invoicing";
 import { caller } from "@/lib/api";
+import { logError } from "@/lib/log";
 
 /*
  * One invoice as a printable HTML document, with the French mandatory mentions. Visible to the parties allowed to
@@ -31,7 +32,7 @@ export async function GET(_request: Request, context: Context): Promise<Response
     });
     return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
   } catch (error) {
-    console.error("invoice render failed", error instanceof Error ? error.name : "unknown");
+    logError("invoice render failed", error);
     return new Response("erreur serveur", { status: 500 });
   }
 }

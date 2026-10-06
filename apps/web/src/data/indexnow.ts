@@ -1,5 +1,6 @@
 import { INDEXNOW_ENDPOINT, INDEXNOW_KEY, indexNowOutcome } from "@proofseen/profiles";
 import { missionUrl, profileUrl } from "@proofseen/hub";
+import { logError } from "../lib/log";
 
 /*
  * Tells IndexNow (Bing, Yandex, Seznam… one notification shared between them) that a mission page appeared or went
@@ -48,9 +49,9 @@ const notify = (urlsFor: (base: string) => readonly string[]): void => {
   })
     .then((response) => {
       const outcome = indexNowOutcome(response.status);
-      if (!outcome.ok) console.error("indexnow:", outcome.meaning);
+      if (!outcome.ok) logError("indexnow: rejected", undefined, new Date(), `http-${response.status}`);
     })
     .catch((error: unknown) => {
-      console.error("indexnow: not sent", error instanceof Error ? error.name : "unknown");
+      logError("indexnow: not sent", error);
     });
 };

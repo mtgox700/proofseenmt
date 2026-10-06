@@ -2,6 +2,7 @@ import { getDb, skillPages } from "@proofseen/db";
 import { renderSkillPage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /*
  * Public page of one skill: its open missions and published profiles. A skill without enough real content answers
@@ -28,7 +29,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     if (page === null) return html(NOT_FOUND, 404, "public, max-age=300");
     return html(renderSkillPage(page, { baseUrl: publicBaseUrl(request), lang }), 200, "public, max-age=0, s-maxage=600, stale-while-revalidate=3600");
   } catch (error) {
-    console.error("skill page: not rendered", error instanceof Error ? error.name : "unknown");
+    logError("skill page: not rendered", error);
     return html(NOT_FOUND, 500, "no-store");
   }
 }

@@ -5,6 +5,7 @@ import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { logError } from "@/lib/log";
 
 /*
  * One contract: read by its parties (GET); signed by either side, cancelled before both signed, or completed by the
@@ -62,11 +63,11 @@ export async function POST(request: Request, context: Context): Promise<NextResp
     if (gateway !== null && identity !== null) {
       await payments(db)
         .release(id, gateway, identity, new Date())
-        .catch((error: unknown) => console.error("release deferred", error instanceof Error ? error.name : "unknown"));
+        .catch((error: unknown) => logError("release deferred", error));
     }
     return ok({ contract: completed.contract });
   } catch (error) {
-    console.error("contract action failed", error instanceof Error ? error.name : "unknown");
+    logError("contract action failed", error);
     return fail("erreur serveur");
   }
 }

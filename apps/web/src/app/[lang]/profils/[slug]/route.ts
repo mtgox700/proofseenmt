@@ -2,6 +2,7 @@ import { getDb, publicProfiles } from "@proofseen/db";
 import { renderProfilePage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /*
  * Public page of a freelancer profile: a complete HTML document readable without JavaScript, with ProfilePage data.
@@ -30,7 +31,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const page = renderProfilePage(profile, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/entreprise/${profile.reference}` });
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
-    console.error("profile page: not rendered", error instanceof Error ? error.name : "unknown");
+    logError("profile page: not rendered", error);
     return html(UNAVAILABLE, 500, "no-store");
   }
 }

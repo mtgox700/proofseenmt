@@ -2,6 +2,7 @@ import { getDb, missions } from "@proofseen/db";
 import { renderJobPage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /*
  * Public page of an open mission: a complete HTML document from `@proofseen/hub`, readable without JavaScript, with its
@@ -35,7 +36,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     // Five minutes at the edge: an edit or a closure shows within minutes, and a crawl burst does not reach the database.
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
-    console.error("mission page: not rendered", error instanceof Error ? error.name : "unknown");
+    logError("mission page: not rendered", error);
     return html(UNAVAILABLE, 500, "no-store");
   }
 }

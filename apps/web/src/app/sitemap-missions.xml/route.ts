@@ -2,6 +2,7 @@ import { getDb, missions } from "@proofseen/db";
 import { jobSitemap } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
+import { logError } from "@/lib/log";
 
 /** Sitemap of the open missions, in both languages. Engines read it to find what to crawl; IndexNow says when. */
 
@@ -15,7 +16,7 @@ export async function GET(request: Request): Promise<Response> {
       headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=900" },
     });
   } catch (error) {
-    console.error("missions sitemap: not built", error instanceof Error ? error.name : "unknown");
+    logError("missions sitemap: not built", error);
     return new Response("erreur serveur", { status: 500 });
   }
 }

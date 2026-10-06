@@ -4,6 +4,7 @@ import { gatewayFromEnv } from "@proofseen/payments";
 import { commissionBp } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
 import { caller, fail, ok, sameOrigin } from "@/lib/api";
+import { logError } from "@/lib/log";
 
 /*
  * The escrowed payment of a contract: its status (GET, both parties — the commission only to the freelancer) and its
@@ -52,7 +53,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
     if (result.kind === "absent") return fail("introuvable");
     return ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, result.kind === "opened" ? 201 : 200);
   } catch (error) {
-    console.error("payment open failed", error instanceof Error ? error.name : "unknown");
+    logError("payment open failed", error);
     return fail("erreur serveur");
   }
 }

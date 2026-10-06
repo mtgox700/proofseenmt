@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { getDb, rateLimiter, type RateLimitRule } from "@proofseen/db";
 import { hasDatabase } from "@/data/intake-sink";
+import { logError } from "../lib/log";
 
 /*
  * Throttle for public and connected write endpoints.
@@ -58,7 +59,7 @@ export const throttled = async (scope: string, subject: string, rule: RateLimitR
   if (!hasDatabase()) return memoryThrottled(memoryKey, rule, now.getTime());
   if (secret.length < MIN_SECRET_LENGTH) {
     if (!warnedAboutSecret) {
-      console.error("throttle: PROOFSEEN_ACCESS_SECRET missing or too short, shared limiter disabled");
+      logError("throttle: PROOFSEEN_ACCESS_SECRET missing or too short, shared limiter disabled");
       warnedAboutSecret = true;
     }
     return memoryThrottled(memoryKey, rule, now.getTime());
@@ -69,14 +70,14 @@ export const throttled = async (scope: string, subject: string, rule: RateLimitR
     // Past windows are purged on a small fraction of requests: no scheduler to forget, and the table stays small.
     if (Math.random() < PURGE_PROBABILITY) {
       void limiter.purge(new Date(now.getTime() - PURGE_AGE_MS)).catch((error: unknown) => {
-        console.error("throttle: purge failed", error instanceof Error ? error.name : "unknown");
+        logError("throttle: purge failed", error);
       });
     }
     return !decision.allowed;
   } catch (error) {
     // The database being down must not take the site down with it: fall back, and say so in the server log. The name
     // only: a driver message can carry the database host.
-    console.error("throttle: shared limiter unavailable, falling back to memory", error instanceof Error ? error.name : "unknown");
+    logError("throttle: shared limiter unavailable, falling back to memory", error);
     return memoryThrottled(memoryKey, rule, now.getTime());
   }
 };

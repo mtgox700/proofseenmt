@@ -3,6 +3,7 @@ import { SubmissionSchema, submissionBlockers } from "@proofseen/intake";
 import { getSink } from "@/data/intake-sink";
 import { clientAddress, throttled } from "@/data/throttle";
 import { readJson } from "@/lib/api";
+import { logError } from "@/lib/log";
 
 /*
  * Signup endpoint. Until now the web could only read: nobody could open a file without the operator typing the
@@ -45,7 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: true, ...opened }, { status: 201 });
   } catch (error) {
     // Never echo the underlying error: it would leak paths from the operator's machine. Its name goes to the log.
-    console.error("intake: file not opened", error instanceof Error ? error.name : "unknown");
+    logError("intake: file not opened", error);
     return NextResponse.json({ ok: false, blockers: ["le dossier n'a pas pu être ouvert."] }, { status: 500 });
   }
 }
