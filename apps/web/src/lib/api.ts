@@ -10,7 +10,7 @@ import { session } from "./session";
  * an underlying message: a driver error can carry a host name, a stack can carry a path.
  */
 
-export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "erreur serveur";
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "erreur serveur";
 
 const STATUS: Record<ApiError, number> = {
   "non-configuré": 503,
@@ -26,6 +26,10 @@ const STATUS: Record<ApiError, number> = {
   "profil privé": 409,
   "mission verrouillée": 409,
   "coordonnées refusées": 422,
+  "déjà accepté": 409,
+  "déjà payé": 409,
+  "identité de facturation requise": 422,
+  "paiements non configurés": 503,
   "erreur serveur": 500,
 };
 

@@ -1,0 +1,56 @@
+import type { NextResponse } from "next/server";
+import { getDb, payments } from "@proofseen/db";
+import { gatewayFromEnv } from "@proofseen/payments";
+import { commissionBp } from "@/data/payments-config";
+import { throttled } from "@/data/throttle";
+import { caller, fail, ok, sameOrigin } from "@/lib/api";
+
+/*
+ * The escrowed payment of a contract: its status (GET, both parties — the commission only to the freelancer) and its
+ * opening by the company (POST), which returns the client secret the checkout form needs. Nothing opens while the
+ * commission rate or the payment provider is not configured.
+ */
+
+export const runtime = "nodejs";
+
+interface Context {
+  readonly params: Promise<{ readonly id: string }>;
+}
+
+const RULE = { windowMs: 60 * 60_000, max: 10 };
+
+export async function GET(_request: Request, context: Context): Promise<NextResponse> {
+  const who = await caller();
+  if (who.kind === "refused") return who.response;
+  const { id } = await context.params;
+  try {
+    const status = await payments(getDb()).find(who.actor, id);
+    return status === null ? fail("introuvable") : ok(status);
+  } catch {
+    return fail("erreur serveur");
+  }
+}
+
+export async function POST(request: Request, context: Context): Promise<NextResponse> {
+  if (!sameOrigin(request)) return fail("origine refusée");
+  const who = await caller();
+  if (who.kind === "refused") return who.response;
+  if (await throttled("payment-open", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
+  const rate = commissionBp();
+  let gateway;
+  try {
+    gateway = gatewayFromEnv(process.env);
+  } catch {
+    gateway = null;
+  }
+  if (rate === null || gateway === null) return fail("paiements non configurés");
+  const { id } = await context.params;
+  try {
+    const result = await payments(getDb()).open(who.actor, id, gateway, rate);
+    if (result.kind === "already_paid") return fail("déjà payé");
+    return result.kind === "opened" ? ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, 201) : fail("introuvable");
+  } catch (error) {
+    console.error("payment open failed", error instanceof Error ? error.name : "unknown");
+    return fail("erreur serveur");
+  }
+}

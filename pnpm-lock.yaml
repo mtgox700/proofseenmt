@@ -142,9 +142,15 @@ importers:
       '@proofseen/intake':
         specifier: workspace:*
         version: link:../../packages/intake
+      '@proofseen/invoicing':
+        specifier: workspace:*
+        version: link:../../packages/invoicing
       '@proofseen/notify':
         specifier: workspace:*
         version: link:../../packages/notify
+      '@proofseen/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@proofseen/presale':
         specifier: workspace:*
         version: link:../../packages/presale
@@ -292,8 +298,19 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
 
+  packages/invoicing: {}
+
   packages/notify:
     dependencies:
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+
+  packages/payments:
+    dependencies:
+      '@proofseen/db':
+        specifier: workspace:*
+        version: link:../db
       zod:
         specifier: ^4.6.5
         version: 4.6.5
