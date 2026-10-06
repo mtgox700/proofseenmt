@@ -1,0 +1,34 @@
+import { getDb, skillPages } from "@proofseen/db";
+import { renderSkillPage } from "@proofseen/hub";
+import { hasDatabase } from "@/data/intake-sink";
+import { publicBaseUrl } from "@/lib/public-url";
+
+/*
+ * Public page of one skill: its open missions and published profiles. A skill without enough real content answers
+ * 404 — never an empty page generated for search engines.
+ */
+
+export const runtime = "nodejs";
+
+interface Context {
+  readonly params: Promise<{ readonly lang: string; readonly key: string }>;
+}
+
+const html = (body: string, status: number, cache: string): Response =>
+  new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache } });
+
+const NOT_FOUND = '<!doctype html><html lang="fr"><meta charset="utf-8"><title>Métier introuvable</title><p>Pas encore assez de missions ni de profils pour ce métier.</p></html>';
+
+export async function GET(request: Request, context: Context): Promise<Response> {
+  const { lang, key } = await context.params;
+  if (lang !== "fr" && lang !== "en") return html(NOT_FOUND, 404, "no-store");
+  if (!hasDatabase()) return html(NOT_FOUND, 503, "no-store");
+  try {
+    const page = await skillPages(getDb()).page(decodeURIComponent(key));
+    if (page === null) return html(NOT_FOUND, 404, "public, max-age=300");
+    return html(renderSkillPage(page, { baseUrl: publicBaseUrl(request), lang }), 200, "public, max-age=0, s-maxage=600, stale-while-revalidate=3600");
+  } catch (error) {
+    console.error("skill page: not rendered", error instanceof Error ? error.name : "unknown");
+    return html(NOT_FOUND, 500, "no-store");
+  }
+}
