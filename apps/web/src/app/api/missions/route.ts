@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDb, MissionInputSchema, missions, MissionSearchSchema } from "@proofseen/db";
 import { hasDatabase } from "@/data/intake-sink";
 import { clientAddress, throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /*
  * Open missions (GET, public, filters only — the order is the one the visitor picks, never a computed relevance) and
@@ -53,7 +53,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (who.kind === "refused") return who.response;
   if (await throttled("missions-create", who.actor.userId, CREATE_RULE, new Date())) return fail("trop de demandes");
   const parsed = CreateSchema.safeParse(await jsonBody(request));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   try {
     const created = await missions(getDb()).create(who.actor, parsed.data.organisationId, parsed.data.mission);
     return created === null ? fail("introuvable") : ok(created, 201);

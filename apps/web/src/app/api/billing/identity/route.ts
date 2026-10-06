@@ -1,7 +1,7 @@
 import type { NextResponse } from "next/server";
 import { billing, BillingIdentitySchema, getDb } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /** The freelancer's private billing identity, frozen into every contract and invoice when they are created. */
 
@@ -15,7 +15,7 @@ export async function PUT(request: Request): Promise<NextResponse> {
   if (who.kind === "refused") return who.response;
   if (await throttled("billing", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = BillingIdentitySchema.safeParse(await jsonBody(request));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   try {
     return (await billing(getDb()).setFreelanceIdentity(who.actor, parsed.data)) ? ok({ saved: true }) : fail("profil requis");
   } catch {

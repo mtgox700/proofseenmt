@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb, users, type Actor } from "@proofseen/db";
+import { getDb, NO_CONTACT, users, type Actor } from "@proofseen/db";
 import { hasDatabase } from "@/data/intake-sink";
 import { session } from "./session";
 
@@ -39,6 +39,10 @@ const STATUS: Record<ApiError, number> = {
 export const ok = <T>(data: T, status = 200): NextResponse => NextResponse.json({ ok: true, data }, { status });
 
 export const fail = (error: ApiError): NextResponse => NextResponse.json({ ok: false, error }, { status: STATUS[error] });
+
+/** A body that failed validation: contact details in a public field get their own answer, so the person knows why. */
+export const invalid = (issues: readonly { readonly message: string }[]): NextResponse =>
+  fail(issues.some((issue) => issue.message === NO_CONTACT) ? "coordonnées refusées" : "requête invalide");
 
 /*
  * Cross-site request forgery: the Clerk session cookie is sent with any same-site request, so a write must prove it

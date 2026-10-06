@@ -1,7 +1,7 @@
 import type { NextResponse } from "next/server";
 import { billing, BillingIdentitySchema, getDb } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /** A company's legal identity for invoices. Owners and admins only; anyone else gets 404. */
 
@@ -19,7 +19,7 @@ export async function PUT(request: Request, context: Context): Promise<NextRespo
   if (who.kind === "refused") return who.response;
   if (await throttled("billing", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = BillingIdentitySchema.safeParse(await jsonBody(request));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   const { id } = await context.params;
   try {
     return (await billing(getDb()).setOrganisationIdentity(who.actor, id, parsed.data)) ? ok({ saved: true }) : fail("introuvable");

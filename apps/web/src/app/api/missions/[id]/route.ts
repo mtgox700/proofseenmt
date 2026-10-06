@@ -4,7 +4,7 @@ import { getDb, MissionInputSchema, missions } from "@proofseen/db";
 import { notifyMissionChanged } from "@/data/indexnow";
 import { hasDatabase } from "@/data/intake-sink";
 import { throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /*
  * One mission: public read when it is open (GET), edits by a member of its company (PATCH), and its two transitions
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, context: Context): Promise<NextRes
   if (who.kind === "refused") return who.response;
   if (await throttled("missions-edit", who.actor.userId, EDIT_RULE, new Date())) return fail("trop de demandes");
   const parsed = MissionInputSchema.safeParse(await jsonBody(request));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   const { id } = await context.params;
   try {
     const result = await missions(getDb()).update(who.actor, id, parsed.data);

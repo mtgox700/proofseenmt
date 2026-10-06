@@ -53,6 +53,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("déjà candidat");
       case "absent":
         return fail("introuvable");
+      case "contact_details":
+        return fail("coordonnées refusées");
     }
   } catch {
     return fail("erreur serveur");

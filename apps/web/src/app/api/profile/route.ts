@@ -4,7 +4,7 @@ import { getDb, ProfileInputSchema, profiles } from "@proofseen/db";
 import { newReference } from "@proofseen/intake";
 import { notifyProfileChanged } from "@/data/indexnow";
 import { throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /*
  * The signed-in freelancer's own profile: read (GET), create (POST, private until published) and update (PUT).
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (who.kind === "refused") return who.response;
   if (await throttled("profile", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = ProfileInputSchema.safeParse(withDates(await jsonBody(request)));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   try {
     const created = await profiles(getDb()).create(who.actor, parsed.data, () => newReference(secureRandom));
     return created === null ? fail("déjà accepté") : ok(created, 201);
@@ -58,7 +58,7 @@ export async function PUT(request: Request): Promise<NextResponse> {
   if (who.kind === "refused") return who.response;
   if (await throttled("profile", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = ProfileInputSchema.safeParse(withDates(await jsonBody(request)));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   try {
     const updated = await profiles(getDb()).update(who.actor, parsed.data);
     if (updated === null) return fail("profil requis");

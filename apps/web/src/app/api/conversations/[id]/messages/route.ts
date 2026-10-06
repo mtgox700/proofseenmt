@@ -53,6 +53,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("en attente d'accord");
       case "closed":
         return fail("conversation fermée");
+      case "contact_details":
+        return fail("coordonnées refusées");
     }
   } catch {
     return fail("erreur serveur");
