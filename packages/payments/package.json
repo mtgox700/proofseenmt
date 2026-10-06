@@ -1,0 +1,13 @@
+{
+  "name": "@proofseen/payments",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@proofseen/db": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}
