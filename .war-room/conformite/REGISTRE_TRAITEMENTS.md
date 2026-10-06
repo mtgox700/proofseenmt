@@ -21,6 +21,7 @@ Responsable de traitement : l'entité Proofseen (variables `PROOFSEEN_LEGAL_NAME
 | 12 | Mesure de visibilité IA | freelances audités | résumé par moteur (comptes) ; réponses brutes hors base, chiffrées | contrat | résumé avec le profil ; réponses brutes 72 h |
 | 13 | Limitation de débit | tous | HMAC de l'adresse IP ou de l'identifiant, jamais l'adresse | intérêt légitime (sécurité) | 1 jour (`retention.purge` et purge aléatoire) |
 | 14 | Événements Stripe | — | identifiant et type d'événement | obligation (idempotence des paiements) | 90 jours (`retention.purge`) |
+| 16 | Retours de la bêta | visiteurs, freelances, entreprises | nature, côté, chemin de la page (sans paramètres), texte ; compte si connecté | intérêt légitime (amélioration du service) | 1 an (`retention.purge`) ; supprimés avec le compte, inclus dans l'export |
 | 15 | Journaux serveur | — | événement, nom de classe d'erreur, date ; jamais de message d'erreur, d'e-mail ni d'identifiant | intérêt légitime (exploitation) | selon l'hébergeur |
 
 ## Droits des personnes

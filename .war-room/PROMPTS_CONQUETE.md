@@ -18,7 +18,7 @@
 | C4 | 2026-11-16 → 11-29 | Tableaux de bord et preuve | 🟡 | Données et API des tableaux de bord, avis, visibilité mesurée faits ; restent écrans + Lighthouse, remesure J+45 de Zak (~19/11, GO API), décompte des préventes (27/11) |
 | C5 | 2026-11-30 → 12-13 | Profils cités par les IA, à l'échelle | 🟡 | Profils, pages métiers, sitemaps, robots, IndexNow, `marketplace-verify` 9/9, Lighthouse 100 faits ; **mesure de conquête en attente du GO API** ; suivi Bing/Brave/Google au déploiement — `sprints/C5_HANDOFF.md` |
 | C6 | 2026-12-14 → 12-27 | Confiance, conformité, robustesse | 🟡 | RGPD appliqué (export, effacement protégé, durées exécutées), journaux et santé, red team fraude fermée et rejouée, 3 relectures sécurité sans constat critique ou haut ouvert ; restent l'effacement connecté et les verrous à rejouer sur la base réelle, une décision founder (séquestre non validé), l'AA des écrans — `sprints/C6_HANDOFF.md` |
-| C7 | 2026-12-28 → 2027-01-10 | Bêta publique | ⬜ | — |
+| C7 | 2026-12-28 → 2027-01-10 | Bêta publique | 🟡 | Fait sans attendre le déploiement : entonnoir des deux côtés (`funnel`), collecte et classement des retours (`/api/feedback`, `feedback`), procédure de mise en production (`sprints/C7_DEPLOY.md`), prompts C8-C11 proposés ; **attend le GO DEPLOY** puis les premiers utilisateurs réels — `sprints/C7_HANDOFF.md` |
 
 Statuts : ✅ terminé, chaque case de la Definition of Done cochée avec sa preuve · 🟡 en cours ou partiel (dire ce qui
 manque) · ⬜ pas commencé · ❌ abandonné (renvoi à l'entrée TEAM_MEMORY).
