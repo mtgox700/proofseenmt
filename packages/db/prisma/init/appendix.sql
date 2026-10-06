@@ -133,6 +133,10 @@ BEGIN
   IF c."status" IS DISTINCT FROM 'completed' THEN
     RAISE EXCEPTION 'avis refusé : la mission n''est pas terminée';
   END IF;
+  -- Un avis vient d'une mission réellement payée par la plateforme : jamais d'avis libre, jamais d'avis acheté.
+  IF NOT EXISTS (SELECT 1 FROM "Payment" WHERE "contractId" = NEW."contractId" AND "status" = 'released') THEN
+    RAISE EXCEPTION 'avis refusé : la mission n''a pas été payée';
+  END IF;
   IF c."profileId" IS DISTINCT FROM NEW."targetProfileId" THEN
     RAISE EXCEPTION 'avis refusé : la cible n''est pas le freelance de ce contrat';
   END IF;

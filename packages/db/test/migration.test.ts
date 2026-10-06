@@ -58,6 +58,15 @@ async function contract(org: string, prof: string, status = "pending_signatures"
   );
 }
 
+/** Un paiement déjà versé pour ce contrat : sans lui, aucun avis n'est accepté. */
+async function paid(contractId: string, intent: string): Promise<void> {
+  await db.query(
+    `INSERT INTO "Payment" ("id","contractId","amountCents","commissionCents","currency","stripeIntentId","status","transferId","releasedAt")
+     VALUES (gen_random_uuid(), $1, 600000, 60000, 'EUR', $2, 'released', $3, now())`,
+    [contractId, intent, `tr_${intent}`],
+  );
+}
+
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(MIGRATION);
@@ -153,6 +162,8 @@ describe("migration init", () => {
     await rejects(review, [running, author, p, 5], /pas terminée/);
 
     const done = await contract(org, p, "completed");
+    await rejects(review, [done, author, p, 5], /pas été payée/);
+    await paid(done, "pi_rev_paid");
     await rejects(review, [done, outsider, p, 5], /pas membre/);
     await rejects(review, [done, author, other, 5], /pas le freelance/);
     await rejects(review, [done, author, p, 6], /Review_chk/);
@@ -243,6 +254,7 @@ describe("migration init", () => {
     const p = await profile(await user("rw@x.fr"), "FR-RWA23");
     const other = await profile(await user("rw-other@x.fr"), "FR-RWA24");
     const done = await contract(org, p, "completed");
+    await paid(done, "pi_rw_paid");
     const pending = await contract(org, p);
     const review = await id(
       `INSERT INTO "Review" ("id","contractId","authorUserId","targetProfileId","rating","body") VALUES (gen_random_uuid(), $1, $2, $3, 5, 'Bien')`,
