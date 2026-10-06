@@ -1,0 +1,115 @@
+import type { Db } from "./client";
+import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
+
+/*
+ * Ce qu'une page publique de profil peut montrer, et rien d'autre. C'est la page que les moteurs de recherche et d'IA
+ * lisent : elle porte des faits vérifiés, jamais une note, un rang ou un score de la personne.
+ *
+ * Profil pseudonyme : ni nom, ni adresses web (une adresse personnelle suffit à retrouver quelqu'un) — seulement le
+ * nombre de preuves de possession. Profil nominatif : le nom affiché et les adresses prouvées. Dans les deux cas, le
+ * contact passe par la plateforme.
+ */
+
+export interface PublicMissionFact {
+  readonly role: string;
+  readonly clientKind: ClientKind;
+  readonly durationMonths: number;
+  readonly summary: string;
+  readonly evidenceKind: EvidenceKind;
+  readonly verifiedAt: Date;
+}
+
+export interface PublicProfilePage {
+  readonly reference: string;
+  readonly slug: string;
+  readonly visibility: Exclude<ProfileVisibility, "private">;
+  /** Seulement pour un profil nominatif. */
+  readonly displayName: string | null;
+  readonly headline: string;
+  readonly summary: string;
+  readonly city: string;
+  readonly workMode: WorkMode;
+  readonly availability: AvailabilityStatus;
+  readonly availableFrom: Date | null;
+  readonly dailyRateCents: number | null;
+  readonly currency: string;
+  readonly skills: readonly string[];
+  /** Adresses dont la possession est prouvée — vide pour un profil pseudonyme. */
+  readonly provenUrls: readonly string[];
+  readonly provenUrlCount: number;
+  readonly missions: readonly PublicMissionFact[];
+  readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
+  readonly updatedAt: Date;
+}
+
+export interface PublicProfiles {
+  /** La page d'un profil publié et complet ; `null` sinon. */
+  page(slug: string): Promise<PublicProfilePage | null>;
+  /** Les profils publiés, pour le sitemap. */
+  listForSitemap(): Promise<readonly { readonly slug: string; readonly updatedAt: Date }[]>;
+}
+
+const SLUG = /^[a-z0-9-]{3,60}$/;
+export const MAX_SITEMAP_PROFILES = 25_000;
+
+export const publicProfiles = (db: Db): PublicProfiles => ({
+  async page(slug) {
+    if (!SLUG.test(slug)) return null;
+    const row = await db.freelanceProfile.findFirst({
+      where: { slug, visibility: { not: "private" } },
+      select: {
+        reference: true,
+        slug: true,
+        visibility: true,
+        headline: true,
+        summary: true,
+        city: true,
+        workMode: true,
+        availability: true,
+        availableFrom: true,
+        dailyRateCents: true,
+        currency: true,
+        updatedAt: true,
+        user: { select: { displayName: true } },
+        skills: { select: { skill: { select: { label: true } } } },
+        ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true } },
+        missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true } },
+        reviews: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
+      },
+    });
+    // Une page sans contenu réel n'est jamais servie : un profil publié a toujours titre, résumé et ville (la base
+    // l'impose), mais on ne fait pas reposer la page sur cette seule garantie.
+    if (row === null || row.slug === null || row.headline === null || row.summary === null || row.city === null || row.visibility === "private") return null;
+    const named = row.visibility === "named";
+    return {
+      reference: row.reference,
+      slug: row.slug,
+      visibility: row.visibility,
+      displayName: named ? row.user.displayName : null,
+      headline: row.headline,
+      summary: row.summary,
+      city: row.city,
+      workMode: row.workMode,
+      availability: row.availability,
+      availableFrom: row.availableFrom,
+      dailyRateCents: row.dailyRateCents,
+      currency: row.currency,
+      skills: row.skills.map((s) => s.skill.label),
+      provenUrls: named ? row.ownedUrls.map((u) => u.url) : [],
+      provenUrlCount: row.ownedUrls.length,
+      missions: row.missions,
+      reviews: row.reviews,
+      updatedAt: row.updatedAt,
+    };
+  },
+
+  async listForSitemap() {
+    const rows = await db.freelanceProfile.findMany({
+      where: { visibility: { not: "private" }, slug: { not: null } },
+      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      take: MAX_SITEMAP_PROFILES,
+      select: { slug: true, updatedAt: true },
+    });
+    return rows.flatMap((r) => (r.slug === null ? [] : [{ slug: r.slug, updatedAt: r.updatedAt }]));
+  },
+});

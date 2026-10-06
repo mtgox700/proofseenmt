@@ -112,3 +112,4 @@ export {
 export { ReviewInputSchema, reviews, type PublicReview, type ReviewInput, type Reviews, type WriteReviewResult } from "./reviews";
 export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashboard } from "./dashboards";
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
+export { MAX_SITEMAP_PROFILES, publicProfiles, type PublicMissionFact, type PublicProfilePage, type PublicProfiles } from "./public-profiles";
