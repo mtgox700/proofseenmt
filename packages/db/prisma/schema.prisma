@@ -612,13 +612,33 @@ model Wave {
   profileId  String?  @db.Uuid
   measuredAt DateTime @db.Timestamptz(3)
   draws      Int
-  costCents  Int
-  currency   String   @db.Char(3)
+  /// Coût réel des appels, s'il est connu : inconnu vaut nul, jamais zéro.
+  costCents  Int?
+  currency   String?  @db.Char(3)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
 
   profile FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  results VisibilityResult[]
 
   @@index([profileId], where: raw("\"profileId\" IS NOT NULL"), map: "Wave_profileId_idx")
+}
+
+/// Résultat d'une vague pour un moteur : les comptes de l'entonnoir tels que le rapport client les publie, jamais les
+/// réponses brutes (chiffrées et purgées à 72 h, hors base).
+model VisibilityResult {
+  id        String @id @default(uuid(7)) @db.Uuid
+  waveRefId String @db.Uuid
+  engine    String
+  draws     Int
+  /// Tirages où la page du freelance a été retrouvée, nommée, classée dans les cinq premiers, citée de façon certaine.
+  retrieved Int
+  named     Int
+  top5      Int
+  cited     Int
+
+  wave Wave @relation(fields: [waveRefId], references: [id], onDelete: Cascade)
+
+  @@unique([waveRefId, engine])
 }
 
 // ─── Notifications ──────────────────────────────────────────────────────────────────────────────────────────────────

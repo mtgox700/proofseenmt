@@ -484,3 +484,10 @@ BEGIN
 END $fn$;
 CREATE TRIGGER "Membership_guard" BEFORE INSERT ON "Membership"
   FOR EACH ROW EXECUTE FUNCTION proofseen_membership_guard();
+
+-- ═══ Visibilité mesurée ════════════════════════════════════════════════════════════════════════════════════════════
+-- Chaque étape compte des tirages : jamais plus que les tirages de la vague pour ce moteur.
+ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_counts_chk" CHECK (
+  "draws" >= 0 AND "retrieved" BETWEEN 0 AND "draws" AND "named" BETWEEN 0 AND "draws" AND "top5" BETWEEN 0 AND "draws" AND "cited" BETWEEN 0 AND "draws");
+ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_engine_chk" CHECK ("engine" ~ '^[a-z0-9-]{2,40}$');
+ALTER TABLE "Wave" ADD CONSTRAINT "Wave_cost_currency_chk" CHECK (("costCents" IS NULL) = ("currency" IS NULL));

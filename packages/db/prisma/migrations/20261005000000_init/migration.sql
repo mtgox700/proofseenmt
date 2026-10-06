@@ -372,11 +372,25 @@ CREATE TABLE "Wave" (
     "profileId" UUID,
     "measuredAt" TIMESTAMPTZ(3) NOT NULL,
     "draws" INTEGER NOT NULL,
-    "costCents" INTEGER NOT NULL,
-    "currency" CHAR(3) NOT NULL,
+    "costCents" INTEGER,
+    "currency" CHAR(3),
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Wave_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VisibilityResult" (
+    "id" UUID NOT NULL,
+    "waveRefId" UUID NOT NULL,
+    "engine" TEXT NOT NULL,
+    "draws" INTEGER NOT NULL,
+    "retrieved" INTEGER NOT NULL,
+    "named" INTEGER NOT NULL,
+    "top5" INTEGER NOT NULL,
+    "cited" INTEGER NOT NULL,
+
+    CONSTRAINT "VisibilityResult_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -574,6 +588,9 @@ CREATE UNIQUE INDEX "Wave_waveId_key" ON "Wave"("waveId");
 CREATE INDEX "Wave_profileId_idx" ON "Wave"("profileId") WHERE ("profileId" IS NOT NULL);
 
 -- CreateIndex
+CREATE UNIQUE INDEX "VisibilityResult_waveRefId_engine_key" ON "VisibilityResult"("waveRefId", "engine");
+
+-- CreateIndex
 CREATE INDEX "Notification_pending_idx" ON "Notification"("sendAfter") WHERE ("sentAt" IS NULL);
 
 -- CreateIndex
@@ -674,6 +691,9 @@ ALTER TABLE "Review" ADD CONSTRAINT "Review_targetProfileId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Wave" ADD CONSTRAINT "Wave_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "FreelanceProfile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_waveRefId_fkey" FOREIGN KEY ("waveRefId") REFERENCES "Wave"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1170,3 +1190,10 @@ BEGIN
 END $fn$;
 CREATE TRIGGER "Membership_guard" BEFORE INSERT ON "Membership"
   FOR EACH ROW EXECUTE FUNCTION proofseen_membership_guard();
+
+-- ═══ Visibilité mesurée ════════════════════════════════════════════════════════════════════════════════════════════
+-- Chaque étape compte des tirages : jamais plus que les tirages de la vague pour ce moteur.
+ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_counts_chk" CHECK (
+  "draws" >= 0 AND "retrieved" BETWEEN 0 AND "draws" AND "named" BETWEEN 0 AND "draws" AND "top5" BETWEEN 0 AND "draws" AND "cited" BETWEEN 0 AND "draws");
+ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_engine_chk" CHECK ("engine" ~ '^[a-z0-9-]{2,40}$');
+ALTER TABLE "Wave" ADD CONSTRAINT "Wave_cost_currency_chk" CHECK (("costCents" IS NULL) = ("currency" IS NULL));
