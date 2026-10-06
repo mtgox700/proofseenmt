@@ -1,12 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applications } from "../src/applications";
-import { billing } from "../src/billing";
+import { billing, type LegalSnapshot } from "../src/billing";
+import { contracts } from "../src/contracts";
 import { NO_CONTACT } from "../src/contact-detection";
 import { MAX_CONTACTS_PER_ORGANISATION_PER_DAY, messaging } from "../src/messaging";
 import { missions, type MissionInput } from "../src/missions";
+import { payments } from "../src/payments";
 import { profiles } from "../src/profiles";
 import { publicProfiles } from "../src/public-profiles";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
+import { MIN_QUOTE_TOTAL_CENTS, quotes } from "../src/quotes";
+import { reviews } from "../src/reviews";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
 
 /*
  * Chaque contournement trouvé par la red team du sprint C6 (2026-10-06), rejoué. Un test par scénario : s'il repasse un
@@ -117,4 +121,87 @@ describe("coordonnées dans les échanges, avant tout contrat", () => {
     const oneMore = await createProfile(t.db, await createUser(t.db));
     expect(await messaging(t.db).contact({ userId: recruiter }, org, oneMore, "Bonjour, êtes-vous disponible ?")).toEqual({ kind: "limit" });
   }, 120_000);
+});
+
+const ADDRESS = { line1: "1 rue de Test", postalCode: "75001", city: "Paris", country: "FR" };
+const PROOFSEEN: LegalSnapshot = { legalName: "Proofseen (test)", siret: "12345678900011", vatNumber: "FR12123456789", address: ADDRESS, vatRateBp: 2000 };
+const NOW = new Date("2026-11-20T10:00:00Z");
+
+/** Un fil accepté entre une entreprise et un freelance qui ont tous deux leur identité de facturation. */
+const parties = async (orgSiret = "73282932000074") => {
+  const s = await setup();
+  await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+  await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", siret: orgSiret, address: ADDRESS });
+  await t.db.billingIdentity.update({ where: { profileId: s.profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });
+  const contact = await messaging(t.db).contact({ userId: s.recruiter }, s.org, s.profile, "Bonjour, une mission ?");
+  if (contact.kind !== "opened") throw new Error(contact.kind);
+  await messaging(t.db).decide({ userId: s.freelanceUser }, contact.conversation.id, "accepted", NOW);
+  return { ...s, conversation: contact.conversation.id };
+};
+
+const acceptedQuote = async (p: Awaited<ReturnType<typeof parties>>): Promise<string> => {
+  const draft = await quotes(t.db).draft({ userId: p.freelanceUser }, p.conversation, { dailyRateCents: 60_000, days: 10 });
+  await quotes(t.db).send({ userId: p.freelanceUser }, draft?.id ?? "");
+  const decided = await quotes(t.db).decide({ userId: p.recruiter }, draft?.id ?? "", "accepted");
+  if (decided.kind !== "ok") throw new Error(decided.kind);
+  return decided.quote.id;
+};
+
+/** Un contrat signé, payé, validé et versé. */
+const paidContract = async () => {
+  const p = await parties();
+  const created = await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-11-02" });
+  if (created.kind !== "created") throw new Error(created.kind);
+  const id = created.contract.id;
+  await contracts(t.db).sign({ userId: p.recruiter }, id, NOW);
+  await contracts(t.db).sign({ userId: p.freelanceUser }, id, NOW);
+  const { gateway } = fakeGateway();
+  const intent = await payAndHold(t.db, p.recruiter, id, gateway);
+  await contracts(t.db).complete({ userId: p.recruiter }, id);
+  expect(await payments(t.db).release(id, gateway, PROOFSEEN, NOW)).toMatchObject({ kind: "released" });
+  return { ...p, contract: id, intent };
+};
+
+describe("avis et contrats : ce qui ne s'achète pas", () => {
+  it("un avis disparaît quand le paiement est rétrofacturé, et ne peut plus être écrit", async () => {
+    const reviewed = await paidContract();
+    expect(await reviews(t.db).write({ userId: reviewed.recruiter }, reviewed.contract, { rating: 1, body: "Travail bâclé." })).toMatchObject({ kind: "written" });
+    expect(await reviews(t.db).listForProfile(reviewed.profile)).toHaveLength(1);
+    await payments(t.db).applyEvent({ id: `evt_cb_${reviewed.contract}`, type: "dispute.opened", intentId: reviewed.intent }, NOW);
+    await payments(t.db).applyEvent({ id: `evt_cbl_${reviewed.contract}`, type: "dispute.closed", intentId: reviewed.intent, won: false }, NOW);
+    expect(await reviews(t.db).listForProfile(reviewed.profile)).toEqual([]);
+
+    const disputed = await paidContract();
+    await payments(t.db).applyEvent({ id: `evt_cb_${disputed.contract}`, type: "dispute.opened", intentId: disputed.intent }, NOW);
+    expect(await reviews(t.db).write({ userId: disputed.recruiter }, disputed.contract, { rating: 1, body: "Travail bâclé." })).toEqual({ kind: "not_eligible" });
+  });
+
+  it("la base refuse qu'un freelance devenu membre de l'entreprise évalue sa propre mission", async () => {
+    const c = await paidContract();
+    await t.db.membership.create({ data: { organisationId: c.org, userId: c.freelanceUser, role: "member" } });
+    await expect(t.db.review.create({ data: { contractId: c.contract, authorUserId: c.freelanceUser, targetProfileId: c.profile, rating: 5, body: "Parfait." } })).rejects.toThrow(/soi-même/);
+  });
+
+  it(`refuse un devis sous ${MIN_QUOTE_TOTAL_CENTS / 100} : un contrat à quelques centimes n'achète qu'un avis`, async () => {
+    const p = await parties();
+    await expect(quotes(t.db).draft({ userId: p.freelanceUser }, p.conversation, { dailyRateCents: 1, days: 1 })).rejects.toThrow(/minimum/);
+    expect(await quotes(t.db).draft({ userId: p.freelanceUser }, p.conversation, { dailyRateCents: MIN_QUOTE_TOTAL_CENTS, days: 1 })).not.toBeNull();
+  });
+
+  it("refuse un contrat entre une entreprise et un freelance de même SIREN", async () => {
+    const p = await parties("55210055400033");
+    expect(await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-11-02" })).toEqual({ kind: "self_dealing" });
+  });
+
+  it("un contrat annulé ou terminé libère le fil pour un nouveau devis et un nouveau contrat", async () => {
+    const p = await parties();
+    const first = await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-11-02" });
+    if (first.kind !== "created") throw new Error(first.kind);
+    expect(await contracts(t.db).cancel({ userId: p.recruiter }, first.contract.id)).not.toBeNull();
+    const second = await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-12-01" });
+    expect(second).toMatchObject({ kind: "created" });
+
+    const done = await paidContract();
+    expect(await contracts(t.db).createFromQuote({ userId: done.recruiter }, await acceptedQuote(done), { startsOn: "2027-01-04" })).toMatchObject({ kind: "created" });
+  });
 });

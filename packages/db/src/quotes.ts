@@ -15,11 +15,20 @@ import type { Actor } from "./messaging";
 
 const Uuid = z.uuid();
 
-export const QuoteInputSchema = z.object({
-  dailyRateCents: z.number().int().min(1).max(10_000_000),
-  days: z.number().int().min(1).max(1000),
-  currency: z.enum(["EUR", "GBP", "CHF", "USD"]).default("EUR"),
-});
+/**
+ * Plancher d'un devis (100 dans la devise). En deçà, un contrat ne rémunère aucune prestation réelle : il sert à acheter
+ * un avis pour quelques centimes, et les frais fixes du paiement dépassent la commission.
+ */
+export const MIN_QUOTE_TOTAL_CENTS = 10_000;
+export const BELOW_MINIMUM = "devis sous le montant minimum";
+
+export const QuoteInputSchema = z
+  .object({
+    dailyRateCents: z.number().int().min(1).max(10_000_000),
+    days: z.number().int().min(1).max(1000),
+    currency: z.enum(["EUR", "GBP", "CHF", "USD"]).default("EUR"),
+  })
+  .refine((q) => q.dailyRateCents * q.days >= MIN_QUOTE_TOTAL_CENTS, { message: BELOW_MINIMUM });
 
 export type QuoteInput = z.input<typeof QuoteInputSchema>;
 

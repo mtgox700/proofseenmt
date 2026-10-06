@@ -45,7 +45,7 @@ const acceptedQuote = async (s: Awaited<ReturnType<typeof setup>>) => {
 describe("devis", () => {
   it("se rédige par le freelance, s'envoie, se décide par l'entreprise ; le total est calculé, jamais reçu", async () => {
     const s = await setup();
-    expect(await quotes(t.db).draft({ userId: s.recruiter }, s.conversation, { dailyRateCents: 1, days: 1 })).toBeNull();
+    expect(await quotes(t.db).draft({ userId: s.recruiter }, s.conversation, { dailyRateCents: 60_000, days: 1 })).toBeNull();
     const draft = await quotes(t.db).draft({ userId: s.freelanceUser }, s.conversation, { dailyRateCents: 65_000, days: 12 });
     expect(draft).toMatchObject({ status: "draft", totalCents: 780_000 });
 
@@ -75,7 +75,7 @@ describe("devis", () => {
     const s = await setup();
     const stranger = await createUser(t.db);
     expect(await quotes(t.db).list({ userId: stranger }, s.conversation)).toBeNull();
-    expect(await quotes(t.db).draft({ userId: stranger }, s.conversation, { dailyRateCents: 1, days: 1 })).toBeNull();
+    expect(await quotes(t.db).draft({ userId: stranger }, s.conversation, { dailyRateCents: 60_000, days: 1 })).toBeNull();
   });
 });
 

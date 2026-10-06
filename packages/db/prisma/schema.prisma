@@ -112,6 +112,7 @@ enum QuoteStatus {
   accepted
   declined
   superseded
+  closed // son contrat est terminé ou annulé : le fil peut accueillir un nouveau devis
 }
 
 enum ContractStatus {

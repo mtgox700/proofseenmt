@@ -187,8 +187,18 @@ describe("scénarios de la revue de sécurité", () => {
   });
 
   it("refuse un montant dont la commission arrondie serait nulle", async () => {
-    const c = await activeContract({ dailyRateCents: 4, days: 1 });
-    expect(await payments(t.db).open({ userId: c.recruiter }, c.id, fakeGateway().gateway, COMMISSION_BP)).toEqual({ kind: "amount_too_small" });
+    // Un devis ne descend plus sous le plancher : le contrat minuscule est écrit directement, comme une donnée héritée.
+    const c = await activeContract();
+    const snapshots = await t.db.contract.findUniqueOrThrow({ where: { id: c.id }, select: { sellerSnapshot: true, buyerSnapshot: true } });
+    const tiny = await t.db.contract.create({
+      data: {
+        organisationId: c.org, profileId: c.profile, dailyRateCents: 4, days: 1, totalCents: 4, currency: "EUR",
+        sellerSnapshot: snapshots.sellerSnapshot ?? {}, buyerSnapshot: snapshots.buyerSnapshot ?? {}, startsOn: NOW,
+        status: "active", acceptedByFreelanceAt: NOW, acceptedByOrgAt: NOW,
+      },
+      select: { id: true },
+    });
+    expect(await payments(t.db).open({ userId: c.recruiter }, tiny.id, fakeGateway().gateway, COMMISSION_BP)).toEqual({ kind: "amount_too_small" });
   });
 
   it("n'annule pas un contrat qui a de l'argent en jeu", async () => {

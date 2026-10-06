@@ -51,6 +51,8 @@ export type CreateContractResult =
   /** L'entreprise n'a pas renseigné son adresse de facturation. */
   | { readonly kind: "buyer_identity_missing" }
   | { readonly kind: "already_exists" }
+  /** Vendeur et acheteur sont la même entreprise (même SIREN) : un contrat avec soi-même n'achète qu'un avis. */
+  | { readonly kind: "self_dealing" }
   | { readonly kind: "absent" };
 
 export type CompleteResult =
@@ -125,6 +127,7 @@ export const contracts = (db: Db): Contracts => ({
         if (seller === null) return { kind: "seller_identity_missing" };
         const buyer = await organisationSnapshot(tx, organisationId);
         if (buyer === null) return { kind: "buyer_identity_missing" };
+        if (buyer.siret !== null && seller.siret !== null && buyer.siret.slice(0, 9) === seller.siret.slice(0, 9)) return { kind: "self_dealing" };
         const contract = await tx.contract.create({
           data: {
             quoteId,

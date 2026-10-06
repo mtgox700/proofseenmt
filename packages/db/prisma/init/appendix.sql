@@ -134,8 +134,12 @@ BEGIN
     RAISE EXCEPTION 'avis refusé : la mission n''est pas terminée';
   END IF;
   -- Un avis vient d'une mission réellement payée par la plateforme : jamais d'avis libre, jamais d'avis acheté.
-  IF NOT EXISTS (SELECT 1 FROM "Payment" WHERE "contractId" = NEW."contractId" AND "status" = 'released') THEN
+  IF NOT EXISTS (SELECT 1 FROM "Payment" WHERE "contractId" = NEW."contractId" AND "status" = 'released'
+                 AND "refundedCents" = 0 AND ("disputeOpenedAt" IS NULL OR "disputeWon")) THEN
     RAISE EXCEPTION 'avis refusé : la mission n''a pas été payée';
+  END IF;
+  IF EXISTS (SELECT 1 FROM "FreelanceProfile" p WHERE p."id" = c."profileId" AND p."userId" = NEW."authorUserId") THEN
+    RAISE EXCEPTION 'avis refusé : on ne s''évalue pas soi-même';
   END IF;
   IF c."profileId" IS DISTINCT FROM NEW."targetProfileId" THEN
     RAISE EXCEPTION 'avis refusé : la cible n''est pas le freelance de ce contrat';
@@ -427,6 +431,17 @@ CREATE TRIGGER "Application_update" BEFORE UPDATE ON "Application"
 -- ou envoyé, n'est accepté qu'après avoir été envoyé, et ses montants ne bougent plus une fois envoyé.
 CREATE FUNCTION proofseen_quote_guard() RETURNS trigger LANGUAGE plpgsql AS $fn$
 BEGIN
+  -- Clore un devis dont le contrat est fini ne demande rien au fil, qui peut avoir été fermé depuis.
+  IF TG_OP = 'UPDATE' AND OLD."status" = 'accepted' AND NEW."status" = 'closed' THEN
+    IF (NEW."dailyRateCents", NEW."days", NEW."totalCents", NEW."currency", NEW."conversationId")
+       IS DISTINCT FROM (OLD."dailyRateCents", OLD."days", OLD."totalCents", OLD."currency", OLD."conversationId") THEN
+      RAISE EXCEPTION 'un devis clos ne change pas';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM "Contract" WHERE "quoteId" = NEW."id" AND "status" IN ('completed', 'cancelled')) THEN
+      RAISE EXCEPTION 'un devis ne se clôt qu''avec la fin de son contrat';
+    END IF;
+    RETURN NEW;
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM "Conversation" WHERE "id" = NEW."conversationId" AND "status" = 'accepted') THEN
     RAISE EXCEPTION 'devis refusé : la conversation n''est pas acceptée par le freelance';
   END IF;
@@ -453,6 +468,18 @@ BEGIN
 END $fn$;
 CREATE TRIGGER "Quote_guard" BEFORE INSERT OR UPDATE ON "Quote"
   FOR EACH ROW EXECUTE FUNCTION proofseen_quote_guard();
+
+-- Un contrat terminé ou annulé clôt son devis : une mission suivante ou refaite reste sur la plateforme, dans le même
+-- fil, au lieu de partir ailleurs faute de pouvoir accepter un second devis.
+CREATE FUNCTION proofseen_contract_closes_quote() RETURNS trigger LANGUAGE plpgsql AS $fn$
+BEGIN
+  IF NEW."quoteId" IS NOT NULL AND NEW."status" IN ('completed', 'cancelled') AND OLD."status" IS DISTINCT FROM NEW."status" THEN
+    UPDATE "Quote" SET "status" = 'closed' WHERE "id" = NEW."quoteId" AND "status" = 'accepted';
+  END IF;
+  RETURN NEW;
+END $fn$;
+CREATE TRIGGER "Contract_closes_quote" AFTER UPDATE OF "status" ON "Contract"
+  FOR EACH ROW EXECUTE FUNCTION proofseen_contract_closes_quote();
 
 -- ═══ Notifications ═════════════════════════════════════════════════════════════════════════════════════════════════
 ALTER TABLE "User" ADD CONSTRAINT "User_lang_chk" CHECK ("lang" IN ('fr','en'));
