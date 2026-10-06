@@ -40,10 +40,12 @@ describe("traduction des événements", () => {
   it.each([
     ["payment_intent.succeeded", { id: "pi_1" }, { type: "payment.succeeded", intentId: "pi_1" }],
     ["payment_intent.payment_failed", { id: "pi_1" }, { type: "payment.failed", intentId: "pi_1" }],
-    ["charge.refunded", { id: "ch_1", payment_intent: "pi_1" }, { type: "refund.succeeded", intentId: "pi_1" }],
+    // Montant remboursé cumulé : un remboursement partiel reste partiel.
+    ["charge.refunded", { id: "ch_1", payment_intent: "pi_1", amount_refunded: 1500 }, { type: "refund.updated", intentId: "pi_1", amountRefundedCents: 1500 }],
     ["charge.dispute.created", { id: "dp_1", payment_intent: "pi_1" }, { type: "dispute.opened", intentId: "pi_1" }],
-    ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "lost" }, { type: "dispute.lost", intentId: "pi_1" }],
-    ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "won" }, { type: "dispute.won", intentId: "pi_1" }],
+    ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "lost" }, { type: "dispute.closed", intentId: "pi_1", won: false }],
+    ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "won" }, { type: "dispute.closed", intentId: "pi_1", won: true }],
+    ["account.updated", { id: "acct_1", payouts_enabled: true }, { type: "account.updated", accountId: "acct_1", payoutsEnabled: true }],
   ])("%s", (type, object, expected) => {
     expect(toPaymentEvent(JSON.parse(event(type, object)))).toEqual({ id: "evt_1", ...expected });
   });

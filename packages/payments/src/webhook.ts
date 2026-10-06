@@ -52,22 +52,32 @@ export const toPaymentEvent = (payload: unknown): PaymentEvent | null => {
   if (!parsed.success) return null;
   const { id, type, data } = parsed.data;
   const object = data.object;
-  const make = (t: PaymentEvent["type"], intentId: string | null): PaymentEvent | null => (intentId === null ? null : { id, type: t, intentId });
+  const simple = (t: "payment.succeeded" | "payment.failed" | "payment.canceled" | "dispute.opened", intentId: string | null): PaymentEvent | null =>
+    intentId === null ? null : { id, type: t, intentId };
   switch (type) {
     case "payment_intent.succeeded":
-      return make("payment.succeeded", str(object.id));
+      return simple("payment.succeeded", str(object.id));
     case "payment_intent.payment_failed":
-      return make("payment.failed", str(object.id));
+      return simple("payment.failed", str(object.id));
     case "payment_intent.canceled":
-      return make("payment.canceled", str(object.id));
-    case "charge.refunded":
-      return make("refund.succeeded", str(object.payment_intent));
+      return simple("payment.canceled", str(object.id));
+    case "charge.refunded": {
+      // Montant remboursé cumulé : un remboursement partiel ne doit pas passer pour un remboursement total.
+      const intentId = str(object.payment_intent);
+      const refunded = object.amount_refunded;
+      return intentId === null || typeof refunded !== "number" || !Number.isInteger(refunded) ? null : { id, type: "refund.updated", intentId, amountRefundedCents: refunded };
+    }
     case "charge.dispute.created":
-      return make("dispute.opened", str(object.payment_intent));
-    case "charge.dispute.closed":
-      if (object.status === "won") return make("dispute.won", str(object.payment_intent));
-      if (object.status === "lost") return make("dispute.lost", str(object.payment_intent));
-      return null;
+      return simple("dispute.opened", str(object.payment_intent));
+    case "charge.dispute.closed": {
+      const intentId = str(object.payment_intent);
+      if (intentId === null || (object.status !== "won" && object.status !== "lost")) return null;
+      return { id, type: "dispute.closed", intentId, won: object.status === "won" };
+    }
+    case "account.updated": {
+      const accountId = str(object.id);
+      return accountId === null ? null : { id, type: "account.updated", accountId, payoutsEnabled: object.payouts_enabled === true };
+    }
     default:
       return null;
   }

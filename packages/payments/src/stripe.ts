@@ -46,6 +46,15 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
     return (await response.json()) as Record<string, unknown>;
   };
 
+  const get = async (path: string): Promise<Record<string, unknown>> => {
+    const response = await fetchImpl(`${API}${path}`, {
+      headers: { authorization: `Bearer ${config.secretKey}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) throw new StripeError(response.status);
+    return (await response.json()) as Record<string, unknown>;
+  };
+
   const id = (object: Record<string, unknown>, key = "id"): string => {
     const value = object[key];
     if (typeof value !== "string" || value === "") throw new Error(`réponse Stripe sans ${key}`);
@@ -80,6 +89,31 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
     async refund({ intentId, amountCents, idempotencyKey }) {
       const refund = await post("/refunds", { payment_intent: intentId, amount: amountCents }, idempotencyKey);
       return { refundId: id(refund) };
+    },
+
+    async intentSecret(intentId) {
+      if (!/^pi_[A-Za-z0-9]+$/.test(intentId)) throw new Error("intention invalide");
+      return id(await get(`/payment_intents/${intentId}`), "client_secret");
+    },
+
+    async findTransfer(contractId) {
+      const list = await get(`/transfers?limit=1&transfer_group=${encodeURIComponent(contractId)}`);
+      const [first] = Array.isArray(list.data) ? (list.data as Record<string, unknown>[]) : [];
+      return first === undefined ? null : id(first);
+    },
+
+    async createAccount({ email, country, idempotencyKey }) {
+      const account = await post(
+        "/accounts",
+        { type: "express", country, email, "capabilities[transfers][requested]": "true", "business_type": "individual" },
+        idempotencyKey,
+      );
+      return { accountId: id(account) };
+    },
+
+    async onboardingLink({ accountId, returnUrl, refreshUrl }) {
+      const link = await post("/account_links", { account: accountId, return_url: returnUrl, refresh_url: refreshUrl, type: "account_onboarding" }, `link-${accountId}-${Date.now()}`);
+      return { url: id(link, "url") };
     },
   };
 };
