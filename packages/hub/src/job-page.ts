@@ -1,3 +1,4 @@
+import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 
@@ -101,6 +102,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="color-scheme" content="dark">',
+    `<link rel="icon" href="${FAVICON}">`,
     `<title>${e(`${m.title} — ${m.organisationName}`)}</title>`,
     `<meta name="description" content="${e(description.slice(0, 160))}">`,
     `<link rel="canonical" href="${e(url(o.lang))}">`,

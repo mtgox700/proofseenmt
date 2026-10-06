@@ -1,3 +1,4 @@
+import { FAVICON } from "./pages";
 import { escapeHtml as e, STYLES } from "./html";
 import { rateText } from "./job-page";
 import type { PublicMission } from "./job-posting";
@@ -30,6 +31,7 @@ const LABELS = {
     sort: "Trier par",
     sorts: { recent: "Plus récentes", rate_desc: "TJM le plus haut", rate_asc: "TJM le plus bas" },
     search: "Filtrer",
+    results: "Missions correspondantes",
     empty: "Aucune mission ne correspond à ces filtres.",
     next: "Page suivante",
     previous: "Page précédente",
@@ -45,6 +47,7 @@ const LABELS = {
     sort: "Sort by",
     sorts: { recent: "Most recent", rate_desc: "Highest day rate", rate_asc: "Lowest day rate" },
     search: "Filter",
+    results: "Matching missions",
     empty: "No mission matches these filters.",
     next: "Next page",
     previous: "Previous page",
@@ -111,6 +114,7 @@ export const renderJobIndex = (
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="color-scheme" content="dark">',
+    `<link rel="icon" href="${FAVICON}">`,
     `<title>${l.title} — Proofseen</title>`,
     `<meta name="description" content="${e(l.lead)}">`,
     `<link rel="canonical" href="${e(`${o.baseUrl}/${o.lang}/missions`)}">`,
@@ -131,6 +135,7 @@ export const renderJobIndex = (
       `<fieldset><legend>${l.mode}</legend>${modes}</fieldset>` +
       `<label>${l.sort}<select name="tri">${sorts}</select></label>` +
       `<button type="submit">${l.search}</button></form>`,
+    `<h2>${l.results}</h2>`,
     items.length === 0 ? `<p class="muted">${l.empty}</p>` : `<ul class="missions">${items.map((m) => card(m, o.lang)).join("")}</ul>`,
     `<nav class="pager">${pager}</nav>`,
     "</main>",

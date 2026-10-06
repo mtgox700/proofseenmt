@@ -1,3 +1,4 @@
+import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 
 /*
@@ -156,6 +157,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="color-scheme" content="dark">',
+    `<link rel="icon" href="${FAVICON}">`,
     `<title>${e(`${name} — ${p.headline}`)}</title>`,
     `<meta name="description" content="${e(`${p.headline} · ${p.city} · ${availability}`.slice(0, 160))}">`,
     `<link rel="canonical" href="${e(profileUrl(o.baseUrl, o.lang, p.slug))}">`,

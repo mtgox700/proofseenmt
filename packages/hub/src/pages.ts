@@ -5,7 +5,7 @@ import type { HubProfile, Locale, Mission } from "./schema";
 const OTHER: Readonly<Record<Locale, Locale>> = { fr: "en", en: "fr" };
 
 /** Inline SVG favicon (the interval glyph): no extra request, and no 404 on /favicon.ico in the console. */
-const FAVICON =
+export const FAVICON =
   "data:image/svg+xml," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="9" fill="#070b14"/>' +
