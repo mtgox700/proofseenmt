@@ -28,12 +28,9 @@ const PRICES: Readonly<Record<EngineId, Readonly<Record<string, Price>>>> = {
   },
 };
 
-/** Worst-case cost of one draw, used to stop BEFORE the cap is crossed (conservative, HYPOTHESIS). */
-export const WORST_CASE_DRAW_USD: Readonly<Record<EngineId, number>> = {
-  openai: 0.08,
-  anthropic: 0.12,
-  perplexity: 0.03,
-};
+// La borne du pire cas appartient au protocole (core/protocol.ts) : le plafond d'une vague et le contrôle du
+// préflight doivent la lire au même endroit, sinon ils finissent par ne plus être d'accord.
+export { WORST_CASE_DRAW_USD } from "@proofseen/core";
 
 export class PricingError extends Error {
   constructor(engine: EngineId, model: string) {

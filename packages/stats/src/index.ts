@@ -4,3 +4,6 @@ export * from "./bootstrap";
 export * from "./funnel";
 export * from "./sorv";
 export * from "./drift";
+export * from "./discoverability";
+export * from "./bots";
+export * from "./threearm";

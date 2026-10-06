@@ -22,7 +22,7 @@ describe("LLM Discoverability Rate", () => {
     const a = report.profiles.find((p) => p.profileId === "FR-AAAAA")!;
     expect(a.draws).toBe(12);
     expect(a.cited).toBe(6);
-    expect(a.rate!.point).toBeCloseTo(0.5, 6);
+    expect(a.rate!.p).toBeCloseTo(0.5, 6);
     expect(a.rate!.low).toBeLessThan(0.5);
     expect(a.rate!.high).toBeGreaterThan(0.5);
     expect(a.publishable).toBe(true);
@@ -41,7 +41,7 @@ describe("LLM Discoverability Rate", () => {
   it("says zero honestly: a profile never cited keeps an upper bound above zero", () => {
     const b = discoverability(sample).profiles.find((p) => p.profileId === "FR-BBBBB")!;
     expect(b.cited).toBe(0);
-    expect(b.rate!.point).toBe(0);
+    expect(b.rate!.p).toBe(0);
     expect(b.rate!.high).toBeGreaterThan(0);
     expect(b.visible).toBe(false);
   });
@@ -57,7 +57,7 @@ describe("LLM Discoverability Rate", () => {
     const report = discoverability(sample);
     expect(report.global.draws).toBe(24);
     expect(report.global.cited).toBe(6);
-    expect(report.global.rate!.point).toBeCloseTo(0.25, 6);
+    expect(report.global.rate!.p).toBeCloseTo(0.25, 6);
     expect(report.visibleProfiles).toBe(1);
     expect(report.profilesMeasured).toBe(2);
   });
@@ -69,8 +69,8 @@ describe("LLM Discoverability Rate", () => {
     ];
     const d = discoverability(retrievedNotCited).profiles[0]!;
     expect(d.retrieved).toBe(12);
-    expect(d.retrievalRate!.point).toBe(1);
-    expect(d.rate!.point).toBeCloseTo(2 / 12, 6);
+    expect(d.retrievalRate!.p).toBe(1);
+    expect(d.rate!.p).toBeCloseTo(2 / 12, 6);
   });
 
   it("returns an empty report rather than pretending, when there is no observation", () => {

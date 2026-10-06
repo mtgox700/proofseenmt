@@ -14,7 +14,9 @@ export const OwnedUrlSchema = z.object({
 export type OwnedUrl = z.infer<typeof OwnedUrlSchema>;
 
 export const IdentitySchema = z.object({
-  id: z.string().min(1).max(64),
+  // Alphabet restreint comme les autres identifiants du fichier : cet identifiant entre dans le message signé de la
+  // preuve de possession, où un caractère de séparation rendrait deux paires distinctes indiscernables.
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
   displayName: z.string().min(2).max(120),
   nameVariants: z.array(z.string().min(2).max(120)).min(1).max(10),
   city: z.string().min(1).max(80),
@@ -91,7 +93,11 @@ export type Manifest = z.infer<typeof ManifestSchema>;
 export const EngineAnswerSchema = z.object({
   engine: EngineIdSchema,
   model: z.string().min(1),
-  text: z.string(),
+  /**
+   * Réponse brute du moteur. Plafonnée : ce texte traverse plusieurs passes d'expressions régulières (masquage,
+   * détection de refus, hachage) et rien ne garantit qu'un fournisseur ne renvoie pas un jour des mégaoctets.
+   */
+  text: z.string().max(200_000),
   citations: z.array(z.object({ url: z.string(), title: z.string().optional() })),
   searchResults: z.array(z.object({ url: z.string(), title: z.string().optional() })),
   usage: z.object({
@@ -126,6 +132,12 @@ export const DrawRecordSchema = z.object({
   responseHash: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
   retrieved: z.boolean(),
   citedDomains: CitedDomainsSchema,
+  /**
+   * Le moteur a refusé de nommer quiconque. `null` = non mesuré (vague antérieure, ou extraction échouée). Ce fait est
+   * stocké parce que les réponses brutes sont purgées à 72 h : sans lui, un refus deviendrait indistinguable d'une
+   * absence, et les deux ne se corrigent pas de la même façon (voir extract/refusal.ts).
+   */
+  refusedToName: z.boolean().nullable().default(null),
 });
 export type DrawRecord = z.infer<typeof DrawRecordSchema>;
 
