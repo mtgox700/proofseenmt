@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb, NO_CONTACT, users, type Actor } from "@proofseen/db";
+import { BELOW_MINIMUM, getDb, NO_CONTACT, users, type Actor } from "@proofseen/db";
 import { hasDatabase } from "@/data/intake-sink";
 import { session } from "./session";
 
@@ -10,7 +10,7 @@ import { session } from "./session";
  * an underlying message: a driver error can carry a host name, a stack can carry a path.
  */
 
-export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "erreur serveur";
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "erreur serveur";
 
 const STATUS: Record<ApiError, number> = {
   "non-configuré": 503,
@@ -33,6 +33,7 @@ const STATUS: Record<ApiError, number> = {
   "pas encore payé": 409,
   "montant trop faible": 422,
   "contrat en cours": 409,
+  "contrat avec soi-même": 409,
   "erreur serveur": 500,
 };
 
@@ -40,9 +41,12 @@ export const ok = <T>(data: T, status = 200): NextResponse => NextResponse.json(
 
 export const fail = (error: ApiError): NextResponse => NextResponse.json({ ok: false, error }, { status: STATUS[error] });
 
-/** A body that failed validation: contact details in a public field get their own answer, so the person knows why. */
-export const invalid = (issues: readonly { readonly message: string }[]): NextResponse =>
-  fail(issues.some((issue) => issue.message === NO_CONTACT) ? "coordonnées refusées" : "requête invalide");
+/** A body that failed validation: a refusal the person can act on gets its own answer, so they know why. */
+export const invalid = (issues: readonly { readonly message: string }[]): NextResponse => {
+  if (issues.some((issue) => issue.message === NO_CONTACT)) return fail("coordonnées refusées");
+  if (issues.some((issue) => issue.message === BELOW_MINIMUM)) return fail("montant trop faible");
+  return fail("requête invalide");
+};
 
 /*
  * Cross-site request forgery: the Clerk session cookie is sent with any same-site request, so a write must prove it

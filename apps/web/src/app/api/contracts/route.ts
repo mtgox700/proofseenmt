@@ -41,6 +41,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         return fail("identité de facturation requise");
       case "already_exists":
         return fail("déjà accepté");
+      case "self_dealing":
+        return fail("contrat avec soi-même");
       case "absent":
         return fail("introuvable");
     }

@@ -1,7 +1,7 @@
 import type { NextResponse } from "next/server";
 import { getDb, QuoteInputSchema, quotes } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
-import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
+import { caller, fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
 
 /** Quotes of a conversation (GET, both parties) and a new draft by the freelancer (POST). */
 
@@ -31,7 +31,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   if (who.kind === "refused") return who.response;
   if (await throttled("quotes", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = QuoteInputSchema.safeParse(await jsonBody(request));
-  if (!parsed.success) return fail("requête invalide");
+  if (!parsed.success) return invalid(parsed.error.issues);
   const { id } = await context.params;
   try {
     const draft = await quotes(getDb()).draft(who.actor, id, parsed.data);
