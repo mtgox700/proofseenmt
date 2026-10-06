@@ -1,0 +1,12 @@
+{
+  "name": "@proofseen/client-store",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@proofseen/core": "workspace:*",
+    "@proofseen/profiles": "workspace:*",
+    "@proofseen/workspace": "workspace:*"
+  }
+}

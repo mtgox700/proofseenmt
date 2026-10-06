@@ -1,0 +1,13 @@
+{
+  "name": "@proofseen/intake",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@proofseen/core": "workspace:*",
+    "@proofseen/presale": "workspace:*",
+    "@proofseen/profiles": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}
