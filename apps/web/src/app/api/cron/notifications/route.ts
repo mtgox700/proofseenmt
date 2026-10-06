@@ -1,6 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
-import { getDb, missionAlerts, notifications } from "@proofseen/db";
+import { getDb, missionAlerts, notifications, payments } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
+import { gatewayFromEnv } from "@proofseen/payments";
+import { proofseenIdentity } from "@/data/payments-config";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
 
@@ -36,8 +38,19 @@ export async function GET(request: Request): Promise<Response> {
   const now = () => new Date();
   try {
     const queued = await missionAlerts(db).scan(now());
+    // Escrow releases that could not go through at approval time (payout account not ready, provider down) are
+    // retried here; each one is claimed in the database first, so overlapping runs never pay twice.
+    let gateway;
+    try {
+      gateway = gatewayFromEnv(process.env);
+    } catch {
+      gateway = null;
+    }
+    const identity = proofseenIdentity();
+    const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
+
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { queued, sent: 0, failed: 0, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { queued, releases, sent: 0, failed: 0, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -49,7 +62,7 @@ export async function GET(request: Request): Promise<Response> {
       sent += report.sent;
       failed += report.failed;
     }
-    return json({ ok: true, data: { queued, sent, failed, transport: "resend" } });
+    return json({ ok: true, data: { queued, releases, sent, failed, transport: "resend" } });
   } catch (error) {
     console.error("cron notifications: failed", error instanceof Error ? error.name : "unknown");
     return json({ ok: false, error: "erreur serveur" }, 500);

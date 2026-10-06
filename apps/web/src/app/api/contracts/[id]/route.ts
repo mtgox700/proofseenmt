@@ -53,12 +53,18 @@ export async function POST(request: Request, context: Context): Promise<NextResp
       return cancelled === null ? fail("introuvable") : ok(cancelled);
     }
     const completed = await repo.complete(who.actor, id);
-    if (completed === null) return fail("introuvable");
+    if (completed.kind === "not_paid") return fail("pas encore payé");
+    if (completed.kind === "absent") return fail("introuvable");
+    // The release is attempted now and retried by the periodic job if it cannot go through yet. The company is told
+    // only that the work is approved: whether the freelancer's payout account is ready is not its business.
     const gateway = gatewayFromEnv(process.env);
     const identity = proofseenIdentity();
-    if (gateway === null || identity === null) return ok({ contract: completed, release: "paiements non configurés : fonds bloqués" });
-    const release = await payments(db).release(id, gateway, identity, new Date());
-    return ok({ contract: completed, release: release.kind });
+    if (gateway !== null && identity !== null) {
+      await payments(db)
+        .release(id, gateway, identity, new Date())
+        .catch((error: unknown) => console.error("release deferred", error instanceof Error ? error.name : "unknown"));
+    }
+    return ok({ contract: completed.contract });
   } catch (error) {
     console.error("contract action failed", error instanceof Error ? error.name : "unknown");
     return fail("erreur serveur");

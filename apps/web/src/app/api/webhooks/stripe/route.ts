@@ -17,6 +17,8 @@ const MAX_BODY_BYTES = 512 * 1024;
 export async function POST(request: Request): Promise<Response> {
   const secret = (process.env.STRIPE_WEBHOOK_SECRET ?? "").trim();
   if (secret === "" || !hasDatabase()) return new Response("non configuré", { status: 503 });
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return new Response("trop volumineux", { status: 413 });
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) return new Response("trop volumineux", { status: 413 });
 
@@ -26,7 +28,7 @@ export async function POST(request: Request): Promise<Response> {
   const event = toPaymentEvent(verified.payload);
   if (event === null) return Response.json({ received: true, applied: "ignored" });
   try {
-    const applied = await payments(getDb()).applyEvent(event);
+    const applied = await payments(getDb()).applyEvent(event, new Date());
     return Response.json({ received: true, applied });
   } catch (error) {
     // 500 makes Stripe retry later, which is what a transient database failure needs.

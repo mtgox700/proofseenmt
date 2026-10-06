@@ -23,6 +23,8 @@ export const proofseenIdentity = (): LegalSnapshot | null => {
   const city = read("PROOFSEEN_ADDRESS_CITY");
   const country = read("PROOFSEEN_ADDRESS_COUNTRY");
   if (legalName === "" || !/^\d{14}$/.test(siret) || line1 === "" || postalCode === "" || city === "" || !/^[A-Z]{2}$/.test(country)) return null;
+  // La commission est facturée avec TVA : sans numéro de TVA, la facture de commission ne serait pas valable.
   const vat = read("PROOFSEEN_VAT_NUMBER").replace(/\s/g, "").toUpperCase();
-  return { legalName, siret, vatNumber: vat === "" ? null : vat, address: { line1, postalCode, city, country }, vatRateBp: 2000 };
+  if (!/^[A-Z]{2}[A-Z0-9]{2,13}$/.test(vat)) return null;
+  return { legalName, siret, vatNumber: vat, address: { line1, postalCode, city, country }, vatRateBp: 2000 };
 };

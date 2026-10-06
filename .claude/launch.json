@@ -62,7 +62,8 @@
         "NEXT_DIST_DIR": ".next-c1",
         "DATABASE_URL": "postgresql://postgres@127.0.0.1:5433/postgres",
         "DATABASE_POOL_MAX": "2",
-        "CRON_SECRET": "local-test-cron-secret-not-for-production"
+        "CRON_SECRET": "local-test-cron-secret-not-for-production",
+        "STRIPE_WEBHOOK_SECRET": "whsec_local_test_not_for_production"
       }
     },
     {

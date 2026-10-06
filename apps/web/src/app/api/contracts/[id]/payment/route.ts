@@ -48,7 +48,9 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   try {
     const result = await payments(getDb()).open(who.actor, id, gateway, rate);
     if (result.kind === "already_paid") return fail("déjà payé");
-    return result.kind === "opened" ? ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, 201) : fail("introuvable");
+    if (result.kind === "amount_too_small") return fail("montant trop faible");
+    if (result.kind === "absent") return fail("introuvable");
+    return ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, result.kind === "opened" ? 201 : 200);
   } catch (error) {
     console.error("payment open failed", error instanceof Error ? error.name : "unknown");
     return fail("erreur serveur");
