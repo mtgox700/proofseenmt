@@ -66,6 +66,51 @@ export const fr: Dictionary = {
       { value: "72 h", label: "durée maximale de conservation des réponses brutes, chiffrées" },
     ],
   },
+  study: {
+    kicker: "Mesuré sur nous-mêmes, d'abord",
+    title: "780 réponses d'IA. Notre fondateur n'y apparaît pas une seule fois.",
+    lead:
+      "Avant de vendre quoi que ce soit, nous avons appliqué la méthode à notre propre fondateur, avec un protocole figé à l'avance : 13 offres de mission réelles, 4 formulations de recruteur, 3 moteurs, 5 tirages par question.",
+    facts: [
+      { value: "780", label: "réponses d'IA analysées, pour 15,79 $ de coût de mesure" },
+      { value: "0 %", label: "de citations : intervalle de confiance [0 % ; 1,9 %] sur chaque moteur" },
+      { value: "39 %", label: "des citations vont à Malt, 26,5 % à LinkedIn — presque jamais à un site personnel" },
+      { value: "90,8 %", label: "des réponses d'Anthropic ne consultent aucune source : être vu dépend du moteur" },
+      { value: "20/20", label: "d'accord entre nos mesures par API et les applications grand public" },
+    ],
+    sources: "Vague J0, 23 et 24 septembre 2026. Manifeste figé avant la mesure, empreinte 1bc9f85f. Réponses brutes supprimées après analyse.",
+    limits:
+      "Ces chiffres décrivent un profil, ces offres, ces moteurs, à cette date. Ils ne prédisent pas vos résultats. Nous les publions parce qu'un vendeur qui ne se mesure pas lui-même ne prouve rien.",
+  },
+  deliverable: {
+    kicker: "Le livrable",
+    title: "Ce que vous recevez, et rien de plus",
+    lead:
+      "Un rapport daté, chiffré, reproductible. Chaque action qu'il contient vient d'un chiffre de votre mesure : nous ne récitons pas de bonnes pratiques.",
+    contents: [
+      "L'étape exacte où votre profil décroche : pas trouvé, trouvé mais pas nommé, nommé mais pas dans les cinq premiers, ou cité sans lien vers vous.",
+      "Pour chaque moteur, le compte brut et la fourchette dans laquelle se situe le taux réel — jamais un pourcentage seul.",
+      "La carte des sources : les plateformes que les IA lisent réellement pour ce genre d'offre, avec leur part.",
+      "Au plus huit actions classées, chacune avec sa raison, l'endroit où l'appliquer, l'effort estimé et le chiffre qui la justifie.",
+      "Ce sur quoi vous ne pouvez rien : quand un moteur refuse de nommer des personnes, nous le disons au lieu de vous vendre une correction.",
+      "Le modèle interrogé, la date, et l'empreinte du protocole figé avant la mesure.",
+    ],
+    sample: {
+      caption: "Extrait du rapport de notre propre mesure. Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
+      blocking: "L'étape qui bloque : vos pages sont-elles connues des moteurs ?",
+      action: {
+        rank: "1",
+        title: "Rendre vos pages lisibles sans JavaScript",
+        why:
+          "Les robots des IA ne lancent pas le JavaScript : sur une page construite dans le navigateur, ils ne lisent rien. Il n'y a donc aucun texte à retrouver dans la suite du parcours.",
+        effort: "moyen",
+        evidence: "0 page indexée sur 1 déclarée, relevé du 24 septembre 2026",
+      },
+      labels: { why: "Pourquoi", effort: "Effort", evidence: "Ce qui le montre" },
+    },
+    note:
+      "Aucun rang, aucune apparition, aucun contact et aucune mission ne sont promis. Le rapport compte ce qui a été observé ; il ne prédit pas la suite.",
+  },
   offers: {
     kicker: "Offres de lancement",
     title: "Commencez par savoir où vous en êtes.",
@@ -92,6 +137,89 @@ export const fr: Dictionary = {
       { title: "Vos comptes restent les vôtres", text: "Nous ne publions jamais à votre place et nous ne collectons rien sur LinkedIn ou Malt." },
       { title: "Les autres sont protégés", text: "Les noms des autres professionnels cités par les IA sont effacés avant tout stockage." },
     ],
+  },
+  order: {
+    meta: {
+      title: "Commander — Proofseen",
+      description:
+        "Pré-commande de l'audit Proofseen : périmètre, date de livraison maximale, droit de rétractation de 14 jours et conditions de remboursement intégral.",
+    },
+    kicker: "Commande",
+    title: "Ce que vous achetez, et ce que vous pouvez défaire",
+    lead:
+      "Tout ce qui vous engage est sur cette page, avant le paiement. Rien n'est renvoyé à un lien que vous ouvririez après coup.",
+    back: "Retour à l'accueil",
+    items: [
+      {
+        name: "Audit complet",
+        price: "49 €",
+        scope: "Une mesure de votre visibilité dans les réponses des IA, et le plan pour la corriger.",
+        includes: [
+          "3 offres d'emploi que vous choisissez, plus 1 offre témoin choisie par nous.",
+          "Pour chaque offre : 4 formulations de recruteur × 3 moteurs × 5 tirages.",
+          "Un rapport daté : l'étape où votre profil décroche, avec son compte brut et sa fourchette, pour chaque moteur.",
+          "La carte des sources que les IA citent réellement pour ce type d'offre.",
+          "Au plus 8 actions classées, chacune avec sa raison, l'endroit où l'appliquer, l'effort et le chiffre qui la justifie.",
+        ],
+        excludes: [
+          "Aucune publication n'est faite à votre place.",
+          "Aucun nom de personne citée à votre place ne vous est communiqué.",
+          "Gemini et Copilot ne sont pas couverts.",
+        ],
+        cta: "Pré-commander l'audit — 49 €",
+      },
+      {
+        name: "Clé en main",
+        price: "490 €",
+        scope: "L'audit, puis les pages et les textes pour corriger, et une nouvelle mesure pour voir ce qui a bougé.",
+        includes: [
+          "Tout l'audit complet, en mesure de départ.",
+          "Vos pages de profil, lisibles par les moteurs et les IA, rédigées à partir de vos vraies missions.",
+          "Les textes de réécriture de vos profils LinkedIn, Malt et GitHub, dans un fichier.",
+          "La liste des preuves tierces à obtenir, adaptée à votre profil.",
+          "Une nouvelle mesure 45 jours après la livraison, avec le même protocole.",
+        ],
+        excludes: [
+          "Vous validez chaque fait avant publication, et vous publiez vous-même sur les plateformes.",
+          "Nous ne rédigeons aucune compétence, expérience ou chiffre que vous n'avez pas.",
+          "Aucune automatisation n'est lancée sur LinkedIn ou Malt.",
+        ],
+        cta: "Pré-commander la clé en main — 490 €",
+      },
+    ],
+    terms: {
+      title: "Ce à quoi nous nous engageons",
+      delivery: "Livraison au plus tard le {date}.",
+      withdrawal:
+        "Vous pouvez vous rétracter dans les {days} jours qui suivent votre commande, sans justification et sans frais. Nous vous remboursons intégralement sous 14 jours au plus, par le moyen de paiement utilisé.",
+      refundTitle: "Remboursement intégral",
+      refunds: [
+        { when: "Nous décidons de ne pas lancer le service le {gate}", then: "Remboursement intégral, sous 14 jours au plus." },
+        { when: "Rien ne vous est livré au {delivery}", then: "Remboursement intégral et automatique, sans démarche de votre part." },
+        {
+          when: "Un fournisseur d'IA ne nous autorise pas cet usage avant votre livraison",
+          then: "Nous vous prévenons avant de lancer votre audit. Vous choisissez : un audit sur les moteurs restants, ou le remboursement intégral.",
+        },
+        {
+          when: "Votre profil contient une manipulation destinée aux IA (texte caché, instructions)",
+          then: "Nous refusons de mesurer, et vous êtes remboursé intégralement.",
+        },
+      ],
+      neverTitle: "Ce que nous ne vous demanderons jamais",
+      never:
+        "Vos identifiants, mots de passe ou codes d'accès, pour LinkedIn, Malt, GitHub, votre hébergeur ou votre registrar. Nous ne nous connectons jamais à vos comptes et nous ne publions jamais à votre place.",
+      noPromiseTitle: "Ce que nous ne promettons pas",
+      noPromise: [
+        "Aucun rang, aucune apparition, aucun contact et aucune mission ne sont promis.",
+        "Nous ne vous montrons jamais qui apparaît à votre place.",
+        "Nous observons les réponses des IA et nous les comptons. Nous ne connaissons pas leur fonctionnement interne et nous ne prétendons pas le connaître.",
+      ],
+      accept:
+        "En commandant, vous acceptez les conditions de pré-vente, dont la date de livraison maximale et les conditions de remboursement ci-dessus.",
+    },
+    closed: "Commande fermée",
+    closedWhy:
+      "Aucun paiement n'est encaissé tant que les conditions de vente n'ont pas été validées par un juriste. Cette page décrit ce qui sera proposé à l'ouverture.",
   },
   faq: {
     title: "Questions fréquentes",

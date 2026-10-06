@@ -1,0 +1,93 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "./Header.astro";
+import { DICTIONARIES, PRESALE_DATES, PRESALE_OPEN, type Locale } from "../i18n";
+
+/*
+ * Tunnel de commande (US-P01).
+ *
+ * Deux règles de construction :
+ *  - les mentions obligatoires sont **dans la page, au-dessus du bouton** : en vente à distance, ce qui n'a pas été
+ *    montré avant l'engagement n'a pas été porté à connaissance ;
+ *  - les dates viennent de `PRESALE_DATES` et sont interpolées, jamais recopiées dans les traductions, sinon le
+ *    français et l'anglais finiraient par annoncer deux échéances différentes dans un même contrat.
+ */
+
+interface Props {
+  readonly locale: Locale;
+}
+const { locale } = Astro.props;
+const t = DICTIONARIES[locale];
+const path = locale === "fr" ? "/commande/" : "/en/order/";
+
+const delivery = PRESALE_DATES.delivery[locale];
+const gate = PRESALE_DATES.gate[locale];
+const fill = (text: string): string =>
+  text
+    .replace("{date}", delivery)
+    .replace("{delivery}", delivery)
+    .replace("{gate}", gate)
+    .replace("{days}", String(PRESALE_DATES.withdrawalDays));
+---
+
+<Base
+  locale={locale}
+  t={t}
+  page={{ path, fr: "/commande/", en: "/en/order/", title: t.order.meta.title, description: t.order.meta.description }}
+>
+  <Header locale={locale} t={t} />
+  <main id="main">
+    <section class="section" aria-labelledby="order-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">{t.order.kicker}</p>
+          <h1 id="order-title">{t.order.title}</h1>
+          <p class="lead">{t.order.lead}</p>
+        </div>
+
+        <div class="offers order-offers">
+          {t.order.items.map((item) => (
+            <article class="offer">
+              <h2>{item.name}</h2>
+              <p class="price">{item.price}</p>
+              <p class="muted">{item.scope}</p>
+              <ul role="list">{item.includes.map((line) => <li>{line}</li>)}</ul>
+              <ul class="order-excludes" role="list">{item.excludes.map((line) => <li>{line}</li>)}</ul>
+              {PRESALE_OPEN
+                ? <a class="btn btn-primary" href={path}>{item.cta} <span class="arrow" aria-hidden="true">→</span></a>
+                : <button type="button" class="btn btn-ghost" disabled>{t.order.closed}</button>}
+            </article>
+          ))}
+        </div>
+
+        {!PRESALE_OPEN && <p class="muted small order-closed">{t.order.closedWhy}</p>}
+
+        <div class="order-terms">
+          <h2>{t.order.terms.title}</h2>
+          <p><b>{fill(t.order.terms.delivery)}</b></p>
+          <p>{fill(t.order.terms.withdrawal)}</p>
+
+          <h3>{t.order.terms.refundTitle}</h3>
+          <dl class="order-refunds">
+            {t.order.terms.refunds.map((refund) => (
+              <div class="order-refund">
+                <dt>{fill(refund.when)}</dt>
+                <dd class="muted">{fill(refund.then)}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <h3>{t.order.terms.neverTitle}</h3>
+          <p class="muted">{t.order.terms.never}</p>
+
+          <h3>{t.order.terms.noPromiseTitle}</h3>
+          <ul class="order-nopromise" role="list">{t.order.terms.noPromise.map((line) => <li>{line}</li>)}</ul>
+
+          <p class="small order-accept">{t.order.terms.accept}</p>
+        </div>
+
+        <p class="small"><a href={locale === "fr" ? "/" : "/en/"}>{t.order.back}</a></p>
+      </div>
+    </section>
+  </main>
+</Base>

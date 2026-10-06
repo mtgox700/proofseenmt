@@ -1,0 +1,17 @@
+{
+  "name": "@proofseen/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "@proofseen/profiles": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}

@@ -64,6 +64,9 @@ p { margin: 0; }
    full relayout on emulated mobile). */
 .hero .lead, .section-head p { text-wrap: pretty; }
 .muted { color: var(--muted); }
+/* Mention de source ou de limite, sous un bloc de chiffres. */
+.small { font: 400 var(--step--1) / 1.6 var(--sans); max-width: 62ch; margin: 1.2rem 0 0; }
+.study .facts { margin-bottom: 0.5rem; }
 .rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
 
 /* ---------- Header ---------- */
@@ -152,6 +155,25 @@ p { margin: 0; }
 .fact dd { margin: 0; }
 .fact b { display: block; font: 500 var(--step-4) / 0.9 var(--serif); letter-spacing: -0.03em; color: var(--proof); margin-bottom: 0.8rem; font-variant-numeric: tabular-nums; text-shadow: 0 0 48px var(--glow); }
 
+/* ---------- Deliverable: what the client receives, with a verbatim excerpt ---------- */
+.deliverable-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: clamp(1.4rem, 4vw, 2.6rem); align-items: start; }
+.deliverable-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.deliverable-list li { display: grid; grid-template-columns: 1.1rem 1fr; gap: 0.7rem; color: var(--muted); }
+.deliverable-list li::before { content: ""; width: 0.9rem; height: 0.55rem; margin-top: 0.5rem; border-inline: 2px solid var(--proof); background: linear-gradient(var(--proof), var(--proof)) center / 100% 1px no-repeat; }
+
+/* La fiche d'extrait est traitée comme un document, pas comme un argument : fond neutre, texte tel quel. */
+.sample { margin: 0; display: grid; gap: 1rem; background: color-mix(in srgb, var(--surface) 88%, var(--ink)); border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.2rem, 3vw, 1.8rem); box-shadow: var(--shadow); }
+.sample figcaption { margin: 0; }
+.sample-blocking { margin: 0; padding-bottom: 0.9rem; border-bottom: 1px solid var(--line); }
+.sample-action { display: grid; gap: 0.8rem; }
+.sample-action h3 { display: grid; grid-template-columns: 1.7rem 1fr; gap: 0.7rem; align-items: baseline; margin: 0; font-size: var(--step-1); }
+.sample-rank { display: grid; place-items: center; width: 1.7rem; height: 1.7rem; border: 1px solid var(--proof); border-radius: 50%; font: 500 var(--step--1) / 1 var(--sans); color: var(--proof); }
+.sample-action dl { margin: 0; display: grid; gap: 0.35rem; }
+.sample-action dt { font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.sample-action dd { margin: 0 0 0.7rem; }
+.sample-action dd:last-child { margin-bottom: 0; }
+.sample-action code { font-size: var(--step--1); color: var(--proof); overflow-wrap: anywhere; }
+
 /* ---------- Offers ---------- */
 .offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.2rem; }
 .offer { display: grid; gap: 1.2rem; align-content: start; background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, var(--ink)), var(--surface) 40%); border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.4rem, 3vw, 2.2rem); box-shadow: var(--shadow); transition: border-color 200ms var(--ease), transform 200ms var(--ease); }
@@ -162,6 +184,28 @@ p { margin: 0; }
 .offer li { display: grid; grid-template-columns: 1.1rem 1fr; gap: 0.6rem; }
 .offer li::before { content: ""; width: 0.9rem; height: 0.55rem; margin-top: 0.45rem; border-inline: 2px solid var(--proof); background: linear-gradient(var(--proof), var(--proof)) center / 100% 1px no-repeat; }
 .offers-legal { margin-top: 1.4rem; font-size: var(--step--1); color: var(--muted); }
+
+/* ---------- Order tunnel: obligations shown above the button, never behind a link ---------- */
+.order-offers { margin-bottom: 1.4rem; }
+.order-offers .offer h2 { margin: 0; font-size: var(--step-2); }
+/* Ce qui est exclu se lit comme ce qui est inclus : même poids typographique, marque différente. */
+.order-excludes { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.order-excludes li { display: grid; grid-template-columns: 1.1rem 1fr; gap: 0.6rem; color: var(--muted); }
+.order-excludes li::before { content: ""; width: 0.9rem; height: 0.9rem; margin-top: 0.3rem; border-radius: 50%; border: 1px solid var(--line-strong); }
+.order-closed { margin-bottom: 2.4rem; }
+
+.order-terms { border-top: 1px solid var(--line-strong); padding-top: 1.8rem; display: grid; gap: 0.9rem; max-width: 46rem; }
+.order-terms h2 { margin: 0; font-size: var(--step-2); }
+.order-terms h3 { margin: 1rem 0 0; font-size: var(--step-0); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.order-terms p { margin: 0; }
+.order-refunds { margin: 0; display: grid; gap: 0.9rem; }
+.order-refund { display: grid; gap: 0.2rem; padding-left: 0.9rem; border-left: 2px solid var(--proof); }
+.order-refund dt { font-weight: 500; }
+.order-refund dd { margin: 0; }
+.order-nopromise { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; color: var(--muted); }
+.order-nopromise li { display: grid; grid-template-columns: 1.1rem 1fr; gap: 0.6rem; }
+.order-nopromise li::before { content: ""; width: 0.9rem; height: 0.55rem; margin-top: 0.45rem; border-inline: 2px solid var(--line-strong); background: linear-gradient(var(--line-strong), var(--line-strong)) center / 100% 1px no-repeat; }
+.order-accept { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); }
 
 /* ---------- Companies ---------- */
 /* Étage 2 (MODELE_PASSERELLE): the one raised, lit section of the page. */

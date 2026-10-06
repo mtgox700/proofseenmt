@@ -10,6 +10,9 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = DICTIONARIES[locale];
+// Le bouton d'achat mène au tunnel de commande, où figurent les mentions obligatoires — et non à l'ancre de sa propre
+// section, qui ne menait nulle part.
+const orderPath = locale === "fr" ? "/commande/" : "/en/order/";
 ---
 <Base locale={locale} t={t}>
   <Header locale={locale} t={t} />
@@ -61,6 +64,54 @@ const t = DICTIONARIES[locale];
       </div>
     </section>
 
+    <section class="section study" id="etude" aria-labelledby="study-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.study.kicker}</p>
+          <h2 id="study-title">{t.study.title}</h2>
+          <p class="lead">{t.study.lead}</p>
+        </div>
+        <dl class="facts">
+          {t.study.facts.map((f) => (
+            <div class="fact reveal"><dt><b>{f.value}</b></dt><dd class="muted">{f.label}</dd></div>
+          ))}
+        </dl>
+        <p class="muted small reveal">{t.study.sources}</p>
+        <p class="muted small reveal">{t.study.limits}</p>
+      </div>
+    </section>
+
+    <section class="section deliverable" id="livrable" aria-labelledby="deliverable-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">{t.deliverable.kicker}</p>
+          <h2 id="deliverable-title">{t.deliverable.title}</h2>
+          <p class="lead">{t.deliverable.lead}</p>
+        </div>
+        <div class="deliverable-grid">
+          <ul class="deliverable-list reveal" role="list">
+            {t.deliverable.contents.map((item) => <li>{item}</li>)}
+          </ul>
+          <figure class="sample reveal">
+            <figcaption class="muted small">{t.deliverable.sample.caption}</figcaption>
+            <p class="sample-blocking"><b>{t.deliverable.sample.blocking}</b></p>
+            <article class="sample-action">
+              <h3><span class="sample-rank" aria-hidden="true">{t.deliverable.sample.action.rank}</span>{t.deliverable.sample.action.title}</h3>
+              <dl>
+                <dt>{t.deliverable.sample.labels.why}</dt>
+                <dd>{t.deliverable.sample.action.why}</dd>
+                <dt>{t.deliverable.sample.labels.effort}</dt>
+                <dd>{t.deliverable.sample.action.effort}</dd>
+                <dt>{t.deliverable.sample.labels.evidence}</dt>
+                <dd><code>{t.deliverable.sample.action.evidence}</code></dd>
+              </dl>
+            </article>
+          </figure>
+        </div>
+        <p class="muted small reveal">{t.deliverable.note}</p>
+      </div>
+    </section>
+
     <section class="section" id="offres" aria-labelledby="offers-title">
       <div class="wrap">
         <div class="section-head reveal">
@@ -74,7 +125,7 @@ const t = DICTIONARIES[locale];
               <p class="price">{o.price}<small>{o.unit}</small></p>
               <ul role="list">{o.items.map((i) => <li>{i}</li>)}</ul>
               {PRESALE_OPEN
-                ? <a class="btn btn-primary" href="#offres">{o.name} <span class="arrow" aria-hidden="true">→</span></a>
+                ? <a class="btn btn-primary" href={orderPath}>{o.name} <span class="arrow" aria-hidden="true">→</span></a>
                 : <button type="button" class="btn btn-ghost" disabled>{t.offers.closed}</button>}
             </article>
           ))}
