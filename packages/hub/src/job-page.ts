@@ -1,0 +1,143 @@
+import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
+
+/*
+ * Page publique d'une mission de la marketplace : un document HTML complet, lisible sans JavaScript, avec ses données
+ * structurées `JobPosting`. C'est ce qu'un moteur de recherche ou d'IA lit d'une offre ; un humain y lit la même chose.
+ *
+ * Rien de privé n'y entre : ni l'auteur de la mission, ni ses candidats, ni de coordonnées (la mission en est
+ * débarrassée avant publication). On postule par la plateforme, jamais par un lien sortant.
+ */
+
+type Lang = "fr" | "en";
+
+const LABELS = {
+  fr: {
+    back: "Toutes les missions",
+    rate: "TJM",
+    duration: "Durée",
+    location: "Lieu",
+    remote: "Télétravail",
+    hybrid: "Hybride",
+    onsite: "Sur site",
+    months: (n: number) => (n === 1 ? "1 mois" : `${n} mois`),
+    notGiven: "Non précisé",
+    skills: "Compétences",
+    published: "Publiée le",
+    apply: "Postuler sur Proofseen",
+    otherLang: "English",
+    perDay: "/ jour",
+  },
+  en: {
+    back: "All missions",
+    rate: "Day rate",
+    duration: "Duration",
+    location: "Location",
+    remote: "Remote",
+    hybrid: "Hybrid",
+    onsite: "On site",
+    months: (n: number) => (n === 1 ? "1 month" : `${n} months`),
+    notGiven: "Not specified",
+    skills: "Skills",
+    published: "Published on",
+    apply: "Apply on Proofseen",
+    otherLang: "Français",
+    perDay: "/ day",
+  },
+} as const;
+
+const OTHER: Readonly<Record<Lang, Lang>> = { fr: "en", en: "fr" };
+
+const money = (cents: number, currency: string, lang: Lang): string =>
+  new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-GB", { style: "currency", currency, maximumFractionDigits: 0 }).format(cents / 100);
+
+export const rateText = (m: PublicMission, lang: Lang): string => {
+  const l = LABELS[lang];
+  const { dailyRateMinCents: min, dailyRateMaxCents: max } = m;
+  if (min === null && max === null) return l.notGiven;
+  if (min !== null && max !== null && min !== max) return `${money(min, m.currency, lang)} – ${money(max, m.currency, lang)} ${l.perDay}`;
+  return `${money(min ?? max ?? 0, m.currency, lang)} ${l.perDay}`;
+};
+
+const locationText = (m: PublicMission, lang: Lang): string => {
+  const mode = LABELS[lang][m.workMode];
+  return m.workMode === "remote" || m.city === null ? mode : `${m.city} · ${mode}`;
+};
+
+/** Le texte libre de l'entreprise, en paragraphes : une ligne vide sépare deux paragraphes, rien d'autre n'est interprété. */
+const paragraphs = (text: string): string =>
+  text
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter((block) => block !== "")
+    .map((block) => `<p class="lede">${e(block).replace(/\n/g, "<br>")}</p>`)
+    .join("\n");
+
+export interface JobPageOptions {
+  readonly baseUrl: string;
+  readonly lang: Lang;
+  /** Où mène « Postuler » : la page de la plateforme qui prend la candidature. */
+  readonly applyHref: string;
+}
+
+export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
+  const l = LABELS[o.lang];
+  const url = (lang: Lang) => missionUrl(o.baseUrl, lang, m.id);
+  const other = OTHER[o.lang];
+  const description = `${m.title} · ${locationText(m, o.lang)} · ${rateText(m, o.lang)}`;
+  const context = [
+    [l.rate, rateText(m, o.lang)],
+    [l.duration, m.durationMonths === null ? l.notGiven : l.months(m.durationMonths)],
+    [l.location, locationText(m, o.lang)],
+  ]
+    .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
+    .join("");
+  const published = new Intl.DateTimeFormat(o.lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(m.publishedAt);
+
+  return [
+    "<!doctype html>",
+    `<html lang="${o.lang}">`,
+    "<head>",
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    '<meta name="color-scheme" content="dark">',
+    `<title>${e(`${m.title} — ${m.organisationName}`)}</title>`,
+    `<meta name="description" content="${e(description.slice(0, 160))}">`,
+    `<link rel="canonical" href="${e(url(o.lang))}">`,
+    `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
+    `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
+    `<style>${STYLES}</style>`,
+    `<script type="application/ld+json">${safeJsonLd(jobPosting(m, { baseUrl: o.baseUrl, lang: o.lang }))}</script>`,
+    "</head>",
+    "<body>",
+    `<header class="top"><div class="wrap"><a class="me" href="/${o.lang}">Proofseen</a>` +
+      `<a class="lang" href="${e(url(other))}" hreflang="${other}" lang="${other}">${l.otherLang}</a></div></header>`,
+    '<main class="wrap">',
+    `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
+    `<h1 class="title">${e(m.title)}</h1>`,
+    `<p class="byline">${e(m.organisationName)} · ${l.published} ${e(published)}</p>`,
+    `<dl class="context">${context}</dl>`,
+    paragraphs(m.description),
+    m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
+    `<p><a class="cta" href="${e(o.applyHref)}">${l.apply}</a></p>`,
+    "</main>",
+    "</body>",
+    "</html>",
+    "",
+  ].join("\n");
+};
+
+/** Sitemap des missions ouvertes, dans les deux langues. */
+export const jobSitemap = (baseUrl: string, items: readonly { readonly id: string; readonly publishedAt: Date }[]): string =>
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...items.flatMap((item) =>
+      (["fr", "en"] as const).map(
+        (lang) => `<url><loc>${e(missionUrl(baseUrl, lang, item.id))}</loc><lastmod>${item.publishedAt.toISOString().slice(0, 10)}</lastmod></url>`,
+      ),
+    ),
+    "</urlset>",
+    "",
+  ].join("\n");
