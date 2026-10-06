@@ -10,14 +10,22 @@ import type { Db } from "./client";
  * partent dans la même transaction.
  *
  * Ce qui reste, et pourquoi : les contrats, paiements et factures, détachés de la personne mais gardant la copie figée
- * de l'identité légale des parties (obligation comptable, art. 17(3)(b)) ; les messages écrits à une entreprise, sans
- * auteur, parce qu'ils sont aussi la correspondance de l'autre partie. L'export le dit, pour que la réponse faite à la
- * personne soit exacte.
+ * de l'identité légale des parties (obligation comptable, art. 17(3)(b)) ; les messages qu'un membre d'entreprise a
+ * écrits, sans auteur, parce qu'ils restent la correspondance du freelance. Les fils d'un freelance effacé partent avec
+ * son profil. L'export le dit, pour que la réponse faite à la personne soit exacte.
+ *
+ * L'effacement attend la fin des contrats en cours : un freelance effacé perdrait son compte de versement et des fonds
+ * bloqués ne pourraient plus lui être versés ; une entreprise sans plus aucun membre ne pourrait plus valider une
+ * prestation. La personne termine ou annule d'abord, puis efface. La vérification et l'effacement se font sous verrou
+ * du profil et des entreprises concernés : un contrat créé ou un collègue qui s'efface en même temps attend son tour au
+ * lieu de passer entre les deux. Le dernier membre qui part ferme les missions encore ouvertes de son entreprise :
+ * personne ne recevrait plus les candidatures.
  */
 
 export const RETAINED_AFTER_ERASURE = [
   "contrats, paiements et factures : conservés pour obligation comptable, détachés du compte, identité légale figée",
-  "messages envoyés à une entreprise : conservés sans auteur, comme correspondance de l'autre partie",
+  "messages écrits au nom d'une entreprise : conservés sans auteur, comme correspondance du freelance",
+  "conversations d'un freelance : supprimées avec son profil",
 ] as const;
 
 export interface UserExport {
@@ -36,11 +44,17 @@ export interface UserExport {
   readonly retainedAfterErasure: readonly string[];
 }
 
+/** « in_progress » : un contrat en cours ou des fonds engagés empêchent l'effacement pour l'instant. */
+export type EraseResult = "erased" | "absent" | "in_progress";
+
+const OPEN_CONTRACTS = ["pending_signatures", "active"] as const;
+const MONEY_IN_FLIGHT = ["pending", "held", "releasing", "refunding", "disputed"] as const;
+
 export interface Gdpr {
   /** Tout ce que la base tient sur cet utilisateur ; `null` s'il n'existe pas. */
   exportUser(userId: string, now: Date): Promise<UserExport | null>;
-  /** Efface le compte et ce qui en dépend ; rend `false` s'il n'existait pas. */
-  eraseUser(userId: string): Promise<boolean>;
+  /** Efface le compte et ce qui en dépend, sauf contrat en cours. */
+  eraseUser(userId: string): Promise<EraseResult>;
 }
 
 const Uuid = z.uuid();
@@ -76,11 +90,15 @@ export const gdpr = (db: Db): Gdpr => ({
       db.notification.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, createdAt: true, sentAt: true } }),
     ]);
 
+    // Côté entreprise, la copie de l'identité légale du freelance n'est pas une donnée de la personne qui demande : un
+    // membre arrivé après coup n'a pas à recevoir l'adresse de freelances avec qui il n'a jamais traité.
     const organisationIds = memberships.map((m) => m.organisationId);
-    const contracts = await db.contract.findMany({
-      where: { OR: [...(freelanceProfile === null ? [] : [{ profileId: freelanceProfile.id }]), { organisationId: { in: organisationIds } }] },
-      select: { id: true, status: true, totalCents: true, currency: true, startsOn: true, endsOn: true, sellerSnapshot: true, buyerSnapshot: true },
-    });
+    const terms = { id: true, status: true, totalCents: true, currency: true, startsOn: true, endsOn: true } as const;
+    const [asFreelance, asCompany] = await Promise.all([
+      freelanceProfile === null ? [] : db.contract.findMany({ where: { profileId: freelanceProfile.id }, select: { ...terms, sellerSnapshot: true, buyerSnapshot: true } }),
+      db.contract.findMany({ where: { organisationId: { in: organisationIds } }, select: { ...terms, organisationId: true, buyerSnapshot: true } }),
+    ]);
+    const contracts = { asFreelance, asCompany };
 
     return {
       exportedAt: now.toISOString(),
@@ -100,13 +118,33 @@ export const gdpr = (db: Db): Gdpr => ({
   },
 
   async eraseUser(userId) {
-    if (!Uuid.safeParse(userId).success) return false;
-    return db.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: userId }, select: { email: true } });
-      if (user === null) return false;
+    if (!Uuid.safeParse(userId).success) return "absent";
+    return db.$transaction(async (tx): Promise<EraseResult> => {
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { email: true, freelanceProfile: { select: { id: true } }, memberships: { select: { organisationId: true } } },
+      });
+      if (user === null) return "absent";
+      const orgIds = user.memberships.map((m) => m.organisationId).sort();
+      // Verrous pris dans un ordre fixe : une création de contrat (clé étrangère) ou l'effacement d'un collègue attend.
+      if (user.freelanceProfile !== null) await tx.$queryRaw`SELECT "id" FROM "FreelanceProfile" WHERE "id" = ${user.freelanceProfile.id}::uuid FOR UPDATE`;
+      for (const id of orgIds) await tx.$queryRaw`SELECT "id" FROM "Organisation" WHERE "id" = ${id}::uuid FOR UPDATE`;
+      // Les entreprises dont la personne est le dernier membre : personne d'autre ne pourrait suivre leurs contrats.
+      const others = await tx.membership.groupBy({ by: ["organisationId"], where: { organisationId: { in: orgIds }, userId: { not: userId } } });
+      const lastMemberOf = orgIds.filter((id) => !others.some((o) => o.organisationId === id));
+      const parties = [...(user.freelanceProfile === null ? [] : [{ profileId: user.freelanceProfile.id }]), ...(lastMemberOf.length === 0 ? [] : [{ organisationId: { in: lastMemberOf } }])];
+      if (parties.length > 0) {
+        const busy = await tx.contract.count({
+          where: { AND: [{ OR: parties }, { OR: [{ status: { in: [...OPEN_CONTRACTS] } }, { payments: { some: { status: { in: [...MONEY_IN_FLIGHT] } } } }] }] },
+        });
+        if (busy > 0) return "in_progress";
+      }
+      if (lastMemberOf.length > 0) {
+        await tx.jobPost.updateMany({ where: { organisationId: { in: lastMemberOf }, status: "open" }, data: { status: "closed", closedAt: new Date() } });
+      }
       await tx.auditRequest.deleteMany({ where: { email: user.email } });
       await tx.user.delete({ where: { id: userId } });
-      return true;
+      return "erased";
     });
   },
 });
