@@ -24,6 +24,7 @@ export const marketplaceRobots = (baseUrl: string): string => {
     `User-agent: *\n${rules}\n`,
     `Sitemap: ${base}/sitemap-profiles.xml`,
     `Sitemap: ${base}/sitemap-missions.xml`,
+    `Sitemap: ${base}/sitemap-skills.xml`,
     "",
   ].join("\n");
 };

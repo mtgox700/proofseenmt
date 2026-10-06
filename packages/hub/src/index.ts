@@ -6,6 +6,7 @@ export { jobPosting, missionUrl, VALIDITY_DAYS, type PublicMission } from "./job
 export { jobSitemap, rateText, renderJobPage, type JobPageOptions } from "./job-page";
 export { renderJobIndex, type JobIndexFilters } from "./job-index";
 export { profileJsonLd, profileName, profileSitemap, profileUrl, renderProfilePage, type PublicProfile } from "./profile-page";
+export { renderSkillPage, skillSitemap, skillUrl, type SkillPageView } from "./skill-page";
 export {
   BROWSER_USER_AGENT,
   marketplaceRobots,
