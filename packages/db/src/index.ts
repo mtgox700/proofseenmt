@@ -113,3 +113,4 @@ export { ReviewInputSchema, reviews, type PublicReview, type ReviewInput, type R
 export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashboard } from "./dashboards";
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
 export { MAX_SITEMAP_PROFILES, publicProfiles, type PublicMissionFact, type PublicProfilePage, type PublicProfiles } from "./public-profiles";
+export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./skill-pages";
