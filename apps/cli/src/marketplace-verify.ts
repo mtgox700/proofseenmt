@@ -1,5 +1,5 @@
-import { getDb, missions, publicProfiles } from "@proofseen/db";
-import { missionUrl, profileName, profileUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
+import { getDb, missions, publicProfiles, skillPages } from "@proofseen/db";
+import { missionUrl, profileName, profileUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
 import { CliError } from "./files";
 
 /*
@@ -29,6 +29,11 @@ const expectations = async (baseUrl: string, limit: number): Promise<PageExpecta
     const m = await missions(db).findPublic(id);
     if (m === null) continue;
     pages.push({ url: missionUrl(baseUrl, "fr", id), texts: [m.title, m.organisationName, ...m.skills], sitemap: `${baseUrl}/sitemap-missions.xml` });
+  }
+  for (const { key } of (await skillPages(db).listForSitemap()).slice(0, limit)) {
+    const s = await skillPages(db).page(key);
+    if (s === null) continue;
+    pages.push({ url: skillUrl(baseUrl, "fr", key), texts: [s.label, ...s.missions.map((m) => m.title), ...s.profiles.map((p) => p.headline)], sitemap: `${baseUrl}/sitemap-skills.xml` });
   }
   return pages;
 };
