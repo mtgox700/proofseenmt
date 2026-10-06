@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import { CliError } from "./files";
 import { recordPathFor } from "./record-path";
 import { commandAccess, commandIntake } from "./intake";
+import { commandMarketplaceVerify } from "./marketplace-verify";
 import { commandPayment } from "./payment";
 import { corpusDirFor, identityPathFor, manifestPathFor } from "./client-paths";
 import { normaliseWatchedPath } from "./ldr-data";
@@ -40,6 +41,7 @@ const USAGE = `Proofseen CLI (V0)
   profiles --input <file> [--out profiles-dist]   (pseudonymous public site)
   experiment --input <file> --experiment <file> [--out experiment-dist] [--manifest-out .war-room/experiment/manifest.json]
   site-verify --out <dossier publié> --base-url <https://…>   (compare le site déployé au dossier)
+  marketplace-verify --base-url <https://…> [--limit 50]   (profils et missions publics servis depuis la base, vus par chaque robot ; DATABASE_URL requise)
   indexnow --out <dossier publié> --base-url <https://…> [--confirm-submit]   (rien n'est envoyé sans le flag)
   wave-status --wave <id> [--manifest <file>]   (avancement, coût, échéance de purge)
   jd-import --manifest <file> --identity <file> --dir <dossier de T01.txt…> [--out <manifest>]   (RECHARGE les textes d'un manifeste existant)
@@ -96,6 +98,7 @@ const main = async (argv: readonly string[]): Promise<void> => {
       judge: { type: "boolean", default: false },
       "extractor-model": { type: "string", default: "claude-haiku-4-5" },
       timeout: { type: "string", default: "10000" },
+      limit: { type: "string" },
     },
   });
   // Secrets come from .env; values are never printed.
@@ -223,6 +226,8 @@ const main = async (argv: readonly string[]): Promise<void> => {
       return;
     case "site-verify":
       return commandSiteVerify({ log: common.log, outDir: need("out", values.out === "hub-dist" ? undefined : values.out), baseUrl: need("base-url", values["base-url"]), timeoutMs: Number(values.timeout) });
+    case "marketplace-verify":
+      return commandMarketplaceVerify({ log: common.log, baseUrl: need("base-url", values["base-url"]), timeoutMs: Number(values.timeout), limit: Number(values.limit ?? 50) });
     case "indexnow":
       await commandIndexNow({ log: common.log, outDir: need("out", values.out === "hub-dist" ? undefined : values.out), baseUrl: need("base-url", values["base-url"]), confirmSubmit: values["confirm-submit"] });
       return;
