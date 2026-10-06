@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { getDb, visibility } from "@proofseen/db";
 import { AuditRequestSchema, compareWaves, correctionPlan, renderClientReport, renderClientReportHtml, type AuditRequest, type ClientReportInput, type JobDescriptionRef } from "@proofseen/deliverable";
 import { CliError, loadJson, readJsonl, wavePaths, writeText } from "./files";
 import { loadWave } from "./commands";
@@ -167,5 +168,27 @@ export const commandAudit = async (o: AuditCommand): Promise<string> => {
   o.log(
     `Rapport client écrit : ${out} (et ${base}.md) · étape bloquante : ${plan.blockingStage ?? "aucune"} · ${plan.actions.length} action(s) · ${plan.notActionable.length} constat(s) hors de portée du client`,
   );
+  await recordVisibility(request.client.reference, reportInput, o.log);
   return out;
+};
+
+/*
+ * Les chiffres que le rapport vient de publier, enregistrés tels quels pour le tableau de bord du freelance : jamais un
+ * second calcul qui pourrait diverger du rapport. Seulement pour une vraie vague (jamais une simulation), seulement si
+ * une base est configurée ; un échec ici ne fait pas échouer le rapport, il est signalé.
+ */
+const recordVisibility = async (reference: string, input: ClientReportInput, log: (line: string) => void): Promise<void> => {
+  if (input.simulated || (process.env.DATABASE_URL ?? "") === "") return;
+  try {
+    const { linked } = await visibility(getDb()).record({
+      waveId: input.wave.id,
+      reference,
+      measuredAt: new Date(`${input.wave.measuredAt}T00:00:00Z`),
+      draws: input.wave.draws,
+      funnel: [...input.funnel],
+    });
+    log(linked ? "Résultats enregistrés pour le tableau de bord du freelance." : "Résultats enregistrés, sans profil correspondant à cette référence.");
+  } catch (error) {
+    log(`Résultats non enregistrés en base (${error instanceof Error ? error.name : "erreur"}) : le rapport reste valable.`);
+  }
 };
