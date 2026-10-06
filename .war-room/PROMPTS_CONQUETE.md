@@ -455,3 +455,132 @@ rien : l'audit et la visibilité IA attirent les freelances, leurs profils cité
 </definition_of_done>
 
 GO.
+
+---
+
+# SPRINTS PROPOSÉS APRÈS C7 — à valider par le founder
+
+> Écrits le 2026-10-06 par la War Room (PROTOCOLE D'ENCHAÎNEMENT, point 5), depuis la matrice de parité
+> (`research/CONQUETE_PARITE.md` §2), les constats des red teams C2 et C6 et les phases P2-P3 de `ROADMAP.md`. **Aucun
+> ne démarre sans validation.** Ordre proposé : la confiance d'abord (ce qui manque encore en P0 face à Malt), puis ce
+> qui fait gagner du temps aux deux côtés, puis le B2B.
+
+| Sprint | Dates | Nom | Statut | Preuve de clôture |
+|---|---|---|---|---|
+| C8 | 2027-01-11 → 01-24 | Confiance vérifiée | ⬜ proposé | — |
+| C9 | 2027-01-25 → 02-07 | Recherche sans score | ⬜ proposé | — |
+| C10 | 2027-02-08 → 02-21 | Régie, facturation électronique, trésorerie | ⬜ proposé | — |
+| C11 | 2027-02-22 → 03-07 | Grands comptes et ESN | ⬜ proposé | — |
+
+---
+
+## C8 — CONFIANCE VÉRIFIÉE · 2027-01-11 → 01-24
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C8 : « Confiance vérifiée »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Combler les derniers écarts P0 de confiance face à Malt : une entreprise doit savoir qu'un freelance existe légalement
+et est à jour de ses obligations, un freelance que l'entreprise qui le contacte est réelle. Chaque fait affiché est
+vérifié et daté ; aucun niveau, aucun score.
+</objectif>
+
+<perimetre>
+- SIRET actif des deux côtés, vérifié par l'API publique Recherche d'entreprises (sans clé, pas de scraping) : raison
+  sociale, état administratif, date de vérification ; revérification périodique par la tâche planifiée.
+- Attestation de vigilance URSSAF : dépôt, date de péremption (6 mois), rappel avant échéance, contrat refusé si
+  périmée au-delà du seuil légal.
+- Badges de faits vérifiés (SIRET actif, attestation à jour, adresses prouvées, missions payées sur la plateforme) :
+  des faits datés, jamais un niveau ni un classement.
+- Identité vérifiée par Stripe Connect (KYC) affichée comme un fait.
+- Constats ouverts de C6 : séquestre non validé (décision founder), plafond d'entreprises par personne et adhésion
+  sur invitation avant toute route de création d'entreprise.
+</perimetre>
+
+<definition_of_done>
+- [ ] SIRET d'un freelance et d'une entreprise vérifié en préproduction, état affiché et daté
+- [ ] Attestation déposée, péremption calculée, rappel envoyé en test
+- [ ] Red team : faux SIRET, attestation falsifiée ou périmée, badge obtenu sans le fait
+- [ ] Gate complet vert, Lighthouse ≥ 95 sur les pages publiques
+</definition_of_done>
+
+---
+
+## C9 — RECHERCHE SANS SCORE · 2027-01-25 → 02-07
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C9 : « Recherche sans score »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Malt affiche un taux de compatibilité et Free-Work un matching IA (matrice de parité) : des classements de personnes. Notre réponse : l'entreprise décrit
+son besoin en une phrase, Proofseen le traduit en filtres visibles et modifiables, et la liste reste triée par un
+critère qu'elle choisit. Aussi rapide pour l'utilisateur, sans classement automatique (AI Act).
+</objectif>
+
+<perimetre>
+- Brief en langage naturel → filtres (compétences, ville, mode, TJM, disponibilité) affichés avant la recherche
+  (**GO API requis** pour le modèle ; repli sans modèle : formulaire).
+- Côté freelance : alertes de missions depuis une phrase, mêmes filtres visibles.
+- Statut de candidature toujours visible du freelance (écart Free-Work) ; délai de réponse moyen d'une entreprise
+  affiché comme un fait de l'entreprise, pas comme une note.
+- Mesure : temps entre l'arrivée d'une entreprise et son premier contact, avant/après.
+</perimetre>
+
+<definition_of_done>
+- [ ] Un brief produit des filtres que l'utilisateur voit et corrige ; la liste ne change d'ordre que par son choix
+- [ ] Test AI Act étendu : aucune réponse du modèle ne devient un ordre de tri
+- [ ] Coût par brief mesuré et plafonné
+- [ ] Gate complet vert
+</definition_of_done>
+
+---
+
+## C10 — RÉGIE, FACTURATION ÉLECTRONIQUE, TRÉSORERIE · 2027-02-08 → 02-21
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C10 : « Régie, facturation électronique, trésorerie »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Les missions longues facturées au mois (régie) demandent des prépaiements mensuels, que Malt propose (matrice de
+parité). Les servir : prépaiements, factures au format électronique, et un freelance payé vite.
+</objectif>
+
+<perimetre>
+- Contrat en régie : relevé de jours mensuel validé par l'entreprise, prépaiement du mois suivant, versement du mois
+  validé ; même séquestre, mêmes garde-fous qu'en C3.
+- Mandat de facturation (Proofseen émet la facture du freelance en son nom) et factures au format électronique
+  conforme à la réforme française (plateforme agréée à choisir avec le founder).
+- Avance de trésorerie : étude seulement (risque, partenaire), aucun engagement sans décision founder.
+</perimetre>
+
+<definition_of_done>
+- [ ] Un contrat en régie de trois mois rejoué de bout en bout en mode test (relevés, prépaiements, versements, factures)
+- [ ] Factures électroniques validées par la plateforme choisie en environnement de test
+- [ ] Red team : relevé gonflé, double validation, prépaiement non couvert
+- [ ] Gate complet vert
+</definition_of_done>
+
+---
+
+## C11 — GRANDS COMPTES ET ESN · 2027-02-22 → 03-07
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C11 : « Grands comptes et ESN »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Ouvrir le B2B prévu en P3 (offre ESN « Vivier+ ») : une entreprise de plusieurs équipes gère ses besoins, ses
+référencements et ses contrats sur Proofseen, et retrouve ses freelances par les faits qu'ils ont prouvés.
+</objectif>
+
+<perimetre>
+- Organisation multi-équipes : rôles, validation à deux niveaux, centre de coûts sur chaque contrat.
+- Vivier privé d'une entreprise : freelances avec qui elle a déjà travaillé, faits et missions payées, sans note.
+- Export comptable et API de lecture des contrats et factures (clés par entreprise, droits limités).
+- Tarification B2B : **décision founder** (prix).
+</perimetre>
+
+<definition_of_done>
+- [ ] Une entreprise de test à trois équipes rejoue le parcours mission → contrat → paiement avec validation à deux niveaux
+- [ ] API de lecture testée : clé révoquée refusée, aucune donnée d'une autre entreprise
+- [ ] Gate complet vert
+</definition_of_done>
