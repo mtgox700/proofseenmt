@@ -1,5 +1,6 @@
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
+import { SETTLED_PAYMENT } from "./reviews";
 import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
 
 /*
@@ -82,7 +83,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         skills: { select: { skill: { select: { label: true } } } },
         ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true } },
         missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true } },
-        reviews: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
+        reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
       },
     });
     // Une page sans contenu réel n'est jamais servie : un profil publié a toujours titre, résumé et ville (la base

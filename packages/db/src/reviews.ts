@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import { isUniqueViolation } from "./errors";
+import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 
 /*
@@ -44,6 +45,12 @@ export interface Reviews {
 
 const SELECT = { id: true, rating: true, body: true, createdAt: true } as const;
 
+/**
+ * Un paiement réellement acquis : versé, sans remboursement, sans litige perdu. Une entreprise qui obtient le travail,
+ * écrit un avis puis récupère son argent par rétrofacturation ne laisse pas d'avis derrière elle.
+ */
+export const SETTLED_PAYMENT: Prisma.PaymentWhereInput = { status: "released", refundedCents: 0, OR: [{ disputeOpenedAt: null }, { disputeWon: true }] };
+
 export const reviews = (db: Db): Reviews => ({
   async write(actor, contractId, raw) {
     if (!Uuid.safeParse(contractId).success) return { kind: "not_eligible" };
@@ -52,7 +59,7 @@ export const reviews = (db: Db): Reviews => ({
       where: {
         id: contractId,
         status: "completed",
-        payments: { some: { status: "released" } },
+        payments: { some: SETTLED_PAYMENT },
         organisation: { members: { some: { userId: actor.userId } } },
         NOT: { profile: { userId: actor.userId } },
       },
@@ -74,7 +81,7 @@ export const reviews = (db: Db): Reviews => ({
   async listForProfile(profileId) {
     if (!Uuid.safeParse(profileId).success) return [];
     return db.review.findMany({
-      where: { targetProfileId: profileId, target: { visibility: { not: "private" } } },
+      where: { targetProfileId: profileId, target: { visibility: { not: "private" } }, contract: { payments: { some: SETTLED_PAYMENT } } },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: SELECT,
     });
