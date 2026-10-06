@@ -1,0 +1,595 @@
+// Schéma de la marketplace Proofseen — sprint C1 (2026-10-05), révisé après revue base de données le même jour.
+//
+// Principes portés par le schéma lui-même, pas laissés à la discipline du code :
+// - l'argent est en centimes entiers, la devise explicite et prise dans une liste fermée ; jamais de flottant ;
+// - aucune colonne de score ou de classement de personnes (AI Act : la recherche filtre, elle ne classe pas) ;
+// - aucun nom de tiers : le client final d'une mission n'a pas de colonne, seulement un type en vocabulaire fermé ;
+// - la suppression d'un utilisateur emporte ses données par cascade (RGPD), sauf ce que la loi impose de garder
+//   (contrats, paiements, factures), qui est détaché de la personne mais garde une copie figée de l'identité légale
+//   des parties : une facture sans émetteur ni destinataire ne vaut rien ;
+// - un avis, un paiement, une facture n'existent pas sans contrat.
+//
+// Les contraintes que Prisma ne sait pas exprimer (CHECK, déclencheurs) sont dans la migration SQL, à la suite du code
+// généré. Les vocabulaires fermés reprennent à l'identique ceux de `@proofseen/core` et `@proofseen/profiles` ; un test
+// vérifie qu'ils ne divergent pas.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Vocabulaires fermés ────────────────────────────────────────────────────────────────────────────────────────────
+// Énumérations natives : Postgres ajoute une valeur sans réécrire la table. Ces vocabulaires grandissent, ils ne
+// rétrécissent pas ; c'est la suppression d'une valeur qui coûterait cher, et elle n'est pas prévue.
+
+/// Identique à `CLIENT_KINDS` de `@proofseen/profiles`.
+enum ClientKind {
+  startup
+  scaleup
+  grand_groupe
+  eti
+  pme
+  secteur_public
+  editeur_logiciel
+  esn
+  association
+}
+
+/// Identique à `EVIDENCE_KINDS` de `@proofseen/profiles`.
+enum EvidenceKind {
+  facture
+  contrat
+  attestation_client
+  acces_depot
+  livrable_public
+}
+
+/// Identique au statut de disponibilité de `@proofseen/profiles`.
+enum AvailabilityStatus {
+  available
+  available_from
+  unavailable
+}
+
+/// Identique aux méthodes de preuve de `@proofseen/core`.
+enum ProofMethod {
+  well_known_file
+  meta_tag
+  dns_txt
+  profile_token
+}
+
+enum ProfileVisibility {
+  named        // nom réel affiché
+  pseudonymous // faits publiés, nom masqué, contact par la plateforme
+  private      // rien de public
+}
+
+enum WorkMode {
+  onsite
+  hybrid
+  remote
+}
+
+enum MemberRole {
+  owner
+  admin
+  member
+}
+
+enum JobPostStatus {
+  draft
+  open
+  closed
+}
+
+enum ApplicationStatus {
+  submitted
+  shortlisted
+  declined
+  withdrawn
+  hired
+}
+
+/// Le freelance accepte ou refuse le contact. Tant qu'il n'a pas accepté, l'entreprise ne peut plus écrire et ne sait
+/// pas qui il est (identité partagée après accord, avant tout engagement : art. 1112-1 C. civ.).
+enum ConversationStatus {
+  pending
+  accepted
+  declined
+  /// Fermé après accord, par l'une ou l'autre partie, ou quand la candidature d'origine est retirée ou déclinée.
+  closed
+}
+
+enum QuoteStatus {
+  draft
+  sent
+  accepted
+  declined
+  superseded
+}
+
+enum ContractStatus {
+  pending_signatures
+  active
+  completed
+  cancelled
+}
+
+/// Les états réels d'un paiement Stripe, échecs compris : un statut manquant se retrouve un jour forcé dans un autre.
+enum PaymentStatus {
+  pending
+  held      // fonds bloqués jusqu'à validation de la prestation
+  released
+  refunded
+  disputed
+  failed
+  canceled
+}
+
+// ─── Personnes et organisations ─────────────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// Identifiant Clerk : l'authentification vit chez Clerk, jamais de mot de passe ici.
+  clerkId     String   @unique
+  /// Toujours en minuscules (contrainte en base) : « A@x.fr » et « a@x.fr » sont la même personne.
+  email       String   @unique
+  displayName String
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  freelanceProfile FreelanceProfile?
+  memberships      Membership[]
+  sentMessages     Message[]
+  reviewsWritten   Review[]          @relation("ReviewAuthor")
+  jobPostsAuthored JobPost[]
+}
+
+model Organisation {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  name           String
+  kind           ClientKind
+  /// Identité légale, nécessaire pour facturer. Copiée dans chaque contrat et chaque facture au moment de leur création.
+  siret          String?
+  vatNumber      String?
+  billingAddress Json?
+  createdAt      DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
+
+  members       Membership[]
+  jobPosts      JobPost[]
+  conversations Conversation[]
+  contracts     Contract[]
+}
+
+model Membership {
+  organisationId String     @db.Uuid
+  userId         String     @db.Uuid
+  role           MemberRole @default(member)
+  createdAt      DateTime   @default(now()) @db.Timestamptz(3)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([organisationId, userId])
+  @@index([userId])
+}
+
+// ─── Profil freelance ───────────────────────────────────────────────────────────────────────────────────────────────
+
+model FreelanceProfile {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  userId         String             @unique @db.Uuid
+  /// Référence publique (FR-XXXXX), tirée au hasard et jamais dérivée du nom.
+  reference      String             @unique
+  /// Adresse publique du profil ; obligatoire dès que le profil n'est plus privé (contrainte en base).
+  slug           String?            @unique
+  visibility     ProfileVisibility  @default(private)
+  /// Facultatifs tant que le profil est un brouillon privé ; obligatoires pour le publier (contrainte en base).
+  headline       String?
+  summary        String?
+  city           String?
+  /// Forme normalisée de la ville, pour que « Paris » et « paris » soient le même filtre.
+  cityKey        String?
+  workMode       WorkMode
+  /// TJM en centimes. Facultatif : un freelance peut ne pas l'afficher.
+  dailyRateCents Int?
+  currency       String             @default("EUR") @db.Char(3)
+  availability   AvailabilityStatus @default(available)
+  availableFrom  DateTime?          @db.Date
+  availabilityAt DateTime           @default(now()) @db.Timestamptz(3)
+  createdAt      DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime           @default(now()) @updatedAt @db.Timestamptz(3)
+
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billing        BillingIdentity?
+  skills         FreelanceSkill[]
+  ownedUrls      OwnedUrl[]
+  missions       VerifiedMission[]
+  applications   Application[]
+  conversations  Conversation[]
+  contracts      Contract[]
+  reviews        Review[]          @relation("ReviewTarget")
+  waves          Wave[]
+
+  /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
+  @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
+  @@index([cityKey, workMode, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_city_idx")
+}
+
+/// Identité de facturation du freelance. Privée : elle ne sert qu'à émettre des factures, jamais à un profil public.
+model BillingIdentity {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  profileId String   @unique @db.Uuid
+  legalName String
+  siret     String?
+  vatNumber String?
+  address   Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id    String @id @default(uuid(7)) @db.Uuid
+  /// Forme normalisée (minuscules, sans accents) : « TypeScript » et « typescript » sont la même compétence.
+  key   String @unique
+  label String
+
+  freelancers FreelanceSkill[]
+  jobPosts    JobPostSkill[]
+}
+
+model FreelanceSkill {
+  profileId String @db.Uuid
+  skillId   String @db.Uuid
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill   Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, skillId])
+  /// Couvrant : la recherche par compétence obtient le profil sans relire la table.
+  @@index([skillId, profileId])
+}
+
+model OwnedUrl {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  profileId   String      @db.Uuid
+  url         String
+  /// Forme normalisée (minuscules, sans barre finale) : `/a` et `/a/` sont la même adresse.
+  urlKey      String
+  proofMethod ProofMethod
+  /// Date de la preuve de possession. Nulle tant que rien n'est prouvé : aucune mesure ne part sans elle.
+  verifiedAt  DateTime?   @db.Timestamptz(3)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, urlKey])
+  /// Une adresse ne peut être **prouvée** que par un seul profil : deux personnes ne possèdent pas la même page.
+  @@unique([urlKey], where: raw("\"verifiedAt\" IS NOT NULL"), map: "OwnedUrl_verified_uq")
+}
+
+/// Une mission passée, vérifiée par Proofseen. Le client n'est jamais nommé : seulement son type.
+model VerifiedMission {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  profileId      String       @db.Uuid
+  role           String
+  clientKind     ClientKind
+  durationMonths Int
+  summary        String
+  evidenceKind   EvidenceKind
+  verifiedAt     DateTime     @db.Timestamptz(3)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+// ─── Missions publiées et candidatures ──────────────────────────────────────────────────────────────────────────────
+
+model JobPost {
+  id                String        @id @default(uuid(7)) @db.Uuid
+  organisationId    String        @db.Uuid
+  authorUserId      String?       @db.Uuid
+  title             String
+  description       String
+  durationMonths    Int?
+  dailyRateMinCents Int?
+  dailyRateMaxCents Int?
+  currency          String        @db.Char(3)
+  city              String?
+  /// Forme normalisée de la ville : le filtre compare des clés, jamais un motif où « % » serait un joker.
+  cityKey           String?
+  workMode          WorkMode
+  status            JobPostStatus @default(draft)
+  publishedAt       DateTime?     @db.Timestamptz(3)
+  closedAt          DateTime?     @db.Timestamptz(3)
+  createdAt         DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
+
+  organisation Organisation   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  /// L'auteur peut quitter l'entreprise ou supprimer son compte : la mission reste à l'entreprise.
+  author       User?          @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  skills       JobPostSkill[]
+  applications Application[]
+
+  /// Les missions ouvertes, des plus récentes aux plus anciennes, avec l'identifiant pour paginer sans ex aequo.
+  @@index([publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'open'"), map: "JobPost_open_recent_idx")
+  @@index([workMode, publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'open'"), map: "JobPost_open_workmode_recent_idx")
+  @@index([cityKey, publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'open'"), map: "JobPost_open_city_recent_idx")
+  @@index([organisationId, createdAt(sort: Desc)])
+  @@index([authorUserId], where: raw("\"authorUserId\" IS NOT NULL"), map: "JobPost_authorUserId_idx")
+}
+
+model JobPostSkill {
+  jobPostId String @db.Uuid
+  skillId   String @db.Uuid
+
+  jobPost JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([jobPostId, skillId])
+  @@index([skillId, jobPostId])
+}
+
+model Application {
+  id        String            @id @default(uuid(7)) @db.Uuid
+  jobPostId String            @db.Uuid
+  profileId String            @db.Uuid
+  coverNote String
+  status    ApplicationStatus @default(submitted)
+  createdAt DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(3)
+
+  jobPost      JobPost          @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  profile      FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  conversation Conversation?
+
+  /// Une seule candidature par freelance et par mission.
+  @@unique([jobPostId, profileId])
+  @@index([jobPostId, status, createdAt(sort: Desc)])
+  @@index([profileId, createdAt(sort: Desc)])
+}
+
+// ─── Messagerie ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/// Le contact entre une entreprise et un freelance passe par la plateforme : c'est le point où la commission se gagne.
+model Conversation {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organisationId String   @db.Uuid
+  profileId      String   @db.Uuid
+  applicationId  String?  @unique @db.Uuid
+  /// Fil ouvert sans candidature. Fixé à la création : supprimer une mission détache sa candidature du fil, ce qui ne
+  /// doit pas le transformer en fil direct (il heurterait l'unicité des fils directs et bloquerait la suppression).
+  direct         Boolean            @default(false)
+  /// Un fil né d'une candidature est accepté d'emblée : c'est le freelance qui a pris contact.
+  status         ConversationStatus @default(pending)
+  decidedAt      DateTime?          @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  /// Mis à jour par un déclencheur à chaque message, dans la même transaction.
+  lastMessageAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  organisation Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  profile      FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  application  Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  quotes       Quote[]
+
+  @@index([profileId, lastMessageAt(sort: Desc), id(sort: Desc)])
+  @@index([organisationId, lastMessageAt(sort: Desc), id(sort: Desc)])
+  /// Un seul fil direct par entreprise et par freelance : un double clic n'ouvre pas deux conversations.
+  @@unique([organisationId, profileId], where: raw("\"direct\""), map: "Conversation_direct_uq")
+}
+
+model Message {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  conversationId  String   @db.Uuid
+  /// Nul si l'expéditeur a supprimé son compte : le message reste lisible pour l'autre partie, sans auteur identifiable.
+  senderUserId    String?  @db.Uuid
+  body            String
+  /// Coordonnées détectées dans le message : signalé, jamais censuré en silence.
+  containsContact Boolean  @default(false)
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation(fields: [senderUserId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt, id])
+  /// Sans lui, supprimer un compte parcourrait toute la table des messages pour effacer son nom d'expéditeur.
+  @@index([senderUserId], where: raw("\"senderUserId\" IS NOT NULL"), map: "Message_senderUserId_idx")
+}
+
+// ─── Devis, contrat, paiement, facture, avis ────────────────────────────────────────────────────────────────────────
+
+/// Les parties d'un devis sont celles de sa conversation : les recopier ici permettrait un devis au nom d'un autre.
+model Quote {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  conversationId String      @db.Uuid
+  dailyRateCents Int
+  days           Int
+  totalCents     Int
+  currency       String      @db.Char(3)
+  status         QuoteStatus @default(draft)
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  contract     Contract?
+
+  @@index([conversationId])
+  /// Un seul devis accepté par conversation.
+  @@unique([conversationId], where: raw("\"status\" = 'accepted'"), map: "Quote_one_accepted_uq")
+}
+
+/// Un contrat tient seul : il porte ses propres conditions et une copie figée de l'identité légale des parties. Sans
+/// cela, supprimer un compte (RGPD) effacerait ses devis, ce qu'un contrat signé interdirait, et une facture conservée
+/// n'aurait plus ni émetteur ni destinataire.
+model Contract {
+  id                    String         @id @default(uuid(7)) @db.Uuid
+  /// Devis d'origine, détaché s'il disparaît : le contrat garde ses conditions recopiées ci-dessous.
+  quoteId               String?        @unique @db.Uuid
+  /// Nuls seulement après suppression d'un compte ; obligatoires à la création (déclencheur, jamais une contrainte CHECK,
+  /// qui ferait échouer la suppression).
+  organisationId        String?        @db.Uuid
+  profileId             String?        @db.Uuid
+  dailyRateCents        Int
+  days                  Int
+  totalCents            Int
+  currency              String         @db.Char(3)
+  /// Nom légal, adresse, SIRET, TVA, pays — écrits à la création, jamais modifiés. Base légale de la conservation :
+  /// RGPD art. 17(3)(b), obligations comptables.
+  sellerSnapshot        Json
+  buyerSnapshot         Json
+  startsOn              DateTime       @db.Date
+  endsOn                DateTime?      @db.Date
+  acceptedByFreelanceAt DateTime?      @db.Timestamptz(3)
+  acceptedByOrgAt       DateTime?      @db.Timestamptz(3)
+  status                ContractStatus @default(pending_signatures)
+  createdAt             DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime       @default(now()) @updatedAt @db.Timestamptz(3)
+
+  quote        Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  organisation Organisation?     @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  profile      FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  payments     Payment[]
+  invoices     Invoice[]
+  review       Review?
+
+  /// Cible des clés composées de Payment et Invoice : un paiement ne peut pas être dans une autre devise que son contrat.
+  @@unique([id, currency])
+  @@index([profileId, status])
+  @@index([organisationId, status])
+}
+
+model Payment {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  contractId      String        @db.Uuid
+  amountCents     Int
+  commissionCents Int
+  refundedCents   Int           @default(0)
+  currency        String        @db.Char(3)
+  /// Identifiant Stripe : unique, pour qu'un même paiement ne soit jamais enregistré deux fois.
+  stripeIntentId  String        @unique
+  status          PaymentStatus @default(pending)
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
+
+  contract Contract @relation(fields: [contractId, currency], references: [id, currency], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([contractId])
+}
+
+/// Événements Stripe déjà traités. Stripe renvoie chaque événement plusieurs fois, et pas toujours dans l'ordre : le
+/// traitement commence par insérer l'événement ici, et s'arrête s'il y était déjà.
+model StripeEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([receivedAt])
+}
+
+/// Numérotation continue des factures, par année : exigée en France, ce qu'une séquence Postgres (qui laisse des trous
+/// à chaque annulation) ne garantit pas.
+model InvoiceSequence {
+  year Int @id
+  last Int @default(0)
+}
+
+/// Une facture émise est immuable : un déclencheur refuse toute modification et toute suppression.
+model Invoice {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  number         String   @unique
+  contractId     String   @db.Uuid
+  netCents       Int
+  vatCents       Int
+  /// Taux de TVA en points de base (2000 = 20 %).
+  vatRateBp      Int
+  totalCents     Int
+  currency       String   @db.Char(3)
+  sellerSnapshot Json
+  buyerSnapshot  Json
+  issuedAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  contract Contract @relation(fields: [contractId, currency], references: [id, currency], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([contractId])
+}
+
+/// Un avis par contrat, écrit par l'entreprise sur le freelance, après la fin de la mission. Un déclencheur vérifie que le
+/// contrat est terminé, que la cible est bien le freelance du contrat et que l'auteur est membre de l'entreprise : pas
+/// d'avis libre, pas d'avis acheté, pas dix avis pour une seule mission.
+model Review {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  contractId      String   @unique @db.Uuid
+  authorUserId    String?  @db.Uuid
+  targetProfileId String   @db.Uuid
+  /// Note de 1 à 5. Jamais agrégée dans une colonne du profil ni utilisée pour ordonner une recherche (AI Act).
+  rating          Int      @db.SmallInt
+  body            String
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  contract Contract         @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  author   User?            @relation("ReviewAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  target   FreelanceProfile @relation("ReviewTarget", fields: [targetProfileId], references: [id], onDelete: Cascade)
+
+  @@index([targetProfileId, createdAt(sort: Desc)])
+  @@index([authorUserId], where: raw("\"authorUserId\" IS NOT NULL"), map: "Review_authorUserId_idx")
+}
+
+// ─── Mesure de visibilité ───────────────────────────────────────────────────────────────────────────────────────────
+
+/// Demande d'audit reçue avant toute création de compte (formulaire d'inscription).
+model AuditRequest {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  reference   String   @unique
+  displayName String
+  /// Toujours en minuscules. Sert uniquement à livrer le rapport ; n'entre jamais dans une page publique ni un moteur.
+  email       String
+  /// Adresses déclarées comme siennes, telles que reçues (1 à 10). Aucune n'est prouvée à ce stade.
+  urls        String[]
+  lang        String   @db.Char(2)
+  consentAt   DateTime @db.Timestamptz(3)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  /// Une demande d'effacement arrive par e-mail : la retrouver ne doit pas parcourir toute la table.
+  @@index([email])
+}
+
+/// Une vague de mesure. Les réponses brutes restent hors base, chiffrées et purgées à 72 h : on ne garde ici que le résumé.
+model Wave {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  waveId     String   @unique
+  profileId  String?  @db.Uuid
+  measuredAt DateTime @db.Timestamptz(3)
+  draws      Int
+  costCents  Int
+  currency   String   @db.Char(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  @@index([profileId], where: raw("\"profileId\" IS NOT NULL"), map: "Wave_profileId_idx")
+}
+
+// ─── Limiteur de débit partagé ──────────────────────────────────────────────────────────────────────────────────────
+
+/// Compteur par clé et par fenêtre : tient sur plusieurs instances, contrairement au compteur en mémoire. La clé est un
+/// HMAC de l'adresse IP, jamais l'adresse elle-même ; les fenêtres passées sont purgées par une tâche planifiée.
+model RateLimitBucket {
+  key         String
+  windowStart DateTime @db.Timestamptz(3)
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+}
