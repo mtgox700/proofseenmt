@@ -260,12 +260,17 @@ export const messaging = (db: Db): Messaging => ({
     const fromFreelance = conversation.profile.userId === actor.userId;
     const blocked = postBlock(conversation.status, fromFreelance);
     if (blocked !== null) return blocked;
-    // Comme sur Malt, les coordonnées s'échangent une fois la mission contractualisée sur la plateforme, pas avant :
-    // c'est le moment où la commission se gagne. Après la signature, elles passent et restent signalées.
+    // Comme sur Malt, les coordonnées s'échangent une fois la mission payée sur la plateforme, pas avant : un contrat
+    // signé ne coûte rien, deux comptes complices en signeraient un pour s'échanger leurs numéros. Une fois l'argent
+    // engagé, elles passent et restent signalées.
     const flagged = containsContact(text);
     if (flagged) {
       const signed = await db.contract.count({
-        where: { organisationId: conversation.organisationId, profileId: conversation.profileId, status: { in: ["active", "completed"] } },
+        where: {
+          organisationId: conversation.organisationId,
+          profileId: conversation.profileId,
+          payments: { some: { status: { in: ["held", "releasing", "released"] } } },
+        },
       });
       if (signed === 0) return { kind: "contact_details" };
     }

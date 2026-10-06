@@ -4,6 +4,7 @@ import type { ApplicationStatus, ContractStatus, JobPostStatus } from "./generat
 import { vatOf } from "./invoices";
 import type { Actor } from "./messaging";
 import { REQUIRED_TO_PUBLISH } from "./profiles";
+import { SETTLED_PAYMENT } from "./reviews";
 
 /*
  * Tableaux de bord. Des faits comptés en base, rien d'estimé : un chiffre affiché ici se retrouve ligne à ligne dans
@@ -61,7 +62,7 @@ export const dashboards = (db: Db): Dashboards => ({
         headline: true,
         summary: true,
         city: true,
-        _count: { select: { ownedUrls: { where: { verifiedAt: { not: null } } }, missions: true, reviews: true } },
+        _count: { select: { ownedUrls: { where: { verifiedAt: { not: null } } }, missions: true, reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } } } } },
       },
     });
     if (profile === null) {

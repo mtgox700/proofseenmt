@@ -51,7 +51,7 @@ export type CreateContractResult =
   /** L'entreprise n'a pas renseigné son adresse de facturation. */
   | { readonly kind: "buyer_identity_missing" }
   | { readonly kind: "already_exists" }
-  /** Vendeur et acheteur sont la même entreprise (même SIREN) : un contrat avec soi-même n'achète qu'un avis. */
+  /** Vendeur et acheteur ne font qu'un (même SIREN, ou freelance membre de l'entreprise) : le devis est clos. */
   | { readonly kind: "self_dealing" }
   | { readonly kind: "absent" };
 
@@ -127,7 +127,14 @@ export const contracts = (db: Db): Contracts => ({
         if (seller === null) return { kind: "seller_identity_missing" };
         const buyer = await organisationSnapshot(tx, organisationId);
         if (buyer === null) return { kind: "buyer_identity_missing" };
-        if (buyer.siret !== null && seller.siret !== null && buyer.siret.slice(0, 9) === seller.siret.slice(0, 9)) return { kind: "self_dealing" };
+        // Avec soi-même : même SIREN, ou un freelance déjà membre de l'entreprise acheteuse (il signerait des deux côtés).
+        // Le devis est clos : le fil reste libre pour une vraie mission.
+        const sameCompany = buyer.siret !== null && seller.siret !== null && buyer.siret.slice(0, 9) === seller.siret.slice(0, 9);
+        const insider = await tx.membership.count({ where: { organisationId, user: { freelanceProfile: { id: profileId } } } });
+        if (sameCompany || insider > 0) {
+          await tx.quote.update({ where: { id: quoteId }, data: { status: "closed" } });
+          return { kind: "self_dealing" };
+        }
         const contract = await tx.contract.create({
           data: {
             quoteId,

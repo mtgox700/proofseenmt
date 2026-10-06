@@ -3,6 +3,7 @@ import { applications } from "../src/applications";
 import { billing, type LegalSnapshot } from "../src/billing";
 import { contracts } from "../src/contracts";
 import { NO_CONTACT } from "../src/contact-detection";
+import { organisations } from "../src/organisations";
 import { MAX_CONTACTS_PER_ORGANISATION_PER_DAY, messaging } from "../src/messaging";
 import { missions, type MissionInput } from "../src/missions";
 import { payments } from "../src/payments";
@@ -81,7 +82,7 @@ describe("coordonnées dans les échanges, avant tout contrat", () => {
     expect(await applications(t.db).apply({ userId: s.freelanceUser }, mission, "Disponible dès lundi.", new Date())).toMatchObject({ kind: "applied" });
   });
 
-  it("refuse des coordonnées dans un fil accepté tant qu'aucun contrat n'est signé, les laisse passer après", async () => {
+  it("refuse des coordonnées dans un fil accepté tant qu'aucun paiement n'est engagé, les laisse passer après", async () => {
     const s = await setup();
     const opened = await messaging(t.db).contact({ userId: s.recruiter }, s.org, s.profile, "Bonjour, êtes-vous disponible ?");
     if (opened.kind !== "opened") throw new Error("fil non ouvert");
@@ -91,13 +92,16 @@ describe("coordonnées dans les échanges, avant tout contrat", () => {
     expect(await messaging(t.db).post({ userId: s.freelanceUser }, id, "Écrivez-moi à jean@outlook.fr")).toEqual({ kind: "contact_details" });
     expect(await messaging(t.db).post({ userId: s.recruiter }, id, "Appelez le 06 12 34 56 78")).toEqual({ kind: "contact_details" });
 
-    await t.db.contract.create({
+    const contract = await t.db.contract.create({
       data: {
         organisationId: s.org, profileId: s.profile, dailyRateCents: 50000, days: 2, totalCents: 100000, currency: "EUR",
         sellerSnapshot: SNAPSHOT, buyerSnapshot: SNAPSHOT, startsOn: new Date("2026-12-01"), status: "active",
         acceptedByFreelanceAt: new Date(), acceptedByOrgAt: new Date(),
       },
+      select: { id: true },
     });
+    const payment = await t.db.payment.create({ data: { contractId: contract.id, amountCents: 100000, commissionCents: 10000, currency: "EUR", stripeIntentId: `pi_${contract.id}` }, select: { id: true } });
+    await t.db.payment.update({ where: { id: payment.id }, data: { status: "held" } });
     expect(await messaging(t.db).post({ userId: s.freelanceUser }, id, "Écrivez-moi à jean@outlook.fr")).toMatchObject({ kind: "sent", message: { containsContact: true } });
   });
 
@@ -188,9 +192,32 @@ describe("avis et contrats : ce qui ne s'achète pas", () => {
     expect(await quotes(t.db).draft({ userId: p.freelanceUser }, p.conversation, { dailyRateCents: MIN_QUOTE_TOTAL_CENTS, days: 1 })).not.toBeNull();
   });
 
-  it("refuse un contrat entre une entreprise et un freelance de même SIREN", async () => {
+  it("refuse un contrat avec soi-même (même SIREN, ou freelance membre de l'entreprise) et libère le fil", async () => {
     const p = await parties("55210055400033");
     expect(await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-11-02" })).toEqual({ kind: "self_dealing" });
+    // Le devis refusé est clos : un nouveau devis peut être accepté dans le même fil.
+    await expect(acceptedQuote(p)).resolves.toBeTypeOf("string");
+
+    const insider = await parties();
+    await t.db.membership.create({ data: { organisationId: insider.org, userId: insider.freelanceUser, role: "member" } });
+    expect(await contracts(t.db).createFromQuote({ userId: insider.recruiter }, await acceptedQuote(insider), { startsOn: "2026-11-02" })).toEqual({ kind: "self_dealing" });
+  });
+
+  it("refuse un nom d'organisation qui donne un moyen de joindre quelqu'un, garde un nom de domaine", async () => {
+    const owner = await createUser(t.db);
+    await expect(organisations(t.db).create({ userId: owner }, { name: "Jean 06 12 34 56 78", kind: "pme" })).rejects.toThrow(NO_CONTACT);
+    await expect(organisations(t.db).create({ userId: owner }, { name: "Booking.com", kind: "pme" })).resolves.toBeTruthy();
+  });
+
+  it("un contrat signé sans paiement n'ouvre pas l'échange de coordonnées", async () => {
+    const p = await parties();
+    const created = await contracts(t.db).createFromQuote({ userId: p.recruiter }, await acceptedQuote(p), { startsOn: "2026-11-02" });
+    if (created.kind !== "created") throw new Error(created.kind);
+    await contracts(t.db).sign({ userId: p.recruiter }, created.contract.id, NOW);
+    await contracts(t.db).sign({ userId: p.freelanceUser }, created.contract.id, NOW);
+    expect(await messaging(t.db).post({ userId: p.freelanceUser }, p.conversation, "Mon numéro : 06 12 34 56 78")).toEqual({ kind: "contact_details" });
+    await payAndHold(t.db, p.recruiter, created.contract.id);
+    expect(await messaging(t.db).post({ userId: p.freelanceUser }, p.conversation, "Mon numéro : 06 12 34 56 78")).toMatchObject({ kind: "sent" });
   });
 
   it("un contrat annulé ou terminé libère le fil pour un nouveau devis et un nouveau contrat", async () => {

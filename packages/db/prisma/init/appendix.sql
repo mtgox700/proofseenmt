@@ -437,8 +437,9 @@ BEGIN
        IS DISTINCT FROM (OLD."dailyRateCents", OLD."days", OLD."totalCents", OLD."currency", OLD."conversationId") THEN
       RAISE EXCEPTION 'un devis clos ne change pas';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM "Contract" WHERE "quoteId" = NEW."id" AND "status" IN ('completed', 'cancelled')) THEN
-      RAISE EXCEPTION 'un devis ne se clôt qu''avec la fin de son contrat';
+    -- Clos quand son contrat est fini, ou quand aucun contrat n'a pu en naître (contrat avec soi-même refusé).
+    IF EXISTS (SELECT 1 FROM "Contract" WHERE "quoteId" = NEW."id" AND "status" IN ('pending_signatures', 'active')) THEN
+      RAISE EXCEPTION 'un devis ne se clôt pas pendant son contrat';
     END IF;
     RETURN NEW;
   END IF;
