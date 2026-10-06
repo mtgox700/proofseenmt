@@ -8,7 +8,7 @@
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -88,6 +88,20 @@ const body = (n: NotificationInput, base: string): Body => {
         lines: [fr ? `Votre candidature a été ${status}.` : `Your application was ${status}.`],
         links: [{ label: COPY[lang].open, href: app }],
       };
+    }
+    case "contract_update": {
+      const status = text(n.payload.status);
+      const subject = {
+        to_sign: fr ? "Un contrat attend votre signature" : "A contract is waiting for your signature",
+        active: fr ? "Votre contrat est signé" : "Your contract is signed",
+        completed: fr ? "Prestation validée" : "Work approved",
+      }[status] ?? (fr ? "Votre contrat a changé" : "Your contract has changed");
+      const line = {
+        to_sign: fr ? "Relisez le contrat et signez-le pour démarrer la mission." : "Review the contract and sign it to start the mission.",
+        active: fr ? "Les deux parties ont signé : la mission peut démarrer." : "Both parties signed: the mission can start.",
+        completed: fr ? "L'entreprise a validé la prestation." : "The company approved the work.",
+      }[status] ?? (fr ? "Consultez votre contrat sur Proofseen." : "See your contract on Proofseen.");
+      return { subject, lines: [line], links: [{ label: COPY[lang].open, href: app }] };
     }
     case "mission_match": {
       const ids = list(n.payload.missionIds);
