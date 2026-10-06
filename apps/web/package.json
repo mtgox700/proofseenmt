@@ -22,6 +22,7 @@
     "@proofseen/deliverable": "workspace:*",
     "@proofseen/hub": "workspace:*",
     "@proofseen/intake": "workspace:*",
+    "@proofseen/notify": "workspace:*",
     "@proofseen/presale": "workspace:*",
     "@proofseen/profiles": "workspace:*",
     "@proofseen/stats": "workspace:*",

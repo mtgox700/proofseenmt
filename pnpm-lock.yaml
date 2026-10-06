@@ -142,6 +142,9 @@ importers:
       '@proofseen/intake':
         specifier: workspace:*
         version: link:../../packages/intake
+      '@proofseen/notify':
+        specifier: workspace:*
+        version: link:../../packages/notify
       '@proofseen/presale':
         specifier: workspace:*
         version: link:../../packages/presale
@@ -285,6 +288,12 @@ importers:
       '@proofseen/profiles':
         specifier: workspace:*
         version: link:../profiles
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+
+  packages/notify:
+    dependencies:
       zod:
         specifier: ^4.6.5
         version: 4.6.5
