@@ -1,5 +1,7 @@
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
 import { PrismaPGlite } from "pglite-prisma-adapter";
@@ -24,9 +26,31 @@ export interface TestDatabase {
   close(): Promise<void>;
 }
 
-export const openTestDatabase = async (): Promise<TestDatabase> => {
+/*
+ * La migration est jouée une seule fois, puis la base obtenue est gardée en image dans le dossier temporaire, sous
+ * l'empreinte de la migration : chaque fichier de test charge cette image au lieu de rejouer 1 200 lignes de SQL. Sous
+ * la charge de toute la suite, rejouer la migration dans huit processus à la fois dépassait le délai de démarrage.
+ * Une migration modifiée change l'empreinte, donc l'image : jamais de base périmée.
+ */
+const TEMPLATE = join(tmpdir(), `proofseen-pglite-${createHash("sha256").update(MIGRATION).digest("hex").slice(0, 16)}.tar.gz`);
+
+const template = async (): Promise<Blob> => {
+  if (existsSync(TEMPLATE)) return new Blob([readFileSync(TEMPLATE)]);
   const pg = new PGlite();
   await pg.exec(MIGRATION);
+  const dump = await pg.dumpDataDir("gzip");
+  await pg.close();
+  // Écrire à côté puis renommer : deux processus qui construisent l'image en même temps ne laissent jamais un fichier
+  // à moitié écrit, le dernier renommage gagne et les deux images sont identiques.
+  const partial = `${TEMPLATE}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(partial, Buffer.from(await dump.arrayBuffer()));
+  renameSync(partial, TEMPLATE);
+  return dump;
+};
+
+export const openTestDatabase = async (): Promise<TestDatabase> => {
+  const pg = new PGlite({ loadDataDir: await template() });
+  await pg.waitReady;
   const db: Db = new PrismaClient({ adapter: new PrismaPGlite(pg) });
   return {
     pg,
