@@ -125,3 +125,4 @@ export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashb
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
 export { MAX_SITEMAP_PROFILES, publicProfiles, type PublicMissionFact, type PublicProfilePage, type PublicProfiles } from "./public-profiles";
 export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./skill-pages";
+export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
