@@ -16,7 +16,8 @@ export {
   type PostResult,
 } from "./messaging";
 export { rateLimiter, type RateLimitDecision, type RateLimiter, type RateLimitRule } from "./rate-limit";
-export { gdpr, RETAINED_AFTER_ERASURE, type Gdpr, type UserExport } from "./gdpr";
+export { gdpr, RETAINED_AFTER_ERASURE, type EraseResult, type Gdpr, type UserExport } from "./gdpr";
+export { RETENTION, retention, type PurgeReport, type Retention } from "./retention";
 export { ClerkIdentitySchema, users, type ClerkIdentity, type Users } from "./users";
 export {
   missions,
