@@ -1,0 +1,21 @@
+{
+  "_note": "Relevé d'indexation des deux bras au jour de la mesure J+30 (2026-10-24). À REMPLIR À LA MAIN avant de lancer `experiment-verdict`. Ce n'est pas un calcul : c'est un fait extérieur que le code ne peut pas deviner. Tant qu'il n'est pas fourni, le verdict refuse de clore quelque voie que ce soit.",
+  "_pourquoi_le_champ_index": "Constat du 2026-10-01 : Google indexait https://proofseen.com/n/ayoub-hammoudi/ (« URL is on Google, Page is indexed ») pendant que Bing la donnait toujours « Discovered but not crawled ». Or AUCUN des trois moteurs mesurés ne tire son web de Google. Un relevé qui dirait « 1 page indexée » sans nommer l'index ferait conclure « traitement délivré » sur des moteurs qui n'ont jamais vu la page. Les lignes `google` sont donc consignées pour mémoire et IGNORÉES par le verdict.",
+  "_ou_relever": {
+    "bing": "Bing Webmaster Tools > URL Inspection > onglet Bing Index (alimente OpenAI et Perplexity)",
+    "brave": "search.brave.com — pas de console : vérifier à la main si la page ressort (alimente Claude)",
+    "google": "Google Search Console > Inspection d'URL (consigné, mais sans effet sur le verdict)"
+  },
+  "_bras_A": "https://proofseen.com/n/ayoub-hammoudi/ + /en/n/ayoub-hammoudi/ (2 pages déclarées)",
+  "_bras_B": "https://proofseen.com/p/FR-7H2XK/ + /en/p/FR-7H2XK/ (2 pages déclarées)",
+  "_bras_C": "absent : test à 2 bras, la page d'entrée demande au moins trois profils réels consentants.",
+  "checkedAt": "2026-10-24",
+  "arms": [
+    { "arm": "A", "index": "bing", "indexed": 0, "declared": 2 },
+    { "arm": "A", "index": "brave", "indexed": 0, "declared": 2 },
+    { "arm": "A", "index": "google", "indexed": 1, "declared": 2 },
+    { "arm": "B", "index": "bing", "indexed": 0, "declared": 2 },
+    { "arm": "B", "index": "brave", "indexed": 0, "declared": 2 },
+    { "arm": "B", "index": "google", "indexed": 0, "declared": 2 }
+  ]
+}

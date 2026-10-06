@@ -1,0 +1,20 @@
+{
+  "publishedAt": "2026-09-24",
+  "namedArm": {
+    "profileId": "FR-7H2XK",
+    "identity": {
+      "displayName": "Ayoub Hammoudi",
+      "slug": "ayoub-hammoudi",
+      "sameAs": [
+        "https://github.com/Ayoubhm07",
+        "https://www.linkedin.com/in/ayoub-hammoudi-3251851b8",
+        "https://ayoubdevspace.vercel.app"
+      ]
+    },
+    "consent": {
+      "selfPublished": true,
+      "givenAt": "2026-09-24",
+      "scope": "named_arm_of_the_three_arm_test"
+    }
+  }
+}

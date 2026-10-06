@@ -1,0 +1,19 @@
+Développeur React / TypeScript : applications web à fort trafic
+Entreprise : INSYCO
+Lieu : Paris
+Bonjour,
+Nous recherchons pour notre client grand compte un Développeur React / TypeScript confirmé, applications web à fort trafic
+Nous étudions - prioritairement - les candidatures qui nous sont adressées à freelance à insyco . fr avec les informations suivantes :
+- Argumentaire écrit répondant de façon ciblée au besoin ci-dessous
+
+- CV à jour
+
+- Date de prochaine disponibilité
+
+- Tarif journalier
+
+- Merci d&#039;indiquer la référence MDE/FRONT/5554 dans l&#039;objet de votre message
+
+
+Définition du besoin
+Notre client recherche une prestation de développement ReactJS : conception et développement d&#039;interfaces web complexes, sur des architectures à fort trafic, au sein d&#039;une équipe travaillant en mode Agile.

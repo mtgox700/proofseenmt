@@ -1,0 +1,11 @@
+Développeur Full Stack TypeScript / Angular / NestJS
+Entreprise : Signe +
+Lieu : Saint-Martin-le-Vinoux
+Dans le secteur de l’énergie hydraulique, vous rejoignez une équipe Outillage afin de poursuivre le développement d’une application interne dédiée à l’audit de conformité de la configuration des équipements d’un système d’information industriel.
+Votre priorité consiste à développer, corriger, tester et mettre en production la solution sur le périmètre MASTER.
+Vous serez également chargé d’établir la feuille de route du reste à faire et d’en réaliser l’estimation temporelle. Vous conduirez un comparatif fonctionnel de la solution avec .
+Vous participerez à des rencontres agiles périodiques avec les différentes parties prenantes et assurerez la rédaction de la documentation technique, de la documentation d’exploitation et de la documentation utilisateur.
+Vous présenterez chaque semaine un état d’avancement au pilote de la prestation.
+L’environnement Front-End repose sur Angular 21, TypeScript, Vitest ainsi que des problématiques UX/UI. Le Back-End s’appuie sur NestJS, PostgreSQL, TypeScript et Vitest.
+Le périmètre d’exécution et d’automatisation comprend Ansible, Python, Bash et FastAPI.
+La mission implique également l’écriture et la conception de contrats d’API, l’application d’une architecture hexagonale et des principes SOLID. Elle s’inscrit dans un environnement utilisant Git, Nginx, Docker, Nexus et Alma Linux, avec une prise en compte des principes réseau

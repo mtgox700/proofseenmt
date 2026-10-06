@@ -1,0 +1,30 @@
+{
+  "id": "arm-A",
+  "displayName": "Ayoub Hammoudi",
+  "nameVariants": [
+    "Ayoub Hammoudi"
+  ],
+  "city": "Paris",
+  "stack": [
+    "TypeScript",
+    "Node.js",
+    "React",
+    "Kafka",
+    "PostgreSQL",
+    "Docker",
+    "Python",
+    "Spring Boot"
+  ],
+  "ownedUrls": [
+    {
+      "url": "https://proofseen.com/n/ayoub-hammoudi/",
+      "proofMethod": "well_known_file",
+      "verifiedAt": "2026-09-26T10:33:29.130Z"
+    },
+    {
+      "url": "https://proofseen.com/en/n/ayoub-hammoudi/",
+      "proofMethod": "well_known_file",
+      "verifiedAt": "2026-09-26T10:33:29.130Z"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "baseUrl": "https://ayoubdevspace.vercel.app",
+  "person": {
+    "name": "Ayoub Hammoudi",
+    "headline": {
+      "fr": "Développeur full stack et ingénieur systèmes IA",
+      "en": "Full Stack Developer & AI Systems Engineer"
+    },
+    "city": "Paris",
+    "workMode": { "fr": "Paris et remote", "en": "Paris and remote" },
+    "summary": {
+      "fr": "[À CONFIRMER — 3 à 5 phrases, uniquement des faits que tu peux prouver] Ce que tu construis, pour qui, avec quoi, et ce que ça a changé concrètement.",
+      "en": "[TO CONFIRM — 3 to 5 sentences, only facts you can prove] What you build, for whom, with what, and what it actually changed."
+    },
+    "stack": ["TypeScript", "React", "Node.js", "Spring Boot", "Python", "Microservices", "PostgreSQL", "Docker"],
+    "links": [
+      { "label": "GitHub", "url": "https://github.com/Ayoubhm07" },
+      { "label": "LinkedIn", "url": "https://www.linkedin.com/in/ayoub-hammoudi-3251851b8" }
+    ],
+    "contactEmail": null
+  },
+  "availability": { "status": "available", "from": null, "updatedAt": "2026-09-24" },
+  "rate": null,
+  "missions": [],
+  "verificationToken": null
+}

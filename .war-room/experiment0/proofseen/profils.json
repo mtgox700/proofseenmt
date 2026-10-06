@@ -1,0 +1,66 @@
+{
+  "baseUrl": "https://proofseen.com",
+  "indexNowKey": "e674e36a3ec97955b65dcad2c280054e",
+  "entries": [
+    {
+      "identity": {
+        "profileId": "FR-7H2XK",
+        "realName": "Ayoub Hammoudi",
+        "email": "gestion.ekigai@gmail.com",
+        "phone": null,
+        "links": [
+          "https://github.com/Ayoubhm07",
+          "https://www.linkedin.com/in/ayoub-hammoudi-3251851b8",
+          "https://ayoubdevspace.vercel.app"
+        ],
+        "legalId": null,
+        "consent": {
+          "givenAt": "2026-09-24",
+          "scope": "public_pseudonymous_profile",
+          "irreversibilityAcknowledged": true,
+          "withdrawnAt": null
+        }
+      },
+      "selfSearch": {
+        "doneAt": "2026-09-24",
+        "outcome": "not_found",
+        "queriesRun": 3
+      },
+      "profile": {
+        "id": "FR-7H2XK",
+        "handle": "Ayoub.H",
+        "headline": {
+          "fr": "Développeur full stack TypeScript et systèmes IA",
+          "en": "Full stack TypeScript developer and AI systems engineer"
+        },
+        "seniority": "3 à 5 ans",
+        "area": "Paris / Île-de-France",
+        "skills": [
+          "TypeScript",
+          "Node.js",
+          "React",
+          "Kafka",
+          "PostgreSQL",
+          "Docker",
+          "Python",
+          "Spring Boot"
+        ],
+        "sectors": [
+          "Immobilier",
+          "SaaS B2B"
+        ],
+        "availability": {
+          "status": "available",
+          "updatedAt": "2026-09-24"
+        },
+        "rate": null,
+        "verifiedMissions": 0,
+        "missions": [],
+        "summary": {
+          "fr": "Conçoit et met en production des plateformes orientées données : microservices événementiels, orchestration de traitements par Kafka, pipelines d'extraction assistés par IA, et suivi en production. Travaille en TypeScript sur Node.js et React, avec PostgreSQL et Docker.",
+          "en": "Builds and runs data-driven platforms: event-driven microservices, Kafka-based orchestration, AI-assisted extraction pipelines and production monitoring. Works in TypeScript on Node.js and React, with PostgreSQL and Docker."
+        }
+      }
+    }
+  ]
+}

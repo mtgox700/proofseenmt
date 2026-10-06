@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "waveId": "J0",
+  "frozenAt": null,
+  "engines": [
+    "openai",
+    "anthropic",
+    "perplexity"
+  ],
+  "models": {
+    "openai": "gpt-5-mini",
+    "anthropic": "claude-sonnet-5",
+    "perplexity": "perplexity/sonar"
+  },
+  "drawsPerCell": 5,
+  "costCapUsd": 70,
+  "jobDescriptions": [
+    {
+      "id": "T01",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T01, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] ex. un freelance Senior Full Stack TypeScript à Paris, dispo sous 2 semaines"
+    },
+    {
+      "id": "T02",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T02, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T02 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T03",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T03, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T03 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T04",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T04, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T04 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T05",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T05, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T05 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T06",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T06, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T06 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T07",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "[À COLLER] Texte intégral de l'offre T07, copié à la main depuis sa source publique.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T07 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T08",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "[PASTE] Full text of job description T08, copied by hand from its public source.",
+      "brief": "[TO FILL] e.g. a senior full-stack TypeScript freelancer in Paris or remote"
+    },
+    {
+      "id": "T09",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "[PASTE] Full text of job description T09, copied by hand from its public source.",
+      "brief": "[TO FILL] recruiter summary of T09 (role, stack, location, availability)"
+    },
+    {
+      "id": "T10",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "[PASTE] Full text of job description T10, copied by hand from its public source.",
+      "brief": "[TO FILL] recruiter summary of T10 (role, stack, location, availability)"
+    },
+    {
+      "id": "C01",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "[À COLLER] Offre témoin C01 (rôle adjacent NON ciblé, ex. développeur Java/Spring).",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C01"
+    },
+    {
+      "id": "C02",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "[À COLLER] Offre témoin C02 (rôle adjacent NON ciblé, ex. administrateur système Linux).",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C02"
+    },
+    {
+      "id": "C03",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "[À COLLER] Offre témoin C03 (rôle adjacent NON ciblé, ex. développeur mobile Flutter).",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C03"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "P1",
+      "version": 1,
+      "lang": "fr",
+      "text": "Voici une offre de mission :\n\n{{JD}}\n\nTrouve-moi les 5 meilleurs profils freelances pour cette mission. Pour chacun : son nom, un lien vers son profil et pourquoi il correspond."
+    },
+    {
+      "id": "P2",
+      "version": 1,
+      "lang": "fr",
+      "text": "Je cherche {{BRIEF}}. Qui me recommandes-tu ? Donne-moi des noms avec un lien vers leur profil."
+    },
+    {
+      "id": "P3",
+      "version": 1,
+      "lang": "en",
+      "text": "Here is a freelance job description:\n\n{{JD}}\n\nFind me the 5 best freelance profiles for this job. For each one: their name, a link to their profile and why they fit."
+    },
+    {
+      "id": "P4",
+      "version": 1,
+      "lang": "fr",
+      "text": "Cherche sur LinkedIn, Malt et GitHub des profils de freelances qui correspondent à cette offre :\n\n{{JD}}\n\nDonne-moi les 5 meilleurs, avec leur nom et un lien vers leur profil."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+Développeur Javascript / TypeScript
+Entreprise : Next Mondays
+Lieu : Paris
+Vous intégrez une équipe d’une dizaine de développeurs, au sein d’un environnement structuré et collaboratif.
+
+Dans ce cadre, vous intervenez sur le développement de produits B2B, avec des responsabilités variées :
+
+- Participation à la conception technique des nouvelles fonctionnalités
+- Développement d’applications en TypeScript / JavaScript
+- Contribution à la qualité du code (tests, documentation technique)
+- Participation aux phases de qualification et correction des anomalies
+- Collaboration étroite avec les équipes produit et QA
+
+Vous évoluez sur des projets concrets, avec des cycles de développement maîtrisés et une forte exigence sur la qualité des livrables.

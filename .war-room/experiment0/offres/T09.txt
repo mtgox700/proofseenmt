@@ -1,0 +1,18 @@
+Lead developpeur(euse) fullstack NodeJS / React / Typescript - Anglais courant
+Entreprise : PROPULSE IT
+Lieu : Paris
+Lead Développeur(euse) NodeJS / React / Typescript
+
+Missions & Activités principales
+
+Vous intégrez une équipe sur des projets de développement web et mobile.
+
+En tant que référent technique NodeJS, vous aurez les missions suivantes :
+
+- Accompagner les développeurs dans la compréhension des besoins / contraintes produits et l&#039;implémentation des solutions techniques,
+- Formaliser les bonnes pratiques sur l&#039;architecture technique et le développement logiciel afin de garantir la fiabilité, la performance et l&#039;évolutivité de la plateforme,
+- S&#039;assurer de la qualité du code au travers des revues de code et coordonner le delivery,
+- Accompagner l&#039;équipe dans la résolution des problèmes rencontrés,
+- Contribuer à la conception et au développement des produits,
+- Mettre en place les stratégies de tests,
+- Réaliser une veille technologique.

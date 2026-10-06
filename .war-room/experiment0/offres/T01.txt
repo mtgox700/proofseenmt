@@ -1,0 +1,14 @@
+Développeur Senior Node.js / TypeScript
+Entreprise : Gamme solutions
+Lieu : Nantes
+Vous intégrerez une équipe technique travaillant sur des applications backend modernes, avec une forte utilisation des services AWS et une architecture orientée événements.
+Missions
+Concevoir et développer des services backend en Node.js / TypeScript
+Participer à la conception et à l&#039;évolution d&#039;une architecture Event Driven
+Développer et maintenir des AWS Lambda en TypeScript
+Concevoir et intégrer des APIs via API Gateway
+Travailler avec les services AWS : S3, SNS/SQS, RDS, CloudWatch, Systems Manager, CodePipeline
+Participer à la mise en place et au maintien des pipelines CI/CD avec Jenkins
+Garantir la qualité du code : tests unitaires, revues de code et documentation OpenAPI
+Participer à la supervision et au monitoring des applications avec New Relic et Grafana
+Utiliser LocalStack dans les environnements de développement et de test

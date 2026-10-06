@@ -1,0 +1,5 @@
+Développeur Full Stack - TypeScript / NestJS / NextJS - Secteur Logistique Digitale
+Entreprise : EASY PARTNER
+Lieu : Saint-Ouen-sur-Seine
+Contexte du poste :
+Rejoignez une entreprise dynamique et innovante, spécialisée dans la logistique du dernier kilomètre pour des colis volumineux. Située à Saint-Ouen, notre société est en pleine transformation numérique avec un focus sur l&#039;amélioration et la digitalisation des processus internes. Vous ferez partie de l&#039;équipe &#34;Internal User&#34;, l&#039;une des trois feature teams dédiées à la création d&#039;outils pour nos utilisateurs internes, essentiels au cœur de notre activité. Notre équipe technique, composée d&#039;une vingtaine de personnes, est à la recherche de deux développeurs Full Stack pour accompagner ces initiatives ambitieuses. Vous collaborerez avec des Product Managers, des Leads Développeurs, ainsi que nos ressources QA et DevOps, dans un environnement stimulant et en pleine mutation.

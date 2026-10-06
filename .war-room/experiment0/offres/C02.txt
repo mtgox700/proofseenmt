@@ -1,0 +1,48 @@
+Data Engineer Databricks/Azure/PySpark/Terraform
+Entreprise : OBJECTWARE
+Lieu : Île-de-France
+Dans le cadre du développement de notre Data Factory, vous intégrerez une équipe en charge de concevoir, déployer et faire évoluer des plateformes Data innovantes, agiles et orientées métier.
+L’objectif est de développer des produits Data répondant aux besoins concrets des métiers, tout en garantissant leur performance, leur sécurité, leur qualité et leur évolutivité .
+Vos missions Développement de produits Data
+- Transformer la donnée brute en données exploitables, notamment sous forme de tables requêtables dans le Data Lake.
+
+- Consolider et orchestrer les données au fil de leur ingestion.
+
+- Exploiter les données pour répondre aux enjeux métiers : création de Business Views, réintégration dans le SI, services de scoring, etc.
+
+Conception et industrialisation
+- Participer à la conception et à l’évolution du socle technique Data.
+
+- Développer, automatiser et fiabiliser les pipelines de données.
+
+- Mettre en place et garantir un processus qualité rigoureux : documentation, tests unitaires et d’intégration, commentaires, versioning.
+
+- Contribuer à l’amélioration continue des pratiques et des outils de développement Data.
+
+Profil recherché - Diplômé(e) d’un Master ou d’une école d’ingénieurs en informatique, sciences ou domaine similaire, avec une spécialisation en Data.
+
+- 5 ans d’expérience minimum en tant que Data Engineer, idéalement dans un environnement Azure / Databricks .
+
+- Maîtrise avancée de PySpark / Spark .
+
+- Expertise de l’environnement Microsoft Azure : Data Factory, Databricks, Data Lake Storage, Azure DevOps, Git et CI/CD.
+
+- Solide expérience en traitement de données batch et streaming .
+
+- Bonne maîtrise de SQL et connaissance des bases NoSQL (Cosmos DB, MongoDB…).
+
+- Bonne connaissance des méthodologies Agile (Scrum, Kanban) .
+
+- Capacité à travailler en collaboration avec des PO, BA, testeurs, architectes et équipes métiers .
+
+Qualités recherchées - Rigueur et autonomie
+
+- Esprit d’innovation
+
+- Bonnes capacités de communication
+
+- Esprit d’équipe
+
+- Capacité d’adaptation
+
+- Sensibilité aux enjeux de qualité et d’industrialisation des données

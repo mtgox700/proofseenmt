@@ -1,0 +1,28 @@
+Développeur Fullstack TypeScript H/F
+Entreprise : HAYS France
+Lieu : Toulouse
+Vous intervenez principalement sur le développement et l&#039;évolution d&#039;une application stratégique permettant de cartographier et de centraliser les différents composants de l&#039;infrastructure : serveurs, systèmes d&#039;exploitation, logiciels, équipements de stockage ou encore historique des incidents.
+Elle fait actuellement l&#039;objet d&#039;une modernisation importante. À ce titre, vos principales missions sont les suivantes : - Développer de nouvelles fonctionnalités, aussi bien sur les parties back-end que front-end,
+- Participer à la modernisation et à l&#039;évolution de l&#039;architecture applicative,
+- Concevoir et maintenir les API et les interactions avec les autres outils du système d&#039;information,
+- Contribuer aux choix techniques et accompagner leur mise en œuvre,
+- Participer à l&#039;amélioration des pratiques CI/CD et à l&#039;industrialisation des déploiements,
+- Identifier et automatiser certaines opérations récurrentes,
+- Assurer la qualité, la documentation et la maintenabilité du code,
+- Participer aux phases de maintenance, de supervision et de mise en production,
+- Animer ou contribuer aux sprints, au backlog et à la priorisation des évolutions,
+- Partager vos connaissances et accompagner techniquement les autres membres de l&#039;équipe.
+
+Environnement techniqueL&#039;environnement repose principalement sur : - TypeScript / JavaScript
+- Svelte V5, avec une ouverture aux profils issus de Vue.js ou React
+- Node.js
+- GraphQL / Apollo
+- PostgreSQL, MariaDB et MySQL
+- Git / GitLab
+- GitLab CI/CD
+- Docker / Docker Compose
+- HTML, CSS, Tailwind CSS
+- Quelques composants existants en PHP 8 / Symfony
+- Supervision avec Centreon / Nagios
+
+La connaissance de Svelte n&#039;est pas indispensable si vous maîtrisez un framework front-end tel que Vue.js ou React et que vous souhaitez monter rapidement en compétences sur cette technologie.

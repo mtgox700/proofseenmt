@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "baseUrl": "https://ayoub-hammoudi.dev",
+  "person": {
+    "name": "Ayoub Hammoudi",
+    "headline": {
+      "fr": "Ingénieur Full Stack TypeScript / Next.js et AI/LLM Engineer (RAG, évaluations LLM, agents) — freelance depuis 2022",
+      "en": "Full Stack TypeScript / Next.js and AI/LLM Engineer (RAG, LLM evals, agents) — freelancing since 2022"
+    },
+    "city": "Paris",
+    "workMode": {
+      "fr": "Freelance — Paris ou télétravail (France)",
+      "en": "Freelance — Paris or remote (France)"
+    },
+    "summary": {
+      "fr": "Ingénieur logiciel full stack basé à Paris, freelance depuis 2022. Je construis des applications TypeScript / Next.js en production et des systèmes à base de grands modèles de langage (LLM) : agents orchestrés de façon durable, harnais d'évaluation LLM à seuils, red-teaming NVIDIA Garak, défenses contre l'injection de prompt, RAG sur du code source. Côté données, je conçois des pipelines de streaming et des datalakes (Kafka, Spark, Airflow, Neo4j) dont la rejouabilité est prouvée par script, pas affirmée. Chaque mission ci-dessous donne ses chiffres et l'endroit où les vérifier. Diplômé ingénieur en génie logiciel (ESPRIT, 2025), en Mastère Ingénierie logicielle, IA et Big Data (IPSSI, Paris). Français, anglais et arabe.",
+      "en": "Full stack software engineer based in Paris, freelancing since 2022. I build production TypeScript / Next.js applications and large language model (LLM) systems: durably orchestrated agents, a threshold-based LLM evaluation harness, NVIDIA Garak red-teaming, prompt-injection defences, and RAG over source code. On the data side, I design streaming pipelines and data lakes (Kafka, Spark, Airflow, Neo4j) whose replayability is proven by script, not claimed. Every mission below lists its figures and where to check them. Software engineering degree (ESPRIT, 2025), currently in a Master's in Software Engineering, AI and Big Data (IPSSI, Paris). French, English and Arabic."
+    },
+    "stack": [
+      "TypeScript",
+      "Next.js",
+      "React",
+      "Node.js",
+      "Prisma",
+      "PostgreSQL",
+      "Tailwind CSS",
+      "Python",
+      "LLM evals",
+      "RAG",
+      "LangChain",
+      "FAISS",
+      "NVIDIA Garak",
+      "Inngest",
+      "Redis",
+      "Apache Kafka",
+      "Apache Spark",
+      "Apache Airflow",
+      "Delta Lake",
+      "HDFS",
+      "Neo4j",
+      "MongoDB",
+      "Docker",
+      "Vitest",
+      "Playwright",
+      "Lighthouse CI"
+    ],
+    "links": [
+      { "label": "GitHub", "url": "https://github.com/Ayoubhm07" },
+      { "label": "LinkedIn", "url": "https://www.linkedin.com/in/ayoub-hammoudi-3251851b8" }
+    ],
+    "contactEmail": null
+  },
+  "availability": {
+    "status": "available",
+    "from": null,
+    "updatedAt": "2026-09-18"
+  },
+  "rate": null,
+  "missions": [
+    {
+      "slug": "aftershock",
+      "title": {
+        "fr": "AFTERSHOCK — datalake temps réel et ML sur les révisions de magnitude des séismes (USGS)",
+        "en": "AFTERSHOCK — real-time data lake and ML on earthquake magnitude revisions (USGS)"
+      },
+      "client": {
+        "fr": "Projet de Mastère soutenu devant jury, sur données publiques USGS",
+        "en": "Master's project defended before a jury, on public USGS data"
+      },
+      "period": { "from": "2026-07", "to": "2026-08" },
+      "role": {
+        "fr": "Data Engineer — ingestion streaming, orchestration, modèle ML",
+        "en": "Data Engineer — streaming ingestion, orchestration, ML model"
+      },
+      "summary": {
+        "fr": "L'USGS publie une magnitude automatique puis la révise pendant des heures ou des semaines ; l'historique des versions n'est consultable qu'un séisme à la fois. AFTERSHOCK réunit trois sources USGS dans un datalake Bronze/Silver/Gold sur HDFS : flux temps réel via Kafka (KRaft, producteur idempotent) et Spark Structured Streaming, catalogue FDSN en lots mensuels, historique des versions supersédées. Quatre DAG Airflow sont chaînés par Datasets ; chaque écriture est validée par un marqueur _SUCCESS (compte, volume, SHA-256). Un script tue Airflow en pleine ingestion puis relance : aucune duplication. Un modèle MLlib GBT exploite l'historique des révisions.",
+        "en": "USGS publishes an automatic magnitude, then revises it for hours or weeks; the version history can only be queried one earthquake at a time. AFTERSHOCK brings three USGS sources into a Bronze/Silver/Gold data lake on HDFS: a real-time feed through Kafka (KRaft, idempotent producer) and Spark Structured Streaming, the FDSN catalogue in monthly batches, and the superseded-version history. Four Airflow DAGs are chained by Datasets; every write is validated by a _SUCCESS marker (count, size, SHA-256). A script kills Airflow mid-ingestion and restarts it: no duplication. An MLlib GBT model uses the revision history."
+      },
+      "facts": [
+        {
+          "label": { "fr": "Séismes du catalogue 2025 ingérés", "en": "2025 catalogue earthquakes ingested" },
+          "value": "17 526",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md, section « Ce que le pipeline établit »"
+        },
+        {
+          "label": { "fr": "Versions successives archivées (2 128 séismes)", "en": "Successive versions archived (2,128 earthquakes)" },
+          "value": "7 939",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md, tableau des constats mesurés"
+        },
+        {
+          "label": { "fr": "Séismes dont la magnitude change entre deux versions", "en": "Earthquakes whose magnitude changes between versions" },
+          "value": "735 (34,5 %)",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md, tableau des constats mesurés"
+        },
+        {
+          "label": { "fr": "Écart maximal de magnitude observé", "en": "Largest magnitude revision observed" },
+          "value": "+1,60 (M3,60 → M5,20)",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md, tableau des constats mesurés"
+        },
+        {
+          "label": { "fr": "Délai médian avant stabilisation de la fiche", "en": "Median time before the record stabilises" },
+          "value": "75,1 jours",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md, tableau des constats mesurés"
+        },
+        {
+          "label": { "fr": "DAG Airflow chaînés par Datasets", "en": "Airflow DAGs chained by Datasets" },
+          "value": "4",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), dossier dags/ et README.md section Orchestration"
+        },
+        {
+          "label": { "fr": "Octets du lac avant et après rejeu forcé (identiques)", "en": "Lake bytes before and after forced replay (identical)" },
+          "value": "12 462 374",
+          "source": "Dépôt AFTERSHOCK (MyOwnBangers/SEISME), README.md « Le rejeu, prouvé et non affirmé », scripts/prove_replay.sh"
+        }
+      ],
+      "stack": ["Apache Kafka (KRaft)", "Spark Structured Streaming", "Apache Spark", "Delta Lake", "HDFS", "Apache Airflow", "Spark MLlib", "Python", "Docker"],
+      "links": []
+    },
+    {
+      "slug": "taintrace",
+      "title": {
+        "fr": "Taintrace — criblage de sanctions et traçage de contamination Bitcoin en graphe",
+        "en": "Taintrace — sanctions screening and Bitcoin taint tracing in a graph"
+      },
+      "client": {
+        "fr": "Projet de Mastère soutenu devant jury, sur données publiques (OFAC, OpenSanctions, blockchain Bitcoin)",
+        "en": "Master's project defended before a jury, on public data (OFAC, OpenSanctions, Bitcoin blockchain)"
+      },
+      "period": { "from": "2026-06", "to": "2026-07" },
+      "role": {
+        "fr": "Data Engineer — ingestion, streaming, graphe",
+        "en": "Data Engineer — ingestion, streaming, graph"
+      },
+      "summary": {
+        "fr": "Une adresse Bitcoin n'est signée par personne : après quelques transactions, une entreprise peut recevoir des fonds issus d'une entité sanctionnée sans le savoir. Taintrace ingère chaque jour les listes OFAC et OpenSanctions via Airflow, lues en flux sans écriture disque avec validation des sommes de contrôle, les modélise en bronze/silver dans MongoDB, crible en temps réel le flux Bitcoin via Kafka et propage la contamination sur n sauts dans un graphe Neo4j, avec une interface d'investigation. Tout démarre par docker compose up.",
+        "en": "Nobody signs a Bitcoin address: a few transactions later, a company can receive funds from a sanctioned entity without knowing it. Taintrace ingests the OFAC and OpenSanctions lists daily through Airflow, streamed without writing to disk and checksum-validated, models them as bronze/silver in MongoDB, screens the live Bitcoin feed through Kafka and propagates taint over n hops in a Neo4j graph, with an investigation UI. Everything starts with docker compose up."
+      },
+      "facts": [
+        {
+          "label": { "fr": "BTC reçus par une adresse absente de toute liste, tracés sur 3 sauts", "en": "BTC received by an unlisted address, traced over 3 hops" },
+          "value": "512,25 BTC",
+          "source": "Dépôt Taintrace (MyOwnBangers/BlockchainTracker), README.md section 1, chaîne réelle tracée"
+        },
+        {
+          "label": { "fr": "Part de ces fonds remontant à une entité sanctionnée", "en": "Share of those funds traced to a sanctioned entity" },
+          "value": "11,07 %",
+          "source": "Dépôt Taintrace (MyOwnBangers/BlockchainTracker), README.md sections 1 et 6"
+        },
+        {
+          "label": { "fr": "Services Docker orchestrés", "en": "Docker services orchestrated" },
+          "value": "9",
+          "source": "Dépôt Taintrace (MyOwnBangers/BlockchainTracker), docker-compose.yml et README.md section 2"
+        },
+        {
+          "label": { "fr": "Listes de sanctions lues en flux (SDN.xml + entities.ftm.json)", "en": "Sanctions lists streamed (SDN.xml + entities.ftm.json)" },
+          "value": "28,8 Mo + 350,4 Mo",
+          "source": "Dépôt Taintrace (MyOwnBangers/BlockchainTracker), README.md section 3"
+        }
+      ],
+      "stack": ["Apache Airflow", "Apache Kafka", "Neo4j", "MongoDB", "PostgreSQL", "Python", "Docker Compose"],
+      "links": []
+    },
+    {
+      "slug": "phantera",
+      "title": {
+        "fr": "Phantera — SaaS B2B de prospection outbound par agents LLM, avec évaluations et red-teaming",
+        "en": "Phantera — B2B outbound prospecting SaaS built on LLM agents, with evals and red-teaming"
+      },
+      "client": {
+        "fr": "Produit propre (fondateur, développement en solo)",
+        "en": "Own product (founder, solo development)"
+      },
+      "period": { "from": "2025-01", "to": null },
+      "role": {
+        "fr": "Fondateur et Lead Engineer — architecture, développement, déploiement",
+        "en": "Founder and Lead Engineer — architecture, development, deployment"
+      },
+      "summary": {
+        "fr": "SaaS B2B multi-tenant en Next.js 16, TypeScript, Prisma et PostgreSQL. Les agents LLM (scoring de leads, rédaction, classification des réponses, grounding) sont orchestrés de façon durable avec Inngest et un magasin d'idempotence Redis. Un harnais d'évaluation LLM (accuracy, F1, MAE, Spearman sur des cas de référence étiquetés) fait échouer les tests sous un seuil ; un red-teaming NVIDIA Garak est planifié chaque semaine sur GitHub Actions ; un détecteur d'injection de prompt FR/EN et une couche de grounding forcent la régénération de tout texte qui invente un chiffre. Audit de sécurité appliqué : correction d'IDOR, comparaison de secrets à temps constant, Content Security Policy. Moteur de délivrabilité : SPF/DKIM/DMARC, montée en charge progressive, liste de suppression.",
+        "en": "Multi-tenant B2B SaaS in Next.js 16, TypeScript, Prisma and PostgreSQL. LLM agents (lead scoring, copywriting, reply classification, grounding) are durably orchestrated with Inngest and a Redis idempotency store. An LLM evaluation harness (accuracy, F1, MAE, Spearman on labelled golden cases) fails the test run below a threshold; NVIDIA Garak red-teaming is scheduled weekly on GitHub Actions; an FR/EN prompt-injection detector and a grounding layer force regeneration of any text that invents a figure. Security audit applied: IDOR fix, constant-time secret comparison, Content Security Policy. Deliverability engine: SPF/DKIM/DMARC, progressive warm-up, suppression list."
+      },
+      "facts": [
+        {
+          "label": { "fr": "Tests automatisés verts (Vitest)", "en": "Passing automated tests (Vitest)" },
+          "value": "222",
+          "source": "Dépôt PhanteraTN, docs/ETAT_ET_ROADMAP.md (mesure sur main, 2026-06-11)"
+        },
+        {
+          "label": { "fr": "Routes API", "en": "API routes" },
+          "value": "56",
+          "source": "Dépôt PhanteraTN, apps/web : fichiers route.ts sous app/api (comptés le 2026-09-18)"
+        },
+        {
+          "label": { "fr": "Pull requests fusionnées", "en": "Merged pull requests" },
+          "value": "18",
+          "source": "Dépôt PhanteraTN, docs/ETAT_ET_ROADMAP.md (2026-06-11)"
+        },
+        {
+          "label": { "fr": "Erreurs TypeScript et ESLint", "en": "TypeScript and ESLint errors" },
+          "value": "0 / 0",
+          "source": "Dépôt PhanteraTN, docs/ETAT_ET_ROADMAP.md (tsc et eslint --max-warnings=0)"
+        },
+        {
+          "label": { "fr": "Modèles de données Prisma", "en": "Prisma data models" },
+          "value": "13",
+          "source": "Dépôt PhanteraTN, apps/web/prisma/schema.prisma"
+        }
+      ],
+      "stack": ["Next.js 16", "TypeScript", "React", "Prisma", "PostgreSQL (Neon)", "Inngest", "Upstash Redis", "Clerk", "Stripe", "Ollama Cloud", "NVIDIA Garak", "Vitest", "Vercel"],
+      "links": []
+    },
+    {
+      "slug": "spar-x",
+      "title": {
+        "fr": "Spar-X — site de production Next.js 15 d'un cabinet de conseil IA et Data",
+        "en": "Spar-X — production Next.js 15 website for an AI and Data consultancy"
+      },
+      "client": {
+        "fr": "Spar-X, cabinet de conseil IA et Data pour PME",
+        "en": "Spar-X, AI and Data consultancy for SMEs"
+      },
+      "period": { "from": "2026-03", "to": "2026-05" },
+      "role": {
+        "fr": "Développeur Full Stack freelance — conception et livraison de bout en bout",
+        "en": "Freelance Full Stack Developer — end-to-end design and delivery"
+      },
+      "summary": {
+        "fr": "Site de production en Next.js 15 (App Router), React 19, TypeScript strict et Tailwind CSS, avec blog MDX (Contentlayer), e-mails transactionnels (React Email, Resend), données structurées JSON-LD et notification IndexNow. La qualité est tenue par des tests : Vitest, une suite Playwright de bout en bout (accessibilité, SEO, performance, test de fumée en production) et Lighthouse CI.",
+        "en": "Production website in Next.js 15 (App Router), React 19, strict TypeScript and Tailwind CSS, with an MDX blog (Contentlayer), transactional emails (React Email, Resend), JSON-LD structured data and IndexNow notification. Quality is enforced by tests: Vitest, an end-to-end Playwright suite (accessibility, SEO, performance, production smoke test) and Lighthouse CI."
+      },
+      "facts": [
+        {
+          "label": { "fr": "Spécifications Playwright de bout en bout", "en": "End-to-end Playwright specs" },
+          "value": "9",
+          "source": "Dépôt spar-x-tech (MyOwnBangers/FirstDownTech), dossier e2e/"
+        },
+        {
+          "label": { "fr": "Composants React", "en": "React components" },
+          "value": "50",
+          "source": "Dépôt spar-x-tech (MyOwnBangers/FirstDownTech), fichiers .tsx du dossier components/"
+        },
+        {
+          "label": { "fr": "Versions Next.js / React", "en": "Next.js / React versions" },
+          "value": "15 / 19",
+          "source": "Dépôt spar-x-tech (MyOwnBangers/FirstDownTech), package.json"
+        }
+      ],
+      "stack": ["Next.js 15", "React 19", "TypeScript", "Tailwind CSS", "Contentlayer", "React Email", "Resend", "Vitest", "Playwright", "Lighthouse CI", "Vercel"],
+      "links": [{ "label": "spar-x.fr", "url": "https://spar-x.fr" }]
+    }
+  ],
+  "verificationToken": null
+}

@@ -1,0 +1,32 @@
+Développeur Support Microservices TypeScript / Node.js / AWS
+Entreprise : Signe +
+Lieu : Annecy
+Dans le cadre du renforcement de l’équipe support IT d’une plateforme B2B destinée à une force de vente et à un réseau de revendeurs, nous recherchons un Développeur Support spécialisé en architectures microservices.
+La plateforme est globalement déployée et se trouve en phase de run, tout en continuant à bénéficier d’évolutions fonctionnelles. Elle repose sur une architecture microservices utilisant notamment TypeScript, Node.js, Angular, NextJS, AWS Lambda, AWS Serverless, SQL et DynamoDB.
+Rattaché au responsable de l’équipe run, vous interviendrez en complément des supports fonctionnels de niveaux 1 et 2. Vous prendrez en charge les tickets nécessitant une investigation ou une résolution technique après leur qualification fonctionnelle.
+Vos principales responsabilités seront les suivantes :
+- Analyser et résoudre les incidents techniques affectant la plateforme.
+
+- Identifier les causes profondes des problèmes et apporter des solutions durables, au-delà des correctifs superficiels.
+
+- Intervenir sur l’ensemble de la stack microservices : TypeScript, Node.js, AWS Lambda, AWS Serverless, DynamoDB, Angular, NextJS et SQL.
+
+- Utiliser les outils de monitoring et d’observabilité, notamment Lumigo ou Dash0, pour réaliser les diagnostics et investigations.
+
+- Escalader les incidents vers l’équipe de développement ou les équipes techniques concernées lorsque cela est nécessaire.
+
+- Faire évoluer la console support existante afin de fournir aux équipes des outils de diagnostic plus performants et de renforcer leur autonomie.
+
+- Créer, mettre à jour et maintenir une base de connaissances claire et accessible au sein de la Suite Atlassian.
+
+- Documenter les problèmes récurrents ainsi que les solutions associées.
+
+- Échanger avec les équipes de développement sur les bonnes pratiques, les idées d’amélioration et l’architecture technique.
+
+- Participer à l’amélioration continue du support et proposer des évolutions fonctionnelles ou techniques.
+
+- Contribuer au suivi des KPI, notamment les délais de résolution et la qualité des réponses, puis proposer des actions correctives.
+
+- Porter un regard critique et constructif sur le code, l’architecture et les processus existants.
+
+- Utiliser et promouvoir les outils d’intelligence artificielle afin d’accélérer le diagnostic des incidents et d’automatiser les tâches récurrentes.

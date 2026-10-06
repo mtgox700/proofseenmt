@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "publishedAt": "2026-09-24",
+  "measurements": [
+    {
+      "day": 30,
+      "date": "2026-10-24"
+    },
+    {
+      "day": 60,
+      "date": "2026-11-23"
+    }
+  ],
+  "arms": [
+    {
+      "arm": "A",
+      "role": "Témoin haut",
+      "treatment": "Identité réelle, sameAs vers les profils externes",
+      "urls": [
+        "https://proofseen.com/n/ayoub-hammoudi/",
+        "https://proofseen.com/en/n/ayoub-hammoudi/"
+      ]
+    },
+    {
+      "arm": "B",
+      "role": "Le pivot",
+      "treatment": "Mêmes faits, pseudonyme et identifiant public, aucun sameAs, aucun lien externe",
+      "urls": [
+        "https://proofseen.com/p/FR-7H2XK/",
+        "https://proofseen.com/en/p/FR-7H2XK/"
+      ]
+    }
+  ],
+  "thresholds": {
+    "armBoverArmA": 0.3333333333333333,
+    "armCcitationRate": 0.05
+  },
+  "limitation": "Les bras A et B décrivent la même personne : pendant l'expérience, le bras pseudonyme n'est pas anonyme. Le sujet est le founder, qui y consent. Ce test mesure la mécanique de citation, pas la robustesse de l'anonymat. Jamais sur un profil client (PIVOT_ANONYME §11). Test à 2 bras : seul le mécanisme A (fiche individuelle) est mesuré. Le mécanisme B (page d'entrée) n'est ni retenu ni réfuté — il demande au moins trois profils réels et consentants, qui n'existent pas encore.",
+  "contact": "https://proofseen.com/contact/"
+}

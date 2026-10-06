@@ -1,0 +1,92 @@
+{
+  "_note": "Demande d'audit de la vague J0, décrivant la surface TELLE QU'ELLE ÉTAIT le jour de la mesure (2026-09-24, avant la refonte du portfolio et avant proofseen.com). Ce fichier sert de cas réel pour la commande `audit` ; il n'est pas un livrable client. La réserve sur les extractions échouées est désormais produite automatiquement par la commande, avec son compte réel : la réécrire ici ferait doublon.",
+  "client": {
+    "displayName": "Ayoub Hammoudi",
+    "reference": "FR-7H2XK"
+  },
+  "surface": {
+    "readableWithoutJs": false,
+    "robotsTxt": false,
+    "sitemap": false,
+    "structuredData": false,
+    "verifiedPlatforms": [
+      "github.com",
+      "linkedin.com"
+    ]
+  },
+  "indexation": {
+    "pagesDeclared": 1,
+    "pagesIndexed": 0,
+    "checkedAt": "2026-09-24"
+  },
+  "jobDescriptions": [
+    {
+      "id": "T01",
+      "label": "Développeur Senior Node.js / TypeScript",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T02",
+      "label": "Développeur Full Stack TypeScript / Angular / NestJS",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T03",
+      "label": "Développeur Fullstack TypeScript H/F",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T04",
+      "label": "Développeur Javascript / TypeScript",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T05",
+      "label": "Développeur React / TypeScript, applications web à fort trafic",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T06",
+      "label": "Développeur Support Microservices TypeScript / Node.js / AWS",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T07",
+      "label": "Développeur Full Stack TypeScript / NestJS / NextJS, logistique digitale",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T08",
+      "label": "Développeur Back-End Node.js / AWS (H/F)",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T09",
+      "label": "Lead développeur fullstack NodeJS / React / TypeScript, anglais courant",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "T10",
+      "label": "Developer Full stack",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "C01",
+      "label": "SAP ABAP Senior Developer",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "C02",
+      "label": "Data Engineer Databricks / Azure / PySpark / Terraform",
+      "provenance": "proofseen"
+    },
+    {
+      "id": "C03",
+      "label": "Juriste H/F",
+      "provenance": "proofseen"
+    }
+  ],
+  "caveats": [
+    "Gemini et Copilot ne sont pas couverts par cette mesure : elle porte sur OpenAI, Anthropic et Perplexity."
+  ]
+}

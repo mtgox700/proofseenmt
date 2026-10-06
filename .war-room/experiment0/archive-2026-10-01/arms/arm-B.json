@@ -1,0 +1,31 @@
+{
+  "id": "arm-B",
+  "displayName": "Ayoub.H",
+  "nameVariants": [
+    "Ayoub.H",
+    "FR-7H2XK"
+  ],
+  "city": "Paris",
+  "stack": [
+    "TypeScript",
+    "Node.js",
+    "React",
+    "Kafka",
+    "PostgreSQL",
+    "Docker",
+    "Python",
+    "Spring Boot"
+  ],
+  "ownedUrls": [
+    {
+      "url": "https://proofseen.com/p/FR-7H2XK/",
+      "proofMethod": "well_known_file",
+      "verifiedAt": "2026-09-26T10:33:36.560Z"
+    },
+    {
+      "url": "https://proofseen.com/en/p/FR-7H2XK/",
+      "proofMethod": "well_known_file",
+      "verifiedAt": "2026-09-26T10:33:36.560Z"
+    }
+  ]
+}

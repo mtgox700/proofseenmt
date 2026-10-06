@@ -1,0 +1,17 @@
+SAP ABAP Senior Developer
+Entreprise : Avanda
+Lieu : Madrid
+SAP ABAP Senior Developer
+
+One of our best clients is currently looking for an SAP ABAP Senior Developer. Our client is undergoing a major S/4HANA system upgrade and needs an experienced ABAP specialist to drive technical excellence. This is a 7-month engagement with potential extension, offering the chance to work on cutting-edge ERP systems and make a real impact.
+
+THE ROLE
+
+Work as an SAP ABAP Senior Developer in a fast-paced, collaborative environment. You&#039;ll provide development and technical support for S/4HANA, deliver high-quality maintainable solutions aligned with SAP best practices, and contribute to the upcoming system upgrade. Your responsibilities include analyzing technical requirements, implementing enhancements and custom developments, designing Adobe Forms, preparing technical documentation, and supporting troubleshooting and testing throughout the development lifecycle.
+
+Requirements
+You bring a minimum of 3 years of hands-on experience with SAP S/4HANA projects and strong expertise in ABAP Object-Oriented Programming. You&#039;re proficient with SAP Gateway, OData services, CDS Views, and ABAP Reports. You understand SAP development standards, debugging, troubleshooting, and performance optimization. You can analyze requirements and translate them into robust solutions, and you work collaboratively with functional consultants and other development teams. What You Need 5 days per week, 100% availability (CET 08:00-17:00).
+
+The role is primarily remote with occasional on-site presence on demand. You&#039;re fluent in Spanish and/or English. You&#039;ll need flexibility for the first month (5-day notice period) and standard 30-day notice thereafter. Bonus skills that set you apart: experience with SAP Flexible Workflow, ABAP RESTful Application Programming Model (RAP), SAP Fiori Elements, and modern S/4HANA extensibility approaches.
+
+If this sounds like your next opportunity, send us your CV and we&#039;ll contact you within 24 hours.

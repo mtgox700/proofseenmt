@@ -1,0 +1,6 @@
+Developer Full stack
+Entreprise : ODHCOM - FREELANCEREPUBLIK
+Lieu : Saint-Denis
+Au sein de l’équipe CRO, vous contribuerez à la gestion d’une plateforme d’A/B tests et au déploiement de fonctionnalités fondées sur des feature flags. Dans un contexte agile et à fort trafic, vous concevrez, développerez, déploierez et maintiendrez des fonctionnalités répondant aux besoins des expérimentations.
+Vous interviendrez sur les volets front-end, back-end et CI/CD, notamment avec Flutter, TypeScript, Node.js, React et les services AWS. Vous développerez les tests unitaires, d’intégration et de bout en bout, participerez aux revues de code et rédigerez des études de conception technique.
+Vous analyserez les anomalies, investiguerez les causes racines des incidents et contribuerez à la qualité, à la résilience, à la sécurité et au respect des critères d’acceptation des versions. Vous prendrez également part aux cérémonies agiles et accompagnerez la montée en compétence des autres développeurs sur les feature flags.

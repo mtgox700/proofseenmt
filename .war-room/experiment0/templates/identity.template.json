@@ -1,0 +1,12 @@
+{
+  "id": "ayoub",
+  "displayName": "Ayoub Hammoudi",
+  "nameVariants": ["Ayoub Hammoudi", "A. Hammoudi"],
+  "city": "Paris",
+  "stack": ["TypeScript", "Next.js", "Node.js", "Python", "LLM"],
+  "ownedUrls": [
+    { "url": "https://ayoub-hammoudi.dev/", "proofMethod": "well_known_file", "verifiedAt": null },
+    { "url": "https://github.com/Ayoubhm07", "proofMethod": "profile_token", "verifiedAt": null },
+    { "url": "https://www.linkedin.com/in/ayoub-hammoudi-3251851b8", "proofMethod": "profile_token", "verifiedAt": null }
+  ]
+}

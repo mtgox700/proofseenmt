@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "waveId": "J30",
+  "frozenAt": null,
+  "engines": [
+    "openai",
+    "anthropic",
+    "perplexity"
+  ],
+  "models": {
+    "openai": "gpt-5-mini",
+    "anthropic": "claude-sonnet-5",
+    "perplexity": "perplexity/sonar"
+  },
+  "drawsPerCell": 5,
+  "costCapUsd": 70,
+  "jobDescriptions": [
+    {
+      "id": "T01",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Senior Node.js / TypeScript\nEntreprise : Gamme solutions\nLieu : Nantes\nVous intégrerez une équipe technique travaillant sur des applications backend modernes, avec une forte utilisation des services AWS et une architecture orientée événements.\nMissions\nConcevoir et développer des services backend en Node.js / TypeScript\nParticiper à la conception et à l&#039;évolution d&#039;une architecture Event Driven\nDévelopper et maintenir des AWS Lambda en TypeScript\nConcevoir et intégrer des APIs via API Gateway\nTravailler avec les services AWS : S3, SNS/SQS, RDS, CloudWatch, Systems Manager, CodePipeline\nParticiper à la mise en place et au maintien des pipelines CI/CD avec Jenkins\nGarantir la qualité du code : tests unitaires, revues de code et documentation OpenAPI\nParticiper à la supervision et au monitoring des applications avec New Relic et Grafana\nUtiliser LocalStack dans les environnements de développement et de test",
+      "brief": "[À COMPLÉTER] ex. un freelance Senior Full Stack TypeScript à Paris, dispo sous 2 semaines"
+    },
+    {
+      "id": "T02",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Full Stack TypeScript / Angular / NestJS\nEntreprise : Signe +\nLieu : Saint-Martin-le-Vinoux\nDans le secteur de l’énergie hydraulique, vous rejoignez une équipe Outillage afin de poursuivre le développement d’une application interne dédiée à l’audit de conformité de la configuration des équipements d’un système d’information industriel.\nVotre priorité consiste à développer, corriger, tester et mettre en production la solution sur le périmètre MASTER.\nVous serez également chargé d’établir la feuille de route du reste à faire et d’en réaliser l’estimation temporelle. Vous conduirez un comparatif fonctionnel de la solution avec .\nVous participerez à des rencontres agiles périodiques avec les différentes parties prenantes et assurerez la rédaction de la documentation technique, de la documentation d’exploitation et de la documentation utilisateur.\nVous présenterez chaque semaine un état d’avancement au pilote de la prestation.\nL’environnement Front-End repose sur Angular 21, TypeScript, Vitest ainsi que des problématiques UX/UI. Le Back-End s’appuie sur NestJS, PostgreSQL, TypeScript et Vitest.\nLe périmètre d’exécution et d’automatisation comprend Ansible, Python, Bash et FastAPI.\nLa mission implique également l’écriture et la conception de contrats d’API, l’application d’une architecture hexagonale et des principes SOLID. Elle s’inscrit dans un environnement utilisant Git, Nginx, Docker, Nexus et Alma Linux, avec une prise en compte des principes réseau",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T02 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T03",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Fullstack TypeScript H/F\nEntreprise : HAYS France\nLieu : Toulouse\nVous intervenez principalement sur le développement et l&#039;évolution d&#039;une application stratégique permettant de cartographier et de centraliser les différents composants de l&#039;infrastructure : serveurs, systèmes d&#039;exploitation, logiciels, équipements de stockage ou encore historique des incidents.\nElle fait actuellement l&#039;objet d&#039;une modernisation importante. À ce titre, vos principales missions sont les suivantes : - Développer de nouvelles fonctionnalités, aussi bien sur les parties back-end que front-end,\n- Participer à la modernisation et à l&#039;évolution de l&#039;architecture applicative,\n- Concevoir et maintenir les API et les interactions avec les autres outils du système d&#039;information,\n- Contribuer aux choix techniques et accompagner leur mise en œuvre,\n- Participer à l&#039;amélioration des pratiques CI/CD et à l&#039;industrialisation des déploiements,\n- Identifier et automatiser certaines opérations récurrentes,\n- Assurer la qualité, la documentation et la maintenabilité du code,\n- Participer aux phases de maintenance, de supervision et de mise en production,\n- Animer ou contribuer aux sprints, au backlog et à la priorisation des évolutions,\n- Partager vos connaissances et accompagner techniquement les autres membres de l&#039;équipe.\n\nEnvironnement techniqueL&#039;environnement repose principalement sur : - TypeScript / JavaScript\n- Svelte V5, avec une ouverture aux profils issus de Vue.js ou React\n- Node.js\n- GraphQL / Apollo\n- PostgreSQL, MariaDB et MySQL\n- Git / GitLab\n- GitLab CI/CD\n- Docker / Docker Compose\n- HTML, CSS, Tailwind CSS\n- Quelques composants existants en PHP 8 / Symfony\n- Supervision avec Centreon / Nagios\n\nLa connaissance de Svelte n&#039;est pas indispensable si vous maîtrisez un framework front-end tel que Vue.js ou React et que vous souhaitez monter rapidement en compétences sur cette technologie.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T03 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T04",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Javascript / TypeScript\nEntreprise : Next Mondays\nLieu : Paris\nVous intégrez une équipe d’une dizaine de développeurs, au sein d’un environnement structuré et collaboratif.\n\nDans ce cadre, vous intervenez sur le développement de produits B2B, avec des responsabilités variées :\n\n- Participation à la conception technique des nouvelles fonctionnalités\n- Développement d’applications en TypeScript / JavaScript\n- Contribution à la qualité du code (tests, documentation technique)\n- Participation aux phases de qualification et correction des anomalies\n- Collaboration étroite avec les équipes produit et QA\n\nVous évoluez sur des projets concrets, avec des cycles de développement maîtrisés et une forte exigence sur la qualité des livrables.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T04 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T05",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur React / TypeScript : applications web à fort trafic\nEntreprise : INSYCO\nLieu : Paris\nBonjour,\nNous recherchons pour notre client grand compte un Développeur React / TypeScript confirmé, applications web à fort trafic\nNous étudions - prioritairement - les candidatures qui nous sont adressées à freelance à insyco . fr avec les informations suivantes :\n- Argumentaire écrit répondant de façon ciblée au besoin ci-dessous\n\n- CV à jour\n\n- Date de prochaine disponibilité\n\n- Tarif journalier\n\n- Merci d&#039;indiquer la référence MDE/FRONT/5554 dans l&#039;objet de votre message\n\n\nDéfinition du besoin\nNotre client recherche une prestation de développement ReactJS : conception et développement d&#039;interfaces web complexes, sur des architectures à fort trafic, au sein d&#039;une équipe travaillant en mode Agile.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T05 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T06",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Support Microservices TypeScript / Node.js / AWS\nEntreprise : Signe +\nLieu : Annecy\nDans le cadre du renforcement de l’équipe support IT d’une plateforme B2B destinée à une force de vente et à un réseau de revendeurs, nous recherchons un Développeur Support spécialisé en architectures microservices.\nLa plateforme est globalement déployée et se trouve en phase de run, tout en continuant à bénéficier d’évolutions fonctionnelles. Elle repose sur une architecture microservices utilisant notamment TypeScript, Node.js, Angular, NextJS, AWS Lambda, AWS Serverless, SQL et DynamoDB.\nRattaché au responsable de l’équipe run, vous interviendrez en complément des supports fonctionnels de niveaux 1 et 2. Vous prendrez en charge les tickets nécessitant une investigation ou une résolution technique après leur qualification fonctionnelle.\nVos principales responsabilités seront les suivantes :\n- Analyser et résoudre les incidents techniques affectant la plateforme.\n\n- Identifier les causes profondes des problèmes et apporter des solutions durables, au-delà des correctifs superficiels.\n\n- Intervenir sur l’ensemble de la stack microservices : TypeScript, Node.js, AWS Lambda, AWS Serverless, DynamoDB, Angular, NextJS et SQL.\n\n- Utiliser les outils de monitoring et d’observabilité, notamment Lumigo ou Dash0, pour réaliser les diagnostics et investigations.\n\n- Escalader les incidents vers l’équipe de développement ou les équipes techniques concernées lorsque cela est nécessaire.\n\n- Faire évoluer la console support existante afin de fournir aux équipes des outils de diagnostic plus performants et de renforcer leur autonomie.\n\n- Créer, mettre à jour et maintenir une base de connaissances claire et accessible au sein de la Suite Atlassian.\n\n- Documenter les problèmes récurrents ainsi que les solutions associées.\n\n- Échanger avec les équipes de développement sur les bonnes pratiques, les idées d’amélioration et l’architecture technique.\n\n- Participer à l’amélioration continue du support et proposer des évolutions fonctionnelles ou techniques.\n\n- Contribuer au suivi des KPI, notamment les délais de résolution et la qualité des réponses, puis proposer des actions correctives.\n\n- Porter un regard critique et constructif sur le code, l’architecture et les processus existants.\n\n- Utiliser et promouvoir les outils d’intelligence artificielle afin d’accélérer le diagnostic des incidents et d’automatiser les tâches récurrentes.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T06 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T07",
+      "lang": "fr",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Full Stack - TypeScript / NestJS / NextJS - Secteur Logistique Digitale\nEntreprise : EASY PARTNER\nLieu : Saint-Ouen-sur-Seine\nContexte du poste :\nRejoignez une entreprise dynamique et innovante, spécialisée dans la logistique du dernier kilomètre pour des colis volumineux. Située à Saint-Ouen, notre société est en pleine transformation numérique avec un focus sur l&#039;amélioration et la digitalisation des processus internes. Vous ferez partie de l&#039;équipe &#34;Internal User&#34;, l&#039;une des trois feature teams dédiées à la création d&#039;outils pour nos utilisateurs internes, essentiels au cœur de notre activité. Notre équipe technique, composée d&#039;une vingtaine de personnes, est à la recherche de deux développeurs Full Stack pour accompagner ces initiatives ambitieuses. Vous collaborerez avec des Product Managers, des Leads Développeurs, ainsi que nos ressources QA et DevOps, dans un environnement stimulant et en pleine mutation.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre T07 (rôle, stack, ville, disponibilité)"
+    },
+    {
+      "id": "T08",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "Développeur Back-End Node.js / AWS (H/F)\nEntreprise : ALLEGIS GROUP\nLieu : Nantes\nContexte Dans le cadre de l&#039;évolution d&#039;une plateforme e-commerce internationale à fort trafic, nous recherchons un Développeur Back-End Node.js / AWS pour rejoindre une équipe Agile basée à Nantes.\nVous intégrerez un programme digital stratégique regroupant plusieurs équipes de développement organisées en Agile à l&#039;échelle (SAFe). Cette plateforme, utilisée dans plus de 30 pays, fait l&#039;objet d&#039;évolutions permanentes afin d&#039;accompagner la croissance de son activité et d&#039;améliorer l&#039;expérience utilisateur.\nLe poste s&#039;inscrit principalement dans un contexte BUILD, avec un fort accent sur le développement des services back-end, l&#039;architecture cloud AWS et les échanges entre systèmes.\nMissions Au sein d&#039;une équipe pluridisciplinaire composée d&#039;un Product Owner, d&#039;un Tech Lead, d&#039;un QA, d&#039;un Business Analyst et de développeurs, vous serez en charge de :\n- Concevoir et développer des services back-end en Node.js et TypeScript.\n\n- Participer à la mise en place et à l&#039;évolution d&#039;une architecture orientée événements.\n\n- Développer et maintenir des API sécurisées et performantes.\n\n- Concevoir des traitements serverless basés sur AWS Lambda.\n\n- Mettre en œuvre et optimiser les services de messagerie AWS SNS/SQS.\n\n- Collaborer avec les équipes Front-End pour exposer les services nécessaires aux applications web.\n\n- Participer aux revues de code, aux tests unitaires et à l&#039;amélioration continue de la qualité logicielle.\n\n- Contribuer aux pipelines CI/CD et aux déploiements dans le cloud AWS.\n\n- Assurer le suivi des applications grâce aux outils de monitoring et d&#039;observabilité.",
+      "brief": "[TO FILL] e.g. a senior full-stack TypeScript freelancer in Paris or remote"
+    },
+    {
+      "id": "T09",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "Lead developpeur(euse) fullstack NodeJS / React / Typescript - Anglais courant\nEntreprise : PROPULSE IT\nLieu : Paris\nLead Développeur(euse) NodeJS / React / Typescript\n\nMissions & Activités principales\n\nVous intégrez une équipe sur des projets de développement web et mobile.\n\nEn tant que référent technique NodeJS, vous aurez les missions suivantes :\n\n- Accompagner les développeurs dans la compréhension des besoins / contraintes produits et l&#039;implémentation des solutions techniques,\n- Formaliser les bonnes pratiques sur l&#039;architecture technique et le développement logiciel afin de garantir la fiabilité, la performance et l&#039;évolutivité de la plateforme,\n- S&#039;assurer de la qualité du code au travers des revues de code et coordonner le delivery,\n- Accompagner l&#039;équipe dans la résolution des problèmes rencontrés,\n- Contribuer à la conception et au développement des produits,\n- Mettre en place les stratégies de tests,\n- Réaliser une veille technologique.",
+      "brief": "[TO FILL] recruiter summary of T09 (role, stack, location, availability)"
+    },
+    {
+      "id": "T10",
+      "lang": "en",
+      "role": "target",
+      "source": "market",
+      "text": "Developer Full stack\nEntreprise : ODHCOM - FREELANCEREPUBLIK\nLieu : Saint-Denis\nAu sein de l’équipe CRO, vous contribuerez à la gestion d’une plateforme d’A/B tests et au déploiement de fonctionnalités fondées sur des feature flags. Dans un contexte agile et à fort trafic, vous concevrez, développerez, déploierez et maintiendrez des fonctionnalités répondant aux besoins des expérimentations.\nVous interviendrez sur les volets front-end, back-end et CI/CD, notamment avec Flutter, TypeScript, Node.js, React et les services AWS. Vous développerez les tests unitaires, d’intégration et de bout en bout, participerez aux revues de code et rédigerez des études de conception technique.\nVous analyserez les anomalies, investiguerez les causes racines des incidents et contribuerez à la qualité, à la résilience, à la sécurité et au respect des critères d’acceptation des versions. Vous prendrez également part aux cérémonies agiles et accompagnerez la montée en compétence des autres développeurs sur les feature flags.",
+      "brief": "[TO FILL] recruiter summary of T10 (role, stack, location, availability)"
+    },
+    {
+      "id": "C01",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "SAP ABAP Senior Developer\nEntreprise : Avanda\nLieu : Madrid\nSAP ABAP Senior Developer\n\nOne of our best clients is currently looking for an SAP ABAP Senior Developer. Our client is undergoing a major S/4HANA system upgrade and needs an experienced ABAP specialist to drive technical excellence. This is a 7-month engagement with potential extension, offering the chance to work on cutting-edge ERP systems and make a real impact.\n\nTHE ROLE\n\nWork as an SAP ABAP Senior Developer in a fast-paced, collaborative environment. You&#039;ll provide development and technical support for S/4HANA, deliver high-quality maintainable solutions aligned with SAP best practices, and contribute to the upcoming system upgrade. Your responsibilities include analyzing technical requirements, implementing enhancements and custom developments, designing Adobe Forms, preparing technical documentation, and supporting troubleshooting and testing throughout the development lifecycle.\n\nRequirements\nYou bring a minimum of 3 years of hands-on experience with SAP S/4HANA projects and strong expertise in ABAP Object-Oriented Programming. You&#039;re proficient with SAP Gateway, OData services, CDS Views, and ABAP Reports. You understand SAP development standards, debugging, troubleshooting, and performance optimization. You can analyze requirements and translate them into robust solutions, and you work collaboratively with functional consultants and other development teams. What You Need 5 days per week, 100% availability (CET 08:00-17:00).\n\nThe role is primarily remote with occasional on-site presence on demand. You&#039;re fluent in Spanish and/or English. You&#039;ll need flexibility for the first month (5-day notice period) and standard 30-day notice thereafter. Bonus skills that set you apart: experience with SAP Flexible Workflow, ABAP RESTful Application Programming Model (RAP), SAP Fiori Elements, and modern S/4HANA extensibility approaches.\n\nIf this sounds like your next opportunity, send us your CV and we&#039;ll contact you within 24 hours.",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C01"
+    },
+    {
+      "id": "C02",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "Data Engineer Databricks/Azure/PySpark/Terraform\nEntreprise : OBJECTWARE\nLieu : Île-de-France\nDans le cadre du développement de notre Data Factory, vous intégrerez une équipe en charge de concevoir, déployer et faire évoluer des plateformes Data innovantes, agiles et orientées métier.\nL’objectif est de développer des produits Data répondant aux besoins concrets des métiers, tout en garantissant leur performance, leur sécurité, leur qualité et leur évolutivité .\nVos missions Développement de produits Data\n- Transformer la donnée brute en données exploitables, notamment sous forme de tables requêtables dans le Data Lake.\n\n- Consolider et orchestrer les données au fil de leur ingestion.\n\n- Exploiter les données pour répondre aux enjeux métiers : création de Business Views, réintégration dans le SI, services de scoring, etc.\n\nConception et industrialisation\n- Participer à la conception et à l’évolution du socle technique Data.\n\n- Développer, automatiser et fiabiliser les pipelines de données.\n\n- Mettre en place et garantir un processus qualité rigoureux : documentation, tests unitaires et d’intégration, commentaires, versioning.\n\n- Contribuer à l’amélioration continue des pratiques et des outils de développement Data.\n\nProfil recherché - Diplômé(e) d’un Master ou d’une école d’ingénieurs en informatique, sciences ou domaine similaire, avec une spécialisation en Data.\n\n- 5 ans d’expérience minimum en tant que Data Engineer, idéalement dans un environnement Azure / Databricks .\n\n- Maîtrise avancée de PySpark / Spark .\n\n- Expertise de l’environnement Microsoft Azure : Data Factory, Databricks, Data Lake Storage, Azure DevOps, Git et CI/CD.\n\n- Solide expérience en traitement de données batch et streaming .\n\n- Bonne maîtrise de SQL et connaissance des bases NoSQL (Cosmos DB, MongoDB…).\n\n- Bonne connaissance des méthodologies Agile (Scrum, Kanban) .\n\n- Capacité à travailler en collaboration avec des PO, BA, testeurs, architectes et équipes métiers .\n\nQualités recherchées - Rigueur et autonomie\n\n- Esprit d’innovation\n\n- Bonnes capacités de communication\n\n- Esprit d’équipe\n\n- Capacité d’adaptation\n\n- Sensibilité aux enjeux de qualité et d’industrialisation des données",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C02"
+    },
+    {
+      "id": "C03",
+      "lang": "fr",
+      "role": "control",
+      "source": "market",
+      "text": "Juriste H/F\nEntreprise : Avanda\nLieu : Sion\nAvanda Group SA recrute, pour une organisation majeure basée a Sion, un juriste spécialisé en droit public des constructions et en aménagement du territoire.\n\n\nEn tant que Juriste, vos missions sont les suivantes :\n\n\n\n\n\n- Appui juridique aux services techniques et à la commission compétente en matière de constructions ;\n\n\n- Élaboration d&#039;avis de droit sur demande ;\n\n\n- Conseil et soutien aux services dans le traitement des oppositions et la préparation des décisions administratives et pénales ;\n\n\n- Rédaction des correspondances, des déterminations sur recours et des préavis sur les règlements communaux ;\n\n\n- Participation aux séances des services techniques et aux commissions administratives ;\n\n\n- Accompagnement des services dans les processus législatifs : avant-projets de lois et d&#039;ordonnances, commissions thématiques, délibérations parlementaires ;\n\n\n- Représentation des intérêts dans les procédures administratives, civiles, pénales et arbitrales, seul ou avec une étude d&#039;avocats mandatée.\n\nRequirements\n- Vous êtes diplôme d&#039;un Master en droit Suisse,\n\n- Vous bénéficiez de 3 ans d&#039;experience minimum en droit administratif Suisse,\n\n- Vous avez une expérience liée a l&#039;amenagement du territoire et/ou au droit de la construction,\n\n- Vous parlez français couramment (C2) et avez de solide base en Allemand (min. B1).",
+      "brief": "[À COMPLÉTER] résumé recruteur de l'offre témoin C03"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "P1",
+      "version": 1,
+      "lang": "fr",
+      "text": "Voici une offre de mission :\n\n{{JD}}\n\nTrouve-moi les 5 meilleurs profils freelances pour cette mission. Pour chacun : son nom, un lien vers son profil et pourquoi il correspond."
+    },
+    {
+      "id": "P2",
+      "version": 1,
+      "lang": "fr",
+      "text": "Je cherche {{BRIEF}}. Qui me recommandes-tu ? Donne-moi des noms avec un lien vers leur profil."
+    },
+    {
+      "id": "P3",
+      "version": 1,
+      "lang": "en",
+      "text": "Here is a freelance job description:\n\n{{JD}}\n\nFind me the 5 best freelance profiles for this job. For each one: their name, a link to their profile and why they fit."
+    },
+    {
+      "id": "P4",
+      "version": 1,
+      "lang": "fr",
+      "text": "Cherche sur LinkedIn, Malt et GitHub des profils de freelances qui correspondent à cette offre :\n\n{{JD}}\n\nDonne-moi les 5 meilleurs, avec leur nom et un lien vers leur profil."
+    }
+  ]
+}

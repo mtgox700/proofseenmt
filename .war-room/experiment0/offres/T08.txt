@@ -1,0 +1,24 @@
+Développeur Back-End Node.js / AWS (H/F)
+Entreprise : ALLEGIS GROUP
+Lieu : Nantes
+Contexte Dans le cadre de l&#039;évolution d&#039;une plateforme e-commerce internationale à fort trafic, nous recherchons un Développeur Back-End Node.js / AWS pour rejoindre une équipe Agile basée à Nantes.
+Vous intégrerez un programme digital stratégique regroupant plusieurs équipes de développement organisées en Agile à l&#039;échelle (SAFe). Cette plateforme, utilisée dans plus de 30 pays, fait l&#039;objet d&#039;évolutions permanentes afin d&#039;accompagner la croissance de son activité et d&#039;améliorer l&#039;expérience utilisateur.
+Le poste s&#039;inscrit principalement dans un contexte BUILD, avec un fort accent sur le développement des services back-end, l&#039;architecture cloud AWS et les échanges entre systèmes.
+Missions Au sein d&#039;une équipe pluridisciplinaire composée d&#039;un Product Owner, d&#039;un Tech Lead, d&#039;un QA, d&#039;un Business Analyst et de développeurs, vous serez en charge de :
+- Concevoir et développer des services back-end en Node.js et TypeScript.
+
+- Participer à la mise en place et à l&#039;évolution d&#039;une architecture orientée événements.
+
+- Développer et maintenir des API sécurisées et performantes.
+
+- Concevoir des traitements serverless basés sur AWS Lambda.
+
+- Mettre en œuvre et optimiser les services de messagerie AWS SNS/SQS.
+
+- Collaborer avec les équipes Front-End pour exposer les services nécessaires aux applications web.
+
+- Participer aux revues de code, aux tests unitaires et à l&#039;amélioration continue de la qualité logicielle.
+
+- Contribuer aux pipelines CI/CD et aux déploiements dans le cloud AWS.
+
+- Assurer le suivi des applications grâce aux outils de monitoring et d&#039;observabilité.
