@@ -1,0 +1,13 @@
+# Line endings: LF everywhere, in the repository and in working copies, on every OS. Without this, a checkout on
+# Windows rewrites files with CRLF and scripts that match on "\n" silently stop matching.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
