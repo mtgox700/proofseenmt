@@ -17,7 +17,7 @@
 | C3 | 2026-11-02 → 11-15 | Devis, contrat, paiement sécurisé | 🟡 | Données, Stripe (mode test), webhooks, factures, revue sécurité faites (`TEAM_MEMORY` 2026-10-06) ; manquent clés Stripe de test et taux de commission (founder), écrans, E2E navigateur |
 | C4 | 2026-11-16 → 11-29 | Tableaux de bord et preuve | 🟡 | Données et API des tableaux de bord, avis, visibilité mesurée faits ; restent écrans + Lighthouse, remesure J+45 de Zak (~19/11, GO API), décompte des préventes (27/11) |
 | C5 | 2026-11-30 → 12-13 | Profils cités par les IA, à l'échelle | 🟡 | Profils, pages métiers, sitemaps, robots, IndexNow, `marketplace-verify` 9/9, Lighthouse 100 faits ; **mesure de conquête en attente du GO API** ; suivi Bing/Brave/Google au déploiement — `sprints/C5_HANDOFF.md` |
-| C6 | 2026-12-14 → 12-27 | Confiance, conformité, robustesse | ⬜ | — |
+| C6 | 2026-12-14 → 12-27 | Confiance, conformité, robustesse | 🟡 | RGPD appliqué (export, effacement protégé, durées exécutées), journaux et santé, red team fraude fermée et rejouée, 3 relectures sécurité sans constat critique ou haut ouvert ; restent l'effacement connecté et les verrous à rejouer sur la base réelle, une décision founder (séquestre non validé), l'AA des écrans — `sprints/C6_HANDOFF.md` |
 | C7 | 2026-12-28 → 2027-01-10 | Bêta publique | ⬜ | — |
 
 Statuts : ✅ terminé, chaque case de la Definition of Done cochée avec sa preuve · 🟡 en cours ou partiel (dire ce qui

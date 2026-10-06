@@ -19,14 +19,6 @@ Scénarios rejoués : `packages/db/test/red-team-c6.test.ts`, `contact-detection
 
 ## Reste à faire
 
-**En premier — relecture sécurité des correctifs fraude (2026-10-06), à corriger avant la PR :**
-- HAUTE : nom d'organisation non filtré (`organisations.ts` `OrganisationInputSchema.name`) ; utiliser `containsDirectContact` (un nom de domaine reste permis), et aussi pour `billing.ts` `legalName` à la place de `containsContact` (« Booking.com » est refusé aujourd'hui).
-- MOYENNE : `messaging.ts` `post()` ouvre les coordonnées dès un contrat actif ; exiger un paiement `held`/`releasing`/`released` entre la paire.
-- MOYENNE : `contracts.ts` refuser aussi le contrat quand l'utilisateur du freelance est membre de l'entreprise acheteuse ; sur ce refus, clore le devis accepté (sinon le fil est bloqué) — autoriser dans `Quote_guard` accepted → closed quand aucun contrat vivant n'existe, puis régénérer la migration.
-- BASSE : `dashboards.ts:64` compter les avis avec `SETTLED_PAYMENT`.
-- Fait : HAUTE « ASP.NET / Socket.IO refusés » corrigée, contournements (chiffres d'autres écritures, émojis chiffres, « jean @ outlook dot fr », lettres espacées, `*`/`#`, ig:/snap:/threema:) et faux positifs (« signal : », années, listes de versions) traités dans `contact-detection.ts`.
-- Puis : gate complet sur clone propre (`C:UsersHPpscheck`), mémoire d'équipe (brouillon : scratchpad `team-memory-c6.md`, à recopier), ligne C6 du tableau de bord, push, PR, merge rebase.
-
 1. Au déploiement : rejouer `DELETE /api/me` connecté (aucune clé Clerk en local) et prouver les verrous d'effacement sur
    le Postgres Railway (PGlite n'a qu'une connexion).
 2. Décision founder : séquestre pris en otage (l'entreprise ne valide jamais) — proposition : notification puis cas
