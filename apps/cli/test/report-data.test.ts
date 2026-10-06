@@ -30,6 +30,7 @@ const draw = (engine: StoredDraw["engine"], jdId: string, status: "ok" | "error"
   errorCode: status === "error" ? "EngineHttpError:401" : null,
   responseHash: status === "ok" ? "a".repeat(64) : null,
   retrieved: true,
+  refusedToName: null,
   citedDomains: { platform: {}, client: 0, other: 0 },
   jdRole: role,
   jdSource: "market",

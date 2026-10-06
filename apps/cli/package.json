@@ -13,7 +13,13 @@
     "@proofseen/stats": "workspace:*",
     "zod": "^4.6.5",
     "@proofseen/hub": "workspace:*",
-    "@proofseen/profiles": "workspace:*"
+    "@proofseen/profiles": "workspace:*",
+    "@proofseen/deliverable": "workspace:*",
+    "@proofseen/presale": "workspace:*",
+    "@proofseen/workspace": "workspace:*",
+    "@proofseen/intake": "workspace:*",
+    "@proofseen/access": "workspace:*",
+    "@proofseen/client-store": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1"

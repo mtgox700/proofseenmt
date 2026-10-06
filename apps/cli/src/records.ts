@@ -25,6 +25,18 @@ export type StoredDraw = z.infer<typeof StoredDrawSchema>;
 
 export const StoredMatchSchema = MatchSchema;
 
+/** Outcome of one arm of the three-arm test on one draw (packages/extract/src/arms.ts). */
+export const ArmRecordSchema = z.object({
+  drawId: z.string().min(1),
+  armId: z.string().min(1),
+  retrieved: z.boolean(),
+  cited: z.boolean(),
+  type: z.enum(["certain", "probable"]).nullable(),
+  rank: z.number().int().positive().nullable(),
+  needsReview: z.boolean(),
+});
+export type ArmRecord = z.infer<typeof ArmRecordSchema>;
+
 export const RescoreRecordSchema = z.object({
   drawId: z.string(),
   named: z.boolean(),

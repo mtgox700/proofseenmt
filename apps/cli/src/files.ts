@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { z } from "zod";
 
@@ -59,9 +59,21 @@ export const appendJsonl = async (path: string, record: unknown): Promise<void> 
   await appendFile(path, `${JSON.stringify(record)}\n`, { encoding: "utf8", mode: 0o600 });
 };
 
+/**
+ * Écriture atomique : fichier temporaire puis `rename`, qui remplace d'un seul coup sur le même volume. Une écriture
+ * en place tronque avant d'écrire — une coupure entre les deux laisserait un fichier vide, et `--verify` effacerait
+ * ainsi l'historique des vérifications qu'il est censé tenir.
+ */
 export const writeText = async (path: string, content: string): Promise<void> => {
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, content, "utf8");
+  const temporary = `${path}.${process.pid}.tmp`;
+  try {
+    await writeFile(temporary, content, "utf8");
+    await rename(temporary, path);
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw error;
+  }
 };
 
 export interface WavePaths {
@@ -71,6 +83,8 @@ export interface WavePaths {
   readonly matches: string;
   readonly rescore: string;
   readonly sealed: string;
+  /** Three-arm test: one line per draw and per arm, negatives included. */
+  readonly arms: string;
 }
 
 export const wavePaths = (runsDir: string, waveId: string): WavePaths => {
@@ -82,5 +96,33 @@ export const wavePaths = (runsDir: string, waveId: string): WavePaths => {
     matches: join(dir, "matches.jsonl"),
     rescore: join(dir, "rescore.jsonl"),
     sealed: join(dir, "sealed"),
+    arms: join(dir, "arms.jsonl"),
   };
+};
+
+/** First build, or an unreadable record: nothing is considered stale. A path escaping the folder is never trusted. */
+const readBuildRecord = async (record: string): Promise<string[]> => {
+  try {
+    const parsed: unknown = JSON.parse(await readFile(record, "utf8"));
+    return Array.isArray(parsed) ? parsed.filter((p): p is string => typeof p === "string" && !p.includes("..")) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Writes a generated site and removes what the PREVIOUS build produced but this one no longer does — a withdrawn
+ * profile, an entry page that fell under its threshold. Without it, a stale page would be redeployed silently.
+ * Only files listed by our own previous build are ever removed; anything else in the folder is left untouched.
+ * The build record sits NEXT TO the folder, never inside it, so it is not deployed.
+ */
+export const syncOutput = async (outDir: string, files: readonly { readonly path: string; readonly content: string }[]): Promise<string[]> => {
+  const record = `${outDir.replace(/[\\/]+$/, "")}.build.json`;
+  const previous = await readBuildRecord(record);
+  const current = new Set(files.map((f) => f.path));
+  const stale = previous.filter((path) => !current.has(path));
+  await Promise.all(stale.map((path) => rm(join(outDir, ...path.split("/")), { force: true })));
+  await Promise.all(files.map((f) => writeText(join(outDir, ...f.path.split("/")), f.content)));
+  await writeText(record, `${JSON.stringify([...current].sort(), null, 2)}\n`);
+  return stale;
 };

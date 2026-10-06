@@ -13,13 +13,16 @@ import { analyzeAnswer, writeSealed, type ExtractFn } from "@proofseen/extract";
 import { appendJsonl, CliError, readJsonl, wavePaths, writeText } from "./files";
 import { drawIdFor, StoredDrawSchema, type StoredDraw, type WaveMeta } from "./records";
 
-/** Estimated cost of one tool-free extraction call (Haiku, ~3k in / ~400 out) — HYPOTHESIS, refined after J0. */
-export const EXTRACTOR_COST_ESTIMATE_USD = 0.006;
+// Défini avec les autres bornes de coût, dans le protocole.
+import { EXTRACTOR_COST_ESTIMATE_USD } from "@proofseen/core";
+export { EXTRACTOR_COST_ESTIMATE_USD };
 
 export interface RunOptions {
   readonly manifest: Manifest;
   readonly manifestSha256: string;
   readonly identity: Identity;
+  /** Three-arm test: identities matched on every draw in addition to the main one. */
+  readonly arms?: readonly Identity[] | undefined;
   readonly runsDir: string;
   readonly dryRun: boolean;
   readonly adapters: Readonly<Partial<Record<EngineId, EngineAdapter>>>;
@@ -79,11 +82,12 @@ const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: E
   const prompt = renderPrompt(step.prompt, { jd: sanitizeJobDescription(step.jd.text), brief: step.jd.brief });
   try {
     const answer = await adapter.runDraw(prompt);
-    const analysis = await analyzeAnswer({ answer, identity: opts.identity, extract: opts.extract, judge: opts.judge });
+    const analysis = await analyzeAnswer({ answer, identity: opts.identity, extract: opts.extract, judge: opts.judge, arms: opts.arms });
     await writeSealed(paths.sealed, id, analysis.maskedText, opts.key, opts.now());
     if (analysis.outcome.match !== null) {
       await appendJsonl(paths.matches, { drawId: id, identityId: opts.identity.id, ...analysis.outcome.match });
     }
+    for (const arm of analysis.arms) await appendJsonl(paths.arms, { drawId: id, ...arm });
     const costUsd = answer.costUsd + (opts.dryRun ? 0 : EXTRACTOR_COST_ESTIMATE_USD);
     const record = StoredDrawSchema.parse({
       ...base,
@@ -94,6 +98,7 @@ const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: E
       responseHash: analysis.responseHash,
       retrieved: analysis.outcome.retrieved,
       citedDomains: analysis.citedDomains,
+      refusedToName: analysis.refusedToName,
       extractionFailed: analysis.extractionFailed,
       extractionError: analysis.extractionError,
     });
@@ -108,6 +113,7 @@ const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: E
       responseHash: null,
       retrieved: false,
       citedDomains: { platform: {}, client: 0, other: 0 },
+      refusedToName: null,
       extractionFailed: false,
       extractionError: null,
     });
@@ -121,6 +127,8 @@ const writeMeta = (opts: RunOptions, meta: WaveMeta): Promise<void> =>
 /** Runs (or resumes) a wave: engines in parallel per step, analysis in memory, masked text sealed, hard budget stop. */
 export const runWave = async (opts: RunOptions): Promise<WaveMeta> => {
   assertManifestSafe(opts.manifest, opts.identity);
+  // No job description may contain ANY arm: a JD naming the pseudonym would inflate arm B by construction.
+  for (const arm of opts.arms ?? []) assertManifestSafe(opts.manifest, arm);
   const paths = wavePaths(opts.runsDir, opts.manifest.waveId);
   const existing = await readJsonl(paths.draws, StoredDrawSchema);
   const done = new Set(existing.map((d) => d.id));

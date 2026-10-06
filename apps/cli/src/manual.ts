@@ -81,15 +81,25 @@ export const EXPECTED_MANUAL_ROWS = 50;
 
 export interface ManualCheck {
   readonly problems: readonly string[];
-  readonly summary: { readonly total: number; readonly present: number; readonly byApp: Readonly<Record<string, number>> };
+  readonly summary: { readonly total: number; readonly present: number;
+    /** Réponses où le moteur refuse de nommer quiconque : ni présence, ni absence. */
+    readonly refusals: number; readonly byApp: Readonly<Record<string, number>> };
 }
 
 /** Protocol rules the schema alone cannot see. Line numbers match the file (header = line 1). */
+/**
+ * Le moteur refuse de nommer des personnes réelles (observé sur l'app Claude le 2026-09-24, et sur 28,8 % des réponses
+ * API d'Anthropic). Ce n'est PAS « le client est absent d'une liste » : il n'y a pas de liste. On le note `refus`
+ * dans les notes, et il sort des comparaisons plutôt que d'y entrer comme un faux accord.
+ */
+export const isRefusal = (row: ManualRow): boolean => /(^|;)refus(;|$)/i.test(row.notes_sans_nom);
+
 export const checkManualSample = (rows: readonly ManualRow[], expected = EXPECTED_MANUAL_ROWS): ManualCheck => {
   const problems: string[] = [];
   const seen = new Set<string>();
   rows.forEach((r, i) => {
     const at = `line ${i + 2}`;
+    if (isRefusal(r) && r.client_present === "true") problems.push(`${at}: un refus ne peut pas valoir client_present=true`);
     if (r.client_present === "true" && r.client_rank === "") problems.push(`${at}: client_rank is required when client_present=true`);
     if (r.client_present === "false" && r.client_rank !== "") problems.push(`${at}: client_rank must be empty when client_present=false`);
     const key = `${r.wave_id} × ${r.jd_id} × ${r.app}`;
@@ -100,7 +110,10 @@ export const checkManualSample = (rows: readonly ManualRow[], expected = EXPECTE
   if (waves.length > 1) problems.push(`several waves: ${waves.join(", ")} (one file per wave)`);
   if (rows.length !== expected) problems.push(`${rows.length} rows, ${expected} expected`);
   const byApp = rows.reduce<Record<string, number>>((acc, r) => ({ ...acc, [r.app]: (acc[r.app] ?? 0) + 1 }), {});
-  return { problems, summary: { total: rows.length, present: rows.filter((r) => r.client_present === "true").length, byApp } };
+  return {
+    problems,
+    summary: { total: rows.length, present: rows.filter((r) => r.client_present === "true").length, refusals: rows.filter(isRefusal).length, byApp },
+  };
 };
 
 export const loadManualCsv = async (path: string): Promise<ManualRow[]> => {

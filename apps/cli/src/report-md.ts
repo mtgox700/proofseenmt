@@ -90,14 +90,24 @@ const sources = (d: ReportData): string[] => {
 const quality = (d: ReportData): string[] => [
   "## Qualité de la mesure",
   "",
-  `- Extractions échouées (masquage par lexique seul) : ${d.extractionFailures}`,
+  // Une extraction qui échoue n'est pas une statistique de plus : c'est un défaut de mesure, à dire comme tel.
+  d.extractionFailures === 0
+    ? "- Extractions échouées : aucune"
+    : `- ⚠️ **Extractions échouées : ${d.extractionFailures} tirage(s)** — les candidats n'ont pas été extraits : le rang et le « nommé » reposent sur le seul re-scoring déterministe, et les tiers n'ont été masqués qu'au lexique.`,
   `- Appariements « probables » à revoir à la main (exclus des chiffres ci-dessus) : ${d.probableToReview}`,
   `- Erreurs par code : ${Object.keys(d.errorsByCode).length === 0 ? "aucune" : Object.entries(d.errorsByCode).map(([k, v]) => `${k} × ${v}`).join(", ")}`,
-  `- Accord extracteur LLM / re-scoring déterministe : ${d.rescoreAgreement === null ? "non calculé (lancer `sim:extract`)" : `${d.rescoreAgreement.agree}/${d.rescoreAgreement.total}`}`,
+  // Sans extraction, il n'y a personne avec qui être d'accord : afficher un accord parfait serait un faux vert.
+  `- Accord extracteur LLM / re-scoring déterministe : ${
+    d.rescoreAgreement === null
+      ? "non calculé (lancer `sim:extract`)"
+      : d.extractionFailures >= d.rescoreAgreement.total
+        ? "non calculable : aucune extraction n'a abouti"
+        : `${d.rescoreAgreement.agree}/${d.rescoreAgreement.total}`
+  }`,
   d.manual === null
     ? "- Accord API / apps : non calculé (fournir `--manual`)"
-    : `- Accord API / apps (ChatGPT, Claude, Perplexity ; P1) : ${d.manual.agree}/${d.manual.total}${d.manual.total > 0 && d.manual.agree / d.manual.total < 0.8 ? " ⚠️ < 80 % : passer aux modèles supérieurs" : ""}`,
-  ...(d.manual === null ? [] : Object.entries(d.manual.otherApps).map(([app, c]) => `- Étalonnage manuel ${app} (interne, non revendu) : client présent ${c.present}/${c.total}`)),
+    : `- Accord API / apps (ChatGPT, Claude, Perplexity ; P1) : ${d.manual.agree}/${d.manual.total}${d.manual.total > 0 && d.manual.agree / d.manual.total < 0.8 ? " ⚠️ < 80 % : passer aux modèles supérieurs" : ""}${d.manual.refusals > 0 ? ` — ${d.manual.refusals} refus de nommer, exclus de l'accord` : ""}`,
+  ...(d.manual === null ? [] : Object.entries(d.manual.otherApps).map(([app, c]) => `- Étalonnage manuel ${app} (interne, non revendu) : client présent ${c.present}/${c.total}${c.refusals > 0 ? ` · ${c.refusals} refus de nommer` : ""}`)),
   "",
 ];
 

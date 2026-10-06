@@ -5,9 +5,9 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { IdentitySchema, ManifestSchema } from "@proofseen/core";
 import { readSealed } from "@proofseen/extract";
-import { commandExtract, commandHub, commandPurge, commandReport, commandRun } from "../src/commands";
+import { commandExperiment, commandExtract, commandProfiles, commandHub, commandPurge, commandReport, commandRun } from "../src/commands";
 import { CliError, readJsonl, wavePaths } from "../src/files";
-import { checkManualSample, parseManualCsv } from "../src/manual";
+import { checkManualSample, isRefusal, parseManualCsv, type ManualRow } from "../src/manual";
 import { StoredDrawSchema } from "../src/records";
 
 const TEMPLATES = join(__dirname, "..", "..", "..", ".war-room", "experiment0", "templates");
@@ -230,7 +230,7 @@ describe("manual sample CSV", () => {
     const ok = parseManualCsv(`${header}\nJ0,T01,chatgpt,d,true,true,2,\nJ0,T01,claude,d,true,false,,\nJ0,T02,chatgpt,d,true,false,,`);
     const good = checkManualSample(ok, 3);
     expect(good.problems).toEqual([]);
-    expect(good.summary).toEqual({ total: 3, present: 1, byApp: { chatgpt: 2, claude: 1 } });
+    expect(good.summary).toEqual({ total: 3, present: 1, refusals: 0, byApp: { chatgpt: 2, claude: 1 } });
 
     const bad = parseManualCsv(
       `${header}\nJ0,T01,chatgpt,d,true,true,,\nJ0,T01,chatgpt,d,true,false,3,\nJ1,T02,claude,d,true,false,,`,
@@ -246,5 +246,193 @@ describe("manual sample CSV", () => {
   it("gives a precise error for a broken line instead of guessing", () => {
     expect(() => parseManualCsv(`${header}\nJ0,T01,chatgpt,2026-09-28T14:05Z,true,false,,"unclosed`)).toThrow(/line 2/);
     expect(() => parseManualCsv(`${header}\nJ0,T01,chatgpt,2026-09-28T14:05Z,peut-être,false,,`)).toThrow(/line 2/);
+  });
+});
+
+describe("three-arm test command", () => {
+  const person = (n: string, extra: Record<string, unknown> = {}) => ({
+    identity: {
+      profileId: `FR-0000${n}`,
+      realName: `Personne Numero ${n}`,
+      email: `p${n}@example.com`,
+      phone: null,
+      links: [],
+      legalId: null,
+      consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile", irreversibilityAcknowledged: true },
+      ...extra,
+    },
+    profile: {
+      id: `FR-0000${n}`,
+      handle: `Profil.${n}`,
+      headline: { fr: "Ingenieur full stack TypeScript", en: "Full stack TypeScript engineer" },
+      seniority: "7+ ans",
+      area: "Paris / Ile-de-France",
+      skills: ["TypeScript", "Node.js", "PostgreSQL"],
+      sectors: ["SaaS B2B"],
+      availability: { status: "available", updatedAt: "2026-09-28" },
+      rate: { min: 550, max: 650, currency: "EUR", unit: "day" },
+      verifiedMissions: 4,
+      summary: {
+        fr: "Concoit et met en production des applications TypeScript, avec des missions verifiees une a une par Proofseen avant publication.",
+        en: "Designs and ships production TypeScript applications, with every mission verified one by one by Proofseen before publication.",
+      },
+    },
+  });
+
+  const plan = (extra = {}) => ({
+    entrySlug: "typescript-paris",
+    publishedAt: "2026-09-28",
+    namedArm: {
+      profileId: "FR-0000A",
+      identity: { displayName: "Personne Numero A", slug: "personne-numero-a", sameAs: ["https://github.com/exemple"] },
+      consent: { selfPublished: true, givenAt: "2026-09-20", scope: "named_arm_of_the_three_arm_test" },
+      ...extra,
+    },
+  });
+
+  const write = async (entries: unknown[], experiment: unknown) => {
+    await writeFile(join(dir, "profiles.json"), JSON.stringify({ baseUrl: "https://proofseen.example", entries }));
+    await writeFile(join(dir, "experiment.json"), JSON.stringify(experiment));
+    return {
+      ...common(),
+      inputPath: join(dir, "profiles.json"),
+      experimentPath: join(dir, "experiment.json"),
+      outDir: join(dir, "site"),
+      manifestPath: join(dir, "pre-registration.json"),
+    };
+  };
+
+  it("writes the three arms and keeps the pre-registration out of the published site", async () => {
+    const paths = await commandExperiment(await write([person("A"), person("B"), person("C")], plan()));
+    expect(paths).toContain("n/personne-numero-a/index.html");
+    expect(paths).toContain("p/FR-0000A/index.html");
+    expect(paths).toContain("freelances/typescript-paris/index.html");
+    const manifest: unknown = JSON.parse(await readFile(join(dir, "pre-registration.json"), "utf8"));
+    expect((manifest as { measurements: { date: string }[] }).measurements.map((m) => m.date)).toEqual(["2026-10-28", "2026-11-27"]);
+    expect(await allFilesText(join(dir, "site"))).not.toContain("measurements");
+  });
+
+  it("writes nothing when a blocker would make the measurement unreadable", async () => {
+    const options = await write([person("A"), person("B")], plan());
+    await expect(commandExperiment(options)).rejects.toThrow(/bloquant/);
+    await expect(readdir(join(dir, "site"))).rejects.toThrow();
+    expect(logs.join(" ")).toMatch(/BLOQUANT : bras C/);
+  });
+
+  it("still protects the other freelancers on the named pages", async () => {
+    await commandExperiment(await write([person("A"), person("B"), person("C")], plan()));
+    const site = await allFilesText(join(dir, "site"));
+    expect(site).not.toContain("Personne Numero B");
+    expect(site).not.toContain("pB@example.com");
+  });
+
+  it("refuses any private field of the subject other than the name and the links", async () => {
+    // legalId chosen so it only appears on the pages the named arm owns: the tolerance must stay limited to two fields.
+    const options = await write([person("A", { legalId: "personne-numero-a" }), person("B"), person("C")], plan());
+    await expect(commandExperiment(options)).rejects.toThrow(/bras nominatif.*legalId/);
+  });
+});
+
+describe("profiles command: re-identification test and withdrawals", () => {
+  const entry = (n: string, extra: { withdrawnAt?: string; selfSearch?: unknown } = {}) => ({
+    identity: {
+      profileId: `FR-0000${n}`,
+      realName: `Personne Numero ${n}`,
+      email: `p${n}@example.com`,
+      phone: null,
+      links: [],
+      legalId: null,
+      consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile", irreversibilityAcknowledged: true, withdrawnAt: extra.withdrawnAt ?? null },
+    },
+    profile: {
+      id: `FR-0000${n}`,
+      handle: `Profil.${n}`,
+      headline: { fr: "Ingenieur full stack TypeScript", en: "Full stack TypeScript engineer" },
+      seniority: "7+ ans",
+      area: "Paris / Ile-de-France",
+      skills: ["TypeScript", "Node.js", "PostgreSQL"],
+      sectors: ["SaaS B2B"],
+      availability: { status: "available", updatedAt: "2026-09-28" },
+      rate: { min: 550, max: 650, currency: "EUR", unit: "day" },
+      verifiedMissions: 0,
+      summary: {
+        fr: "Concoit et met en production des applications TypeScript, avec des missions verifiees une a une par Proofseen avant publication.",
+        en: "Designs and ships production TypeScript applications, with every mission verified one by one by Proofseen before publication.",
+      },
+    },
+    ...(extra.selfSearch === undefined ? {} : { selfSearch: extra.selfSearch }),
+  });
+  const passed = { doneAt: "2026-09-27", outcome: "not_found", queriesRun: 5 };
+  const run = async (entries: unknown[]) => {
+    await writeFile(join(dir, "profiles.json"), JSON.stringify({ baseUrl: "https://proofseen.example", entries }));
+    return commandProfiles({ ...common(), inputPath: join(dir, "profiles.json"), outDir: join(dir, "site") });
+  };
+
+  it("writes nothing until the freelancer has searched for himself, and hands him the queries", async () => {
+    await expect(run([entry("A")])).rejects.toThrow(/ré-identification/);
+    await expect(readdir(join(dir, "site"))).rejects.toThrow();
+    expect(logs.join("\n")).toMatch(/Auto-recherche à faire par FR-0000A/);
+    expect(logs.join("\n")).toMatch(/site:linkedin\.com\/in TypeScript/);
+  });
+
+  it("refuses a profile whose self-search found the real identity", async () => {
+    await expect(run([entry("A", { selfSearch: { ...passed, outcome: "found" } })])).rejects.toThrow(/ré-identification/);
+  });
+
+  it("publishes once every profile passed its self-search", async () => {
+    const paths = await run([entry("A", { selfSearch: passed }), entry("B", { selfSearch: passed })]);
+    expect(paths).toContain("p/FR-0000A/index.html");
+    expect(logs.join("\n")).toMatch(/k-anonymat : .* indicatif sous 50 profils/);
+  });
+
+  it("refuses a Proofseen contact address that is in fact a freelancer's own address", async () => {
+    await writeFile(
+      join(dir, "profiles.json"),
+      JSON.stringify({ baseUrl: "https://proofseen.example", contactEmail: "pA@example.com", entries: [entry("A", { selfSearch: passed })] }),
+    );
+    await expect(commandProfiles({ ...common(), inputPath: join(dir, "profiles.json"), outDir: join(dir, "site") })).rejects.toThrow(/email/);
+  });
+
+  it("takes a withdrawn profile off the site, including the pages left by a previous build", async () => {
+    await run([entry("A", { selfSearch: passed }), entry("B", { selfSearch: passed })]);
+    const paths = await run([entry("A", { selfSearch: passed }), entry("B", { withdrawnAt: "2026-09-28" })]);
+    expect(paths.some((p) => p.includes("FR-0000B"))).toBe(false);
+    await expect(readdir(join(dir, "site", "p", "FR-0000B"))).rejects.toThrow();
+    await expect(readdir(join(dir, "site", "en", "p", "FR-0000B"))).rejects.toThrow();
+    expect(logs.join("\n")).toMatch(/RETRAIT FR-0000B .* échéance 2026-10-01T00:00:00.000Z/);
+    expect(await allFilesText(join(dir, "site"))).not.toContain("Personne Numero B");
+  });
+});
+
+describe("un refus de nommer n'est pas une absence", () => {
+  const row = (app: "chatgpt" | "claude" | "perplexity" | "gemini" | "copilot", present: "true" | "false", notes = ""): ManualRow => ({
+    wave_id: "J0",
+    jd_id: "T01",
+    app,
+    date_utc: "2026-09-24T10:00:00Z",
+    logged_out: "true" as const,
+    client_present: present,
+    client_rank: "",
+    notes_sans_nom: notes,
+  });
+
+  it("reconnaît le code `refus` dans les notes, seul ou combiné", () => {
+    expect(isRefusal(row("claude", "false", "refus"))).toBe(true);
+    expect(isRefusal(row("claude", "false", "h0=1;refus"))).toBe(true);
+    expect(isRefusal(row("claude", "false", "refus;h0=1"))).toBe(true);
+    expect(isRefusal(row("claude", "false", ""))).toBe(false);
+    expect(isRefusal(row("claude", "false", "refuse-web"))).toBe(false);
+  });
+
+  it("refuse une ligne qui prétend à la fois refuser et nommer le client", () => {
+    const bad = { ...row("claude", "true", "refus"), client_rank: "2" };
+    expect(checkManualSample([bad], 1).problems.join(" ")).toMatch(/un refus ne peut pas valoir client_present=true/);
+  });
+
+  it("compte les refus à part dans le résumé", () => {
+    const rows = [row("claude", "false", "refus"), row("chatgpt", "false"), row("perplexity", "true")];
+    rows[2]!.client_rank = "3";
+    const summary = checkManualSample(rows, 3).summary;
+    expect(summary).toMatchObject({ total: 3, present: 1, refusals: 1 });
   });
 });

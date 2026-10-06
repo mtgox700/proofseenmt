@@ -13,7 +13,7 @@ import {
   type Interval,
   type SorvResult,
 } from "@proofseen/stats";
-import type { ManualRow } from "./manual";
+import { isRefusal, type ManualRow } from "./manual";
 import type { RescoreRecord, StoredDraw, WaveMeta } from "./records";
 
 export interface WaveData {
@@ -41,7 +41,7 @@ export interface ReportData {
   /** True when an engine delivered < 80 % of its draws or the budget stopped the wave: SoRV must not be published. */
   readonly incomplete: boolean;
   readonly rescoreAgreement: { agree: number; total: number } | null;
-  readonly manual: { agree: number; total: number; otherApps: Record<string, { present: number; total: number }> } | null;
+  readonly manual: { agree: number; total: number; refusals: number; otherApps: Record<string, { present: number; total: number; refusals: number }> } | null;
 }
 
 const APP_TO_ENGINE: Readonly<Record<string, EngineId>> = { chatgpt: "openai", claude: "anthropic", perplexity: "perplexity" };
@@ -120,16 +120,22 @@ const manualAgreement = (rows: readonly ManualRow[] | null, wave: WaveData): Rep
   const own = rows.filter((r) => r.wave_id === wave.meta.waveId);
   const outcomes = toOutcomes(wave.draws.filter((d) => d.promptId === "P1"), wave.matches);
   const apiPositive = (engine: EngineId, jdId: string): boolean => outcomes.some((o) => o.engine === engine && o.jdId === jdId && o.named);
-  const comparable = own.filter((r) => APP_TO_ENGINE[r.app] !== undefined);
+  // Un refus de nommer quiconque n'est pas une absence : l'app et l'API décriraient deux phénomènes différents,
+  // et les compter comme « d'accord » serait un faux accord. Ils sortent du calcul et sont rapportés à part.
+  const comparable = own.filter((r) => APP_TO_ENGINE[r.app] !== undefined && !isRefusal(r));
   const agree = comparable.filter((r) => (r.client_present === "true") === apiPositive(APP_TO_ENGINE[r.app]!, r.jd_id)).length;
-  const otherApps: Record<string, { present: number; total: number }> = {};
+  const otherApps: Record<string, { present: number; total: number; refusals: number }> = {};
   own
     .filter((r) => APP_TO_ENGINE[r.app] === undefined)
     .forEach((r) => {
-      const c = otherApps[r.app] ?? { present: 0, total: 0 };
-      otherApps[r.app] = { present: c.present + (r.client_present === "true" ? 1 : 0), total: c.total + 1 };
+      const c = otherApps[r.app] ?? { present: 0, total: 0, refusals: 0 };
+      otherApps[r.app] = {
+        present: c.present + (r.client_present === "true" ? 1 : 0),
+        total: c.total + (isRefusal(r) ? 0 : 1),
+        refusals: c.refusals + (isRefusal(r) ? 1 : 0),
+      };
     });
-  return { agree, total: comparable.length, otherApps };
+  return { agree, total: comparable.length, refusals: own.filter(isRefusal).length, otherApps };
 };
 
 export interface BuildInput {
