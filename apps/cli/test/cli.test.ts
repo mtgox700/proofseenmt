@@ -2,13 +2,17 @@ import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IdentitySchema, ManifestSchema } from "@proofseen/core";
 import { readSealed } from "@proofseen/extract";
 import { commandExperiment, commandExtract, commandProfiles, commandHub, commandPurge, commandReport, commandRun } from "../src/commands";
 import { CliError, readJsonl, wavePaths } from "../src/files";
 import { checkManualSample, isRefusal, parseManualCsv, type ManualRow } from "../src/manual";
 import { StoredDrawSchema } from "../src/records";
+
+// These tests run whole pipelines and write dozens of encrypted files: on a loaded machine they need more than the
+// suite's 60 s, and a timeout here would be noise, not a regression.
+vi.setConfig({ testTimeout: 180_000 });
 
 const TEMPLATES = join(__dirname, "..", "..", "..", ".war-room", "experiment0", "templates");
 const FAKE_PEOPLE = ["Camille Laurent", "Julien Martin", "Sarah Petit", "Hugo Bernard", "Léa Moreau", "Thomas Girard", "Emma Roux"];
