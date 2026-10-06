@@ -5,13 +5,21 @@ import {
   contactPath,
   homePath,
   intentPath,
+  namedPath,
   profilePath,
+  methodPath,
   renderContactPage,
+  renderMethodPage,
   renderListPage,
   renderProfilePage,
   type IntentRef,
   type Locale,
+  type NamedIdentity,
 } from "./render";
+import { publicApi } from "./query";
+import { relatedProfiles } from "./related";
+import { publishedOrder } from "./order";
+import { indexNowKeyFile } from "./indexnow";
 import { reidentificationRisk } from "./risk";
 
 /*
@@ -25,8 +33,22 @@ export interface SiteFile {
   readonly content: string;
 }
 
+/**
+ * Named arm of the three-arm test (PIVOT_ANONYME §5): the same facts as `profileId`, published under a real identity.
+ * Reserved for a subject who publishes his own identity — never a client profile (PIVOT_ANONYME §11).
+ */
+export interface NamedArm {
+  readonly profileId: string;
+  readonly identity: NamedIdentity;
+}
+
 export interface SiteOptions {
   readonly baseUrl: string;
+  readonly namedArm?: NamedArm | undefined;
+  /** Proofseen's own address, used by every "request this profile" button. Absent: the pages say the channel is not open. */
+  readonly contactEmail?: string | undefined;
+  /** IndexNow key: served as `<key>.txt` at the root to prove we own the host (indexnow.ts). */
+  readonly indexNowKey?: string | undefined;
 }
 
 /** Below this, an intent page would be an empty template — exactly what "doorway pages" means. HYPOTHÈSE. */
@@ -104,14 +126,20 @@ export class RiskyProfileError extends Error {
 }
 
 /** Pure: profiles in, files out. Refuses to publish a profile whose combination of attributes identifies the person. */
-export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl }: SiteOptions): SiteFile[] => {
+export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl, namedArm, contactEmail, indexNowKey }: SiteOptions): SiteFile[] => {
   for (const profile of profiles) {
     const risk = reidentificationRisk(profile);
     if (risk.blocking) throw new RiskyProfileError(profile.id, risk.score, risk.reasons.map((r) => r.signal));
   }
-  const intents = intentsOf(profiles);
+  const namedTwin = namedArm === undefined ? undefined : profiles.find((p) => p.id === namedArm.profileId);
+  if (namedArm !== undefined && namedTwin === undefined) {
+    throw new Error(`bras nominatif : aucun profil ${namedArm.profileId} dans le lot, les deux bras doivent porter les mêmes faits`);
+  }
+  const namedEntries = namedTwin === undefined || namedArm === undefined ? [] : [{ profile: namedTwin, named: namedArm.identity }];
   const lastmod = profiles.map((p) => p.availability.updatedAt).sort().at(-1) ?? "1970-01-01";
-  const indexable = profiles.filter((p) => !isThin(p));
+  const indexable = publishedOrder(profiles.filter((p) => !isThin(p)));
+  // Une page d'entrée ne compte et ne liste que des profils publiables : sinon elle renverrait vers des pages noindex.
+  const intents = intentsOf(indexable);
 
   const files: SiteFile[] = [];
   const indexablePaths: string[] = [];
@@ -127,9 +155,30 @@ export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl 
           baseUrl,
           intents: intentRefs(intents, locale, (i) => i.profiles.some((p) => p.id === profile.id)),
           noindex: thin,
+          // Un lien vers une page noindex gaspille l'exploration : on ne relie qu'entre profils publiables.
+          related: relatedProfiles(profile, indexable),
+          contactEmail,
         }),
       });
       if (!thin) indexablePaths.push(profilePath(locale, profile.id));
+    }
+
+    // Bras nominatif : mêmes faits, même gabarit, même maillage interne — seule l'identité change.
+    for (const entry of namedEntries) {
+      files.push({
+        path: fileFor(namedPath(locale, entry.named.slug)),
+        content: renderProfilePage({
+          profile: entry.profile,
+          locale,
+          baseUrl,
+          intents: intentRefs(intents, locale, (i) => i.profiles.some((p) => p.id === entry.profile.id)),
+          noindex: isThin(entry.profile),
+          named: entry.named,
+          related: relatedProfiles(entry.profile, indexable),
+          contactEmail,
+        }),
+      });
+      if (!isThin(entry.profile)) indexablePaths.push(namedPath(locale, entry.named.slug));
     }
 
     for (const intent of intents) {
@@ -159,15 +208,22 @@ export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl 
         intro: INTRO[locale](indexable.length),
         profiles: indexable,
         links: intentRefs(intents, locale, () => true),
+        namedEntries,
       }),
     });
     indexablePaths.push(homePath(locale));
 
-    files.push({ path: fileFor(contactPath(locale)), content: renderContactPage(locale, baseUrl) });
+    files.push({ path: fileFor(contactPath(locale)), content: renderContactPage(locale, baseUrl, contactEmail) });
     indexablePaths.push(contactPath(locale));
+
+    files.push({ path: fileFor(methodPath(locale)), content: renderMethodPage(locale, baseUrl) });
+    indexablePaths.push(methodPath(locale));
   }
 
+  // API de lecture statique : un agent peut interroger le catalogue sans serveur, avec la même règle de tri publiée.
+  files.push(publicApi(profiles, baseUrl));
   files.push({ path: "robots.txt", content: robots(baseUrl) });
+  if (indexNowKey !== undefined) files.push(indexNowKeyFile(indexNowKey));
   files.push({ path: "sitemap.xml", content: sitemap(baseUrl, indexablePaths.sort(), lastmod) });
   return files.sort((a, b) => a.path.localeCompare(b.path));
 };

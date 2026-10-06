@@ -30,7 +30,12 @@ const EXACT_DATES = /\b(?:janvier|février|mars|avril|mai|juin|juillet|août|sep
 const LARGE_AREAS = ["paris", "lyon", "marseille", "toulouse", "bordeaux", "lille", "nantes", "remote", "télétravail", "france", "île-de-france", "ile-de-france"];
 const RARE_SKILLS = ["cobol", "openvms", "zig", "erlang", "elixir", "ada", "fortran", "smalltalk", "haskell", "ocaml", "prolog"];
 
-const textOf = (p: PublicProfile): string => `${p.summary.fr} ${p.summary.en} ${p.headline.fr} ${p.headline.en} ${p.sectors.join(" ")}`;
+/** Missions are scanned like the rest: that is where a client name or an exact date would slip in. */
+const missionText = (p: PublicProfile): string =>
+  p.missions.map((m) => `${m.role.fr} ${m.role.en} ${m.achievements.map((a) => `${a.fr} ${a.en}`).join(" ")} ${m.stack.join(" ")}`).join(" ");
+
+const textOf = (p: PublicProfile): string =>
+  `${p.summary.fr} ${p.summary.en} ${p.headline.fr} ${p.headline.en} ${p.sectors.join(" ")} ${missionText(p)}`;
 
 const employerReasons = (text: string): RiskReason[] => {
   const found = [...text.matchAll(EMPLOYER)].map((m) => m[1]!);
@@ -46,8 +51,9 @@ const areaReason = (area: string): RiskReason[] => {
     : [{ signal: "zone géographique étroite", points: 20, detail: `« ${area} » désigne un bassin trop petit` }];
 };
 
-const skillsReason = (skills: readonly string[]): RiskReason[] => {
-  const rare = skills.filter((s) => RARE_SKILLS.includes(s.toLowerCase()));
+const skillsReason = (skills: readonly string[], missionStacks: readonly string[]): RiskReason[] => {
+  // A rare technology singularises whether it sits in the skills list or inside a mission's stack.
+  const rare = [...new Set([...skills, ...missionStacks])].filter((s) => RARE_SKILLS.includes(s.toLowerCase()));
   const reasons: RiskReason[] = [];
   if (rare.length > 0) reasons.push({ signal: "compétences rares", points: 12 * Math.min(rare.length, 3), detail: `combinaison peu commune : ${rare.join(", ")}` });
   if (skills.length > 12) reasons.push({ signal: "liste de compétences très longue", points: 10, detail: `${skills.length} compétences : la combinaison devient une empreinte` });
@@ -88,7 +94,7 @@ export const reidentificationRisk = (profile: PublicProfile): RiskReport => {
     ...employerReasons(text),
     ...schoolReason(text),
     ...areaReason(profile.area),
-    ...skillsReason(profile.skills),
+    ...skillsReason(profile.skills, profile.missions.flatMap((m) => m.stack)),
     ...sectorsReason(profile.sectors),
     ...datesReason(text),
     ...seniorityReason(profile.seniority),

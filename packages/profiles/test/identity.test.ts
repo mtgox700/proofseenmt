@@ -17,7 +17,7 @@ const privateIdentity = (overrides: Record<string, unknown> = {}): PrivateIdenti
     phone: "+33600000000",
     links: ["https://www.linkedin.com/in/ayoub-hammoudi", "https://github.com/ayoubhm"],
     legalId: "90123456700012",
-    consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile" },
+    consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile", irreversibilityAcknowledged: true },
     ...overrides,
   });
 

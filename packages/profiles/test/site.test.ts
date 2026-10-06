@@ -40,7 +40,7 @@ describe("public site: what a crawler reads", () => {
       phone: null,
       links: ["https://www.linkedin.com/in/ayoub-hammoudi"],
       legalId: null,
-      consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile" },
+      consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile", irreversibilityAcknowledged: true },
     });
     htmlFiles(files).forEach((f) => expect(findLeaks(identity, f.content)).toEqual([]));
   });
@@ -59,7 +59,12 @@ describe("public site: what a crawler reads", () => {
 
   it("describes the person with the pseudonym and never links to a real identity", () => {
     const page = file(site(), "p/FR-AAAAA/index.html");
-    const jsonLd = JSON.parse(page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]!);
+    const blocks = JSON.parse(page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]!) as { "@type": string }[];
+    // The page now declares two blocks: the profile and its breadcrumb.
+    const jsonLd = blocks.find((block) => block["@type"] === "ProfilePage") as unknown as {
+      "@type": string;
+      mainEntity: { "@type": string; name: string; identifier: string; sameAs?: unknown; knowsAbout: string[] };
+    };
     expect(jsonLd["@type"]).toBe("ProfilePage");
     expect(jsonLd.mainEntity["@type"]).toBe("Person");
     expect(jsonLd.mainEntity.name).toBe("Profil.A");
@@ -147,7 +152,7 @@ describe("final sweep before writing anything", () => {
     phone: null,
     links: [],
     legalId: null,
-    consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile" },
+    consent: { givenAt: "2026-09-20", scope: "public_pseudonymous_profile", irreversibilityAcknowledged: true },
   });
 
   it("passes on the generated site and names the file when a leak is planted", () => {
