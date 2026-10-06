@@ -46,6 +46,12 @@ CREATE TYPE "InvoiceKind" AS ENUM ('mission', 'commission');
 -- CreateEnum
 CREATE TYPE "NotificationKind" AS ENUM ('contact_received', 'application_received', 'message_received', 'application_status', 'mission_match', 'contract_update');
 
+-- CreateEnum
+CREATE TYPE "FeedbackKind" AS ENUM ('bug', 'missing', 'idea', 'other');
+
+-- CreateEnum
+CREATE TYPE "FeedbackSide" AS ENUM ('freelance', 'company', 'visitor');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
@@ -437,6 +443,19 @@ CREATE TABLE "RateLimitBucket" (
     CONSTRAINT "RateLimitBucket_pkey" PRIMARY KEY ("key","windowStart")
 );
 
+-- CreateTable
+CREATE TABLE "Feedback" (
+    "id" UUID NOT NULL,
+    "userId" UUID,
+    "kind" "FeedbackKind" NOT NULL,
+    "side" "FeedbackSide" NOT NULL,
+    "page" TEXT,
+    "body" TEXT NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_clerkId_key" ON "User"("clerkId");
 
@@ -605,6 +624,12 @@ CREATE INDEX "MissionAlert_lastCheckedAt_idx" ON "MissionAlert"("lastCheckedAt")
 -- CreateIndex
 CREATE INDEX "RateLimitBucket_windowStart_idx" ON "RateLimitBucket"("windowStart");
 
+-- CreateIndex
+CREATE INDEX "Feedback_createdAt_idx" ON "Feedback"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "Feedback_userId_idx" ON "Feedback"("userId");
+
 -- AddForeignKey
 ALTER TABLE "Membership" ADD CONSTRAINT "Membership_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -703,6 +728,9 @@ ALTER TABLE "NotificationPreference" ADD CONSTRAINT "NotificationPreference_user
 
 -- AddForeignKey
 ALTER TABLE "MissionAlert" ADD CONSTRAINT "MissionAlert_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1225,3 +1253,8 @@ ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_counts_chk" CHEC
   "draws" >= 0 AND "retrieved" BETWEEN 0 AND "draws" AND "named" BETWEEN 0 AND "draws" AND "top5" BETWEEN 0 AND "draws" AND "cited" BETWEEN 0 AND "draws");
 ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_engine_chk" CHECK ("engine" ~ '^[a-z0-9-]{2,40}$');
 ALTER TABLE "Wave" ADD CONSTRAINT "Wave_cost_currency_chk" CHECK (("costCents" IS NULL) = ("currency" IS NULL));
+
+-- ═══ Retours de la bêta ═════════════════════════════════════════════════════════════════════════════════════════════
+-- Un chemin sans paramètres (un jeton ou une adresse ne s'y glissent pas) et un texte borné.
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_page_chk" CHECK ("page" IS NULL OR "page" ~ '^/[A-Za-z0-9/_.-]{0,199}$');
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_body_chk" CHECK (char_length("body") BETWEEN 5 AND 2000);

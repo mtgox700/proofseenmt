@@ -519,3 +519,8 @@ ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_counts_chk" CHEC
   "draws" >= 0 AND "retrieved" BETWEEN 0 AND "draws" AND "named" BETWEEN 0 AND "draws" AND "top5" BETWEEN 0 AND "draws" AND "cited" BETWEEN 0 AND "draws");
 ALTER TABLE "VisibilityResult" ADD CONSTRAINT "VisibilityResult_engine_chk" CHECK ("engine" ~ '^[a-z0-9-]{2,40}$');
 ALTER TABLE "Wave" ADD CONSTRAINT "Wave_cost_currency_chk" CHECK (("costCents" IS NULL) = ("currency" IS NULL));
+
+-- ═══ Retours de la bêta ═════════════════════════════════════════════════════════════════════════════════════════════
+-- Un chemin sans paramètres (un jeton ou une adresse ne s'y glissent pas) et un texte borné.
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_page_chk" CHECK ("page" IS NULL OR "page" ~ '^/[A-Za-z0-9/_.-]{0,199}$');
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_body_chk" CHECK (char_length("body") BETWEEN 5 AND 2000);

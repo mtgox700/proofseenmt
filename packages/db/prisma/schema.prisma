@@ -157,6 +157,7 @@ model User {
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
   missionAlerts           MissionAlert[]
+  feedback                Feedback[]
 }
 
 model Organisation {
@@ -711,4 +712,37 @@ model RateLimitBucket {
 
   @@id([key, windowStart])
   @@index([windowStart])
+}
+
+// ─── Retours de la bêta ─────────────────────────────────────────────────────────────────────────────────────────────
+
+enum FeedbackKind {
+  bug     // quelque chose ne marche pas
+  missing // il manque quelque chose
+  idea    // une proposition
+  other
+}
+
+enum FeedbackSide {
+  freelance
+  company
+  visitor
+}
+
+/// Un retour laissé pendant la bêta. Classé par nature et par côté, jamais par personne ; l'auteur, s'il est connecté,
+/// est rattaché pour pouvoir lui répondre. Son texte peut parler de lui : il part avec son compte, et au bout d'un an.
+model Feedback {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  userId    String?      @db.Uuid
+  kind      FeedbackKind
+  side      FeedbackSide
+  /// Page d'où vient le retour (chemin seul, sans paramètres).
+  page      String?
+  body      String
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
 }

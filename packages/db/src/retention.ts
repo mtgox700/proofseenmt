@@ -25,6 +25,8 @@ export const RETENTION = {
    * décision) : effacer la ligne permettrait à l'entreprise de recontacter aussitôt la personne qui a dit non.
    */
   unansweredConversationsDays: 365,
+  /** Retours de la bêta : lus, traités ou écartés en un an. */
+  feedbackDays: 365,
   /** Compteurs du limiteur de débit : une fenêtre passée ne sert plus. */
   rateLimitBucketsDays: 1,
 } as const;
@@ -36,6 +38,7 @@ export interface PurgeReport {
   readonly unansweredConversations: number;
   readonly declinedMessages: number;
   readonly rateLimitBuckets: number;
+  readonly feedback: number;
 }
 
 export interface Retention {
@@ -48,7 +51,7 @@ const before = (now: Date, days: number): Date => new Date(now.getTime() - days 
 export const retention = (db: Db): Retention => ({
   async purge(now) {
     const conversationCutoff = before(now, RETENTION.unansweredConversationsDays);
-    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets] = await Promise.all([
+    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows] = await Promise.all([
       db.notification.deleteMany({
         where: {
           OR: [
@@ -62,6 +65,7 @@ export const retention = (db: Db): Retention => ({
       db.conversation.deleteMany({ where: { status: "pending", lastMessageAt: { lt: conversationCutoff } } }),
       db.message.deleteMany({ where: { conversation: { status: "declined", decidedAt: { lt: conversationCutoff } } } }),
       db.rateLimitBucket.deleteMany({ where: { windowStart: { lt: before(now, RETENTION.rateLimitBucketsDays) } } }),
+      db.feedback.deleteMany({ where: { createdAt: { lt: before(now, RETENTION.feedbackDays) } } }),
     ]);
     return {
       notifications: notifications.count,
@@ -70,6 +74,7 @@ export const retention = (db: Db): Retention => ({
       unansweredConversations: unansweredConversations.count,
       declinedMessages: declinedMessages.count,
       rateLimitBuckets: rateLimitBuckets.count,
+      feedback: feedbackRows.count,
     };
   },
 });

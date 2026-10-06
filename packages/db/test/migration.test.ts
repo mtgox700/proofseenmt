@@ -81,7 +81,7 @@ describe("migration init", () => {
     const tables = await one<{ n: number }>(
       `SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema = 'public'`,
     );
-    expect(tables.n).toBe(28);
+    expect(tables.n).toBe(29);
   });
 
   it("refuse l'argent incohérent et les devises hors liste", async () => {

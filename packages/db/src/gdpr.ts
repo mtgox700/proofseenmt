@@ -41,6 +41,7 @@ export interface UserExport {
   readonly missionAlerts: unknown;
   readonly notificationPreferences: unknown;
   readonly notifications: unknown;
+  readonly feedback: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -68,7 +69,7 @@ export const gdpr = (db: Db): Gdpr => ({
     });
     if (user === null) return null;
 
-    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests, missionAlerts, notificationPreferences, notificationRows] = await Promise.all([
+    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests, missionAlerts, notificationPreferences, notificationRows, feedbackRows] = await Promise.all([
       db.membership.findMany({ where: { userId }, select: { organisationId: true, role: true, createdAt: true, organisation: { select: { name: true } } } }),
       db.freelanceProfile.findUnique({
         where: { userId },
@@ -88,6 +89,7 @@ export const gdpr = (db: Db): Gdpr => ({
       db.missionAlert.findMany({ where: { userId }, select: { filters: true, createdAt: true, lastCheckedAt: true } }),
       db.notificationPreference.findMany({ where: { userId }, select: { kind: true, email: true } }),
       db.notification.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, createdAt: true, sentAt: true } }),
+      db.feedback.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, side: true, page: true, body: true, createdAt: true } }),
     ]);
 
     // Côté entreprise, la copie de l'identité légale du freelance n'est pas une donnée de la personne qui demande : un
@@ -113,6 +115,7 @@ export const gdpr = (db: Db): Gdpr => ({
       missionAlerts,
       notificationPreferences,
       notifications: notificationRows,
+      feedback: feedbackRows,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
