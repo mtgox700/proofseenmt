@@ -77,8 +77,9 @@ describe("messagerie : le freelance décide, chacun ne voit que ses fils", () =>
     expect(await m.decide({ userId: s.freelanceUser }, id, "declined", new Date())).toBe(false);
 
     expect(await m.post({ userId: s.recruiter }, id, "Merci !")).toMatchObject({ kind: "sent" });
-    expect(await m.post({ userId: s.freelanceUser }, id, "Écrivez-moi à moi@exemple.fr")).toMatchObject({ kind: "sent", message: { containsContact: true } });
-    expect((await m.listMessages({ userId: s.recruiter }, id))?.items).toHaveLength(3);
+    // Sans contrat signé, les coordonnées restent hors du fil (red team C6) : refusées, pas seulement signalées.
+    expect(await m.post({ userId: s.freelanceUser }, id, "Écrivez-moi à moi@exemple.fr")).toEqual({ kind: "contact_details" });
+    expect((await m.listMessages({ userId: s.recruiter }, id))?.items).toHaveLength(2);
   });
 
   it("ferme le fil pour les deux quand le freelance décline", async () => {

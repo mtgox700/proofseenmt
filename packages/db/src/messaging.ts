@@ -70,7 +70,9 @@ export type PostResult =
   /** L'entreprise a déjà écrit et attend l'accord du freelance. */
   | { readonly kind: "waiting" }
   /** Décliné par le freelance, ou fermé par l'une des parties : plus personne n'écrit. */
-  | { readonly kind: "closed" };
+  | { readonly kind: "closed" }
+  /** Des coordonnées avant qu'un contrat soit signé : le contact resterait hors plateforme. */
+  | { readonly kind: "contact_details" };
 
 /** Prises de contact par entreprise et par jour : au-delà, ce n'est plus du recrutement, c'est de la prospection en masse. */
 export const MAX_CONTACTS_PER_ORGANISATION_PER_DAY = 50;
@@ -252,17 +254,26 @@ export const messaging = (db: Db): Messaging => ({
     const text = MessageBodySchema.parse(body);
     const conversation = await db.conversation.findFirst({
       where: { id: conversationId, ...participant(actor.userId) },
-      select: { status: true, profile: { select: { userId: true } }, organisation: { select: { members: { select: { userId: true } } } } },
+      select: { status: true, organisationId: true, profileId: true, profile: { select: { userId: true } }, organisation: { select: { members: { select: { userId: true } } } } },
     });
     if (conversation === null) return { kind: "absent" };
     const fromFreelance = conversation.profile.userId === actor.userId;
     const blocked = postBlock(conversation.status, fromFreelance);
     if (blocked !== null) return blocked;
+    // Comme sur Malt, les coordonnées s'échangent une fois la mission contractualisée sur la plateforme, pas avant :
+    // c'est le moment où la commission se gagne. Après la signature, elles passent et restent signalées.
+    const flagged = containsContact(text);
+    if (flagged) {
+      const signed = await db.contract.count({
+        where: { organisationId: conversation.organisationId, profileId: conversation.profileId, status: { in: ["active", "completed"] } },
+      });
+      if (signed === 0) return { kind: "contact_details" };
+    }
     const recipients = fromFreelance ? conversation.organisation.members.map((m) => m.userId) : [conversation.profile.userId];
     try {
       const message = await db.$transaction(async (tx) => {
         const created = await tx.message.create({
-          data: { conversationId, senderUserId: actor.userId, body: text, containsContact: containsContact(text) },
+          data: { conversationId, senderUserId: actor.userId, body: text, containsContact: flagged },
           select: MESSAGE,
         });
         // Un seul « nouveau message » en attente par fil et par destinataire : dix messages d'affilée font un e-mail.

@@ -21,6 +21,8 @@ export const CoverNoteSchema = z.string().trim().min(1).max(5000);
 
 export type ApplyResult =
   | { readonly kind: "applied"; readonly applicationId: string; readonly conversationId: string }
+  /** La note de candidature est un premier message que l'entreprise n'a pas sollicité : pas de coordonnées. */
+  | { readonly kind: "contact_details" }
   /** L'acteur n'a pas de profil freelance : il doit en créer un avant de postuler. */
   | { readonly kind: "no_profile" }
   /** Le profil est privé : le publier d'abord, plutôt que de l'exposer par la candidature. */
@@ -74,6 +76,7 @@ export const applications = (db: Db): Applications => ({
   async apply(actor, missionId, rawNote, now) {
     if (!Uuid.safeParse(missionId).success) return { kind: "absent" };
     const note = CoverNoteSchema.parse(rawNote);
+    if (containsContact(note)) return { kind: "contact_details" };
     const [profile, mission] = await Promise.all([
       db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true, visibility: true } }),
       // Une mission de sa propre entreprise est « absente » : personne ne s'embauche soi-même.
@@ -89,7 +92,7 @@ export const applications = (db: Db): Applications => ({
           data: { organisationId: mission.organisationId, profileId: profile.id, applicationId: application.id, status: "accepted", decidedAt: now },
           select: { id: true },
         });
-        await tx.message.create({ data: { conversationId: conversation.id, senderUserId: actor.userId, body: note, containsContact: containsContact(note) } });
+        await tx.message.create({ data: { conversationId: conversation.id, senderUserId: actor.userId, body: note, containsContact: false } });
         const members = await tx.membership.findMany({ where: { organisationId: mission.organisationId }, select: { userId: true } });
         await notifications(db).enqueue(tx, members.map((m) => m.userId), "application_received", { applicationId: application.id, missionId });
         return { kind: "applied" as const, applicationId: application.id, conversationId: conversation.id };
