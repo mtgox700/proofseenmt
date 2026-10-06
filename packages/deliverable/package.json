@@ -1,0 +1,14 @@
+{
+  "name": "@proofseen/deliverable",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@proofseen/stats": "workspace:*",
+    "zod": "^4.6.5",
+    "@proofseen/core": "workspace:*"
+  }
+}
