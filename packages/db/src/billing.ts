@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { containsContact, NO_CONTACT } from "./contact-detection";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 
@@ -30,7 +31,8 @@ export const AddressSchema = z.object({
 });
 
 export const BillingIdentitySchema = z.object({
-  legalName: z.string().trim().min(2).max(200),
+  // Le nom légal d'une entreprise devient son nom public sur ses missions.
+  legalName: z.string().trim().min(2).max(200).refine((name) => !containsContact(name), { message: NO_CONTACT }),
   siret: SIRET.nullable().default(null),
   vatNumber: VAT.nullable().default(null),
   address: AddressSchema,

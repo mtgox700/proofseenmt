@@ -1,4 +1,5 @@
 import type { Db } from "./client";
+import { containsContact } from "./contact-detection";
 import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
 
 /*
@@ -8,7 +9,14 @@ import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, W
  * Profil pseudonyme : ni nom, ni adresses web (une adresse personnelle suffit à retrouver quelqu'un) — seulement le
  * nombre de preuves de possession. Profil nominatif : le nom affiché et les adresses prouvées. Dans les deux cas, le
  * contact passe par la plateforme.
+ *
+ * Le nom affiché vient du compte de connexion ; sans prénom ni nom, c'est l'adresse e-mail. Un nom qui contient des
+ * coordonnées n'est jamais publié : la page retombe sur la référence, comme un profil pseudonyme.
  */
+
+/** Le nom public d'un profil, ou `null` (la page montre alors la référence). */
+export const publicName = (visibility: ProfileVisibility, displayName: string): string | null =>
+  visibility === "named" && !containsContact(displayName) ? displayName : null;
 
 export interface PublicMissionFact {
   readonly role: string;
@@ -85,7 +93,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       reference: row.reference,
       slug: row.slug,
       visibility: row.visibility,
-      displayName: named ? row.user.displayName : null,
+      displayName: publicName(row.visibility, row.user.displayName),
       headline: row.headline,
       summary: row.summary,
       city: row.city,

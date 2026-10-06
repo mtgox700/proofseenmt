@@ -1,5 +1,6 @@
 import type { Db } from "./client";
 import type { WorkMode } from "./generated/enums";
+import { publicName } from "./public-profiles";
 import { skillKey } from "./skills";
 
 /*
@@ -51,7 +52,7 @@ export const skillPages = (db: Db): SkillPages => ({
     const profiles = people.flatMap((p) =>
       p.slug === null || p.headline === null || p.city === null
         ? []
-        : [{ slug: p.slug, reference: p.reference, displayName: p.visibility === "named" ? p.user.displayName : null, headline: p.headline, city: p.city }],
+        : [{ slug: p.slug, reference: p.reference, displayName: publicName(p.visibility, p.user.displayName), headline: p.headline, city: p.city }],
     );
     if (missions.length + profiles.length < MIN_REAL_ITEMS) return null;
     return { key, label: skill.label, missions, profiles };

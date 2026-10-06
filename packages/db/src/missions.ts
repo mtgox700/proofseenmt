@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
-import { containsContact } from "./contact-detection";
+import { containsContact, NO_CONTACT } from "./contact-detection";
 import type { Prisma } from "./generated/client";
 import type { JobPostStatus, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
@@ -39,7 +39,7 @@ export const MissionInputSchema = z
   })
   .refine((m) => m.workMode === "remote" || m.city !== null, { message: "une mission sur site ou hybride a une ville" })
   // Une mission est publique et lue par les moteurs : des coordonnées y ouvriraient un canal de candidature hors plateforme.
-  .refine((m) => !containsContact(m.title) && !containsContact(m.description), { message: "pas de coordonnées dans une mission publiée" });
+  .refine((m) => ![m.title, m.description, m.city, ...m.skills].some((field) => field !== null && containsContact(field)), { message: NO_CONTACT });
 
 export type MissionInput = z.input<typeof MissionInputSchema>;
 

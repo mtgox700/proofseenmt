@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { containsContact, NO_CONTACT } from "./contact-detection";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
 import type { AvailabilityStatus, ProfileVisibility, WorkMode } from "./generated/enums";
@@ -34,7 +35,9 @@ export const ProfileInputSchema = z
   })
   .refine((p) => (p.availability === "available_from") === (p.availableFrom !== null), {
     message: "une date de disponibilité accompagne « disponible à partir de », et elle seule",
-  });
+  })
+  // Le profil publié est lu par les moteurs : une adresse ou un numéro y ferait passer le contact hors plateforme.
+  .refine((p) => ![p.headline, p.summary, p.city, ...p.skills].some((field) => field !== null && containsContact(field)), { message: NO_CONTACT });
 
 export type ProfileInput = z.input<typeof ProfileInputSchema>;
 
