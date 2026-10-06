@@ -220,6 +220,16 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'passage de statut refusé : % vers %', OLD."status", NEW."status";
   END IF;
+  -- Valider la prestation suppose que l'argent est là : sans fonds bloqués, le freelance ne serait jamais payé.
+  IF NEW."status" = 'completed' AND OLD."status" <> 'completed'
+     AND NOT EXISTS (SELECT 1 FROM "Payment" WHERE "contractId" = NEW."id" AND "status" = 'held') THEN
+    RAISE EXCEPTION 'validation refusée : aucun paiement bloqué pour ce contrat';
+  END IF;
+  -- Un contrat avec de l'argent en jeu ne s'annule pas en silence : il se rembourse d'abord.
+  IF NEW."status" = 'cancelled' AND OLD."status" <> 'cancelled'
+     AND EXISTS (SELECT 1 FROM "Payment" WHERE "contractId" = NEW."id" AND "status" IN ('pending', 'held', 'releasing', 'refunding')) THEN
+    RAISE EXCEPTION 'annulation refusée : un paiement est en cours sur ce contrat';
+  END IF;
   RETURN NEW;
 END $fn$;
 CREATE TRIGGER "Contract_update" BEFORE UPDATE ON "Contract"
@@ -238,13 +248,27 @@ BEGIN
   IF OLD."transferId" IS NOT NULL AND NEW."transferId" IS DISTINCT FROM OLD."transferId" THEN
     RAISE EXCEPTION 'un versement ne se réécrit pas';
   END IF;
-  -- Parcours fermé : payé puis bloqué, puis versé, remboursé ou contesté. Un versement n'est jamais rejoué.
+  -- Parcours fermé. Un versement ou un remboursement est d'abord réservé (releasing, refunding) avant tout appel au
+  -- prestataire, puis confirmé, ou rendu à « bloqué » si l'appel a échoué. Un versement n'est jamais rejoué.
   IF NEW."status" <> OLD."status" AND NOT (
-       (OLD."status" = 'pending' AND NEW."status" IN ('held', 'failed', 'canceled'))
-    OR (OLD."status" = 'held' AND NEW."status" IN ('released', 'refunded', 'disputed'))
-    OR (OLD."status" = 'disputed' AND NEW."status" IN ('held', 'refunded'))
+       (OLD."status" = 'pending' AND NEW."status" IN ('held', 'canceled'))
+    OR (OLD."status" = 'held' AND NEW."status" IN ('releasing', 'refunding', 'refunded'))
+    OR (OLD."status" = 'releasing' AND NEW."status" IN ('released', 'held'))
+    OR (OLD."status" = 'refunding' AND NEW."status" IN ('refunded', 'held'))
   ) THEN
     RAISE EXCEPTION 'passage de statut refusé : % vers %', OLD."status", NEW."status";
+  END IF;
+  -- On ne verse que pour un contrat terminé, et jamais sous un litige ouvert ou perdu.
+  IF NEW."status" IN ('releasing', 'released') AND OLD."status" NOT IN ('releasing', 'released') THEN
+    IF NOT EXISTS (SELECT 1 FROM "Contract" WHERE "id" = NEW."contractId" AND "status" = 'completed') THEN
+      RAISE EXCEPTION 'versement refusé : la prestation n''est pas validée';
+    END IF;
+    IF NEW."disputeOpenedAt" IS NOT NULL AND NEW."disputeWon" IS NOT TRUE THEN
+      RAISE EXCEPTION 'versement refusé : litige en cours ou perdu';
+    END IF;
+    IF NEW."refundedCents" > 0 THEN
+      RAISE EXCEPTION 'versement refusé : paiement déjà remboursé en partie';
+    END IF;
   END IF;
   RETURN NEW;
 END $fn$;
@@ -441,3 +465,18 @@ ALTER TABLE "InvoiceSequence" ADD CONSTRAINT "InvoiceSequence_issuer_chk" CHECK 
 -- Un paiement versé porte son virement et sa date, dès l'insertion.
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_released_chk" CHECK ("status" <> 'released' OR ("transferId" IS NOT NULL AND "releasedAt" IS NOT NULL));
 ALTER TABLE "BillingIdentity" ADD CONSTRAINT "BillingIdentity_stripe_chk" CHECK ("stripeAccountId" IS NULL OR "stripeAccountId" ~ '^acct_[A-Za-z0-9]{6,64}$');
+
+-- Le freelance d'un contrat en cours ne devient pas membre de l'entreprise cliente : il pourrait valider sa propre
+-- prestation et déclencher son propre versement.
+CREATE FUNCTION proofseen_membership_guard() RETURNS trigger LANGUAGE plpgsql AS $fn$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM "Contract" c JOIN "FreelanceProfile" p ON p."id" = c."profileId"
+    WHERE c."organisationId" = NEW."organisationId" AND p."userId" = NEW."userId" AND c."status" IN ('pending_signatures', 'active')
+  ) THEN
+    RAISE EXCEPTION 'adhésion refusée : cette personne est le freelance d''un contrat en cours avec l''entreprise';
+  END IF;
+  RETURN NEW;
+END $fn$;
+CREATE TRIGGER "Membership_guard" BEFORE INSERT ON "Membership"
+  FOR EACH ROW EXECUTE FUNCTION proofseen_membership_guard();

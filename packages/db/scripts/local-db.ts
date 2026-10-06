@@ -4,11 +4,16 @@ import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { PrismaPGlite } from "pglite-prisma-adapter";
+import { billing } from "../src/billing";
+import { contracts } from "../src/contracts";
 import { PrismaClient } from "../src/generated/client";
+import { messaging } from "../src/messaging";
 import { missionAlerts } from "../src/mission-alerts";
 import { missions } from "../src/missions";
 import { organisations } from "../src/organisations";
+import { payments, type PaymentGateway } from "../src/payments";
 import { profiles } from "../src/profiles";
+import { quotes } from "../src/quotes";
 import { users } from "../src/users";
 
 /*
@@ -54,12 +59,40 @@ await profiles(db).create(
   () => `FR-TEST${"ABCDEFGH"[drawn++ % 8]}`,
 );
 await profiles(db).setVisibility({ userId: freelance }, "pseudonymous");
+
+// Un contrat signé avec un paiement en attente, pour exécuter le webhook de paiement sans prestataire réel. Le
+// prestataire est simulé ici, et seulement ici : l'intention porte un identifiant fixe et visiblement de test.
+const TEST_ADDRESS = { line1: "Adresse de test", postalCode: "75000", city: "Paris", country: "FR" };
+await billing(db).setFreelanceIdentity({ userId: freelance }, { legalName: "Freelance de test EI", siret: "00000000000000", address: TEST_ADDRESS });
+await billing(db).setOrganisationIdentity({ userId: recruiter }, org.id, { legalName: "Entreprise de test (données locales)", address: TEST_ADDRESS });
+const testProfile = await profiles(db).findMine({ userId: freelance });
+const contact = await messaging(db).contact({ userId: recruiter }, org.id, testProfile?.id ?? "", "Bonjour, mission de test.");
+if (contact.kind !== "opened") throw new Error(`fil de test non ouvert : ${contact.kind}`);
+await messaging(db).decide({ userId: freelance }, contact.conversation.id, "accepted", new Date());
+const quote = await quotes(db).draft({ userId: freelance }, contact.conversation.id, { dailyRateCents: 50_000, days: 3 });
+await quotes(db).send({ userId: freelance }, quote?.id ?? "");
+await quotes(db).decide({ userId: recruiter }, quote?.id ?? "", "accepted");
+const contract = await contracts(db).createFromQuote({ userId: recruiter }, quote?.id ?? "", { startsOn: "2026-11-02" });
+if (contract.kind !== "created") throw new Error(`contrat de test non créé : ${contract.kind}`);
+await contracts(db).sign({ userId: recruiter }, contract.contract.id, new Date());
+await contracts(db).sign({ userId: freelance }, contract.contract.id, new Date());
+const simulated: PaymentGateway = {
+  createIntent: async () => ({ intentId: "pi_local_test", clientSecret: "pi_local_test_secret" }),
+  transfer: async () => ({ transferId: "tr_local_test" }),
+  refund: async () => ({ refundId: "re_local_test" }),
+  intentSecret: async () => "pi_local_test_secret",
+  findTransfer: async () => null,
+  createAccount: async () => ({ accountId: "acct_localtest" }),
+  onboardingLink: async () => ({ url: "https://connect.example.invalid/acct_localtest" }),
+};
+await payments(db).open({ userId: recruiter }, contract.contract.id, simulated, 1000);
 await db.$disconnect();
 
 const server = new PGLiteSocketServer({ db: pg, port: PORT, host: "127.0.0.1", maxConnections: 10 });
 await server.start();
 console.log(`base locale prête : postgresql://postgres@127.0.0.1:${PORT}/postgres`);
 console.log(`mission de test ouverte : ${created.id}`);
+console.log(`paiement de test en attente : intention pi_local_test, contrat ${contract.contract.id}`);
 
 const stop = async (): Promise<void> => {
   await server.stop();

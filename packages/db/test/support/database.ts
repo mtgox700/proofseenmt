@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { PrismaPGlite } from "pglite-prisma-adapter";
 import type { Db } from "../../src/client";
 import { PrismaClient } from "../../src/generated/client";
+import { payments, type PaymentGateway } from "../../src/payments";
 
 /*
  * Une vraie base Postgres par fichier de test, en mémoire (PGlite), avec la migration de production appliquée telle
@@ -69,4 +70,68 @@ export const createOrganisation = async (db: Db, ownerId: string): Promise<strin
     select: { id: true },
   });
   return id;
+};
+
+/**
+ * Prestataire de paiement simulé : identifiants stables par clé d'idempotence (comme Stripe), virements retrouvables
+ * par contrat, compteur d'appels. `failNextTransfer` simule une panne au moment du virement.
+ */
+export const fakeGateway = () => {
+  const calls = { intents: 0, transfers: 0, refunds: 0, accounts: 0 };
+  const byKey = new Map<string, string>();
+  const transfersByContract = new Map<string, string>();
+  const amounts: number[] = [];
+  const state = { failNextTransfer: false };
+  const stable = (prefix: string, key: string): string => {
+    const known = byKey.get(key);
+    if (known !== undefined) return known;
+    const id = `${prefix}_${byKey.size + 1}${Math.random().toString(36).slice(2, 8)}`;
+    byKey.set(key, id);
+    return id;
+  };
+  const gateway: PaymentGateway = {
+    async createIntent({ idempotencyKey }) {
+      calls.intents += 1;
+      const intentId = stable("pi", idempotencyKey);
+      return { intentId, clientSecret: `${intentId}_secret` };
+    },
+    async intentSecret(intentId) {
+      return `${intentId}_secret`;
+    },
+    async transfer({ idempotencyKey, contractId, amountCents }) {
+      if (state.failNextTransfer) {
+        state.failNextTransfer = false;
+        throw new TypeError("fetch failed");
+      }
+      calls.transfers += 1;
+      amounts.push(amountCents);
+      const transferId = stable("tr", idempotencyKey);
+      transfersByContract.set(contractId, transferId);
+      return { transferId };
+    },
+    async findTransfer(contractId) {
+      return transfersByContract.get(contractId) ?? null;
+    },
+    async refund({ idempotencyKey }) {
+      calls.refunds += 1;
+      return { refundId: stable("re", idempotencyKey) };
+    },
+    async createAccount({ idempotencyKey }) {
+      calls.accounts += 1;
+      return { accountId: `acct_${stable("x", idempotencyKey).replace(/[^A-Za-z0-9]/g, "")}` };
+    },
+    async onboardingLink({ accountId }) {
+      return { url: `https://connect.example.invalid/${accountId}` };
+    },
+  };
+  return { gateway, calls, amounts, state };
+};
+
+/** Ouvre le paiement d'un contrat actif et le fait confirmer par le prestataire : les fonds sont bloqués. */
+export const payAndHold = async (db: Db, adminUserId: string, contractId: string, gateway: PaymentGateway = fakeGateway().gateway): Promise<string> => {
+  const opened = await payments(db).open({ userId: adminUserId }, contractId, gateway, 1000);
+  if (opened.kind !== "opened" && opened.kind !== "resumed") throw new Error(`paiement non ouvert : ${opened.kind}`);
+  const { stripeIntentId } = await db.payment.findUniqueOrThrow({ where: { id: opened.paymentId }, select: { stripeIntentId: true } });
+  await payments(db).applyEvent({ id: `evt_hold_${opened.paymentId}`, type: "payment.succeeded", intentId: stripeIntentId }, new Date());
+  return stripeIntentId;
 };

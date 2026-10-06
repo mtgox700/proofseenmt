@@ -96,6 +96,9 @@ const allocate = async (tx: Prisma.TransactionClient, issuer: string, year: numb
 
 const dateLabel = (d: Date): string => d.toISOString().slice(0, 10);
 
+/** L'année civile à Paris : une facture émise le 1er janvier à 0 h 30 appartient à la nouvelle année. */
+export const parisYear = (d: Date): number => Number(new Intl.DateTimeFormat("en-GB", { year: "numeric", timeZone: "Europe/Paris" }).format(d));
+
 /** Ce que voit l'acteur : toutes les factures de ses contrats côté freelance ; seulement celles de mission côté entreprise. */
 const visibleTo = (userId: string): Prisma.InvoiceWhereInput => ({
   OR: [
@@ -140,7 +143,7 @@ const issue = async (
         startsOn: c.startsOn,
         endsOn: c.endsOn,
       });
-      const year = now.getUTCFullYear();
+      const year = parisYear(now);
       const sequence = await allocate(tx, spec.issuer, year);
       const vatCents = vatOf(spec.netCents, spec.vatRateBp);
       const row = await tx.invoice.create({

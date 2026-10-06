@@ -3,7 +3,7 @@ import { billing } from "../src/billing";
 import { contracts } from "../src/contracts";
 import { messaging } from "../src/messaging";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
 
 let t: TestDatabase;
 
@@ -95,14 +95,16 @@ describe("contrat", () => {
     expect(row.sellerSnapshot).toMatchObject({ legalName: "Camille Test EI", siret: "55210055400025", address: { city: "Paris" } });
     expect(row.buyerSnapshot).toMatchObject({ legalName: "Acme SAS", vatNumber: "FR40732829320" });
 
-    expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toBeNull();
+    expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toEqual({ kind: "absent" });
     expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T10:00:00Z"))).toMatchObject({ status: "pending_signatures" });
     expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T11:00:00Z"))).toMatchObject({ acceptedByOrgAt: new Date("2026-10-20T10:00:00Z") });
     expect(await contracts(t.db).sign({ userId: s.freelanceUser }, id, new Date("2026-10-20T12:00:00Z"))).toMatchObject({ status: "active" });
     expect(await contracts(t.db).cancel({ userId: s.freelanceUser }, id)).toBeNull();
 
-    expect(await contracts(t.db).complete({ userId: s.freelanceUser }, id)).toBeNull();
-    expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toMatchObject({ status: "completed" });
+    expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toEqual({ kind: "not_paid" });
+    await payAndHold(t.db, s.recruiter, id);
+    expect(await contracts(t.db).complete({ userId: s.freelanceUser }, id)).toEqual({ kind: "absent" });
+    expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toMatchObject({ kind: "completed", contract: { status: "completed" } });
 
     const notified = await t.db.notification.findMany({ where: { kind: "contract_update", payload: { path: ["contractId"], equals: id } }, select: { userId: true, payload: true } });
     expect(notified.map((n) => [n.userId === s.freelanceUser ? "freelance" : "entreprise", (n.payload as { status: string }).status]).sort()).toEqual([
@@ -117,6 +119,9 @@ describe("contrat", () => {
     const quoteId = await acceptedQuote(s);
     expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "seller_identity_missing" });
     await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", address: ADDRESS });
+    // Sans SIRET, la facture ne serait pas valable : toujours pas de contrat.
+    expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "seller_identity_missing" });
+    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", address: ADDRESS });
     expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "buyer_identity_missing" });
     await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", address: ADDRESS });
     const created = await contracts(t.db).createFromQuote({ userId: s.freelanceUser }, quoteId, { startsOn: "2026-11-02" });

@@ -4,7 +4,7 @@ import { contracts } from "../src/contracts";
 import { invoices, vatOf } from "../src/invoices";
 import { messaging } from "../src/messaging";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
 
 let t: TestDatabase;
 
@@ -26,7 +26,7 @@ const completedContract = async (vatRateBp: 0 | 2000, freelance?: { userId: stri
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = freelance?.userId ?? (await createUser(t.db));
   const profile = freelance?.profile ?? (await createProfile(t.db, freelanceUser));
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", address: ADDRESS, vatRateBp });
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp });
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", address: ADDRESS });
   const contact = await messaging(t.db).contact({ userId: recruiter }, org, profile, "Bonjour");
   if (contact.kind !== "opened") throw new Error(contact.kind);
@@ -39,6 +39,7 @@ const completedContract = async (vatRateBp: 0 | 2000, freelance?: { userId: stri
   const id = created.contract.id;
   await contracts(t.db).sign({ userId: recruiter }, id, NOW);
   await contracts(t.db).sign({ userId: freelanceUser }, id, NOW);
+  await payAndHold(t.db, recruiter, id);
   await contracts(t.db).complete({ userId: recruiter }, id);
   return { id, recruiter, freelanceUser, profile };
 };

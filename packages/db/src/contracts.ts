@@ -53,13 +53,19 @@ export type CreateContractResult =
   | { readonly kind: "already_exists" }
   | { readonly kind: "absent" };
 
+export type CompleteResult =
+  | { readonly kind: "completed"; readonly contract: ContractRecord }
+  /** Aucun paiement bloqué : l'entreprise doit d'abord payer. */
+  | { readonly kind: "not_paid" }
+  | { readonly kind: "absent" };
+
 export interface Contracts {
   /** L'une ou l'autre partie crée le contrat d'un devis accepté. */
   createFromQuote(actor: Actor, quoteId: string, draft: ContractDraft): Promise<CreateContractResult>;
   /** L'acteur signe pour son côté ; le contrat devient actif à la seconde signature. */
   sign(actor: Actor, contractId: string, now: Date): Promise<ContractRecord | null>;
   /** Un membre de l'entreprise valide la prestation : le contrat actif est terminé. */
-  complete(actor: Actor, contractId: string): Promise<ContractRecord | null>;
+  complete(actor: Actor, contractId: string): Promise<CompleteResult>;
   /** L'une ou l'autre partie annule un contrat pas encore signé par les deux. */
   cancel(actor: Actor, contractId: string): Promise<ContractRecord | null>;
   /** Un contrat, pour ses parties ; `null` pour les autres. */
@@ -174,15 +180,16 @@ export const contracts = (db: Db): Contracts => ({
   },
 
   async complete(actor, contractId) {
-    if (!Uuid.safeParse(contractId).success) return null;
-    return db.$transaction(async (tx) => {
-      const { count } = await tx.contract.updateMany({
-        where: { id: contractId, status: "active", organisation: { members: { some: { userId: actor.userId } } } },
-        data: { status: "completed" },
-      });
-      if (count !== 1) return null;
+    if (!Uuid.safeParse(contractId).success) return { kind: "absent" };
+    return db.$transaction(async (tx): Promise<CompleteResult> => {
+      // Valider déclenche le versement : réservé aux administrateurs de l'entreprise, jamais au freelance du contrat.
+      const mine = { id: contractId, status: "active" as const, organisation: { members: { some: { userId: actor.userId, role: { in: ["owner" as const, "admin" as const] } } } }, NOT: { profile: { userId: actor.userId } } };
+      if ((await tx.contract.count({ where: mine })) === 0) return { kind: "absent" };
+      // Sans fonds bloqués, valider laisserait le freelance sans paiement possible : la base le refuse aussi.
+      if ((await tx.payment.count({ where: { contractId, status: "held" } })) === 0) return { kind: "not_paid" };
+      await tx.contract.update({ where: { id: contractId }, data: { status: "completed" } });
       await notifyParties(db, tx, contractId, "completed", actor.userId);
-      return tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: SELECT });
+      return { kind: "completed", contract: await tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: SELECT }) };
     });
   },
 

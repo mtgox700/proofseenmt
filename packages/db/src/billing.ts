@@ -70,6 +70,8 @@ export interface Billing {
 export const freelanceSnapshot = async (tx: Prisma.TransactionClient, profileId: string): Promise<LegalSnapshot | null> => {
   const row = await tx.billingIdentity.findUnique({ where: { profileId }, select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true } });
   if (row === null) return null;
+  // Une facture sans SIRET, ou avec de la TVA mais sans numéro de TVA, n'est pas valable : pas de contrat sans eux.
+  if (row.siret === null || (row.vatRateBp > 0 && row.vatNumber === null)) return null;
   const address = AddressSchema.safeParse(row.address);
   return address.success ? { legalName: row.legalName, siret: row.siret, vatNumber: row.vatNumber, address: address.data, vatRateBp: row.vatRateBp } : null;
 };

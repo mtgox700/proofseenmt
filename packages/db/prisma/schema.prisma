@@ -125,7 +125,9 @@ enum ContractStatus {
 enum PaymentStatus {
   pending
   held      // fonds bloqués jusqu'à validation de la prestation
+  releasing // réservé pour un versement en cours : aucun remboursement ni second versement ne peut le prendre
   released
+  refunding // réservé pour un remboursement en cours
   refunded
   disputed
   failed
@@ -240,6 +242,8 @@ model BillingIdentity {
   vatRateBp Int      @default(0)
   /// Compte Stripe Connect qui reçoit les versements. Nul tant que le freelance n'a pas terminé l'inscription chez Stripe.
   stripeAccountId String? @unique
+  /// Date à laquelle Stripe a confirmé que le compte peut recevoir des versements ; aucun versement avant.
+  payoutsEnabledAt DateTime? @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -492,6 +496,13 @@ model Payment {
   /// Virement au compte du freelance, une fois la prestation validée.
   transferId      String?       @unique
   releasedAt      DateTime?     @db.Timestamptz(3)
+  /// Réservation d'un versement ou d'un remboursement : posée avant tout appel au prestataire.
+  claimedAt       DateTime?     @db.Timestamptz(3)
+  /// Litige : un fait, enregistré quel que soit le statut, et qui interdit le versement tant qu'il n'est pas gagné.
+  disputeOpenedAt DateTime?     @db.Timestamptz(3)
+  disputeWon      Boolean?
+  /// À revoir par une personne : litige ou remboursement survenu après le versement, freelance disparu…
+  needsReviewAt   DateTime?     @db.Timestamptz(3)
   createdAt       DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
 
