@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { containsDirectContact, NO_CONTACT } from "./contact-detection";
 import type { ClientKind, MemberRole } from "./generated/enums";
 import type { Actor } from "./messaging";
 
@@ -14,7 +15,8 @@ import type { Actor } from "./messaging";
 const Uuid = z.uuid();
 
 export const OrganisationInputSchema = z.object({
-  name: z.string().trim().min(2).max(200),
+  // Affiché sur chaque mission publique : un nom de domaine y est permis, un moyen de joindre quelqu'un non.
+  name: z.string().trim().min(2).max(200).refine((name) => !containsDirectContact(name), { message: NO_CONTACT }),
   kind: z.enum(["startup", "scaleup", "grand_groupe", "eti", "pme", "secteur_public", "editeur_logiciel", "esn", "association"]),
   /** SIRET : 14 chiffres. Sa vérification auprès de l'INSEE viendra avec les contrôles de conformité (C6). */
   siret: z
