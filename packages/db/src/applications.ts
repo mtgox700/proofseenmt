@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import { isUniqueViolation } from "./errors";
+import { notifications } from "./notifications";
 import type { Prisma } from "./generated/client";
 import type { ApplicationStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
@@ -89,6 +90,8 @@ export const applications = (db: Db): Applications => ({
           select: { id: true },
         });
         await tx.message.create({ data: { conversationId: conversation.id, senderUserId: actor.userId, body: note, containsContact: containsContact(note) } });
+        const members = await tx.membership.findMany({ where: { organisationId: mission.organisationId }, select: { userId: true } });
+        await notifications(db).enqueue(tx, members.map((m) => m.userId), "application_received", { applicationId: application.id, missionId });
         return { kind: "applied" as const, applicationId: application.id, conversationId: conversation.id };
       });
     } catch (error) {
@@ -184,6 +187,11 @@ const moveAndMaybeClose = (db: Db, applicationId: string, status: ApplicationSta
     if (count !== 1) return false;
     if (status === "withdrawn" || status === "declined") {
       await tx.conversation.updateMany({ where: { applicationId, status: "accepted" }, data: { status: "closed" } });
+    }
+    // Le freelance apprend toujours où en est sa candidature ; il n'est pas prévenu de son propre retrait.
+    if (status !== "withdrawn") {
+      const { profile } = await tx.application.findUniqueOrThrow({ where: { id: applicationId }, select: { profile: { select: { userId: true } } } });
+      await notifications(db).enqueue(tx, [profile.userId], "application_status", { applicationId, status });
     }
     return true;
   });

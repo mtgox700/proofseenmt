@@ -414,3 +414,8 @@ BEGIN
 END $fn$;
 CREATE TRIGGER "Quote_guard" BEFORE INSERT OR UPDATE ON "Quote"
   FOR EACH ROW EXECUTE FUNCTION proofseen_quote_guard();
+
+-- ═══ Notifications ═════════════════════════════════════════════════════════════════════════════════════════════════
+ALTER TABLE "User" ADD CONSTRAINT "User_lang_chk" CHECK ("lang" IN ('fr','en'));
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_attempts_chk" CHECK ("attempts" BETWEEN 0 AND 20);
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_error_chk" CHECK ("lastError" IS NULL OR char_length("lastError") <= 200);

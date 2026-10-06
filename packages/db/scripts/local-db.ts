@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { PrismaPGlite } from "pglite-prisma-adapter";
 import { PrismaClient } from "../src/generated/client";
+import { missionAlerts } from "../src/mission-alerts";
 import { missions } from "../src/missions";
 import { organisations } from "../src/organisations";
 import { profiles } from "../src/profiles";
@@ -41,9 +42,11 @@ const created = await missions(db).create({ userId: recruiter }, org.id, {
   workMode: "remote",
 });
 if (created === null) throw new Error("mission de test non créée");
-await missions(db).publish({ userId: recruiter }, created.id, new Date());
 
+// L'alerte du freelance de test existe avant la publication : le premier passage du traitement périodique la signale.
 const { userId: freelance } = await users(db).ensure({ clerkId: "local_test_freelance", email: "freelance.test@example.invalid", displayName: "Freelance de test" });
+await missionAlerts(db).create({ userId: freelance }, { skills: ["TypeScript"] }, new Date(Date.now() - 60_000));
+await missions(db).publish({ userId: recruiter }, created.id, new Date());
 let drawn = 0;
 await profiles(db).create(
   { userId: freelance },

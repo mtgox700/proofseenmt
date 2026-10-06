@@ -141,14 +141,19 @@ model User {
   /// Toujours en minuscules (contrainte en base) : « A@x.fr » et « a@x.fr » sont la même personne.
   email       String   @unique
   displayName String
+  /// Langue des e-mails envoyés à la personne.
+  lang        String   @default("fr") @db.Char(2)
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
-  freelanceProfile FreelanceProfile?
-  memberships      Membership[]
-  sentMessages     Message[]
-  reviewsWritten   Review[]          @relation("ReviewAuthor")
-  jobPostsAuthored JobPost[]
+  freelanceProfile        FreelanceProfile?
+  memberships             Membership[]
+  sentMessages            Message[]
+  reviewsWritten          Review[]                 @relation("ReviewAuthor")
+  jobPostsAuthored        JobPost[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  missionAlerts           MissionAlert[]
 }
 
 model Organisation {
@@ -579,6 +584,63 @@ model Wave {
   profile FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
   @@index([profileId], where: raw("\"profileId\" IS NOT NULL"), map: "Wave_profileId_idx")
+}
+
+// ─── Notifications ──────────────────────────────────────────────────────────────────────────────────────────────────
+
+enum NotificationKind {
+  contact_received     // une entreprise demande le contact (freelance)
+  application_received // nouvelle candidature (membres de l'entreprise)
+  message_received     // nouveau message dans un fil
+  application_status   // la candidature avance (freelance)
+  mission_match        // nouvelles missions pour une alerte enregistrée (freelance)
+}
+
+/// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
+/// échoué, il est réessayé. Le contenu ne porte que des références, **jamais le texte d'un message** : la conversation
+/// reste sur la plateforme.
+model Notification {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @db.Uuid
+  kind      NotificationKind
+  payload   Json
+  createdAt DateTime         @default(now()) @db.Timestamptz(3)
+  /// Prochaine tentative ; repoussée à chaque prise en charge, ce qui sert aussi de bail entre deux processus d'envoi.
+  sendAfter DateTime         @default(now()) @db.Timestamptz(3)
+  sentAt    DateTime?        @db.Timestamptz(3)
+  attempts  Int              @default(0)
+  /// Nom de l'erreur seulement : un message d'erreur de fournisseur peut contenir l'adresse du destinataire.
+  lastError String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sendAfter], where: raw("\"sentAt\" IS NULL"), map: "Notification_pending_idx")
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/// Préférences d'envoi par type. Absence de ligne = envoi activé.
+model NotificationPreference {
+  userId String           @db.Uuid
+  kind   NotificationKind
+  email  Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, kind])
+}
+
+/// Alerte de missions : les filtres d'une recherche, rejoués pour signaler les nouvelles missions publiées.
+model MissionAlert {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  userId        String   @db.Uuid
+  filters       Json
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  lastCheckedAt DateTime @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastCheckedAt])
 }
 
 // ─── Limiteur de débit partagé ──────────────────────────────────────────────────────────────────────────────────────

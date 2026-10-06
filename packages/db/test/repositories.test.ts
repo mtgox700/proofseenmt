@@ -177,10 +177,13 @@ describe("repérage des coordonnées", () => {
 describe("repérage des coordonnées sous charge", () => {
   // Seuil large pour tolérer une machine chargée : la version quadratique dépassait 450 ms sur ces mêmes textes.
   it.each(["1)".repeat(5000), "1a".repeat(5000), "a".repeat(10_000), "1 ".repeat(5000), "1-".repeat(5000)])("reste rapide sur un message piégé", (text) => {
-    containsContact(text);
-    const started = performance.now();
-    containsContact(text);
-    expect(performance.now() - started).toBeLessThan(150);
+    // Le meilleur de cinq essais : une rafale de charge sur la machine ne fausse pas la mesure, un coût quadratique si.
+    const timings = Array.from({ length: 5 }, () => {
+      const started = performance.now();
+      containsContact(text);
+      return performance.now() - started;
+    });
+    expect(Math.min(...timings)).toBeLessThan(150);
   });
 });
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import { isUniqueViolation } from "./errors";
+import { notifications } from "./notifications";
 import type { Prisma } from "./generated/client";
 import type { ConversationStatus } from "./generated/enums";
 
@@ -179,6 +180,7 @@ export const messaging = (db: Db): Messaging => ({
       const conversation = await db.$transaction(async (tx) => {
         const created = await tx.conversation.create({ data: { organisationId, profileId, direct: true }, select: SUMMARY });
         await tx.message.create({ data: { conversationId: created.id, senderUserId: actor.userId, body: text, containsContact: false } });
+        await notifications(db).enqueue(tx, [profile.userId], "contact_received", { conversationId: created.id });
         return created;
       });
       return { kind: "opened", conversation };
@@ -250,15 +252,27 @@ export const messaging = (db: Db): Messaging => ({
     const text = MessageBodySchema.parse(body);
     const conversation = await db.conversation.findFirst({
       where: { id: conversationId, ...participant(actor.userId) },
-      select: { status: true, profile: { select: { userId: true } } },
+      select: { status: true, profile: { select: { userId: true } }, organisation: { select: { members: { select: { userId: true } } } } },
     });
     if (conversation === null) return { kind: "absent" };
-    const blocked = postBlock(conversation.status, conversation.profile.userId === actor.userId);
+    const fromFreelance = conversation.profile.userId === actor.userId;
+    const blocked = postBlock(conversation.status, fromFreelance);
     if (blocked !== null) return blocked;
+    const recipients = fromFreelance ? conversation.organisation.members.map((m) => m.userId) : [conversation.profile.userId];
     try {
-      const message = await db.message.create({
-        data: { conversationId, senderUserId: actor.userId, body: text, containsContact: containsContact(text) },
-        select: MESSAGE,
+      const message = await db.$transaction(async (tx) => {
+        const created = await tx.message.create({
+          data: { conversationId, senderUserId: actor.userId, body: text, containsContact: containsContact(text) },
+          select: MESSAGE,
+        });
+        // Un seul « nouveau message » en attente par fil et par destinataire : dix messages d'affilée font un e-mail.
+        const waiting = await tx.notification.findMany({
+          where: { userId: { in: recipients }, kind: "message_received", sentAt: null, payload: { path: ["conversationId"], equals: conversationId } },
+          select: { userId: true },
+        });
+        const already = new Set(waiting.map((w) => w.userId));
+        await notifications(db).enqueue(tx, recipients.filter((id) => id !== actor.userId && !already.has(id)), "message_received", { conversationId });
+        return created;
       });
       return { kind: "sent", message };
     } catch (error) {

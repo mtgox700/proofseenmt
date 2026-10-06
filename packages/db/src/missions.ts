@@ -53,6 +53,8 @@ export const MissionSearchSchema = z.object({
   /** Missions dont le TJM maximum atteint au moins ce montant. */
   minDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
   maxDurationMonths: z.number().int().min(1).max(600).optional(),
+  /** Usage interne (alertes) : seulement les missions publiées après cette date. */
+  publishedAfter: z.date().optional(),
   sort: z.enum(SEARCH_SORTS).default("recent"),
   page: z.number().int().min(1).max(50).default(1),
   pageSize: z.number().int().min(1).max(50).default(20),
@@ -229,6 +231,7 @@ export const missions = (db: Db): Missions => ({
       ...(f.city === undefined ? {} : { cityKey: skillKey(f.city) }),
       ...(f.minDailyRateCents === undefined ? {} : { dailyRateMaxCents: { gte: f.minDailyRateCents } }),
       ...(f.maxDurationMonths === undefined ? {} : { durationMonths: { lte: f.maxDurationMonths } }),
+      ...(f.publishedAfter === undefined ? {} : { publishedAt: { gt: f.publishedAfter } }),
       // Toutes les compétences demandées, pas l'une d'elles : un filtre se resserre, il ne s'élargit pas en douce.
       ...(skillKeys.length === 0 ? {} : { AND: skillKeys.map((key) => ({ skills: { some: { skill: { key } } } })) }),
     };

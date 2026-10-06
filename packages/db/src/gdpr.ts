@@ -30,6 +30,9 @@ export interface UserExport {
   readonly reviewsWritten: unknown;
   readonly jobPostsAuthored: unknown;
   readonly auditRequests: unknown;
+  readonly missionAlerts: unknown;
+  readonly notificationPreferences: unknown;
+  readonly notifications: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -51,7 +54,7 @@ export const gdpr = (db: Db): Gdpr => ({
     });
     if (user === null) return null;
 
-    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests] = await Promise.all([
+    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests, missionAlerts, notificationPreferences, notificationRows] = await Promise.all([
       db.membership.findMany({ where: { userId }, select: { organisationId: true, role: true, createdAt: true, organisation: { select: { name: true } } } }),
       db.freelanceProfile.findUnique({
         where: { userId },
@@ -68,6 +71,9 @@ export const gdpr = (db: Db): Gdpr => ({
       db.review.findMany({ where: { authorUserId: userId }, select: { id: true, contractId: true, rating: true, body: true, createdAt: true } }),
       db.jobPost.findMany({ where: { authorUserId: userId }, select: { id: true, title: true, status: true, createdAt: true } }),
       db.auditRequest.findMany({ where: { email: user.email }, select: { reference: true, displayName: true, email: true, urls: true, lang: true, consentAt: true, createdAt: true } }),
+      db.missionAlert.findMany({ where: { userId }, select: { filters: true, createdAt: true, lastCheckedAt: true } }),
+      db.notificationPreference.findMany({ where: { userId }, select: { kind: true, email: true } }),
+      db.notification.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, createdAt: true, sentAt: true } }),
     ]);
 
     const organisationIds = memberships.map((m) => m.organisationId);
@@ -86,6 +92,9 @@ export const gdpr = (db: Db): Gdpr => ({
       reviewsWritten,
       jobPostsAuthored,
       auditRequests,
+      missionAlerts,
+      notificationPreferences,
+      notifications: notificationRows,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },

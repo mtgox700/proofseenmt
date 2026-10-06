@@ -40,12 +40,16 @@ CREATE TYPE "ContractStatus" AS ENUM ('pending_signatures', 'active', 'completed
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'held', 'released', 'refunded', 'disputed', 'failed', 'canceled');
 
+-- CreateEnum
+CREATE TYPE "NotificationKind" AS ENUM ('contact_received', 'application_received', 'message_received', 'application_status', 'mission_match');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
     "clerkId" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "displayName" TEXT NOT NULL,
+    "lang" CHAR(2) NOT NULL DEFAULT 'fr',
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -359,6 +363,41 @@ CREATE TABLE "Wave" (
 );
 
 -- CreateTable
+CREATE TABLE "Notification" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "kind" "NotificationKind" NOT NULL,
+    "payload" JSONB NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "sendAfter" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "sentAt" TIMESTAMPTZ(3),
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "lastError" TEXT,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "NotificationPreference" (
+    "userId" UUID NOT NULL,
+    "kind" "NotificationKind" NOT NULL,
+    "email" BOOLEAN NOT NULL,
+
+    CONSTRAINT "NotificationPreference_pkey" PRIMARY KEY ("userId","kind")
+);
+
+-- CreateTable
+CREATE TABLE "MissionAlert" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "filters" JSONB NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastCheckedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MissionAlert_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "RateLimitBucket" (
     "key" TEXT NOT NULL,
     "windowStart" TIMESTAMPTZ(3) NOT NULL,
@@ -509,6 +548,18 @@ CREATE UNIQUE INDEX "Wave_waveId_key" ON "Wave"("waveId");
 CREATE INDEX "Wave_profileId_idx" ON "Wave"("profileId") WHERE ("profileId" IS NOT NULL);
 
 -- CreateIndex
+CREATE INDEX "Notification_pending_idx" ON "Notification"("sendAfter") WHERE ("sentAt" IS NULL);
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_createdAt_idx" ON "Notification"("userId", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "MissionAlert_userId_idx" ON "MissionAlert"("userId");
+
+-- CreateIndex
+CREATE INDEX "MissionAlert_lastCheckedAt_idx" ON "MissionAlert"("lastCheckedAt");
+
+-- CreateIndex
 CREATE INDEX "RateLimitBucket_windowStart_idx" ON "RateLimitBucket"("windowStart");
 
 -- AddForeignKey
@@ -597,6 +648,15 @@ ALTER TABLE "Review" ADD CONSTRAINT "Review_targetProfileId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Wave" ADD CONSTRAINT "Wave_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "FreelanceProfile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotificationPreference" ADD CONSTRAINT "NotificationPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MissionAlert" ADD CONSTRAINT "MissionAlert_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1014,3 +1074,8 @@ BEGIN
 END $fn$;
 CREATE TRIGGER "Quote_guard" BEFORE INSERT OR UPDATE ON "Quote"
   FOR EACH ROW EXECUTE FUNCTION proofseen_quote_guard();
+
+-- ═══ Notifications ═════════════════════════════════════════════════════════════════════════════════════════════════
+ALTER TABLE "User" ADD CONSTRAINT "User_lang_chk" CHECK ("lang" IN ('fr','en'));
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_attempts_chk" CHECK ("attempts" BETWEEN 0 AND 20);
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_error_chk" CHECK ("lastError" IS NULL OR char_length("lastError") <= 200);
