@@ -1,0 +1,218 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CountUp } from "@/components/motion/CountUp";
+import { InView } from "@/components/motion/InView";
+import { DossierPath } from "@/components/workspace/DossierPath";
+import { EmptyState } from "@/components/EmptyState";
+import { getClientSource } from "@/data/client-source";
+import { operatorOverview, referenceForEmail } from "@/data/operator-source";
+import { dictionary, isLang, type Dictionary, type Lang } from "@/i18n";
+import { date } from "@/lib/format";
+import { requirePerson, type Person } from "@/lib/session";
+
+/** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  readonly params: Promise<{ lang: string }>;
+}
+
+const LOCALE: Readonly<Record<Lang, string>> = { fr: "fr-FR", en: "en-GB" };
+const euros = (cents: number, lang: Lang): string =>
+  new Intl.NumberFormat(LOCALE[lang], { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100).replace(/\u00a0/g, "\u202f");
+
+async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dictionary }) {
+  const o = t.app.operator;
+  const { views, summary, gate, delivery } = await operatorOverview();
+  return (
+    <>
+      <header className="app-head">
+        <h1>{o.title}</h1>
+      </header>
+
+      <InView className="tiles">
+        <div className="tile" style={{ "--i": 0 } as React.CSSProperties}>
+          <span className="tile-label">{o.files}</span>
+          <b className="tile-value">
+            <CountUp display={String(summary.total)} to={summary.total} locale={LOCALE[lang]} />
+          </b>
+          <span className="tile-foot muted">
+            {summary.waitingOnClient} · {o.waitingClient}
+          </span>
+        </div>
+        <div className="tile" style={{ "--i": 1 } as React.CSSProperties}>
+          <span className="tile-label">{o.complete}</span>
+          <b className="tile-value num">{summary.complete}</b>
+          <span className="tile-foot muted">
+            {summary.total - summary.complete - summary.waitingOnClient} · {o.waitingUs}
+          </span>
+        </div>
+        <div className="tile tile-wide" style={{ "--i": 2 } as React.CSSProperties}>
+          <span className="tile-label">{o.gateTitle}</span>
+          {gate === null ? (
+            <span className="muted small">{o.journalUnreadable}</span>
+          ) : (
+            <>
+              <b className="tile-value num">
+                {gate.counted}
+                <small className="muted"> / {gate.target}</small>
+              </b>
+              <span className="gate-bar" aria-hidden="true">
+                <span style={{ transform: `scaleX(${Math.min(1, gate.counted / gate.target)})` }} />
+                <span className="gate-provisional" style={{ transform: `scaleX(${Math.min(1, (gate.counted + gate.provisional) / gate.target)})` }} />
+              </span>
+              <span className="tile-foot muted">
+                {o.gateCounted} · {gate.provisional} {o.gateProvisional} · {o.revenue} {euros(gate.revenueCents, lang)}
+              </span>
+            </>
+          )}
+        </div>
+        <div className="tile" style={{ "--i": 3 } as React.CSSProperties}>
+          <span className="tile-label">{o.deliveryTitle}</span>
+          {delivery === null ? (
+            <span className="muted small">{o.journalUnreadable}</span>
+          ) : (
+            <>
+              <b className="tile-value num">{delivery.pending}</b>
+              <span className="tile-foot muted">
+                {o.pending} · {delivery.dueSoon} {o.dueSoon}
+                {delivery.overdue > 0 ? ` · ${delivery.overdue} ${o.overdue}` : ""}
+              </span>
+            </>
+          )}
+        </div>
+      </InView>
+
+      <section className="ws-block" aria-labelledby="files-title">
+        <h2 id="files-title">{o.tableTitle}</h2>
+        {views.length === 0 ? (
+          <EmptyState title={o.empty} headingLevel={3}>
+            {null}
+          </EmptyState>
+        ) : (
+          <div className="table-scroll" tabIndex={0} role="region" aria-labelledby="files-title">
+            <table className="ops">
+              <thead>
+                <tr>
+                  <th scope="col">{o.table.ref}</th>
+                  <th scope="col">{o.table.name}</th>
+                  <th scope="col">{o.table.next}</th>
+                  <th scope="col">{o.table.who}</th>
+                  <th scope="col">{o.table.wave}</th>
+                  <th scope="col" className="num-col">{o.table.reports}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {views.map((view) => (
+                  <tr key={view.reference} data-actor={view.complete ? "done" : view.actor}>
+                    <th scope="row">
+                      <code>{view.reference}</code>
+                    </th>
+                    <td>{view.displayName ?? <span className="muted">{o.unnamed}</span>}</td>
+                    <td>{o.actions[view.action.kind] ?? view.action.kind}</td>
+                    <td>
+                      <span className={view.complete ? "tag tag-quiet" : view.actor === "client" ? "tag tag-signal" : "tag tag-proof"}>
+                        {view.complete ? o.complete : view.actor === "client" ? t.space.yours : t.space.ours}
+                      </span>
+                    </td>
+                    <td>{view.waveId === null ? "" : <code>{view.waveId}</code>}</td>
+                    <td className="num num-col">{view.reportFiles.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
+  const f = t.app.freelance;
+  const reference = await referenceForEmail(person.email);
+  const view = reference === null ? null : await getClientSource().view(reference);
+  return (
+    <>
+      <header className="app-head">
+        <h1>{f.title(view?.displayName ?? person.name)}</h1>
+        {view === null ? null : (
+          <dl className="meta-strip">
+            <div>
+              <dt>{t.space.reference}</dt>
+              <dd>
+                <code>{view.reference}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>{t.space.steps.possession.title}</dt>
+              <dd className="num">{t.space.urls(view.facts.verifiedUrls, view.facts.ownedUrls)}</dd>
+            </div>
+            {view.surfaceCheckedAt === null ? null : (
+              <div>
+                <dt>{t.space.steps.surface.title}</dt>
+                <dd>{date(view.surfaceCheckedAt, lang)}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+      </header>
+      {view === null ? (
+        <EmptyState title={f.noFileTitle} headingLevel={2}>
+          <p>{f.noFileText}</p>
+          <p className="empty-actions">
+            <Link className="btn btn-primary" href={`/${lang}/inscription`}>
+              {f.openFile}
+            </Link>
+            <Link className="btn" href={`/${lang}/freelance`}>
+              {f.demo}
+            </Link>
+          </p>
+        </EmptyState>
+      ) : (
+        <section className="ws-block" aria-labelledby="path-title">
+          <h2 id="path-title">{view.complete ? t.space.allDone : t.space.pathTitle}</h2>
+          <DossierPath t={t.space} action={view.action} />
+        </section>
+      )}
+    </>
+  );
+}
+
+function CompanyHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
+  const c = t.app.company;
+  return (
+    <>
+      <header className="app-head">
+        <h1>{c.title(person.name)}</h1>
+        <p className="muted measure">{c.lead}</p>
+      </header>
+      <form className="filters" method="get" action={`/${lang}/entreprise`} role="search" aria-label={c.search}>
+        <div className="field">
+          <label htmlFor="skill">{t.directory.form.skill}</label>
+          <input id="skill" name="skill" type="search" maxLength={60} aria-describedby="skill-hint" />
+          <p id="skill-hint" className="field-hint">{t.directory.form.skillHint}</p>
+        </div>
+        <div className="field">
+          <label htmlFor="area">{t.directory.form.area}</label>
+          <input id="area" name="area" type="search" maxLength={60} aria-describedby="area-hint" />
+          <p id="area-hint" className="field-hint">{t.directory.form.areaHint}</p>
+        </div>
+        <div className="filters-actions">
+          <button type="submit" className="btn btn-primary">{c.search}</button>
+        </div>
+      </form>
+    </>
+  );
+}
+
+export default async function AppHome({ params }: PageProps) {
+  const { lang } = await params;
+  if (!isLang(lang)) notFound();
+  const t = dictionary(lang);
+  const person = await requirePerson(lang);
+  if (person === null) return null;
+  if (person.role === "operator") return <OperatorHome lang={lang} t={t} />;
+  if (person.role === "company") return <CompanyHome lang={lang} t={t} person={person} />;
+  return <FreelanceHome lang={lang} t={t} person={person} />;
+}

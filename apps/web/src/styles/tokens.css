@@ -1,0 +1,86 @@
+/* Proofseen, "salle de mesure" (MARQUE.md, DESIGN_WEB.md §5). One dark palette for the whole product: the only raw
+   colours of the application live in this block. Contrast of every text pair is measured in the Playwright pass. */
+:root {
+  --bg: #070b14;
+  --bg-raised: #0a111f;
+  --surface: #0e1626;
+  --ink: #edf1f7;
+  --muted: #a3aec2;
+  --line: #1f2a40;
+  --line-strong: #7c8aa8;
+  --proof: #3fcf9c;
+  --on-proof: #06110c;
+  --signal: #f5a524;
+  --info: #8ab0ff;
+
+  /* Source families of the answer field. One blue-to-slate family ordered by lightness: the proof green stays reserved
+     for "you", and absence (no source) is drawn hollow, not coloured. */
+  --src-malt: #8ab0ff;
+  --src-linkedin: #4f74c8;
+  --src-code: #d6deec;
+  --src-platform: #7486a6;
+  --src-other: #465573;
+  --src-none: #3a4a6b;
+
+  /* Derived tints: mixed from the tokens above, never typed as new colours. */
+  --proof-wash: color-mix(in srgb, var(--proof) 12%, transparent);
+  --signal-wash: color-mix(in srgb, var(--signal) 12%, transparent);
+  --surface-hi: color-mix(in srgb, var(--surface) 90%, var(--ink));
+  --scrim: color-mix(in srgb, var(--bg) 92%, transparent);
+
+  --serif: "Newsreader Variable", "Newsreader Fallback", Georgia, "Times New Roman", serif;
+  --sans: "Inter Variable", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --step--2: clamp(0.75rem, 0.73rem + 0.1vw, 0.8rem);
+  --step--1: clamp(0.84rem, 0.81rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.08rem);
+  --step-1: clamp(1.2rem, 1.08rem + 0.55vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.25rem + 1.2vw, 2.2rem);
+  --step-3: clamp(2rem, 1.45rem + 2.6vw, 3.6rem);
+  --step-4: clamp(2.5rem, 1.6rem + 4.2vw, 5.2rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --max: 76rem;
+
+  /* One radius for the whole product: an instrument has edges, not bubbles. */
+  --radius: 6px;
+
+  /* Motion vocabulary (animate skill): strong ease-out, UI under 200 ms (MARQUE §5). */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-press: 120ms;
+  --dur-ui: 180ms;
+
+  /* Layers, documented once. */
+  --z-header: 10;
+  --z-skip: 20;
+
+  color-scheme: dark;
+}
+
+/* Metric-matched fallbacks: the page does not move when the web fonts arrive (DESIGN_WEB §3, CLS = 0). */
+@font-face {
+  font-family: "Newsreader Fallback";
+  src: local("Georgia");
+  size-adjust: 94%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}

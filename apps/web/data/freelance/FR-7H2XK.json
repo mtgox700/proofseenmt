@@ -1,0 +1,328 @@
+{
+  "reference": "FR-7H2XK",
+  "displayName": "Ayoub Hammoudi",
+  "report": {
+    "client": {
+      "displayName": "Ayoub Hammoudi",
+      "reference": "FR-7H2XK"
+    },
+    "wave": {
+      "id": "J0",
+      "measuredAt": "2026-09-24",
+      "models": {
+        "openai": "gpt-5-mini-2025-08-07",
+        "anthropic": "claude-sonnet-5",
+        "perplexity": "perplexity/sonar"
+      },
+      "draws": 780,
+      "manifestDigest": "1bc9f85f62017577"
+    },
+    "jobDescriptions": [
+      {
+        "id": "T01",
+        "label": "Développeur Senior Node.js / TypeScript",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T02",
+        "label": "Développeur Full Stack TypeScript / Angular / NestJS",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T03",
+        "label": "Développeur Fullstack TypeScript H/F",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T04",
+        "label": "Développeur Javascript / TypeScript",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T05",
+        "label": "Développeur React / TypeScript, applications web à fort trafic",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T06",
+        "label": "Développeur Support Microservices TypeScript / Node.js / AWS",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T07",
+        "label": "Développeur Full Stack TypeScript / NestJS / NextJS, logistique digitale",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T08",
+        "label": "Développeur Back-End Node.js / AWS (H/F)",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T09",
+        "label": "Lead développeur fullstack NodeJS / React / TypeScript, anglais courant",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "T10",
+        "label": "Developer Full stack",
+        "provenance": "proofseen",
+        "role": "target"
+      },
+      {
+        "id": "C01",
+        "label": "SAP ABAP Senior Developer",
+        "provenance": "proofseen",
+        "role": "control"
+      },
+      {
+        "id": "C02",
+        "label": "Data Engineer Databricks / Azure / PySpark / Terraform",
+        "provenance": "proofseen",
+        "role": "control"
+      },
+      {
+        "id": "C03",
+        "label": "Juriste H/F",
+        "provenance": "proofseen",
+        "role": "control"
+      }
+    ],
+    "funnel": [
+      {
+        "engine": "openai",
+        "draws": 200,
+        "retrieved": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "named": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "top5": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "cited": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        }
+      },
+      {
+        "engine": "anthropic",
+        "draws": 200,
+        "retrieved": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "named": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "top5": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "cited": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        }
+      },
+      {
+        "engine": "perplexity",
+        "draws": 200,
+        "retrieved": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "named": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "top5": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        },
+        "cited": {
+          "successes": 0,
+          "interval": {
+            "p": 0,
+            "low": 0,
+            "high": 0.018845326377266575
+          }
+        }
+      }
+    ],
+    "sourceShare": {
+      "malt.fr": 0.3900343642611684,
+      "free-work.com": 0.028780068728522335,
+      "linkedin.com": 0.2654639175257732,
+      "codeur.com": 0.005154639175257732,
+      "malt.com": 0.02491408934707904,
+      "github.com": 0.028780068728522335,
+      "welcometothejungle.com": 0.000429553264604811,
+      "cremedelacreme.io": 0.000429553264604811,
+      "comet.co": 0.003865979381443299,
+      "upwork.com": 0.006013745704467354,
+      "gitlab.com": 0.000859106529209622
+    },
+    "indexation": {
+      "pagesDeclared": 1,
+      "pagesIndexed": 0,
+      "checkedAt": "2026-09-24"
+    },
+    "controlRetrieval": {
+      "p": 0,
+      "low": 0,
+      "high": 0.02089549792161305
+    },
+    "plan": {
+      "blockingStage": "E1",
+      "actions": [
+        {
+          "id": "E1-lisible",
+          "stage": "E1",
+          "title": "Rendre vos pages lisibles sans JavaScript",
+          "why": "Les robots des IA ne lancent pas le JavaScript : sur une page construite dans le navigateur, ils ne lisent rien. Il n'y a donc aucun texte à retrouver dans la suite du parcours.",
+          "where": "Une page statique par profil, servie telle quelle par votre hébergeur.",
+          "effort": "moyen",
+          "evidence": "0 page(s) indexée(s) sur 1 déclarée(s), relevé du 24 septembre 2026",
+          "rank": 1
+        },
+        {
+          "id": "E1-declarer",
+          "stage": "E1",
+          "title": "Déclarer le site aux moteurs",
+          "why": "Sans fichier robots.txt ni plan de site, les moteurs n'ont aucune liste des pages à venir chercher, et les robots d'IA n'y sont pas explicitement autorisés.",
+          "where": "robots.txt et sitemap.xml à la racine du domaine, puis dépôt du plan de site dans Search Console et Bing Webmaster.",
+          "effort": "faible",
+          "evidence": "0 page(s) indexée(s) sur 1 déclarée(s), relevé du 24 septembre 2026",
+          "rank": 2
+        },
+        {
+          "id": "E1-structure",
+          "stage": "E1",
+          "title": "Décrire la page en données structurées",
+          "why": "Les données structurées disent explicitement de qui parle la page. Elles doivent décrire ce qui est visible à l'écran, sans rien ajouter.",
+          "where": "Un bloc JSON-LD ProfilePage/Person sur chaque page de profil.",
+          "effort": "faible",
+          "evidence": "0 page(s) indexée(s) sur 1 déclarée(s), relevé du 24 septembre 2026",
+          "rank": 3
+        },
+        {
+          "id": "source-malt.fr",
+          "stage": "E2",
+          "title": "Être présent et à jour sur malt.fr",
+          "why": "Les réponses mesurées s'appuient massivement sur cette plateforme pour ce type d'offre. Y être absent, c'est être absent de la source que le moteur lit.",
+          "where": "Votre profil public sur malt.fr, avec les mêmes faits que votre page de référence.",
+          "effort": "moyen",
+          "evidence": "39,0 % des citations de la vague pointent vers malt.fr",
+          "rank": 4
+        }
+      ],
+      "dropped": 0,
+      "notActionable": []
+    },
+    "caveats": [
+      "Gemini et Copilot ne sont pas couverts par cette mesure : elle porte sur OpenAI, Anthropic et Perplexity.",
+      "Le refus de nommer des personnes n'a pas pu être établi sur cette vague : ce rapport ne se prononce donc pas sur ce comportement des moteurs.",
+      "L'extraction automatique des candidats a échoué sur 780 réponse(s) sur 780 : pour celles-là, les étapes « nommé » et « cinq premiers » reposent sur le seul recomptage déterministe."
+    ],
+    "simulated": false
+  },
+  "surface": {
+    "readableWithoutJs": false,
+    "robotsTxt": false,
+    "sitemap": false,
+    "structuredData": false,
+    "verifiedPlatforms": [
+      "github.com",
+      "linkedin.com"
+    ]
+  },
+  "costUsd": 15.790449,
+  "sourceCounts": {
+    "platform": {
+      "malt.fr": 908,
+      "free-work.com": 67,
+      "linkedin.com": 618,
+      "codeur.com": 12,
+      "malt.com": 58,
+      "github.com": 67,
+      "welcometothejungle.com": 1,
+      "cremedelacreme.io": 1,
+      "comet.co": 9,
+      "upwork.com": 14,
+      "gitlab.com": 2
+    },
+    "client": 0,
+    "other": 571
+  },
+  "possession": [
+    {
+      "host": "github.com",
+      "method": "profile_token",
+      "verifiedAt": "2026-09-23T17:28:06Z"
+    },
+    {
+      "host": "linkedin.com",
+      "method": "profile_token",
+      "verifiedAt": "2026-09-23T17:33:26Z"
+    }
+  ],
+  "remeasures": []
+}

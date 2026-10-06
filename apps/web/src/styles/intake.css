@@ -1,0 +1,136 @@
+/*
+ * Mise en page du formulaire d'inscription.
+ *
+ * Fichier séparé et importé par la seule page qui s'en sert, pour ne pas écrire dans les feuilles tenues par la
+ * session design (`base`, `landing`, `tokens`, `workspace`). Il n'invente aucune couleur ni aucune échelle : tout
+ * vient des tokens existants, pour que la page reste cohérente si le système change.
+ *
+ * Objectif volontairement modeste : rendre le formulaire **lisible et utilisable**. Sans ces règles, labels et champs
+ * se chevauchaient et le textarea flottait au milieu du texte — constaté en exécution, pas supposé.
+ */
+
+.intake {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 44rem;
+  padding-block: 2.5rem 4rem;
+}
+
+.intake > .lede {
+  color: var(--muted);
+  font-size: var(--step-1);
+  max-width: 34em;
+  text-wrap: pretty;
+}
+
+.intake-form {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.intake-form label {
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.intake-form input[type="text"],
+.intake-form input[type="email"],
+.intake-form input:not([type]),
+.intake-form textarea {
+  font: inherit;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.intake-form textarea {
+  resize: vertical;
+  min-height: 6rem;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+}
+
+.intake-form :is(input, textarea):focus-visible {
+  outline: 2px solid var(--proof);
+  outline-offset: 2px;
+  border-color: var(--proof);
+}
+
+/* La justification d'un champ se lit sous lui, jamais à la place du label. */
+.intake-hint {
+  color: var(--muted);
+  font-size: var(--step--1);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+
+.intake-consent {
+  display: flex;
+  align-items: start;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  font-weight: 400;
+}
+
+.intake-consent input {
+  margin-top: 0.2rem;
+  flex: none;
+}
+
+.intake-form button[type="submit"] {
+  font: inherit;
+  font-weight: 500;
+  justify-self: start;
+  margin-top: 1.25rem;
+  padding: 0.7rem 1.4rem;
+  color: var(--on-proof);
+  background: var(--proof);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.intake-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/*
+ * Le refus est la partie utile de ce formulaire : « aucune adresse vérifiable » dit exactement quoi changer.
+ * Il se place donc au-dessus des champs, et il est annoncé par `role="alert"`.
+ */
+.intake-error {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--signal);
+  border-radius: 10px;
+  background: var(--signal-wash);
+}
+
+.intake-error ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.intake-ok {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--proof);
+  border-radius: 10px;
+  background: var(--proof-wash);
+}
+
+/* La référence doit pouvoir être recopiée sans erreur : elle se lit en chiffres tabulaires, assez grande. */
+.intake-ref {
+  font-family: var(--mono);
+  font-size: var(--step-2);
+  letter-spacing: 0.06em;
+  user-select: all;
+}

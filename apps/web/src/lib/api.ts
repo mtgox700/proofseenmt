@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+import { getDb, users, type Actor } from "@proofseen/db";
+import { hasDatabase } from "@/data/intake-sink";
+import { session } from "./session";
+
+/*
+ * What every connected API route shares: one response envelope, one way to learn who is calling, one origin check.
+ *
+ * The envelope is `{ ok: true, data }` or `{ ok: false, error }`. Errors are short sentences meant for the person, never
+ * an underlying message: a driver error can carry a host name, a stack can carry a path.
+ */
+
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "erreur serveur";
+
+const STATUS: Record<ApiError, number> = {
+  "non-configuré": 503,
+  "non-connecté": 401,
+  introuvable: 404,
+  "requête invalide": 400,
+  "origine refusée": 403,
+  "trop de demandes": 429,
+  "en attente d'accord": 409,
+  "conversation fermée": 409,
+  "profil requis": 409,
+  "déjà candidat": 409,
+  "profil privé": 409,
+  "mission verrouillée": 409,
+  "coordonnées refusées": 422,
+  "erreur serveur": 500,
+};
+
+export const ok = <T>(data: T, status = 200): NextResponse => NextResponse.json({ ok: true, data }, { status });
+
+export const fail = (error: ApiError): NextResponse => NextResponse.json({ ok: false, error }, { status: STATUS[error] });
+
+/*
+ * Cross-site request forgery: the Clerk session cookie is sent with any same-site request, so a write must prove it
+ * comes from our own pages. Browsers always send `Origin` on a cross-origin POST; when it is present it must match.
+ */
+export const sameOrigin = (request: Request): boolean => {
+  const origin = request.headers.get("origin");
+  if (origin === null) return true;
+  try {
+    return new URL(origin).host === new URL(request.url).host;
+  } catch {
+    return false;
+  }
+};
+
+export type Caller = { readonly kind: "actor"; readonly actor: Actor } | { readonly kind: "refused"; readonly response: NextResponse };
+
+/** The signed-in person as a database actor, their row created on first use; or the response to send instead. */
+export const caller = async (): Promise<Caller> => {
+  if (!hasDatabase()) return { kind: "refused", response: fail("non-configuré") };
+  const state = await session();
+  if (state.kind === "unconfigured") return { kind: "refused", response: fail("non-configuré") };
+  if (state.kind === "signed-out" || state.person.email === "") return { kind: "refused", response: fail("non-connecté") };
+  const { userId } = await users(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  return { kind: "actor", actor: { userId } };
+};
+
+const MAX_JSON_BYTES = 32_768;
+
+/*
+ * The JSON body, or `null` when it is unreadable or larger than `maxBytes`. The body is read as a stream and abandoned
+ * as soon as it passes the cap: a declared length can be absent or false, and buffering first would let one request
+ * hold megabytes of memory.
+ */
+export const readJson = async (request: Request, maxBytes = MAX_JSON_BYTES): Promise<unknown> => {
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (request.body === null) return null;
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
+  } catch {
+    return null;
+  }
+};
+
+/** Like `readJson`, but only for a request that says it carries JSON: a cross-site form cannot set that header. */
+export const jsonBody = async (request: Request): Promise<unknown> =>
+  (request.headers.get("content-type") ?? "").startsWith("application/json") ? readJson(request) : null;
