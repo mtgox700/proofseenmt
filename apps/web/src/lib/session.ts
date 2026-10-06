@@ -56,3 +56,9 @@ export const chooseRole = async (userId: string, role: ChosenRole): Promise<void
   if (isChosenRole(user.publicMetadata.role)) return;
   await client.users.updateUserMetadata(userId, { publicMetadata: { role } });
 };
+
+/** Deletes the sign-in account itself, once the database has erased the person: their sessions end with it. */
+export const deleteSignInAccount = async (userId: string): Promise<void> => {
+  const client = await clerkClient();
+  await client.users.deleteUser(userId);
+};
