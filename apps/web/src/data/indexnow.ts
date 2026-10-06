@@ -1,5 +1,5 @@
 import { INDEXNOW_ENDPOINT, INDEXNOW_KEY, indexNowOutcome } from "@proofseen/profiles";
-import { missionUrl } from "@proofseen/hub";
+import { missionUrl, profileUrl } from "@proofseen/hub";
 
 /*
  * Tells IndexNow (Bing, Yandex, Seznam… one notification shared between them) that a mission page appeared or went
@@ -28,15 +28,18 @@ const configuredBase = (): string | null => {
 };
 
 export const notifyMissionChanged = (missionId: string): void => {
+  notify((base) => [missionUrl(base, "fr", missionId), missionUrl(base, "en", missionId), `${base}/sitemap-missions.xml`]);
+};
+
+export const notifyProfileChanged = (slug: string): void => {
+  notify((base) => [profileUrl(base, "fr", slug), profileUrl(base, "en", slug), `${base}/sitemap-profiles.xml`]);
+};
+
+const notify = (urlsFor: (base: string) => readonly string[]): void => {
   const key = indexNowKey();
   const base = configuredBase();
   if (key === null || base === null) return;
-  const body = {
-    host: new URL(base).host,
-    key,
-    keyLocation: `${base}${KEY_PATH}`,
-    urlList: [missionUrl(base, "fr", missionId), missionUrl(base, "en", missionId), `${base}/sitemap-missions.xml`],
-  };
+  const body = { host: new URL(base).host, key, keyLocation: `${base}${KEY_PATH}`, urlList: urlsFor(base) };
   void fetch(INDEXNOW_ENDPOINT, {
     method: "POST",
     headers: { "content-type": "application/json; charset=utf-8" },
