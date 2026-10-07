@@ -6,7 +6,7 @@ import type { Prisma } from "./generated/client";
 import type { ContractStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
-import { VIGILANCE_THRESHOLD_CENTS, vigilanceExpiresOn } from "./vigilance";
+import { contractBlocker } from "./contract-checks";
 
 /*
  * Contrats. Un contrat naît d'un devis accepté et en reprend exactement les conditions ; il fige l'identité légale des
@@ -60,6 +60,12 @@ export type CreateContractResult =
   | { readonly kind: "vigilance_required" }
   | { readonly kind: "absent" };
 
+export type SignResult =
+  | { readonly kind: "signed"; readonly contract: ContractRecord }
+  | { readonly kind: "registry_ceased" }
+  | { readonly kind: "vigilance_required" }
+  | { readonly kind: "absent" };
+
 export type CompleteResult =
   | { readonly kind: "completed"; readonly contract: ContractRecord }
   /** Aucun paiement bloqué : l'entreprise doit d'abord payer. */
@@ -68,9 +74,9 @@ export type CompleteResult =
 
 export interface Contracts {
   /** L'une ou l'autre partie crée le contrat d'un devis accepté. */
-  createFromQuote(actor: Actor, quoteId: string, draft: ContractDraft): Promise<CreateContractResult>;
+  createFromQuote(actor: Actor, quoteId: string, draft: ContractDraft, now?: Date): Promise<CreateContractResult>;
   /** L'acteur signe pour son côté ; le contrat devient actif à la seconde signature. */
-  sign(actor: Actor, contractId: string, now: Date): Promise<ContractRecord | null>;
+  sign(actor: Actor, contractId: string, now: Date): Promise<SignResult>;
   /** Un membre de l'entreprise valide la prestation : le contrat actif est terminé. */
   complete(actor: Actor, contractId: string): Promise<CompleteResult>;
   /** L'une ou l'autre partie annule un contrat pas encore signé par les deux. */
@@ -112,7 +118,7 @@ const notifyParties = async (db: Db, tx: Prisma.TransactionClient, contractId: s
 };
 
 export const contracts = (db: Db): Contracts => ({
-  async createFromQuote(actor, quoteId, raw) {
+  async createFromQuote(actor, quoteId, raw, now = new Date()) {
     if (!Uuid.safeParse(quoteId).success) return { kind: "absent" };
     const draft = ContractDraftSchema.parse(raw);
     try {
@@ -136,15 +142,8 @@ export const contracts = (db: Db): Contracts => ({
         // Le devis est clos : le fil reste libre pour une vraie mission.
         const sameCompany = buyer.siret !== null && seller.siret !== null && buyer.siret.slice(0, 9) === seller.siret.slice(0, 9);
         const insider = await tx.membership.count({ where: { organisationId, user: { freelanceProfile: { id: profileId } } } });
-        const ceased = await Promise.all([
-          tx.billingIdentity.count({ where: { profileId, registryStatus: "ceased" } }),
-          tx.organisation.count({ where: { id: organisationId, registryStatus: "ceased" } }),
-        ]);
-        if (ceased.some((n) => n > 0)) return { kind: "registry_ceased" };
-        if (quote.totalCents >= VIGILANCE_THRESHOLD_CENTS) {
-          const attestation = await tx.vigilanceAttestation.findUnique({ where: { profileId }, select: { issuedOn: true } });
-          if (attestation === null || vigilanceExpiresOn(attestation.issuedOn).getTime() <= Date.now()) return { kind: "vigilance_required" };
-        }
+        const blocker = await contractBlocker(tx, { organisationId, profileId, currency: quote.currency, addedCents: quote.totalCents, now });
+        if (blocker !== null) return { kind: blocker };
         if (sameCompany || insider > 0) {
           await tx.quote.update({ where: { id: quoteId }, data: { status: "closed" } });
           return { kind: "self_dealing" };
@@ -176,13 +175,18 @@ export const contracts = (db: Db): Contracts => ({
   },
 
   async sign(actor, contractId, now) {
-    if (!Uuid.safeParse(contractId).success) return null;
-    return db.$transaction(async (tx) => {
+    if (!Uuid.safeParse(contractId).success) return { kind: "absent" };
+    return db.$transaction(async (tx): Promise<SignResult> => {
       const contract = await tx.contract.findFirst({
         where: { id: contractId, status: "pending_signatures", ...party(actor.userId) },
-        select: { profile: { select: { userId: true } }, organisationId: true },
+        select: { profile: { select: { userId: true } }, organisationId: true, profileId: true, currency: true, totalCents: true },
       });
-      if (contract === null) return null;
+      if (contract === null) return { kind: "absent" };
+      // Entre la création et la signature, une entreprise peut fermer, une attestation expirer.
+      if (contract.organisationId !== null && contract.profileId !== null) {
+        const blocker = await contractBlocker(tx, { organisationId: contract.organisationId, profileId: contract.profileId, currency: contract.currency, addedCents: contract.totalCents, contractId, now });
+        if (blocker !== null) return { kind: blocker };
+      }
       const side = contract.profile?.userId === actor.userId ? "acceptedByFreelanceAt" : "acceptedByOrgAt";
       // La signature et le passage en « actif » dans une seule instruction : la seconde signature voit la première.
       const rows = await tx.$queryRaw<{ id: string }[]>`
@@ -196,10 +200,10 @@ export const contracts = (db: Db): Contracts => ({
           "updatedAt" = ${now}
         WHERE "id" = ${contractId}::uuid AND "status" = 'pending_signatures'
         RETURNING "id"`;
-      if (rows.length === 0) return null;
+      if (rows.length === 0) return { kind: "absent" };
       const signed = await tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: SELECT });
       if (signed.status === "active") await notifyParties(db, tx, contractId, "active", actor.userId);
-      return signed;
+      return { kind: "signed", contract: signed };
     });
   },
 

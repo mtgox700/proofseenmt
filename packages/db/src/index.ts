@@ -80,6 +80,7 @@ export {
   type Billing,
   type BillingIdentityInput,
   type LegalSnapshot,
+  type SaveIdentityResult,
 } from "./billing";
 export {
   BELOW_MINIMUM,
@@ -128,5 +129,6 @@ export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./s
 export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./validation-reminders";
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
 export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, type FeedbackPeriod, type FeedbackSummary } from "./feedback";
-export { REGISTRY_RECHECK_DAYS, registry, registryVerdict, type RegistrySubject } from "./registry";
-export { VIGILANCE_THRESHOLD_CENTS, VIGILANCE_VALIDITY_MONTHS, vigilance, VigilanceInputSchema, vigilanceExpiresOn, type VigilanceInput, type VigilanceStatus } from "./vigilance";
+export { REGISTRY_RECHECK_DAYS, registry, registryVerdict, sameEntityName, type RegistryAnswer, type RegistrySubject } from "./registry";
+export { contractBlocker, VIGILANCE_THRESHOLD_BY_CURRENCY, type ContractBlocker } from "./contract-checks";
+export { VIGILANCE_VALIDITY_MONTHS, vigilance, VigilanceInputSchema, vigilanceExpiresOn, type VigilanceInput, type VigilanceStatus } from "./vigilance";

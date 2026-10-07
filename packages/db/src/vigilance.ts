@@ -13,11 +13,16 @@ import { notifications } from "./notifications";
  * une attestation déclarée n'est pas une attestation prouvée.
  */
 
-export const VIGILANCE_THRESHOLD_CENTS = 500_000;
 export const VIGILANCE_VALIDITY_MONTHS = 6;
 export const VIGILANCE_REMINDER_DAYS = 30;
 
 const DAY_MS = 86_400_000;
+
+const sixMonthsBefore = (now: Date): Date => {
+  const d = new Date(now);
+  d.setUTCMonth(d.getUTCMonth() - VIGILANCE_VALIDITY_MONTHS);
+  return d;
+};
 
 /** Date d'échéance : six mois calendaires après la délivrance. */
 export const vigilanceExpiresOn = (issuedOn: Date): Date => {
@@ -67,13 +72,19 @@ export const vigilance = (db: Db) => ({
   },
 
   /** Ce qu'un opérateur doit contrôler sur le site de l'URSSAF : date de délivrance et code de sécurité. */
-  async forReference(reference: string): Promise<{ readonly issuedOn: Date; readonly securityCode: string; readonly verifiedAt: Date | null } | null> {
-    return db.vigilanceAttestation.findFirst({ where: { profile: { reference } }, select: { issuedOn: true, securityCode: true, verifiedAt: true } });
+  async forReference(reference: string): Promise<{ readonly issuedOn: Date; readonly securityCode: string; readonly verifiedAt: Date | null; readonly siret: string | null; readonly legalName: string | null } | null> {
+    const row = await db.vigilanceAttestation.findFirst({
+      where: { profile: { reference } },
+      select: { issuedOn: true, securityCode: true, verifiedAt: true, profile: { select: { billing: { select: { siret: true, legalName: true } } } } },
+    });
+    if (row === null) return null;
+    return { issuedOn: row.issuedOn, securityCode: row.securityCode, verifiedAt: row.verifiedAt, siret: row.profile.billing?.siret ?? null, legalName: row.profile.billing?.legalName ?? null };
   },
 
   /** Un opérateur a vérifié le code sur le site de l'URSSAF ; rend `false` si le profil n'a pas d'attestation. */
-  async markVerified(reference: string, now: Date): Promise<boolean> {
-    const { count } = await db.vigilanceAttestation.updateMany({ where: { profile: { reference } }, data: { verifiedAt: now } });
+  async markVerified(reference: string, securityCode: string, now: Date): Promise<boolean> {
+    // Le code contrôlé fait partie de la condition : une attestation redéclarée entre-temps n'est pas marquée à sa place.
+    const { count } = await db.vigilanceAttestation.updateMany({ where: { profile: { reference }, securityCode: securityCode.replace(/[\s-]/g, "").toUpperCase() }, data: { verifiedAt: now } });
     return count === 1;
   },
 
@@ -83,7 +94,8 @@ export const vigilance = (db: Db) => ({
     const horizon = new Date(now.getTime() + VIGILANCE_REMINDER_DAYS * DAY_MS);
     horizon.setUTCMonth(horizon.getUTCMonth() - VIGILANCE_VALIDITY_MONTHS);
     const due = await db.vigilanceAttestation.findMany({
-      where: { remindedAt: null, issuedOn: { lt: horizon } },
+      // Échue : plus rien à rappeler, la règle des contrats s'applique déjà.
+      where: { remindedAt: null, issuedOn: { lt: horizon, gt: sixMonthsBefore(now) } },
       select: { id: true, issuedOn: true, profile: { select: { userId: true } } },
       take: 200,
     });
