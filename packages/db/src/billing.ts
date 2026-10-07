@@ -92,16 +92,21 @@ export const billing = (db: Db): Billing => ({
     const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
     if (profile === null) return false;
     const data = { legalName: input.legalName, siret: input.siret, vatNumber: input.vatNumber, address: input.address as Prisma.InputJsonObject, vatRateBp: input.vatRateBp };
-    await db.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: data });
+    const before = await db.billingIdentity.findUnique({ where: { profileId: profile.id }, select: { siret: true } });
+    // Un SIRET changé n'a plus de verdict : le contrôle au répertoire repart de zéro.
+    const recheck = before === null || before.siret !== input.siret ? { registryStatus: null, registryCheckedAt: null } : {};
+    await db.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: { ...data, ...recheck } });
     return true;
   },
 
   async setOrganisationIdentity(actor, organisationId, raw) {
     if (!z.uuid().safeParse(organisationId).success) return false;
     const input = BillingIdentitySchema.parse(raw);
+    const before = await db.organisation.findUnique({ where: { id: organisationId }, select: { siret: true } });
+    const recheck = before === null || before.siret !== input.siret ? { registryStatus: null, registryCheckedAt: null } : {};
     const { count } = await db.organisation.updateMany({
       where: { id: organisationId, members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } },
-      data: { name: input.legalName, siret: input.siret, vatNumber: input.vatNumber, billingAddress: input.address as Prisma.InputJsonObject },
+      data: { name: input.legalName, siret: input.siret, vatNumber: input.vatNumber, billingAddress: input.address as Prisma.InputJsonObject, ...recheck },
     });
     return count === 1;
   },

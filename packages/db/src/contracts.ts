@@ -53,6 +53,8 @@ export type CreateContractResult =
   | { readonly kind: "already_exists" }
   /** Vendeur et acheteur ne font qu'un (même SIREN, ou freelance membre de l'entreprise) : le devis est clos. */
   | { readonly kind: "self_dealing" }
+  /** Le répertoire officiel dit l'une des deux entreprises fermée : on ne contracte pas avec une entreprise qui n'existe plus. */
+  | { readonly kind: "registry_ceased" }
   | { readonly kind: "absent" };
 
 export type CompleteResult =
@@ -131,6 +133,11 @@ export const contracts = (db: Db): Contracts => ({
         // Le devis est clos : le fil reste libre pour une vraie mission.
         const sameCompany = buyer.siret !== null && seller.siret !== null && buyer.siret.slice(0, 9) === seller.siret.slice(0, 9);
         const insider = await tx.membership.count({ where: { organisationId, user: { freelanceProfile: { id: profileId } } } });
+        const ceased = await Promise.all([
+          tx.billingIdentity.count({ where: { profileId, registryStatus: "ceased" } }),
+          tx.organisation.count({ where: { id: organisationId, registryStatus: "ceased" } }),
+        ]);
+        if (ceased.some((n) => n > 0)) return { kind: "registry_ceased" };
         if (sameCompany || insider > 0) {
           await tx.quote.update({ where: { id: quoteId }, data: { status: "closed" } });
           return { kind: "self_dealing" };

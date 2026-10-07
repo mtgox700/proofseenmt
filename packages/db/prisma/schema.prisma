@@ -82,6 +82,13 @@ enum MemberRole {
   member
 }
 
+/// État d'un SIRET dans le répertoire officiel des entreprises (API publique Recherche d'entreprises), à la date du contrôle.
+enum RegistryStatus {
+  active    // établissement et entreprise actifs
+  ceased    // établissement ou entreprise fermés
+  not_found // inconnu du répertoire
+}
+
 enum JobPostStatus {
   draft
   open
@@ -168,6 +175,9 @@ model Organisation {
   siret          String?
   vatNumber      String?
   billingAddress Json?
+  /// Contrôle du SIRET au répertoire officiel ; remis à zéro quand le SIRET change.
+  registryStatus    RegistryStatus?
+  registryCheckedAt DateTime?       @db.Timestamptz(3)
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -246,6 +256,9 @@ model BillingIdentity {
   stripeAccountId String? @unique
   /// Date à laquelle Stripe a confirmé que le compte peut recevoir des versements ; aucun versement avant.
   payoutsEnabledAt DateTime? @db.Timestamptz(3)
+  /// Contrôle du SIRET au répertoire officiel ; remis à zéro quand le SIRET change.
+  registryStatus    RegistryStatus?
+  registryCheckedAt DateTime?       @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 

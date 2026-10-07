@@ -128,3 +128,4 @@ export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./s
 export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./validation-reminders";
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
 export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, type FeedbackPeriod, type FeedbackSummary } from "./feedback";
+export { REGISTRY_RECHECK_DAYS, registry, registryVerdict, type RegistrySubject } from "./registry";
