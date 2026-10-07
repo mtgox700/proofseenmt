@@ -21,6 +21,8 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
 | `RESEND_API_KEY`, `NOTIFY_FROM` | e-mails | notifications en file, rien d'envoyé |
 | `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_WEBHOOK_SECRET` | séquestre, mode test — **repoussé à la fin du projet (founder, 2026-10-07)** | paiements « non configurés » |
 | `PROOFSEEN_COMMISSION_BP` | taux de commission en points de base : **1000 (10 %), décidé le 2026-10-07** | aucun paiement ne s'ouvre |
+| `PROOFSEEN_REPEAT_COMMISSION_BP` | taux de fidélité (freelance déjà payé par la même entreprise) : **500 (5 %) par défaut**, appliqué seulement s'il est plus bas | le défaut de 5 % s'applique |
+| `x-real-ip` (hébergeur) | vérifier que l'hébergeur le réécrit : la limite par adresse de l'API `/api/v1` s'appuie dessus | un tiers peut viser la limite d'une autre adresse |
 | `PROOFSEEN_LEGAL_NAME`, `PROOFSEEN_SIRET`, `PROOFSEEN_VAT_NUMBER`, `PROOFSEEN_ADDRESS_LINE1`, `PROOFSEEN_ADDRESS_POSTAL_CODE`, `PROOFSEEN_ADDRESS_CITY`, `PROOFSEEN_ADDRESS_COUNTRY` | émetteur des factures de commission : **e-kigai (Spar-X)**, renseigné le 2026-10-07 | aucun versement (facture impossible) |
 | `ANTHROPIC_API_KEY`, `PROOFSEEN_BRIEF_DAILY_CAP` | traduction des briefs en filtres (C9) ; plafond journalier, 300 par défaut | la page retombe sur le formulaire |
 | `PROOFSEEN_MONTHLY_BILLING` | `on` ouvre la régie dans l'application, seulement quand le paiement mensuel existe | devis en régie refusés |

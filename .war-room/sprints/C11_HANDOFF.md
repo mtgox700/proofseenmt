@@ -15,6 +15,7 @@
 | Export comptable CSV (point-virgule, virgule décimale, BOM, garde contre l'injection de formules, période en jours de Paris) | `packages/invoicing/src/accounting-csv.ts`, `GET /api/v1/invoices/export`, `GET /api/organisations/[id]/accounting-export` |
 | Facture de mission en code 380 (tiers mandaté), plus 389 | `packages/invoicing/src/cii.ts` |
 | Délais de transaction adaptés à une base distante | `packages/db/src/client.ts` |
+| Commission de fidélité : `repeatClient` figé à la création du contrat (déjà payé par cette entreprise), 5 % au paiement si plus bas que le taux normal | `contracts.ts`, `payments.ts` (`open`), `PROOFSEEN_REPEAT_COMMISSION_BP`, migration `…_repeat_client` |
 
 **« Équipe » = centre de coûts.** Le test « entreprise à trois équipes » (`packages/db/test/company-api.test.ts`) fait
 jouer à trois administrateurs, chacun avec son centre de coûts, le parcours mission → contrat → paiement → double
@@ -30,13 +31,12 @@ validation → versement. Il n'y a pas de modèle « équipe » à part : à cr�
 Ce passage a trouvé un vrai défaut, invisible des tests : une transaction expirait à 5 s face à Railway.
 
 Relecture sécurité : 0 critique, 0 haute ; 4 moyennes et 6 basses, toutes corrigées et testées, sauf la dixième, qui
-relève du déploiement. Les migrations `…_large_accounts`, `…_api_keys` et `…_large_accounts_hardening` sont appliquées
+relève du déploiement. Les migrations `…_large_accounts`, `…_api_keys`, `…_large_accounts_hardening` et `…_repeat_client` sont appliquées
 sur Railway.
 
 ## Reste à faire
 
-1. **Lot C : commission de fidélité à 5 %** (`PROOFSEEN_REPEAT_COMMISSION_BP`), dès qu'un freelance a déjà été payé
-   par la même entreprise. Taux figé au contrat et affiché avant signature (voir `C11_DECISIONS.md`).
+1. Écran du contrat : afficher au freelance, avant sa signature, le taux qui s'appliquera (`repeatClient`).
 2. **Frais client Vivier+ à 3 %**, en même temps que les paiements réels (GO PAIEMENT LIVE). Il faudra une troisième
    facture, de Proofseen à l'entreprise.
 3. **Au déploiement** : vérifier que l'hébergeur réécrit `x-real-ip`. Sinon, la limite par adresse de l'API de lecture

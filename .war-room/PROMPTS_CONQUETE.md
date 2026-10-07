@@ -470,7 +470,7 @@ GO.
 | C8 | 2027-01-11 → 01-24 | Confiance vérifiée | 🟡 | SIRET au répertoire (nom vérifié, un SIRET par partie), faits vérifiés publics, attestation URSSAF (vérifiée par opérateur, contrôlée à la création et à la signature), red team corrigée ; restent l'identité Stripe (Stripe en fin de projet) et les écrans — `sprints/C8_HANDOFF.md` |
 | C9 | 2027-01-25 → 02-07 | Recherche sans score | 🟡 | Brief → filtres (Haiku, 0,00053 $/brief, plafonds), aucun tri du modèle (test AI Act), délai de réponse des entreprises, entonnoir ; exécuté sur Railway ; restent les écrans (session design) — `sprints/C9_HANDOFF.md` |
 | C10 | 2027-02-08 → 02-21 | Régie, facturation électronique, trésorerie | 🟡 | Relevés mensuels (règles en base), mandat de facturation, facture électronique CII ; prépaiement mensuel reporté avec Stripe (régie fermée côté application d'ici là), plateforme agréée choisie : Super PDP, en bac à sable au déploiement (`sprints/C11_DECISIONS.md`) — `sprints/C10_HANDOFF.md` |
-| C11 | 2027-02-22 → 03-07 | Grands comptes et ESN | 🟡 | Validation à deux niveaux, centres de coûts, vivier privé, clés d'API, API de lecture et export comptable faits, exécutés sur Railway, relecture sécurité fermée ; tarification décidée (`sprints/C11_DECISIONS.md`) ; restent commission de fidélité à 5 % (lot C) et écrans — `sprints/C11_HANDOFF.md` |
+| C11 | 2027-02-22 → 03-07 | Grands comptes et ESN | 🟡 | Validation à deux niveaux, centres de coûts, vivier privé, clés d'API, API de lecture et export comptable faits, exécutés sur Railway, relecture sécurité fermée ; tarification décidée (`sprints/C11_DECISIONS.md`) et commission de fidélité à 5 % faite ; restent frais client Vivier+ (avec les paiements réels) et écrans — `sprints/C11_HANDOFF.md` |
 
 ---
 
