@@ -30,3 +30,10 @@
 .thread-row > .row-actions form { display: contents; }
 .tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .form-ok { padding: var(--space-3) var(--space-4); border: 1px solid var(--proof); border-radius: var(--radius); background: var(--proof-wash); color: var(--ink); }
+
+/* ---------- Grouped fields and checkboxes ---------- */
+.fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fieldset legend { margin-bottom: var(--space-2); font-size: var(--step--1); font-weight: 600; }
+.field-inline { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: var(--space-3); }
+.field-inline input[type="checkbox"] { width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--proof); }
+.field-inline .field-hint { grid-column: 2; }

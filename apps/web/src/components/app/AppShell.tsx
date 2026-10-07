@@ -21,8 +21,9 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const messages = { href: `${base}/messages`, label: t.app.nav.messages };
   const m = marketDictionary(lang).missions.nav;
   if (person.role === "operator") return [home, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
-  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
-  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, { href: `${base}/missions`, label: m.freelance }, messages, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
+  const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
+  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, billing, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, { href: `${base}/missions`, label: m.freelance }, messages, billing, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
 export function AppShell({ lang, t, person, children }: AppShellProps) {
