@@ -5,6 +5,7 @@ import { recordPathFor } from "./record-path";
 import { commandAccess, commandIntake } from "./intake";
 import { commandFeedback } from "./feedback";
 import { commandFunnel } from "./funnel";
+import { commandVigilance } from "./vigilance";
 import { commandMarketplaceVerify } from "./marketplace-verify";
 import { commandPayment } from "./payment";
 import { corpusDirFor, identityPathFor, manifestPathFor } from "./client-paths";
@@ -45,6 +46,7 @@ const USAGE = `Proofseen CLI (V0)
   site-verify --out <dossier publié> --base-url <https://…>   (compare le site déployé au dossier)
   marketplace-verify --base-url <https://…> [--limit 50]   (profils et missions publics servis depuis la base, vus par chaque robot ; DATABASE_URL requise)
   feedback [--from AAAA-MM-JJ] [--kind bug|missing|idea|other] [--limit 20]   (retours de la bêta ; DATABASE_URL requise)
+  vigilance --reference FR-XXXXX [--verified]   (attestation URSSAF : code à contrôler à la main, puis marquage vérifié)
   funnel [--from AAAA-MM-JJ] [--to AAAA-MM-JJ]   (entonnoir des deux côtés, totaux par étape ; DATABASE_URL requise)
   indexnow --out <dossier publié> --base-url <https://…> [--confirm-submit]   (rien n'est envoyé sans le flag)
   wave-status --wave <id> [--manifest <file>]   (avancement, coût, échéance de purge)
@@ -76,6 +78,7 @@ const main = async (argv: readonly string[]): Promise<void> => {
       expected: { type: "string" },
       "confirm-submit": { type: "boolean", default: false },
       verify: { type: "boolean", default: false },
+      verified: { type: "boolean", default: false },
       journal: { type: "string" },
       record: { type: "string" },
       reference: { type: "string" },
@@ -237,6 +240,8 @@ const main = async (argv: readonly string[]): Promise<void> => {
       return commandMarketplaceVerify({ log: common.log, baseUrl: need("base-url", values["base-url"]), timeoutMs: Number(values.timeout), limit: Number(values.limit ?? 50) });
     case "feedback":
       return commandFeedback({ log: common.log, from: values.from, kind: values.kind, limit: Number(values.limit ?? 20) });
+    case "vigilance":
+      return commandVigilance({ log: common.log, reference: need("reference", values.reference), verified: values.verified === true });
     case "funnel":
       return commandFunnel({ log: common.log, from: values.from, to: values.to });
     case "indexnow":
