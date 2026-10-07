@@ -20,6 +20,8 @@ export const PLATFORM_DOMAINS = [
   "x.com",
   "twitter.com",
   "youtube.com",
+  // Notre propre domaine : l'indicateur de conquête est sa part des citations, face à Malt et LinkedIn.
+  "proofseen.com",
 ] as const;
 
 export type HostClass = `platform:${string}` | "client" | "other";

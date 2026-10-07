@@ -20,6 +20,14 @@ describe("domains", () => {
     expect(JSON.stringify(tally)).not.toContain("oconnor");
   });
 
+  it("counts proofseen.com by name: its share of citations is the conquest indicator", () => {
+    expect(tallyCitedDomains(["https://proofseen.com/fr/profils/fr-abcde", "https://www.malt.fr/profile/x"], identity)).toEqual({
+      platform: { "proofseen.com": 1, "malt.fr": 1 },
+      client: 0,
+      other: 0,
+    });
+  });
+
   it("counts an unparseable URL as other", () => {
     expect(tallyCitedDomains(["not a url"], identity)).toEqual({ platform: {}, client: 0, other: 1 });
   });
