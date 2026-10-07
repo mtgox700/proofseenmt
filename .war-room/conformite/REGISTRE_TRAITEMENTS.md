@@ -3,7 +3,9 @@
 > Brouillon technique écrit le 2026-10-06 depuis le schéma de la base (`packages/db/prisma/schema.prisma`) et le code.
 > Il décrit ce que le logiciel fait réellement ; la relecture juridique reste au founder, à la fin.
 
-Responsable de traitement : l'entité Proofseen (variables `PROOFSEEN_LEGAL_NAME`, `PROOFSEEN_SIRET`, à renseigner).
+Responsable de traitement : **e-kigai**, SCOP SAS à capital variable (marque Spar-X), SIREN 999 138 050, siège 1 Allée des
+Écuries, 64600 Anglet — décision du founder du 2026-10-07 de reprendre les mentions légales de Spar-X
+(https://www.spar-x.fr/mentions.html). Contact pour l'exercice des droits : data@spar-x.fr.
 
 | # | Traitement | Personnes | Données | Base légale | Conservation (appliquée par) |
 |---|---|---|---|---|---|

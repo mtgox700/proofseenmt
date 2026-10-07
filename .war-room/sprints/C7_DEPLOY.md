@@ -5,20 +5,23 @@
 
 ## 1. Variables d'environnement (noms seulement, jamais de valeur dans un fichier versionné)
 
+Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la ligne de commande et les migrations lisent le
+`.env` de la racine. `DATABASE_URL` doit être dans les deux.
+
 | Variable | Rôle | Sans elle |
 |---|---|---|
 | `DATABASE_URL` | Postgres Railway (URL interne si l'application tourne sur Railway, publique sinon) | site public sans base : pages missions/profils/métiers absentes, API « non-configuré » |
 | `DATABASE_POOL_MAX` | taille du pool (5 par défaut) | défaut |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | connexion (`pk_…`, `sk_…`) | espace connecté désactivé |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | connexion (`pk_…`, `sk_…`) — les clés actuelles sont celles d'une instance **de développement** (vérifié le 2026-10-07) : créer l'instance de production Clerk et son domaine au déploiement | espace connecté désactivé |
 | `OPERATOR_EMAILS` | adresses opérateur (liste) | aucun opérateur |
 | `PROOFSEEN_ACCESS_SECRET` | HMAC du limiteur de débit et des liens d'espace (≥ 32 caractères) | limiteur partagé désactivé |
 | `CRON_SECRET` | appel de la tâche planifiée et détail de `/api/health` (≥ 32 caractères) | tâche planifiée refusée (401) |
 | `PROOFSEEN_PUBLIC_URL` | adresse publique (sitemaps, IndexNow, liens des e-mails) | adresse déduite de la requête |
 | `INDEXNOW_KEY` | notification Bing/Yandex à chaque publication | aucune notification |
 | `RESEND_API_KEY`, `NOTIFY_FROM` | e-mails | notifications en file, rien d'envoyé |
-| `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_WEBHOOK_SECRET` | séquestre, mode test | paiements « non configurés » |
-| `PROOFSEEN_COMMISSION_BP` | taux de commission en points de base (**décision founder**) | aucun paiement ne s'ouvre |
-| `PROOFSEEN_LEGAL_NAME`, `PROOFSEEN_SIRET`, `PROOFSEEN_VAT_NUMBER`, `PROOFSEEN_ADDRESS_LINE1`, `PROOFSEEN_ADDRESS_POSTAL_CODE`, `PROOFSEEN_ADDRESS_CITY`, `PROOFSEEN_ADDRESS_COUNTRY` | émetteur des factures de commission | aucun versement (facture impossible) |
+| `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_WEBHOOK_SECRET` | séquestre, mode test — **repoussé à la fin du projet (founder, 2026-10-07)** | paiements « non configurés » |
+| `PROOFSEEN_COMMISSION_BP` | taux de commission en points de base : **1000 (10 %), décidé le 2026-10-07** | aucun paiement ne s'ouvre |
+| `PROOFSEEN_LEGAL_NAME`, `PROOFSEEN_SIRET`, `PROOFSEEN_VAT_NUMBER`, `PROOFSEEN_ADDRESS_LINE1`, `PROOFSEEN_ADDRESS_POSTAL_CODE`, `PROOFSEEN_ADDRESS_CITY`, `PROOFSEEN_ADDRESS_COUNTRY` | émetteur des factures de commission : **e-kigai (Spar-X)**, renseigné le 2026-10-07 | aucun versement (facture impossible) |
 | `PROOFSEEN_PAYMENTS_LIVE` | `GO` seulement après « GO PAIEMENT LIVE » | les clés `sk_live_` sont refusées |
 | `NEXT_PUBLIC_PAYMENT_LINK_AUDIT`, `NEXT_PUBLIC_PAYMENT_LINK_TURNKEY` | liens de prévente existants | boutons masqués |
 
