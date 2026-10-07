@@ -22,6 +22,7 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
 | `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_WEBHOOK_SECRET` | séquestre, mode test — **repoussé à la fin du projet (founder, 2026-10-07)** | paiements « non configurés » |
 | `PROOFSEEN_COMMISSION_BP` | taux de commission en points de base : **1000 (10 %), décidé le 2026-10-07** | aucun paiement ne s'ouvre |
 | `PROOFSEEN_LEGAL_NAME`, `PROOFSEEN_SIRET`, `PROOFSEEN_VAT_NUMBER`, `PROOFSEEN_ADDRESS_LINE1`, `PROOFSEEN_ADDRESS_POSTAL_CODE`, `PROOFSEEN_ADDRESS_CITY`, `PROOFSEEN_ADDRESS_COUNTRY` | émetteur des factures de commission : **e-kigai (Spar-X)**, renseigné le 2026-10-07 | aucun versement (facture impossible) |
+| `ANTHROPIC_API_KEY`, `PROOFSEEN_BRIEF_DAILY_CAP` | traduction des briefs en filtres (C9) ; plafond journalier, 300 par défaut | la page retombe sur le formulaire |
 | `PROOFSEEN_PAYMENTS_LIVE` | `GO` seulement après « GO PAIEMENT LIVE » | les clés `sk_live_` sont refusées |
 | `NEXT_PUBLIC_PAYMENT_LINK_AUDIT`, `NEXT_PUBLIC_PAYMENT_LINK_TURNKEY` | liens de prévente existants | boutons masqués |
 
