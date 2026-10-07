@@ -181,6 +181,7 @@ model User {
   feedback                Feedback[]
   timesheetDecisions      Timesheet[]              @relation("TimesheetDecider")
   contractApprovals       ContractApproval[]
+  apiKeysCreated          ApiKey[]
 }
 
 model Organisation {
@@ -208,6 +209,7 @@ model Organisation {
   jobPosts      JobPost[]
   conversations Conversation[]
   contracts     Contract[]
+  apiKeys       ApiKey[]
 }
 
 model Membership {
@@ -623,6 +625,27 @@ model ContractApproval {
 
   @@unique([contractId, userId])
   @@index([contractId])
+}
+
+/// Clé d'API d'une entreprise, en lecture seule (contrats et factures de mission). Seule l'empreinte SHA-256 est gardée :
+/// la clé n'est montrée qu'une fois, à sa création. Une clé révoquée l'est pour toujours (déclencheur).
+model ApiKey {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  organisationId  String    @db.Uuid
+  name            String
+  /// Début de la clé, affiché pour la reconnaître ; ne suffit pas à s'en servir.
+  prefix          String
+  hash            String    @unique
+  /// Nul si l'administrateur qui l'a créée a depuis effacé son compte.
+  createdByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
+  lastUsedAt      DateTime? @db.Timestamptz(3)
+  revokedAt       DateTime? @db.Timestamptz(3)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId])
 }
 
 model StripeEvent {

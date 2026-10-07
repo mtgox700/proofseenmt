@@ -219,15 +219,20 @@ export const contracts = (db: Db): Contracts => ({
       // Valider déclenche le versement : réservé aux administrateurs de l'entreprise, jamais au freelance du contrat.
       const mine = { id: contractId, status: "active" as const, organisation: { members: { some: { userId: actor.userId, role: { in: ["owner" as const, "admin" as const] } } } }, NOT: { profile: { userId: actor.userId } } };
       if ((await tx.contract.count({ where: mine })) === 0) return { kind: "absent" };
+      // Verrou sur le contrat : deux administrateurs qui valident en même temps se voient l'un l'autre.
+      await tx.$queryRaw`SELECT "id" FROM "Contract" WHERE "id" = ${contractId}::uuid FOR UPDATE`;
       // Sans fonds bloqués, valider laisserait le freelance sans paiement possible : la base le refuse aussi.
       if ((await tx.payment.count({ where: { contractId, status: "held" } })) === 0) return { kind: "not_paid" };
       // Chaque validation est un fait daté ; une entreprise peut exiger deux administrateurs distincts avant le versement.
       await tx.contractApproval.createMany({ data: [{ contractId, userId: actor.userId }], skipDuplicates: true });
       const contract = await tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: { organisation: { select: { approvalLevels: true, members: { where: { role: { in: ["owner", "admin"] } }, select: { userId: true } } } } } });
-      const required = contract.organisation?.approvalLevels ?? 1;
-      const approvals = await tx.contractApproval.count({ where: { contractId, userId: { not: null } } });
+      // Jamais plus de validations que d'administrateurs (règle tenue aussi par la base), et seules comptent celles
+      // de personnes encore administratrices.
+      const admins = (contract.organisation?.members ?? []).map((m) => m.userId);
+      const required = Math.max(1, Math.min(contract.organisation?.approvalLevels ?? 1, admins.length));
+      const approvals = await tx.contractApproval.count({ where: { contractId, userId: { in: admins } } });
       if (approvals < required) {
-        const others = (contract.organisation?.members ?? []).map((m) => m.userId).filter((id) => id !== actor.userId);
+        const others = admins.filter((id) => id !== actor.userId);
         await notifications(db).enqueue(tx, others, "contract_update", { contractId, status: "second_approval_needed" });
         return { kind: "awaiting_second_approval", approvals, required };
       }

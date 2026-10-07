@@ -13,6 +13,9 @@ const Uuid = z.uuid();
 const ADMIN_ROLES = ["owner", "admin"] as const;
 export const CostCenterSchema = z.string().trim().min(1).max(60).nullable();
 
+export type ApprovalLevelsResult = "saved" | "absent" | "single_admin";
+export type CostCenterResult = "saved" | "absent" | "invoiced";
+
 export interface PoolMember {
   readonly profileId: string;
   readonly reference: string;
@@ -25,22 +28,33 @@ export interface PoolMember {
 }
 
 export const largeAccounts = (db: Db) => ({
-  /** Le propriétaire fixe le nombre de validations exigées (1 ou 2) ; `false` pour tout autre acteur. */
-  async setApprovalLevels(actor: Actor, organisationId: string, levels: 1 | 2): Promise<boolean> {
-    if (!Uuid.safeParse(organisationId).success) return false;
-    const { count } = await db.organisation.updateMany({ where: { id: organisationId, members: { some: { userId: actor.userId, role: "owner" } } }, data: { approvalLevels: levels } });
-    return count === 1;
+  /**
+   * Le propriétaire fixe le nombre de validations exigées (1 ou 2). Deux validations demandent deux administrateurs :
+   * avec un seul, aucune prestation ne pourrait plus être validée.
+   */
+  async setApprovalLevels(actor: Actor, organisationId: string, levels: 1 | 2): Promise<ApprovalLevelsResult> {
+    if (!Uuid.safeParse(organisationId).success) return "absent";
+    const owned = { id: organisationId, members: { some: { userId: actor.userId, role: "owner" as const } } };
+    if (levels === 2) {
+      const admins = await db.membership.count({ where: { organisationId, role: { in: [...ADMIN_ROLES] }, organisation: owned } });
+      if (admins === 0) return "absent";
+      if (admins < 2) return "single_admin";
+    }
+    const { count } = await db.organisation.updateMany({ where: owned, data: { approvalLevels: levels } });
+    return count === 1 ? "saved" : "absent";
   },
 
-  /** Un administrateur de l'entreprise impute un contrat à un centre de coûts ; `false` pour tout autre acteur. */
-  async setCostCenter(actor: Actor, contractId: string, raw: string | null): Promise<boolean> {
-    if (!Uuid.safeParse(contractId).success) return false;
+  /**
+   * Un administrateur de l'entreprise impute un contrat à un centre de coûts, tant que la facture de mission n'est pas
+   * émise : après, l'export d'une période close ne doit plus changer (règle tenue aussi par la base).
+   */
+  async setCostCenter(actor: Actor, contractId: string, raw: string | null): Promise<CostCenterResult> {
+    if (!Uuid.safeParse(contractId).success) return "absent";
     const costCenter = CostCenterSchema.parse(raw);
-    const { count } = await db.contract.updateMany({
-      where: { id: contractId, organisation: { members: { some: { userId: actor.userId, role: { in: [...ADMIN_ROLES] } } } } },
-      data: { costCenter },
-    });
-    return count === 1;
+    const administered = { id: contractId, organisation: { members: { some: { userId: actor.userId, role: { in: [...ADMIN_ROLES] } } } } };
+    const { count } = await db.contract.updateMany({ where: { ...administered, invoices: { none: { kind: "mission" } } }, data: { costCenter } });
+    if (count === 1) return "saved";
+    return (await db.contract.count({ where: administered })) === 1 ? "invoiced" : "absent";
   },
 
   /** Le vivier privé d'une entreprise, pour ses membres ; `null` pour les autres. Le plus récent d'abord. */

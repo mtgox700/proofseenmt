@@ -55,8 +55,8 @@ const heldContract = async (org?: { readonly id: string; readonly owner: string;
 describe("grands comptes", () => {
   it("validation à deux niveaux : il faut deux administrateurs distincts avant le versement", async () => {
     const c = await heldContract();
-    expect(await largeAccounts(t.db).setApprovalLevels({ userId: c.admin }, c.organisationId, 2)).toBe(false);
-    expect(await largeAccounts(t.db).setApprovalLevels({ userId: c.owner }, c.organisationId, 2)).toBe(true);
+    expect(await largeAccounts(t.db).setApprovalLevels({ userId: c.admin }, c.organisationId, 2)).toBe("absent");
+    expect(await largeAccounts(t.db).setApprovalLevels({ userId: c.owner }, c.organisationId, 2)).toBe("saved");
 
     expect(await contracts(t.db).complete({ userId: c.owner }, c.contract)).toEqual({ kind: "awaiting_second_approval", approvals: 1, required: 2 });
     // Le même administrateur ne compte pas deux fois.
@@ -77,8 +77,8 @@ describe("grands comptes", () => {
   it("un administrateur impute un contrat à un centre de coûts ; un tiers ne le peut pas", async () => {
     const c = await heldContract();
     const stranger = await createUser(t.db);
-    expect(await largeAccounts(t.db).setCostCenter({ userId: stranger }, c.contract, "IT-42")).toBe(false);
-    expect(await largeAccounts(t.db).setCostCenter({ userId: c.admin }, c.contract, "IT-42")).toBe(true);
+    expect(await largeAccounts(t.db).setCostCenter({ userId: stranger }, c.contract, "IT-42")).toBe("absent");
+    expect(await largeAccounts(t.db).setCostCenter({ userId: c.admin }, c.contract, "IT-42")).toBe("saved");
     expect(await t.db.contract.findUniqueOrThrow({ where: { id: c.contract }, select: { costCenter: true } })).toEqual({ costCenter: "IT-42" });
   });
 
@@ -103,5 +103,36 @@ describe("grands comptes", () => {
     await payments(t.db).release(c.contract, c.gateway, PROOFSEEN, NOW);
     expect(await gdpr(t.db).eraseUser(c.admin)).toBe("erased");
     expect(await t.db.contractApproval.count({ where: { contractId: c.contract, userId: null } })).toBe(1);
+  });
+
+  it("deux niveaux demandent deux administrateurs ; un administrateur parti ne bloque pas le versement à vie", async () => {
+    const owner = await createUser(t.db);
+    const lonely = await createOrganisation(t.db, owner);
+    expect(await largeAccounts(t.db).setApprovalLevels({ userId: owner }, lonely, 2)).toBe("single_admin");
+
+    const c = await heldContract();
+    expect(await largeAccounts(t.db).setApprovalLevels({ userId: c.owner }, c.organisationId, 2)).toBe("saved");
+    expect(await contracts(t.db).complete({ userId: c.admin }, c.contract)).toMatchObject({ kind: "awaiting_second_approval" });
+    // L'administrateur qui a validé perd son rôle : sa validation ne compte plus, et il ne reste qu'un administrateur.
+    await t.db.membership.update({ where: { organisationId_userId: { organisationId: c.organisationId, userId: c.admin } }, data: { role: "member" } });
+    expect(await contracts(t.db).complete({ userId: c.owner }, c.contract)).toMatchObject({ kind: "completed" });
+  });
+
+  it("une validation ne se supprime ni ne se réattribue", async () => {
+    const c = await heldContract();
+    await largeAccounts(t.db).setApprovalLevels({ userId: c.owner }, c.organisationId, 2);
+    await contracts(t.db).complete({ userId: c.admin }, c.contract);
+    const approval = await t.db.contractApproval.findFirstOrThrow({ where: { contractId: c.contract } });
+    await expect(t.db.contractApproval.delete({ where: { id: approval.id } })).rejects.toThrow(/ne se supprime pas/);
+    await expect(t.db.contractApproval.update({ where: { id: approval.id }, data: { userId: c.owner } })).rejects.toThrow(/ne se modifie pas/);
+  });
+
+  it("le centre de coûts est figé une fois la facture de mission émise", async () => {
+    const c = await heldContract();
+    await contracts(t.db).complete({ userId: c.owner }, c.contract);
+    await payments(t.db).release(c.contract, c.gateway, PROOFSEEN, NOW);
+    expect(await t.db.invoice.count({ where: { contractId: c.contract, kind: "mission" } })).toBe(1);
+    expect(await largeAccounts(t.db).setCostCenter({ userId: c.admin }, c.contract, "IT-42")).toBe("invoiced");
+    await expect(t.db.contract.update({ where: { id: c.contract }, data: { costCenter: "IT-42" } })).rejects.toThrow(/centre de coûts figé/);
   });
 });

@@ -134,4 +134,6 @@ export { contractBlocker, VIGILANCE_THRESHOLD_BY_CURRENCY, type ContractBlocker 
 export { VIGILANCE_VALIDITY_MONTHS, vigilance, VigilanceInputSchema, vigilanceExpiresOn, type VigilanceInput, type VigilanceStatus } from "./vigilance";
 export { missionFiltersFromBrief, profileFiltersFromBrief, type MissionBriefFilters, type ProfileBriefFilters } from "./brief-filters";
 export { timesheets, TimesheetInputSchema, type DecideResult as TimesheetDecideResult, type SubmitResult as TimesheetSubmitResult, type TimesheetInput, type TimesheetRecord } from "./timesheets";
-export { CostCenterSchema, largeAccounts, type PoolMember } from "./large-accounts";
+export { CostCenterSchema, largeAccounts, type ApprovalLevelsResult, type CostCenterResult, type PoolMember } from "./large-accounts";
+export { ApiKeyNameSchema, apiKeys, MAX_ACTIVE_KEYS, type ApiCaller, type ApiKeys, type ApiKeySummary, type CreateKeyResult } from "./api-keys";
+export { API_PAGE_MAX, ApiPageSchema, companyApi, EXPORT_MAX_ROWS, type ApiContract, type ApiInvoice, type ApiPage, type CompanyApi, type Paged } from "./company-api";
