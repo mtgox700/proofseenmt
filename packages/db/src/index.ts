@@ -139,3 +139,4 @@ export { ApiKeyNameSchema, apiKeys, MAX_ACTIVE_KEYS, type ApiCaller, type ApiKey
 export { API_PAGE_MAX, ApiPageSchema, companyApi, EXPORT_MAX_ROWS, type ApiContract, type ApiInvoice, type ApiPage, type CompanyApi, type Paged } from "./company-api";
 export { INBOX_LIMIT, inbox, type Counterpart, type Inbox, type InboxThread, type Side, type ThreadHeader } from "./inbox";
 export { isUniqueViolation } from "./errors";
+export { billingView, type BillingView, type FreelanceIdentityView, type OrganisationIdentityView, type RegistryView } from "./billing-view";
