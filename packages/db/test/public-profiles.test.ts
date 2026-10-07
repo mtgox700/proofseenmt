@@ -32,6 +32,31 @@ describe("page publique d'un profil, depuis la base", () => {
     expect(page).toMatchObject({ visibility: "pseudonymous", displayName: null, provenUrls: [], provenUrlCount: 1, skills: ["Rust"] });
   });
 
+  it("lit les faits vérifiés : répertoire, identité, missions payées — une mission remboursée ne compte pas", async () => {
+    const p = await published("pseudonymous");
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0 });
+
+    const { id: profileId } = await t.db.freelanceProfile.findUniqueOrThrow({ where: { userId: p.userId }, select: { id: true } });
+    const checkedAt = new Date("2026-10-05T00:00:00Z");
+    await t.db.billingIdentity.create({
+      data: { profileId, legalName: "Test EI", siret: "55210055400025", address: { line1: "1 rue", postalCode: "75001", city: "Paris", country: "FR" }, registryStatus: "active", registryCheckedAt: checkedAt, payoutsEnabledAt: checkedAt },
+    });
+    const owner = await createUser(t.db);
+    const { id: organisationId } = await t.db.organisation.create({ data: { name: "Acme", kind: "pme", members: { create: { userId: owner, role: "owner" } } }, select: { id: true } });
+    const snapshot = { legalName: "Test", country: "FR" };
+    for (const refundedCents of [0, 100_000]) {
+      const { id: contractId } = await t.db.contract.create({
+        data: { organisationId, profileId, dailyRateCents: 50_000, days: 2, totalCents: 100_000, currency: "EUR", sellerSnapshot: snapshot, buyerSnapshot: snapshot, startsOn: checkedAt, status: "completed", acceptedByFreelanceAt: checkedAt, acceptedByOrgAt: checkedAt },
+        select: { id: true },
+      });
+      await t.db.payment.create({ data: { contractId, amountCents: 100_000, commissionCents: 10_000, refundedCents, currency: "EUR", stripeIntentId: `pi_${contractId}`, status: "released", transferId: `tr_${contractId}`, releasedAt: checkedAt } });
+    }
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: checkedAt, identityVerified: true, paidMissions: 1 });
+
+    await t.db.billingIdentity.update({ where: { profileId }, data: { registryStatus: "ceased" } });
+    expect((await publicProfiles(t.db).page(p.slug))?.facts.registryActiveCheckedAt).toBeNull();
+  });
+
   it("montre nom et adresses prouvées d'un profil nominatif", async () => {
     const p = await published("named");
     const page = await publicProfiles(t.db).page(p.slug);

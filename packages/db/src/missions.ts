@@ -66,6 +66,8 @@ export interface MissionRecord {
   readonly id: string;
   readonly organisationId: string;
   readonly organisationName: string;
+  /** L'entreprise est active au répertoire officiel, à cette date ; `null` si ce n'est pas établi. */
+  readonly organisationRegistryActiveCheckedAt: Date | null;
   readonly title: string;
   readonly description: string;
   readonly skills: readonly string[];
@@ -117,7 +119,7 @@ const SELECT = {
   publishedAt: true,
   closedAt: true,
   skills: { select: { skill: { select: { label: true } } } },
-  organisation: { select: { name: true } },
+  organisation: { select: { name: true, registryStatus: true, registryCheckedAt: true } },
 } as const;
 
 type Row = Prisma.JobPostGetPayload<{ select: typeof SELECT }>;
@@ -125,6 +127,7 @@ type Row = Prisma.JobPostGetPayload<{ select: typeof SELECT }>;
 const toRecord = ({ skills, organisation, ...row }: Row): MissionRecord => ({
   ...row,
   organisationName: organisation.name,
+  organisationRegistryActiveCheckedAt: organisation.registryStatus === "active" ? organisation.registryCheckedAt : null,
   skills: skills.map((s) => s.skill.label),
 });
 

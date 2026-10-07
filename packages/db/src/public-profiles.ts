@@ -48,6 +48,15 @@ export interface PublicProfilePage {
   readonly provenUrlCount: number;
   readonly missions: readonly PublicMissionFact[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
+  /**
+   * Faits vérifiés, datés quand ils le sont : jamais un niveau, un badge gradué ni un score. Le SIRET lui-même n'est
+   * jamais publié, seulement le fait que l'entreprise est active au répertoire officiel.
+   */
+  readonly facts: {
+    readonly registryActiveCheckedAt: Date | null;
+    readonly identityVerified: boolean;
+    readonly paidMissions: number;
+  };
   readonly updatedAt: Date;
 }
 
@@ -84,6 +93,8 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true } },
         missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true } },
         reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
+        billing: { select: { registryStatus: true, registryCheckedAt: true, payoutsEnabledAt: true } },
+        _count: { select: { contracts: { where: { payments: { some: SETTLED_PAYMENT } } } } },
       },
     });
     // Une page sans contenu réel n'est jamais servie : un profil publié a toujours titre, résumé et ville (la base
@@ -108,6 +119,12 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       provenUrlCount: row.ownedUrls.length,
       missions: row.missions,
       reviews: row.reviews,
+      facts: {
+        registryActiveCheckedAt: row.billing?.registryStatus === "active" ? row.billing.registryCheckedAt : null,
+        // Le prestataire de paiement n'ouvre les versements qu'après avoir vérifié l'identité du titulaire.
+        identityVerified: row.billing?.payoutsEnabledAt != null,
+        paidMissions: row._count.contracts,
+      },
       updatedAt: row.updatedAt,
     };
   },
