@@ -283,6 +283,9 @@ model BillingIdentity {
   registryCheckedAt   DateTime?       @db.Timestamptz(3)
   registryName        String?
   registryAttemptedAt DateTime?       @db.Timestamptz(3)
+  /// Acceptation expresse du mandat de facturation (art. 289 I-2 du CGI) : Proofseen émet les factures de mission au nom
+  /// et pour le compte du freelance. Aucun contrat ne naît sans elle.
+  invoicingMandateAt  DateTime?       @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 

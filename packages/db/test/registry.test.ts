@@ -58,7 +58,7 @@ describe("contrôle des SIRET", () => {
     const freelanceUser = await createUser(t.db);
     const profile = await createProfile(t.db, freelanceUser);
     await verifiedVigilance(t.db, profile);
-    expect(await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: freelanceSiret, vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 })).toBe("saved");
+    expect(await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: freelanceSiret, vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 })).toBe("saved");
     expect(await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: companySiret, address: ADDRESS })).toBe("saved");
     return { recruiter, org, freelanceUser, profile };
   };
@@ -67,7 +67,7 @@ describe("contrôle des SIRET", () => {
     await setup("55210055400033", "73282932000090");
     const intruder = await createUser(t.db);
     await createProfile(t.db, intruder);
-    expect(await billing(t.db).setFreelanceIdentity({ userId: intruder }, { legalName: "Imposteur EI", siret: "55210055400033", address: ADDRESS })).toBe("siret_taken");
+    expect(await billing(t.db).setFreelanceIdentity({ userId: intruder }, { acceptInvoicingMandate: true, legalName: "Imposteur EI", siret: "55210055400033", address: ADDRESS })).toBe("siret_taken");
     const owner = await createUser(t.db);
     const other = await createOrganisation(t.db, owner);
     expect(await billing(t.db).setOrganisationIdentity({ userId: owner }, other, { legalName: "Copie SAS", siret: "73282932000090", address: ADDRESS })).toBe("siret_taken");

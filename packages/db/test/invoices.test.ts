@@ -27,7 +27,7 @@ const completedContract = async (vatRateBp: 0 | 2000, freelance?: { userId: stri
   const freelanceUser = freelance?.userId ?? (await createUser(t.db));
   const profile = freelance?.profile ?? (await createProfile(t.db, freelanceUser));
   await verifiedVigilance(t.db, profile);
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp });
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp });
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", address: ADDRESS });
   const contact = await messaging(t.db).contact({ userId: recruiter }, org, profile, "Bonjour");
   if (contact.kind !== "opened") throw new Error(contact.kind);

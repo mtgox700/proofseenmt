@@ -60,7 +60,7 @@ await profiles(db).setVisibility({ userId: freelance }, "pseudonymous");
 // Un contrat signé avec un paiement en attente, pour exécuter le webhook de paiement sans prestataire réel. Le
 // prestataire est simulé ici, et seulement ici : l'intention porte un identifiant fixe et visiblement de test.
 const TEST_ADDRESS = { line1: "Adresse de test", postalCode: "75000", city: "Paris", country: "FR" };
-await billing(db).setFreelanceIdentity({ userId: freelance }, { legalName: "Freelance de test EI", siret: "00000000000000", address: TEST_ADDRESS });
+await billing(db).setFreelanceIdentity({ userId: freelance }, { acceptInvoicingMandate: true, legalName: "Freelance de test EI", siret: "00000000000000", address: TEST_ADDRESS });
 await billing(db).setOrganisationIdentity({ userId: recruiter }, org.id, { legalName: "Entreprise de test (données locales)", address: TEST_ADDRESS });
 const testProfile = await profiles(db).findMine({ userId: freelance });
 const contact = await messaging(db).contact({ userId: recruiter }, org.id, testProfile?.id ?? "", "Bonjour, mission de test.");

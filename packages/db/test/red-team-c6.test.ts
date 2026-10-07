@@ -135,7 +135,7 @@ const NOW = new Date("2026-11-20T10:00:00Z");
 /** Un fil accepté entre une entreprise et un freelance qui ont tous deux leur identité de facturation. */
 const parties = async (orgSiret = nextSiret("732829320")) => {
   const s = await setup();
-  await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+  await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
   await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", siret: orgSiret, address: ADDRESS });
   await t.db.billingIdentity.update({ where: { profileId: s.profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });
   const contact = await messaging(t.db).contact({ userId: s.recruiter }, s.org, s.profile, "Bonjour, une mission ?");

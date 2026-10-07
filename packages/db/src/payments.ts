@@ -64,6 +64,8 @@ export type OpenPaymentResult =
   | { readonly kind: "already_paid" }
   /** La commission arrondie serait nulle : montant trop faible pour ce taux. */
   | { readonly kind: "amount_too_small" }
+  /** Contrat en régie : il se paiera mois par mois sur relevé validé, pas d'un seul paiement. */
+  | { readonly kind: "monthly_contract" }
   | { readonly kind: "absent" };
 
 export type ReleaseResult =
@@ -187,9 +189,10 @@ export const payments = (db: Db): Payments => {
       if (!Uuid.safeParse(contractId).success) return { kind: "absent" };
       const contract = await db.contract.findFirst({
         where: { id: contractId, status: "active", ...payer(actor.userId) },
-        select: { totalCents: true, currency: true, sellerSnapshot: true, _count: { select: { payments: true } } },
+        select: { totalCents: true, currency: true, billing: true, sellerSnapshot: true, _count: { select: { payments: true } } },
       });
       if (contract === null) return { kind: "absent" };
+      if (contract.billing !== "fixed") return { kind: "monthly_contract" };
       const seller = LegalSnapshotSchema.parse(contract.sellerSnapshot);
       // L'entreprise paie le TTC de la facture de mission ; la commission se calcule sur le hors-taxe.
       const amountCents = contract.totalCents + vatOf(contract.totalCents, seller.vatRateBp ?? 0);

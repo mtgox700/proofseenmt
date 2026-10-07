@@ -29,7 +29,7 @@ const setup = async (identities = true) => {
   const conversation = contact.conversation.id;
   await messaging(t.db).decide({ userId: freelanceUser }, conversation, "accepted", new Date());
   if (identities) {
-    await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), address: ADDRESS });
+    await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: nextSiret("552100554"), address: ADDRESS });
     await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: nextSiret("732829320"), vatNumber: "FR 40 732829320", address: ADDRESS });
   }
   return { recruiter, org, freelanceUser, profile, conversation };
@@ -91,7 +91,7 @@ describe("contrat", () => {
     expect(await contracts(t.db).createFromQuote({ userId: s.freelanceUser }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "already_exists" });
 
     // Une adresse modifiée après coup ne réécrit pas le contrat.
-    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Autre nom", address: { ...ADDRESS, city: "Lyon" } });
+    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "Autre nom", address: { ...ADDRESS, city: "Lyon" } });
     const row = await t.db.contract.findUniqueOrThrow({ where: { id }, select: { sellerSnapshot: true, buyerSnapshot: true } });
     expect(row.sellerSnapshot).toMatchObject({ legalName: "Camille Test EI", siret: expect.stringMatching(/^552100554\d{5}$/), address: { city: "Paris" } });
     expect(row.buyerSnapshot).toMatchObject({ legalName: "Acme SAS", vatNumber: "FR40732829320" });
@@ -119,10 +119,10 @@ describe("contrat", () => {
     const s = await setup(false);
     const quoteId = await acceptedQuote(s);
     expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "seller_identity_missing" });
-    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", address: ADDRESS });
+    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", address: ADDRESS });
     // Sans SIRET, la facture ne serait pas valable : toujours pas de contrat.
     expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "seller_identity_missing" });
-    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", address: ADDRESS });
+    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: "55210055400025", address: ADDRESS });
     expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "buyer_identity_missing" });
     await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", address: ADDRESS });
     const created = await contracts(t.db).createFromQuote({ userId: s.freelanceUser }, quoteId, { startsOn: "2026-11-02" });
@@ -137,8 +137,8 @@ describe("contrat", () => {
 
   it("refuse un SIRET, un numéro de TVA ou des dates incohérents, et l'identité d'une entreprise par un simple membre", async () => {
     const s = await setup(false);
-    await expect(billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "X Y", siret: "123", address: ADDRESS })).rejects.toThrow(/SIRET/);
-    await expect(billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "X Y", vatNumber: "12", address: ADDRESS })).rejects.toThrow(/TVA/);
+    await expect(billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "X Y", siret: "123", address: ADDRESS })).rejects.toThrow(/SIRET/);
+    await expect(billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "X Y", vatNumber: "12", address: ADDRESS })).rejects.toThrow(/TVA/);
     const member = await createUser(t.db);
     await t.db.membership.create({ data: { organisationId: s.org, userId: member, role: "member" } });
     expect(await billing(t.db).setOrganisationIdentity({ userId: member }, s.org, { legalName: "Pirate SAS", address: ADDRESS })).toBe("absent");

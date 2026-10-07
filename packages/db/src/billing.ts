@@ -39,6 +39,8 @@ export const BillingIdentitySchema = z.object({
   address: AddressSchema,
   /** 0 en franchise de TVA (art. 293 B du CGI), 2000 au taux normal de 20 %. */
   vatRateBp: z.union([z.literal(0), z.literal(210), z.literal(550), z.literal(1000), z.literal(2000)]).default(0),
+  /** Freelance seulement : acceptation expresse du mandat de facturation (Proofseen émet ses factures de mission). */
+  acceptInvoicingMandate: z.boolean().default(false),
 });
 
 export type BillingIdentityInput = z.input<typeof BillingIdentitySchema>;
@@ -71,10 +73,12 @@ export interface Billing {
 
 /** L'identité figée d'un freelance, ou `null` s'il ne l'a pas encore renseignée. */
 export const freelanceSnapshot = async (tx: Prisma.TransactionClient, profileId: string): Promise<LegalSnapshot | null> => {
-  const row = await tx.billingIdentity.findUnique({ where: { profileId }, select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true } });
+  const row = await tx.billingIdentity.findUnique({ where: { profileId }, select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true, invoicingMandateAt: true } });
   if (row === null) return null;
   // Une facture sans SIRET, ou avec de la TVA mais sans numéro de TVA, n'est pas valable : pas de contrat sans eux.
   if (row.siret === null || (row.vatRateBp > 0 && row.vatNumber === null)) return null;
+  // Sans mandat de facturation accepté, Proofseen ne peut pas émettre la facture de mission au nom du freelance.
+  if (row.invoicingMandateAt === null) return null;
   const address = AddressSchema.safeParse(row.address);
   return address.success ? { legalName: row.legalName, siret: row.siret, vatNumber: row.vatNumber, address: address.data, vatRateBp: row.vatRateBp } : null;
 };
@@ -100,10 +104,12 @@ export const billing = (db: Db): Billing => ({
     const data = { legalName: input.legalName, siret: input.siret, vatNumber: input.vatNumber, address: input.address as Prisma.InputJsonObject, vatRateBp: input.vatRateBp };
     try {
       await db.$transaction(async (tx) => {
-        const before = await tx.billingIdentity.findUnique({ where: { profileId: profile.id }, select: { siret: true, legalName: true } });
+        const before = await tx.billingIdentity.findUnique({ where: { profileId: profile.id }, select: { siret: true, legalName: true, invoicingMandateAt: true } });
         // Un SIRET ou une raison sociale changés n'ont plus de verdict : le contrôle au répertoire repart de zéro.
         const recheck = before === null || before.siret !== input.siret || before.legalName !== input.legalName ? RESET : {};
-        await tx.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: { ...data, ...recheck } });
+        // Le mandat est daté de sa première acceptation ; l'enregistrer de nouveau ne le rajeunit pas.
+        const mandate = input.acceptInvoicingMandate && (before?.invoicingMandateAt ?? null) === null ? { invoicingMandateAt: new Date() } : {};
+        await tx.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data, ...mandate }, update: { ...data, ...recheck, ...mandate } });
       });
       return "saved";
     } catch (error) {

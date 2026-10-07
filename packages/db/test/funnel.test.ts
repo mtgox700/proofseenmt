@@ -41,7 +41,7 @@ describe("entonnoir de la marketplace", () => {
     await missions(t.db).publish({ userId: recruiter }, mission?.id ?? "", NOW);
     await messaging(t.db).contact({ userId: recruiter }, org, contacted, "Bonjour, une mission ?");
 
-    await billing(t.db).setFreelanceIdentity({ userId: paidUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+    await billing(t.db).setFreelanceIdentity({ userId: paidUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
     await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: nextSiret("732829320"), address: ADDRESS });
     await t.db.billingIdentity.update({ where: { profileId: paid }, data: { stripeAccountId: "acct_testfunnel1", payoutsEnabledAt: NOW } });
     const contact = await messaging(t.db).contact({ userId: recruiter }, org, paid, "Bonjour, une mission ?");

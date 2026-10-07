@@ -33,7 +33,7 @@ const parties = async () => {
   const created = await profiles(t.db).create({ userId: freelanceUser }, { headline: "Dev", summary: "Résumé.", city: "Paris", workMode: "remote", skills: ["Go"] }, nextReference);
   if (created === null) throw new Error("profil non créé");
   await profiles(t.db).setVisibility({ userId: freelanceUser }, "pseudonymous");
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
   const recruiter = await createUser(t.db);
   const org = await createOrganisation(t.db, recruiter);
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: nextSiret("732829320"), address: ADDRESS });
