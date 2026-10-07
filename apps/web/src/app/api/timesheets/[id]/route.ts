@@ -14,7 +14,8 @@ interface Context {
 }
 
 const RULE = { windowMs: 60 * 60_000, max: 60 };
-const DecisionSchema = z.object({ decision: z.enum(["approved", "rejected"]) });
+/** `submittedAt` : la date de dépôt du relevé tel qu'il a été affiché, pour ne décider que sur ce qui a été lu. */
+const DecisionSchema = z.object({ decision: z.enum(["approved", "rejected"]), submittedAt: z.iso.datetime() });
 
 export async function POST(request: Request, context: Context): Promise<NextResponse> {
   if (!sameOrigin(request)) return fail("origine refusée");
@@ -25,7 +26,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   if (!parsed.success) return fail("requête invalide");
   const { id } = await context.params;
   try {
-    const result = await timesheets(getDb()).decide(who.actor, id, parsed.data.decision, new Date());
+    const result = await timesheets(getDb()).decide(who.actor, id, parsed.data.decision, new Date(parsed.data.submittedAt), new Date());
     switch (result.kind) {
       case "decided":
         return ok(result.timesheet);
@@ -33,6 +34,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("introuvable");
       case "over_cap":
         return fail("plafond de jours dépassé");
+      case "changed":
+        return fail("relevé modifié entre-temps");
     }
   } catch (error) {
     logError("timesheet decision failed", error);

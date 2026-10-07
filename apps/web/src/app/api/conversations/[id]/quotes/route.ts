@@ -32,6 +32,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   if (await throttled("quotes", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   const parsed = QuoteInputSchema.safeParse(await jsonBody(request));
   if (!parsed.success) return invalid(parsed.error.issues);
+  // La régie s'ouvre avec son paiement mensuel : d'ici là, un contrat en régie ne pourrait être ni payé ni clos.
+  if (parsed.data.billing === "monthly" && process.env.PROOFSEEN_MONTHLY_BILLING !== "on") return fail("régie pas encore ouverte");
   const { id } = await context.params;
   try {
     const draft = await quotes(getDb()).draft(who.actor, id, parsed.data);

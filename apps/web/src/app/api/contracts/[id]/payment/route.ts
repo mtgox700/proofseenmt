@@ -51,6 +51,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
     if (result.kind === "already_paid") return fail("déjà payé");
     if (result.kind === "amount_too_small") return fail("montant trop faible");
     if (result.kind === "absent") return fail("introuvable");
+    if (result.kind === "monthly_contract") return fail("paiement par relevé mensuel");
     return ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, result.kind === "opened" ? 201 : 200);
   } catch (error) {
     logError("payment open failed", error);
