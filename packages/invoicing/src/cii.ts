@@ -5,8 +5,10 @@ import { LATE_PENALTY, NO_DISCOUNT, RECOVERY_FEE, VAT_EXEMPT, type InvoiceDocume
  * lisible par machine d'une Factur-X et l'un des formats acceptés par la réforme française de la facturation
  * électronique. Elle porte exactement les mêmes chiffres et mentions que le rendu HTML.
  *
- * La facture de mission est une autofacturation (code 389) : Proofseen l'émet au nom et pour le compte du freelance,
- * sous mandat. La transmission par une plateforme agréée reste à brancher : ce module ne fait que produire le document.
+ * La facture de mission est émise par un tiers : Proofseen l'établit au nom et pour le compte du freelance, sous mandat
+ * (art. 289 I-2 du CGI). Ce n'est pas une autofacturation : le code 389 (UNTDID 1001) désigne une facture établie par
+ * l'acheteur, et Proofseen n'est pas l'acheteur. Les deux factures portent donc le code 380 ; le mandat figure en note.
+ * La transmission par une plateforme agréée reste à brancher : ce module ne fait que produire le document.
  */
 
 const ESCAPES: Readonly<Record<string, string>> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" };
@@ -25,8 +27,8 @@ const amount = (cents: number): string => (cents / 100).toFixed(2);
 const percent = (bp: number): string => (bp / 100).toFixed(2);
 const day = (d: Date): string => d.toISOString().slice(0, 10).replace(/-/g, "");
 
-/** Code de type de facture : 389 pour une autofacturation, 380 pour une facture commerciale. */
-export const invoiceTypeCode = (kind: InvoiceDocument["kind"]): "389" | "380" => (kind === "mission" ? "389" : "380");
+/** Code de type de facture : 380, facture commerciale, pour la mission émise sous mandat comme pour la commission. */
+export const invoiceTypeCode = (_kind: InvoiceDocument["kind"]): "380" => "380";
 
 const party = (tag: "SellerTradeParty" | "BuyerTradeParty", p: Party): string =>
   [
@@ -70,7 +72,7 @@ export const renderCii = (doc: InvoiceDocument): string => {
     `<ram:ID>${x(doc.number)}</ram:ID>`,
     `<ram:TypeCode>${invoiceTypeCode(doc.kind)}</ram:TypeCode>`,
     `<ram:IssueDateTime><udt:DateTimeString format="102">${day(doc.issuedAt)}</udt:DateTimeString></ram:IssueDateTime>`,
-    doc.kind === "mission" ? note(`Autofacturation : facture émise par Proofseen au nom et pour le compte de ${doc.seller.legalName}, sous mandat de facturation.`) : "",
+    doc.kind === "mission" ? note(`Facture émise par un tiers : Proofseen au nom et pour le compte de ${doc.seller.legalName}, sous mandat de facturation.`) : "",
     note(LATE_PENALTY, "PMD"),
     note(RECOVERY_FEE, "PMT"),
     note(NO_DISCOUNT, "AAB"),

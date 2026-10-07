@@ -38,7 +38,8 @@ describe("facture électronique CII (EN 16931)", () => {
     const xml = renderCii(MISSION);
     expect(wellFormed(xml)).toBe(true);
     expect(xml).toContain("<ram:ID>urn:cen.eu:en16931:2017</ram:ID>");
-    expect(xml).toContain("<ram:TypeCode>389</ram:TypeCode>");
+    expect(xml).toContain("<ram:TypeCode>380</ram:TypeCode>");
+    expect(xml).not.toContain("<ram:TypeCode>389");
     expect(xml).toContain('<udt:DateTimeString format="102">20261231</udt:DateTimeString>');
     expect(xml).toContain('<ram:BilledQuantity unitCode="DAY">10</ram:BilledQuantity>');
     expect(xml).toContain("<ram:ChargeAmount>600.00</ram:ChargeAmount>");
@@ -47,7 +48,7 @@ describe("facture électronique CII (EN 16931)", () => {
     expect(xml).toContain("<ram:GrandTotalAmount>7200.00</ram:GrandTotalAmount>");
     expect(xml).toContain('<ram:ID schemeID="0002">552100554</ram:ID>');
     expect(xml).toContain('<ram:ID schemeID="VA">FR40552100554</ram:ID>');
-    expect(xml).toContain("Autofacturation : facture émise par Proofseen au nom et pour le compte de Camille &amp; Fils EI");
+    expect(xml).toContain("Facture émise par un tiers : Proofseen au nom et pour le compte de Camille &amp; Fils EI");
     expect(xml).toContain("<ram:SubjectCode>PMT</ram:SubjectCode>");
   });
 
@@ -77,6 +78,6 @@ describe("facture électronique CII (EN 16931)", () => {
     const commission = renderCii({ ...MISSION, kind: "commission", quantity: 1, unitCents: 60_000, netCents: 60_000, vatCents: 12_000, totalCents: 72_000 });
     expect(commission).toContain("<ram:TypeCode>380</ram:TypeCode>");
     expect(commission).toContain('unitCode="C62"');
-    expect(commission).not.toContain("Autofacturation");
+    expect(commission).not.toContain("Facture émise par un tiers");
   });
 });
