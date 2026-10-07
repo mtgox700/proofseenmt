@@ -26,6 +26,13 @@ describe("contenu des e-mails", () => {
     expect(alert.html).toContain('href="https://proofseen.com/fr/missions/m-2"');
   });
 
+  it("relance une prestation payée jamais validée, sans promettre de versement", () => {
+    const email = renderEmail({ kind: "contract_update", payload: { contractId: "k-1", status: "validation_due" }, to: TO }, BASE);
+    expect(email.subject).toBe("Une prestation attend sa validation");
+    expect(email.text).toContain("l'équipe Proofseen examine le dossier");
+    expect(email.text).not.toMatch(/versé|automatique/);
+  });
+
   it("échappe le nom affiché", () => {
     const email = renderEmail({ kind: "application_received", payload: {}, to: { lang: "fr", displayName: "<img src=x onerror=alert(1)>" } }, BASE);
     expect(email.html).not.toContain("<img");

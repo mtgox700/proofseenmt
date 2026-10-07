@@ -95,11 +95,15 @@ const body = (n: NotificationInput, base: string): Body => {
         to_sign: fr ? "Un contrat attend votre signature" : "A contract is waiting for your signature",
         active: fr ? "Votre contrat est signé" : "Your contract is signed",
         completed: fr ? "Prestation validée" : "Work approved",
+        validation_due: fr ? "Une prestation attend sa validation" : "Work is waiting for approval",
       }[status] ?? (fr ? "Votre contrat a changé" : "Your contract has changed");
       const line = {
         to_sign: fr ? "Relisez le contrat et signez-le pour démarrer la mission." : "Review the contract and sign it to start the mission.",
         active: fr ? "Les deux parties ont signé : la mission peut démarrer." : "Both parties signed: the mission can start.",
         completed: fr ? "L'entreprise a validé la prestation." : "The company approved the work.",
+        validation_due: fr
+          ? "La fin prévue de la mission est passée depuis plus de deux semaines et la prestation n'est pas validée. Validez-la, ou signalez ce qui ne va pas : l'équipe Proofseen examine le dossier."
+          : "The planned end of the mission passed more than two weeks ago and the work is not approved. Approve it, or report what is wrong: the Proofseen team is reviewing the case.",
       }[status] ?? (fr ? "Consultez votre contrat sur Proofseen." : "See your contract on Proofseen.");
       return { subject, lines: [line], links: [{ label: COPY[lang].open, href: app }] };
     }

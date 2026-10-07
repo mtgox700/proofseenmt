@@ -125,5 +125,6 @@ export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashb
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
 export { MAX_SITEMAP_PROFILES, publicProfiles, type PublicMissionFact, type PublicProfilePage, type PublicProfiles } from "./public-profiles";
 export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./skill-pages";
+export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./validation-reminders";
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
 export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, type FeedbackPeriod, type FeedbackSummary } from "./feedback";
