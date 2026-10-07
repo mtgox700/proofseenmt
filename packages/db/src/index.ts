@@ -137,3 +137,5 @@ export { timesheets, TimesheetInputSchema, type DecideResult as TimesheetDecideR
 export { CostCenterSchema, largeAccounts, type ApprovalLevelsResult, type CostCenterResult, type PoolMember } from "./large-accounts";
 export { ApiKeyNameSchema, apiKeys, MAX_ACTIVE_KEYS, type ApiCaller, type ApiKeys, type ApiKeySummary, type CreateKeyResult } from "./api-keys";
 export { API_PAGE_MAX, ApiPageSchema, companyApi, EXPORT_MAX_ROWS, type ApiContract, type ApiInvoice, type ApiPage, type CompanyApi, type Paged } from "./company-api";
+export { INBOX_LIMIT, inbox, type Counterpart, type Inbox, type InboxThread, type Side, type ThreadHeader } from "./inbox";
+export { isUniqueViolation } from "./errors";
