@@ -33,7 +33,9 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
    `pnpm --filter @proofseen/db exec tsx --env-file=../../.env scripts/real-db-check.ts`.
 3. Build et démarrage : `pnpm --filter @proofseen/web build`, puis `next start`.
 4. Tâche planifiée : `GET /api/cron/notifications` avec `Authorization: Bearer $CRON_SECRET`, toutes les 5 minutes.
-5. Surveillance : `GET /api/health` toutes les minutes (200 attendu, 503 = base injoignable).
+5. Surveillance : `GET /api/health` toutes les minutes (200 attendu, 503 = base injoignable). **Désactiver la mise en veille
+   du service Postgres sur Railway** : le 2026-10-07, la base a mis 6 s à répondre au réveil (P1001 au premier essai), au-delà
+   du délai de 3 s de la route de santé.
 6. Webhook Stripe (mode test) vers `/api/webhooks/stripe`.
 
 ## 3. Vérifications après déploiement (preuves à coller dans `TEAM_MEMORY.md`)
