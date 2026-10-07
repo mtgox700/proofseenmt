@@ -7,6 +7,7 @@ import type { ContractBilling, ContractStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
 import { contractBlocker } from "./contract-checks";
+import { SETTLED_PAYMENT } from "./reviews";
 
 /*
  * Contrats. Un contrat naît d'un devis accepté et en reprend exactement les conditions ; il fige l'identité légale des
@@ -38,6 +39,8 @@ export interface ContractRecord {
   /** Au forfait, le nombre de jours vendus ; en régie, le plafond de jours. */
   readonly days: number;
   readonly billing: ContractBilling;
+  /** Freelance déjà payé par cette entreprise à la création : commission au taux de fidélité. */
+  readonly repeatClient: boolean;
   readonly totalCents: number;
   readonly currency: string;
   readonly startsOn: Date;
@@ -100,6 +103,7 @@ const SELECT = {
   totalCents: true,
   currency: true,
   billing: true,
+  repeatClient: true,
   startsOn: true,
   endsOn: true,
   acceptedByFreelanceAt: true,
@@ -153,9 +157,12 @@ export const contracts = (db: Db): Contracts => ({
           await tx.quote.update({ where: { id: quoteId }, data: { status: "closed" } });
           return { kind: "self_dealing" };
         }
+        // Fidélité : au moins une mission de ce freelance déjà payée par cette entreprise.
+        const repeatClient = (await tx.contract.count({ where: { organisationId, profileId, payments: { some: SETTLED_PAYMENT } } })) > 0;
         const contract = await tx.contract.create({
           data: {
             quoteId,
+            repeatClient,
             organisationId,
             profileId,
             dailyRateCents: quote.dailyRateCents,

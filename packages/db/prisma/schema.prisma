@@ -530,6 +530,9 @@ model Contract {
   billing               ContractBilling @default(fixed)
   /// Centre de coûts de l'entreprise, libre, pour son imputation comptable.
   costCenter            String?
+  /// Le freelance avait déjà été payé par cette entreprise quand le contrat a été créé : sa commission est alors au taux
+  /// de fidélité. Figé à la création (déclencheur), donc connu des deux parties avant de signer.
+  repeatClient          Boolean        @default(false)
   /// Nom légal, adresse, SIRET, TVA, pays — écrits à la création, jamais modifiés. Base légale de la conservation :
   /// RGPD art. 17(3)(b), obligations comptables.
   sellerSnapshot        Json

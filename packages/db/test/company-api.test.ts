@@ -46,16 +46,27 @@ const company = async (teams: number): Promise<Company> => {
   return { id, owner, admins };
 };
 
-/** Un contrat signé et payé sous séquestre entre l'entreprise et un nouveau freelance. */
-const heldContract = async (org: Company, freelanceName = "Camille Test EI") => {
+interface Freelance {
+  readonly freelanceUser: string;
+  readonly profile: string;
+}
+
+/** Un nouveau freelance, identité de facturation et compte de versement prêts. */
+const freelance = async (freelanceName: string): Promise<Freelance> => {
   const freelanceUser = await createUser(t.db);
   const profile = await createProfile(t.db, freelanceUser);
   await verifiedVigilance(t.db, profile);
   await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: freelanceName, siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
   await t.db.billingIdentity.update({ where: { profileId: profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });
+  return { freelanceUser, profile };
+};
+
+/** Un contrat signé des deux côtés, pas encore payé ; avec un freelance donné, le fil existant est réutilisé. */
+const signedContract = async (org: Company, known?: Freelance, freelanceName = "Camille Test EI") => {
+  const { freelanceUser, profile } = known ?? (await freelance(freelanceName));
   const contact = await messaging(t.db).contact({ userId: org.owner }, org.id, profile, "Bonjour, une mission ?");
-  if (contact.kind !== "opened") throw new Error(contact.kind);
-  await messaging(t.db).decide({ userId: freelanceUser }, contact.conversation.id, "accepted", NOW);
+  if (contact.kind !== "opened" && contact.kind !== "existing") throw new Error(contact.kind);
+  if (contact.kind === "opened") await messaging(t.db).decide({ userId: freelanceUser }, contact.conversation.id, "accepted", NOW);
   const draft = await quotes(t.db).draft({ userId: freelanceUser }, contact.conversation.id, { dailyRateCents: 60_000, days: 10 });
   await quotes(t.db).send({ userId: freelanceUser }, draft?.id ?? "");
   await quotes(t.db).decide({ userId: org.owner }, draft?.id ?? "", "accepted");
@@ -63,9 +74,15 @@ const heldContract = async (org: Company, freelanceName = "Camille Test EI") => 
   if (created.kind !== "created") throw new Error(created.kind);
   await contracts(t.db).sign({ userId: org.owner }, created.contract.id, NOW);
   await contracts(t.db).sign({ userId: freelanceUser }, created.contract.id, NOW);
+  return { contract: created.contract.id, freelanceUser, profile, repeatClient: created.contract.repeatClient };
+};
+
+/** Un contrat signé et payé sous séquestre entre l'entreprise et un nouveau freelance. */
+const heldContract = async (org: Company, freelanceName = "Camille Test EI") => {
+  const signed = await signedContract(org, undefined, freelanceName);
   const { gateway } = fakeGateway();
-  await payAndHold(t.db, org.owner, created.contract.id, gateway);
-  return { contract: created.contract.id, gateway, freelanceUser, profile };
+  await payAndHold(t.db, org.owner, signed.contract, gateway);
+  return { ...signed, gateway };
 };
 
 describe("grands comptes : parcours complet", () => {
@@ -87,6 +104,37 @@ describe("grands comptes : parcours complet", () => {
     expect(listed.items.map((c) => c.costCenter)).toEqual([...teams]);
     expect(listed.items.every((c) => c.status === "completed")).toBe(true);
     expect((await largeAccounts(t.db).talentPool({ userId: org.owner }, org.id))?.length).toBe(3);
+  });
+});
+
+describe("commission de fidélité", () => {
+  it("un freelance déjà payé par l'entreprise est commissionné au taux de fidélité, figé à la création du contrat", async () => {
+    const org = await company(0);
+    const first = await heldContract(org);
+    expect(first.repeatClient).toBe(false);
+    await contracts(t.db).complete({ userId: org.owner }, first.contract);
+    expect(await payments(t.db).release(first.contract, first.gateway, PROOFSEEN, NOW)).toMatchObject({ kind: "released" });
+
+    const known = { freelanceUser: first.freelanceUser, profile: first.profile };
+    const second = await signedContract(org, known);
+    expect(second.repeatClient).toBe(true);
+    const opened = await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway, 1000, 500);
+    // 10 jours à 600 € HT : 6 000 € ; 5 % au lieu de 10 %.
+    expect(opened).toMatchObject({ kind: "opened", commissionCents: 30_000 });
+    await expect(t.db.contract.update({ where: { id: second.contract }, data: { repeatClient: false } })).rejects.toThrow(/fidélité figée/);
+
+    // Une autre entreprise ne l'a jamais payé : taux normal.
+    const elsewhere = await signedContract(await company(0), known);
+    expect(elsewhere.repeatClient).toBe(false);
+  });
+
+  it("un taux de fidélité plus haut que le taux normal ne s'applique jamais", async () => {
+    const org = await company(0);
+    const first = await heldContract(org);
+    await contracts(t.db).complete({ userId: org.owner }, first.contract);
+    await payments(t.db).release(first.contract, first.gateway, PROOFSEEN, NOW);
+    const second = await signedContract(org, { freelanceUser: first.freelanceUser, profile: first.profile });
+    expect(await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway, 1000, 2000)).toMatchObject({ commissionCents: 60_000 });
   });
 });
 

@@ -14,6 +14,19 @@ export const commissionBp = (): number | null => {
   return Number.isInteger(value) && value >= 1 && value <= MAX_COMMISSION_BP ? value : null;
 };
 
+/** Default loyalty rate (War Room decision, 2026-10-07): 5 % once the company already paid this freelancer. */
+const DEFAULT_REPEAT_COMMISSION_BP = 500;
+
+/**
+ * The loyalty rate (PROOFSEEN_REPEAT_COMMISSION_BP), applied only when lower than the standard rate. A malformed value
+ * falls back to the default rather than to the standard rate: a typo must not silently remove a published discount.
+ */
+export const repeatCommissionBp = (): number => {
+  const raw = (process.env.PROOFSEEN_REPEAT_COMMISSION_BP ?? "").trim();
+  const value = Number(raw);
+  return raw !== "" && Number.isInteger(value) && value >= 1 && value <= MAX_COMMISSION_BP ? value : DEFAULT_REPEAT_COMMISSION_BP;
+};
+
 export const proofseenIdentity = (): LegalSnapshot | null => {
   const read = (name: string): string => (process.env[name] ?? "").trim();
   const legalName = read("PROOFSEEN_LEGAL_NAME");

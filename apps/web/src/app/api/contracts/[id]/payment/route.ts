@@ -1,7 +1,7 @@
 import type { NextResponse } from "next/server";
 import { getDb, payments } from "@proofseen/db";
 import { gatewayFromEnv } from "@proofseen/payments";
-import { commissionBp } from "@/data/payments-config";
+import { commissionBp, repeatCommissionBp } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
 import { caller, fail, ok, sameOrigin } from "@/lib/api";
 import { logError } from "@/lib/log";
@@ -47,7 +47,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   if (rate === null || gateway === null) return fail("paiements non configurés");
   const { id } = await context.params;
   try {
-    const result = await payments(getDb()).open(who.actor, id, gateway, rate);
+    const result = await payments(getDb()).open(who.actor, id, gateway, rate, repeatCommissionBp());
     if (result.kind === "already_paid") return fail("déjà payé");
     if (result.kind === "amount_too_small") return fail("montant trop faible");
     if (result.kind === "absent") return fail("introuvable");

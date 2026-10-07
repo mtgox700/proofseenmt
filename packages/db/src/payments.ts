@@ -84,7 +84,11 @@ export type PayoutAccountResult =
 export type EventResult = "applied" | "duplicate" | "ignored";
 
 export interface Payments {
-  open(actor: Actor, contractId: string, gateway: PaymentGateway, commissionBp: number): Promise<OpenPaymentResult>;
+  /**
+   * Ouvre le paiement d'un contrat au forfait. `repeatCommissionBp` s'applique, s'il est plus bas, quand le freelance
+   * avait déjà été payé par cette entreprise à la création du contrat (fidélité).
+   */
+  open(actor: Actor, contractId: string, gateway: PaymentGateway, commissionBp: number, repeatCommissionBp?: number): Promise<OpenPaymentResult>;
   applyEvent(event: PaymentEvent, now: Date): Promise<EventResult>;
   /** Libère les fonds d'un contrat terminé. Sans acteur : appelé par le système, et rejouable sans risque. */
   release(contractId: string, gateway: PaymentGateway, proofseen: LegalSnapshot, now: Date): Promise<ReleaseResult>;
@@ -184,19 +188,21 @@ export const payments = (db: Db): Payments => {
   };
 
   return {
-    async open(actor, contractId, gateway, commissionBp) {
-      if (!Number.isInteger(commissionBp) || commissionBp < 1 || commissionBp > MAX_COMMISSION_BP) throw new Error("taux de commission non configuré ou hors bornes");
+    async open(actor, contractId, gateway, commissionBp, repeatCommissionBp) {
+      const inBounds = (bp: number): boolean => Number.isInteger(bp) && bp >= 1 && bp <= MAX_COMMISSION_BP;
+      if (!inBounds(commissionBp) || (repeatCommissionBp !== undefined && !inBounds(repeatCommissionBp))) throw new Error("taux de commission non configuré ou hors bornes");
       if (!Uuid.safeParse(contractId).success) return { kind: "absent" };
       const contract = await db.contract.findFirst({
         where: { id: contractId, status: "active", ...payer(actor.userId) },
-        select: { totalCents: true, currency: true, billing: true, sellerSnapshot: true, _count: { select: { payments: true } } },
+        select: { totalCents: true, currency: true, billing: true, repeatClient: true, sellerSnapshot: true, _count: { select: { payments: true } } },
       });
       if (contract === null) return { kind: "absent" };
       if (contract.billing !== "fixed") return { kind: "monthly_contract" };
       const seller = LegalSnapshotSchema.parse(contract.sellerSnapshot);
       // L'entreprise paie le TTC de la facture de mission ; la commission se calcule sur le hors-taxe.
       const amountCents = contract.totalCents + vatOf(contract.totalCents, seller.vatRateBp ?? 0);
-      const commissionCents = Math.round((contract.totalCents * commissionBp) / 10_000);
+      const rateBp = contract.repeatClient && repeatCommissionBp !== undefined ? Math.min(commissionBp, repeatCommissionBp) : commissionBp;
+      const commissionCents = Math.round((contract.totalCents * rateBp) / 10_000);
       if (commissionCents < 1) return { kind: "amount_too_small" };
 
       const existing = await db.payment.findFirst({
