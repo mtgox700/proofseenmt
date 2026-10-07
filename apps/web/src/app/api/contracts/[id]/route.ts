@@ -65,6 +65,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
     const completed = await repo.complete(who.actor, id);
     if (completed.kind === "not_paid") return fail("pas encore payé");
     if (completed.kind === "absent") return fail("introuvable");
+    if (completed.kind === "awaiting_second_approval") return ok({ status: "awaiting_second_approval", approvals: completed.approvals, required: completed.required }, 202);
     // The release is attempted now and retried by the periodic job if it cannot go through yet. The company is told
     // only that the work is approved: whether the freelancer's payout account is ready is not its business.
     const gateway = gatewayFromEnv(process.env);
