@@ -34,7 +34,7 @@ describe("page publique d'un profil, depuis la base", () => {
 
   it("lit les faits vérifiés : répertoire, identité, missions payées — une mission remboursée ne compte pas", async () => {
     const p = await published("pseudonymous");
-    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0 });
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0, vigilanceValidUntil: null });
 
     const { id: profileId } = await t.db.freelanceProfile.findUniqueOrThrow({ where: { userId: p.userId }, select: { id: true } });
     const checkedAt = new Date("2026-10-05T00:00:00Z");
@@ -51,7 +51,7 @@ describe("page publique d'un profil, depuis la base", () => {
       });
       await t.db.payment.create({ data: { contractId, amountCents: 100_000, commissionCents: 10_000, refundedCents, currency: "EUR", stripeIntentId: `pi_${contractId}`, status: "released", transferId: `tr_${contractId}`, releasedAt: checkedAt } });
     }
-    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: checkedAt, identityVerified: true, paidMissions: 1 });
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: checkedAt, identityVerified: true, paidMissions: 1, vigilanceValidUntil: null });
 
     await t.db.billingIdentity.update({ where: { profileId }, data: { registryStatus: "ceased" } });
     expect((await publicProfiles(t.db).page(p.slug))?.facts.registryActiveCheckedAt).toBeNull();

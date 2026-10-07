@@ -1,6 +1,14 @@
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import { SETTLED_PAYMENT } from "./reviews";
+import { vigilanceExpiresOn } from "./vigilance";
+
+/** Une attestation ne se montre que vérifiée et non échue. */
+const vigilanceShown = (v: { readonly issuedOn: Date; readonly verifiedAt: Date | null } | null, now: Date): Date | null => {
+  if (v === null || v.verifiedAt === null) return null;
+  const until = vigilanceExpiresOn(v.issuedOn);
+  return until.getTime() > now.getTime() ? until : null;
+};
 import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
 
 /*
@@ -56,13 +64,15 @@ export interface PublicProfilePage {
     readonly registryActiveCheckedAt: Date | null;
     readonly identityVerified: boolean;
     readonly paidMissions: number;
+    /** Attestation de vigilance URSSAF vérifiée par un opérateur et en cours de validité : sa date d'échéance. */
+    readonly vigilanceValidUntil: Date | null;
   };
   readonly updatedAt: Date;
 }
 
 export interface PublicProfiles {
   /** La page d'un profil publié et complet ; `null` sinon. */
-  page(slug: string): Promise<PublicProfilePage | null>;
+  page(slug: string, now?: Date): Promise<PublicProfilePage | null>;
   /** Les profils publiés, pour le sitemap. */
   listForSitemap(): Promise<readonly { readonly slug: string; readonly updatedAt: Date }[]>;
 }
@@ -71,7 +81,7 @@ const SLUG = /^[a-z0-9-]{3,60}$/;
 export const MAX_SITEMAP_PROFILES = 25_000;
 
 export const publicProfiles = (db: Db): PublicProfiles => ({
-  async page(slug) {
+  async page(slug, now = new Date()) {
     if (!SLUG.test(slug)) return null;
     const row = await db.freelanceProfile.findFirst({
       where: { slug, visibility: { not: "private" } },
@@ -94,6 +104,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true } },
         reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
         billing: { select: { registryStatus: true, registryCheckedAt: true, payoutsEnabledAt: true } },
+        vigilance: { select: { issuedOn: true, verifiedAt: true } },
         _count: { select: { contracts: { where: { payments: { some: SETTLED_PAYMENT } } } } },
       },
     });
@@ -124,6 +135,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         // Le prestataire de paiement n'ouvre les versements qu'après avoir vérifié l'identité du titulaire.
         identityVerified: row.billing?.payoutsEnabledAt != null,
         paidMissions: row._count.contracts,
+        vigilanceValidUntil: vigilanceShown(row.vigilance, now),
       },
       updatedAt: row.updatedAt,
     };

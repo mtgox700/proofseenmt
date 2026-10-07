@@ -129,3 +129,4 @@ export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./valida
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
 export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, type FeedbackPeriod, type FeedbackSummary } from "./feedback";
 export { REGISTRY_RECHECK_DAYS, registry, registryVerdict, type RegistrySubject } from "./registry";
+export { VIGILANCE_THRESHOLD_CENTS, VIGILANCE_VALIDITY_MONTHS, vigilance, VigilanceInputSchema, vigilanceExpiresOn, type VigilanceInput, type VigilanceStatus } from "./vigilance";

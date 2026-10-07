@@ -6,6 +6,7 @@ import type { Prisma } from "./generated/client";
 import type { ContractStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
+import { VIGILANCE_THRESHOLD_CENTS, vigilanceExpiresOn } from "./vigilance";
 
 /*
  * Contrats. Un contrat naît d'un devis accepté et en reprend exactement les conditions ; il fige l'identité légale des
@@ -55,6 +56,8 @@ export type CreateContractResult =
   | { readonly kind: "self_dealing" }
   /** Le répertoire officiel dit l'une des deux entreprises fermée : on ne contracte pas avec une entreprise qui n'existe plus. */
   | { readonly kind: "registry_ceased" }
+  /** Prestation d'au moins 5 000 € HT sans attestation de vigilance URSSAF en cours de validité (obligation légale). */
+  | { readonly kind: "vigilance_required" }
   | { readonly kind: "absent" };
 
 export type CompleteResult =
@@ -138,6 +141,10 @@ export const contracts = (db: Db): Contracts => ({
           tx.organisation.count({ where: { id: organisationId, registryStatus: "ceased" } }),
         ]);
         if (ceased.some((n) => n > 0)) return { kind: "registry_ceased" };
+        if (quote.totalCents >= VIGILANCE_THRESHOLD_CENTS) {
+          const attestation = await tx.vigilanceAttestation.findUnique({ where: { profileId }, select: { issuedOn: true } });
+          if (attestation === null || vigilanceExpiresOn(attestation.issuedOn).getTime() <= Date.now()) return { kind: "vigilance_required" };
+        }
         if (sameCompany || insider > 0) {
           await tx.quote.update({ where: { id: quoteId }, data: { status: "closed" } });
           return { kind: "self_dealing" };

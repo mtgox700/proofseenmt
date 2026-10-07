@@ -75,6 +75,7 @@ export const gdpr = (db: Db): Gdpr => ({
         where: { userId },
         include: {
           billing: true,
+          vigilance: { select: { issuedOn: true, securityCode: true, verifiedAt: true, createdAt: true } },
           skills: { select: { skill: { select: { key: true, label: true } } } },
           ownedUrls: true,
           missions: true,

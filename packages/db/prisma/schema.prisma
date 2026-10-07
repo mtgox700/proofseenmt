@@ -236,6 +236,7 @@ model FreelanceProfile {
   contracts      Contract[]
   reviews        Review[]          @relation("ReviewTarget")
   waves          Wave[]
+  vigilance      VigilanceAttestation?
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -263,6 +264,26 @@ model BillingIdentity {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
   profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+/// Attestation de vigilance URSSAF du freelance (art. L8222-1 du Code du travail) : l'entreprise cliente doit l'obtenir
+/// tous les six mois pour une prestation d'au moins 5 000 € HT. Une seule attestation courante par profil ; une nouvelle
+/// remplace l'ancienne. Le code de sécurité permet à un opérateur de la vérifier à la main sur le site de l'URSSAF.
+model VigilanceAttestation {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  profileId    String    @unique @db.Uuid
+  issuedOn     DateTime  @db.Date
+  securityCode String
+  /// Posée par un opérateur après vérification sur le site de l'URSSAF ; seule une attestation vérifiée est affichée.
+  verifiedAt   DateTime? @db.Timestamptz(3)
+  /// Rappel d'échéance envoyé : une seule fois par attestation.
+  remindedAt   DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([issuedOn])
 }
 
 model Skill {
@@ -665,6 +686,7 @@ enum NotificationKind {
   application_status   // la candidature avance (freelance)
   mission_match        // nouvelles missions pour une alerte enregistrée (freelance)
   contract_update      // contrat à signer, actif, prestation validée
+  vigilance_expiring   // l'attestation de vigilance URSSAF expire bientôt (freelance)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
