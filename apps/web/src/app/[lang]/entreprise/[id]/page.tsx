@@ -160,7 +160,7 @@ export default async function ProfilePage({ params }: PageProps) {
       <section className="ws-block" aria-labelledby="contact-title">
         <h2 id="contact-title">{t.profile.contactTitle}</h2>
         <p className="measure">{CONTACT_NOTE[lang]}</p>
-        <RequestProfile lang={lang} t={t} profileId={profile.id} />
+        <RequestProfile lang={lang} t={t} reference={profile.id} />
       </section>
     </>
   );

@@ -28,7 +28,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
   try {
     const profile = await publicProfiles(getDb()).page(slug);
     if (profile === null) return html(NOT_FOUND, 404, "public, max-age=60");
-    const page = renderProfilePage(profile, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/entreprise/${profile.reference}` });
+    const page = renderProfilePage(profile, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/app/contact/${profile.reference}` });
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
     logError("profile page: not rendered", error);

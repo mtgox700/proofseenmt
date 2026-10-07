@@ -1,3 +1,4 @@
+import "@/styles/market.css";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app/AppShell";
 import { AuthUnavailable } from "@/components/app/AuthUnavailable";

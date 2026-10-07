@@ -1,0 +1,26 @@
+/* Marketplace screens of the connected app. Built on the tokens and on the workspace primitives (.field, .reply,
+   .threads, .tag): only what those do not already cover lives here. */
+
+/* ---------- Forms ---------- */
+.panel { display: grid; gap: var(--space-4); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) + 4px); }
+.panel > h2 { font: 500 var(--step-1) / 1.2 var(--serif); }
+.panel-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.field input[type="text"], .field input[type="number"], .field input[type="date"], .field input[type="email"], .field textarea {
+  width: 100%; min-height: 2.75rem; padding: 0.55rem 0.75rem; font: inherit; font-size: 16px; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+}
+.field textarea { min-height: 7rem; line-height: 1.5; resize: vertical; }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--proof); outline-offset: 2px; }
+.panel .btn { justify-self: start; }
+
+/* ---------- Buttons ---------- */
+.btn-quiet { background: transparent; border-color: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .btn-quiet:hover:not(:disabled) { border-color: transparent; color: var(--ink); } }
+
+/* ---------- Conversations ---------- */
+.thread-close { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.bubbles li .tag { justify-self: start; }
+
+/* ---------- Company ---------- */
+.org-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); }
+.org-card strong { font: 500 var(--step-2) / 1.1 var(--serif); letter-spacing: -0.01em; }

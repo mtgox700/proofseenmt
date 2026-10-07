@@ -1,0 +1,21 @@
+/** A status as a tag: green once agreed, amber while someone has to act, grey once over. */
+const TONE: Readonly<Record<string, string>> = {
+  pending: "tag-signal",
+  submitted: "tag-signal",
+  sent: "tag-signal",
+  pending_signatures: "tag-signal",
+  draft: "tag-quiet",
+  accepted: "tag-proof",
+  active: "tag-proof",
+  shortlisted: "tag-proof",
+  completed: "tag-proof",
+  declined: "tag-quiet",
+  rejected: "tag-quiet",
+  withdrawn: "tag-quiet",
+  cancelled: "tag-quiet",
+  closed: "tag-quiet",
+};
+
+export function StatusTag({ status, label }: { readonly status: string; readonly label: string }) {
+  return <span className={`tag ${TONE[status] ?? "tag-quiet"}`}>{label}</span>;
+}

@@ -9,13 +9,20 @@ import { operatorOverview, referenceForEmail } from "@/data/operator-source";
 import { dictionary, isLang, type Dictionary, type Lang } from "@/i18n";
 import { date } from "@/lib/format";
 import { requirePerson, type Person } from "@/lib/session";
+import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { marketDictionary } from "@/i18n/market";
+import { currentOrganisation, pageMarket } from "@/lib/market";
+import { createOrganisation } from "./actions";
 
 /** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
+  readonly searchParams: Promise<{ erreur?: string }>;
 }
+
+const KINDS = ["startup", "scaleup", "pme", "eti", "grand_groupe", "esn", "editeur_logiciel", "secteur_public", "association"] as const;
 
 const LOCALE: Readonly<Record<Lang, string>> = { fr: "fr-FR", en: "en-GB" };
 const euros = (cents: number, lang: Lang): string =>
@@ -179,14 +186,69 @@ async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonl
   );
 }
 
-function CompanyHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
+/** The company form, shown until the account has created its company: nothing else works without one. */
+function CreateOrganisation({ lang, error }: { readonly lang: Lang; readonly error: string | undefined }) {
+  const m = marketDictionary(lang).company;
+  const message = error === undefined ? null : error === "trop" ? m.errors.tooMany : error === "siret" ? m.errors.siret : m.errors.invalid;
+  return (
+    <form action={createOrganisation} className="panel" aria-labelledby="org-title">
+      <input type="hidden" name="lang" value={lang} />
+      <h2 id="org-title">{m.createTitle}</h2>
+      <p className="muted measure">{m.createLead}</p>
+      {message === null ? null : (
+        <p className="form-error" role="alert">
+          {message}
+        </p>
+      )}
+      <div className="panel-grid">
+        <div className="field">
+          <label htmlFor="org-name">{m.name}</label>
+          <input id="org-name" name="name" type="text" required minLength={2} maxLength={200} autoComplete="organization" aria-describedby="org-name-hint" />
+          <p id="org-name-hint" className="field-hint">{m.nameHint}</p>
+        </div>
+        <div className="field">
+          <label htmlFor="org-kind">{m.kind}</label>
+          <select id="org-kind" name="kind" required defaultValue="pme">
+            {KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {m.kinds[kind]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="org-siret">{m.siret}</label>
+          <input id="org-siret" name="siret" type="text" inputMode="numeric" pattern="[0-9 ]{14,17}" maxLength={17} aria-describedby="org-siret-hint" />
+          <p id="org-siret-hint" className="field-hint">{m.siretHint}</p>
+        </div>
+      </div>
+      <button type="submit" className="btn btn-primary">
+        {m.create}
+      </button>
+    </form>
+  );
+}
+
+async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person; readonly error: string | undefined }) {
   const c = t.app.company;
+  const m = marketDictionary(lang);
+  const market = await pageMarket(lang, ["company"]);
+  if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
+  const organisation = await currentOrganisation(market);
   return (
     <>
       <header className="app-head">
         <h1>{c.title(person.name)}</h1>
+        {organisation === null ? null : (
+          <p className="org-card">
+            <strong>{organisation.name}</strong>
+            <span className="tag tag-quiet">{m.company.kinds[organisation.kind]}</span>
+            <span className="muted small">{m.company.roles[organisation.role]}</span>
+          </p>
+        )}
         <p className="muted measure">{c.lead}</p>
       </header>
+      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : null}
       <form className="filters" method="get" action={`/${lang}/entreprise`} role="search" aria-label={c.search}>
         <div className="field">
           <label htmlFor="skill">{t.directory.form.skill}</label>
@@ -206,13 +268,13 @@ function CompanyHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dic
   );
 }
 
-export default async function AppHome({ params }: PageProps) {
+export default async function AppHome({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
   const t = dictionary(lang);
   const person = await requirePerson(lang);
   if (person === null) return null;
   if (person.role === "operator") return <OperatorHome lang={lang} t={t} />;
-  if (person.role === "company") return <CompanyHome lang={lang} t={t} person={person} />;
+  if (person.role === "company") return <CompanyHome lang={lang} t={t} person={person} error={(await searchParams).erreur} />;
   return <FreelanceHome lang={lang} t={t} person={person} />;
 }

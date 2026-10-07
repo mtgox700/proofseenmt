@@ -1,111 +1,158 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientSource } from "@/data/client-source";
-import { getSource } from "@/data/file-source";
-import { getMessageStore } from "@/data/message-store";
-import { viewerOf } from "@/data/viewer";
-import { dictionary, isLang } from "@/i18n";
+import { inbox, InvalidCursorError, messaging } from "@proofseen/db";
+import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StatusTag } from "@/components/market/StatusTag";
+import { isLang } from "@/i18n";
+import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { date } from "@/lib/format";
-import { canAnswer, canDecide, canView, MAX_BODY } from "@/lib/messaging";
-import { requirePerson } from "@/lib/session";
-import { answerThread, decideThread } from "../actions";
+import { pageMarket } from "@/lib/market";
+import { closeConversation, decideConversation, postMessage } from "../actions";
 
-/** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
+/** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; avant?: string }>;
 }
 
+const MAX_BODY = 10_000;
+
+const errorText = (code: string | undefined, m: MarketDictionary): string | null => {
+  switch (code) {
+    case undefined:
+      return null;
+    case "trop":
+      return m.thread.tooMany;
+    case "invalide":
+      return m.thread.invalid;
+    case "coordonnees":
+      return m.thread.contactBlocked;
+    case "existant":
+      return m.contact.existing;
+    default:
+      return m.thread.notAllowed;
+  }
+};
+
 /*
- * One thread. The freelancer's real name reaches the company only once the freelancer has accepted; before that the
- * company sees the pseudonym. A thread the person may not see answers 404, not « forbidden »: its existence is private.
+ * One conversation, for its two sides only (anyone else gets 404: a thread's existence is private). Messages read
+ * oldest to newest; « older messages » pages back through the history.
  */
 export default async function ThreadPage({ params, searchParams }: PageProps) {
   const { lang, id } = await params;
   if (!isLang(lang)) notFound();
-  const t = dictionary(lang);
-  const m = t.messages;
-  const person = await requirePerson(lang);
-  if (person === null) return null;
-  const viewer = await viewerOf(person);
-  const thread = await getMessageStore().get(id);
-  if (viewer === null || thread === null || !canView(viewer, thread)) notFound();
-
-  const { profiles } = await getSource().profiles();
-  const handle = profiles.find((profile) => profile.id === thread.profileId)?.handle ?? thread.profileId;
-  const revealed = thread.status === "accepted" || person.role === "operator";
-  const realName = revealed ? ((await getClientSource().view(thread.profileId))?.displayName ?? null) : null;
-  const error = (await searchParams).erreur;
-
-  const sideLabel = (from: "company" | "freelance" | "operator"): string =>
-    from === "operator" ? "Proofseen" : from === "company" ? thread.company.name : realName === null ? handle : `${realName} (${handle})`;
+  const m = marketDictionary(lang);
+  const market = await pageMarket(lang);
+  if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
+  const { erreur, avant } = await searchParams;
+  const head = await inbox(market.db).thread(market.actor, id);
+  if (head === null) notFound();
+  const page = await messaging(market.db)
+    .listMessages(market.actor, id, { cursor: avant })
+    .catch((error: unknown) => {
+      if (error instanceof InvalidCursorError) return null;
+      throw error;
+    });
+  if (page === null) notFound();
+  const counterpart = head.counterpart.kind === "organisation" ? head.counterpart.name : head.counterpart.reference;
+  const messages = [...page.items].reverse();
+  const error = errorText(erreur, m);
+  const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
 
   return (
     <>
       <p>
-        <Link href={`/${lang}/app/messages`}>{m.back}</Link>
+        <Link href={`/${lang}/app/messages`}>← {m.thread.back}</Link>
       </p>
       <header className="app-head">
-        <h1>{person.role === "company" ? (realName ?? handle) : thread.company.name}</h1>
+        <h1>{counterpart}</h1>
         <p className="thread-meta">
-          <span className={thread.status === "accepted" ? "tag tag-proof" : thread.status === "declined" ? "tag tag-quiet" : "tag tag-signal"}>{m.status[thread.status]}</span>
+          <StatusTag status={head.status} label={m.inbox.status[head.status]} />
           <span className="muted small">
-            {m.about} {handle} · {m.opened} {date(thread.createdAt, lang)}
+            {head.missionTitle === null ? m.inbox.direct : `${m.inbox.about} : ${head.missionTitle}`}
+            {head.counterpart.kind === "profile" && head.counterpart.headline !== null ? ` · ${head.counterpart.headline}` : null}
           </span>
         </p>
-        {person.role === "company" && thread.status === "pending" ? <p className="muted measure">{m.pendingCompany}</p> : null}
+        {head.side === "company" && head.status === "pending" ? <p className="muted measure">{m.thread.waitingCompany}</p> : null}
       </header>
 
-      <ol className="bubbles">
-        {thread.messages.map((message) => (
-          <li key={message.id} data-from={message.from} data-mine={message.authorId === person.id || undefined}>
-            <span className="bubble-who small">{sideLabel(message.from)}</span>
-            <p className="bubble-body">{message.body}</p>
-            <time className="bubble-at small muted" dateTime={message.at}>
-              {date(message.at, lang)}
-            </time>
-          </li>
-        ))}
-      </ol>
-
-      {error === undefined ? null : (
-        <p className="form-error" role="alert">
-          {error === "trop" ? m.tooMany : m.invalid}
+      {page.next === null ? null : (
+        <p>
+          <Link href={`/${lang}/app/messages/${id}?avant=${encodeURIComponent(page.next)}`}>↑ {m.thread.older}</Link>
         </p>
       )}
 
-      {canDecide(viewer, thread) ? (
-        <form action={decideThread} className="decision">
-          <input type="hidden" name="lang" value={lang} />
-          <input type="hidden" name="threadId" value={thread.id} />
-          <p className="measure">{m.decideLead}</p>
+      <ol className="bubbles">
+        {messages.map((message) => {
+          const mine = message.senderUserId === market.actor.userId;
+          return (
+            <li key={message.id} data-from={mine ? "mine" : "other"} data-mine={mine || undefined}>
+              <span className="bubble-who small">{mine ? m.inbox.you : counterpart}</span>
+              <p className="bubble-body">{message.body}</p>
+              {message.containsContact ? <span className="tag tag-quiet small">{m.thread.flagged}</span> : null}
+              <time className="bubble-at small muted" dateTime={message.createdAt.toISOString()}>
+                {date(message.createdAt.toISOString(), lang)}
+              </time>
+            </li>
+          );
+        })}
+      </ol>
+
+      {error === null ? null : (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {head.canDecide ? (
+        <form action={decideConversation} className="decision">
+          {hidden("lang", lang)}
+          {hidden("conversationId", id)}
+          <p className="measure">{m.thread.decideLead}</p>
           <div className="empty-actions">
             <button type="submit" name="decision" value="accepted" className="btn btn-primary">
-              {m.accept}
+              {m.thread.accept}
             </button>
             <button type="submit" name="decision" value="declined" className="btn">
-              {m.decline}
+              {m.thread.decline}
             </button>
           </div>
         </form>
       ) : null}
 
-      {canAnswer(viewer, thread) ? (
-        <form action={answerThread} className="reply">
-          <input type="hidden" name="lang" value={lang} />
-          <input type="hidden" name="threadId" value={thread.id} />
-          <div className="field">
-            <label htmlFor="body">{person.role === "operator" ? m.replyAsProofseen : m.reply}</label>
-            <textarea id="body" name="body" required maxLength={MAX_BODY} rows={4} />
-          </div>
-          <button type="submit" className="btn btn-primary">
-            {m.send}
-          </button>
-        </form>
-      ) : thread.status === "declined" ? (
-        <p className="muted">{m.declinedNote}</p>
+      {head.canPost ? (
+        <>
+          <form action={postMessage} className="reply">
+            {hidden("lang", lang)}
+            {hidden("conversationId", id)}
+            <div className="field">
+              <label htmlFor="body">{m.thread.reply}</label>
+              <textarea id="body" name="body" required maxLength={MAX_BODY} rows={4} aria-describedby="body-hint" />
+              <p id="body-hint" className="field-hint">
+                {m.thread.replyHint}
+              </p>
+            </div>
+            <button type="submit" className="btn btn-primary">
+              {m.thread.send}
+            </button>
+          </form>
+          <form action={closeConversation} className="thread-close">
+            {hidden("lang", lang)}
+            {hidden("conversationId", id)}
+            <button type="submit" className="btn btn-quiet" aria-describedby="close-hint">
+              {m.thread.close}
+            </button>
+            <span id="close-hint" className="muted small">
+              {m.thread.closeHint}
+            </span>
+          </form>
+        </>
+      ) : head.status === "declined" ? (
+        <p className="muted">{m.thread.declined}</p>
+      ) : head.status === "closed" ? (
+        <p className="muted">{m.thread.closed}</p>
       ) : null}
     </>
   );
