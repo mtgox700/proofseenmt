@@ -16,7 +16,7 @@
 | C2 | 2026-10-19 → 11-01 | Missions et candidatures | 🟡 | Données, API, pages publiques, alertes e-mail, red team faites ; restent écrans et E2E navigateur connecté — `sprints/C2_HANDOFF.md` |
 | C3 | 2026-11-02 → 11-15 | Devis, contrat, paiement sécurisé | 🟡 | Données, Stripe (mode test), webhooks, factures, revue sécurité faites (`TEAM_MEMORY` 2026-10-06) ; manquent clés Stripe de test et taux de commission (founder), écrans, E2E navigateur |
 | C4 | 2026-11-16 → 11-29 | Tableaux de bord et preuve | 🟡 | Données et API des tableaux de bord, avis, visibilité mesurée faits ; restent écrans + Lighthouse, remesure J+45 de Zak (~19/11, GO API), décompte des préventes (27/11) |
-| C5 | 2026-11-30 → 12-13 | Profils cités par les IA, à l'échelle | 🟡 | Profils, pages métiers, sitemaps, robots, IndexNow, `marketplace-verify` 9/9, Lighthouse 100 faits ; **mesure de conquête en attente du GO API** ; suivi Bing/Brave/Google au déploiement — `sprints/C5_HANDOFF.md` |
+| C5 | 2026-11-30 → 12-13 | Profils cités par les IA, à l'échelle | 🟡 | Profils, pages métiers, sitemaps, robots, IndexNow, `marketplace-verify` 9/9, Lighthouse 100 faits ; **mesure de conquête faite le 2026-10-07 : proofseen.com 0 % des citations, Malt + LinkedIn 64,2 %** (`conquete/CONQ-2026-10-07.md`) ; suivi Bing/Brave/Google au déploiement — `sprints/C5_HANDOFF.md` |
 | C6 | 2026-12-14 → 12-27 | Confiance, conformité, robustesse | 🟡 | RGPD appliqué (export, effacement protégé, durées exécutées), journaux et santé, red team fraude fermée et rejouée, 3 relectures sécurité sans constat critique ou haut ouvert ; restent l'effacement connecté et les verrous à rejouer sur la base réelle, une décision founder (séquestre non validé), l'AA des écrans — `sprints/C6_HANDOFF.md` |
 | C7 | 2026-12-28 → 2027-01-10 | Bêta publique | 🟡 | Fait sans attendre le déploiement : entonnoir des deux côtés (`funnel`), collecte et classement des retours (`/api/feedback`, `feedback`), procédure de mise en production (`sprints/C7_DEPLOY.md`), prompts C8-C11 proposés ; **attend le GO DEPLOY** puis les premiers utilisateurs réels — `sprints/C7_HANDOFF.md` |
 
@@ -467,7 +467,7 @@ GO.
 
 | Sprint | Dates | Nom | Statut | Preuve de clôture |
 |---|---|---|---|---|
-| C8 | 2027-01-11 → 01-24 | Confiance vérifiée | ⬜ proposé | — |
+| C8 | 2027-01-11 → 01-24 | Confiance vérifiée | 🟡 lancé le 2026-10-07 | — |
 | C9 | 2027-01-25 → 02-07 | Recherche sans score | ⬜ proposé | — |
 | C10 | 2027-02-08 → 02-21 | Régie, facturation électronique, trésorerie | ⬜ proposé | — |
 | C11 | 2027-02-22 → 03-07 | Grands comptes et ESN | ⬜ proposé | — |
