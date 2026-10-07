@@ -467,7 +467,7 @@ GO.
 
 | Sprint | Dates | Nom | Statut | Preuve de clôture |
 |---|---|---|---|---|
-| C8 | 2027-01-11 → 01-24 | Confiance vérifiée | 🟡 lancé le 2026-10-07 | — |
+| C8 | 2027-01-11 → 01-24 | Confiance vérifiée | 🟡 | SIRET au répertoire (nom vérifié, un SIRET par partie), faits vérifiés publics, attestation URSSAF (vérifiée par opérateur, contrôlée à la création et à la signature), red team corrigée ; restent l'identité Stripe (Stripe en fin de projet) et les écrans — `sprints/C8_HANDOFF.md` |
 | C9 | 2027-01-25 → 02-07 | Recherche sans score | ⬜ proposé | — |
 | C10 | 2027-02-08 → 02-21 | Régie, facturation électronique, trésorerie | ⬜ proposé | — |
 | C11 | 2027-02-22 → 03-07 | Grands comptes et ESN | ⬜ proposé | — |
