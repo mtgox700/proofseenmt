@@ -22,7 +22,7 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const m = marketDictionary(lang).missions.nav;
   if (person.role === "operator") return [home, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
   if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
-  return [home, { href: `${base}/missions`, label: m.freelance }, messages, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
+  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, { href: `${base}/missions`, label: m.freelance }, messages, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
 export function AppShell({ lang, t, person, children }: AppShellProps) {

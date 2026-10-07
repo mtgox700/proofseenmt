@@ -1,4 +1,5 @@
 import { missionsFr } from "./missions-fr";
+import { profileFr } from "./profile-fr";
 
 /*
  * Textes de l'espace connecté de la marketplace (missions, messages, devis, contrats, factures, entreprise). Séparés du
@@ -20,6 +21,7 @@ const kinds = {
 
 export const marketFr = {
   missions: missionsFr,
+  profile: profileFr,
   nav: {
     messages: "Messages",
     missions: "Missions",

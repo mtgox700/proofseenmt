@@ -10,6 +10,8 @@ import { dictionary, isLang, type Dictionary, type Lang } from "@/i18n";
 import { date } from "@/lib/format";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StatusTag } from "@/components/market/StatusTag";
+import { profiles } from "@proofseen/db";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { createOrganisation } from "./actions";
@@ -135,6 +137,36 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
   );
 }
 
+/** The marketplace side of a freelancer's home: the profile's state, and the way to missions. */
+async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
+  const dict = marketDictionary(lang);
+  const p = dict.profile;
+  const market = await pageMarket(lang, ["freelance"]);
+  if (market === "unconfigured") return null;
+  const profile = await profiles(market.db).findMine(market.actor);
+  return (
+    <section className="panel" aria-labelledby="market-title">
+      <h2 id="market-title">{p.homeTitle}</h2>
+      {profile === null ? (
+        <p className="measure">{p.homeNoProfile}</p>
+      ) : (
+        <p className="thread-meta">
+          <StatusTag status={profile.visibility === "private" ? "draft" : "accepted"} label={profile.reference} />
+          <span className="muted">{p.visibility[profile.visibility]}</span>
+        </p>
+      )}
+      <div className="empty-actions">
+        <Link className={profile === null ? "btn btn-primary" : "btn"} href={`/${lang}/app/profil`}>
+          {profile === null ? p.homeCreate : p.homeEdit}
+        </Link>
+        <Link className={profile === null ? "btn" : "btn btn-primary"} href={`/${lang}/missions`}>
+          {p.homeBrowse}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
   const f = t.app.freelance;
   const reference = await referenceForEmail(person.email);
@@ -164,18 +196,11 @@ async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonl
           </dl>
         )}
       </header>
+      <FreelanceMarket lang={lang} />
       {view === null ? (
-        <EmptyState title={f.noFileTitle} headingLevel={2}>
-          <p>{f.noFileText}</p>
-          <p className="empty-actions">
-            <Link className="btn btn-primary" href={`/${lang}/inscription`}>
-              {f.openFile}
-            </Link>
-            <Link className="btn" href={`/${lang}/freelance`}>
-              {f.demo}
-            </Link>
-          </p>
-        </EmptyState>
+        <p className="muted small">
+          <Link href={`/${lang}/inscription`}>{marketDictionary(lang).profile.homeAudit}</Link>
+        </p>
       ) : (
         <section className="ws-block" aria-labelledby="path-title">
           <h2 id="path-title">{view.complete ? t.space.allDone : t.space.pathTitle}</h2>

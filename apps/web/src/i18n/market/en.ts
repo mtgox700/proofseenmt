@@ -1,9 +1,11 @@
 import type { MarketDictionary } from "./fr";
 
 import { missionsEn } from "./missions-en";
+import { profileEn } from "./profile-en";
 
 export const marketEn: MarketDictionary = {
   missions: missionsEn,
+  profile: profileEn,
   nav: {
     messages: "Messages",
     missions: "Missions",

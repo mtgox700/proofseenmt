@@ -29,3 +29,4 @@
 .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); grid-column: 1 / -1; }
 .thread-row > .row-actions form { display: contents; }
 .tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.form-ok { padding: var(--space-3) var(--space-4); border: 1px solid var(--proof); border-radius: var(--radius); background: var(--proof-wash); color: var(--ink); }
