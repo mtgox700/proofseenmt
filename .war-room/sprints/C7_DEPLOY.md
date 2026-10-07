@@ -28,9 +28,9 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
 ## 2. Étapes, dans l'ordre
 
 1. **Founder** : rotation du mot de passe Railway (il a circulé en clair), puis `DATABASE_URL` dans l'environnement.
-2. Préproduction d'abord (base et application séparées de la production) :
-   `pnpm --filter @proofseen/db exec prisma migrate deploy` — c'est la **première** application de la migration
-   initiale ; à partir de là, toute évolution passe par une nouvelle migration et `prisma/init/regenerate.sh` est retiré.
+2. ~~Migration~~ : **faite le 2026-10-07** sur la base Railway (`prisma migrate deploy`), outil de régénération retiré.
+   Pour une base de préproduction séparée : même commande. Vérifier la concurrence avec
+   `pnpm --filter @proofseen/db exec tsx --env-file=../../.env scripts/real-db-check.ts`.
 3. Build et démarrage : `pnpm --filter @proofseen/web build`, puis `next start`.
 4. Tâche planifiée : `GET /api/cron/notifications` avec `Authorization: Bearer $CRON_SECRET`, toutes les 5 minutes.
 5. Surveillance : `GET /api/health` toutes les minutes (200 attendu, 503 = base injoignable).

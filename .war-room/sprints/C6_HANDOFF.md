@@ -19,8 +19,8 @@ Scénarios rejoués : `packages/db/test/red-team-c6.test.ts`, `contact-detection
 
 ## Reste à faire
 
-1. Au déploiement : rejouer `DELETE /api/me` connecté (aucune clé Clerk en local) et prouver les verrous d'effacement sur
-   le Postgres Railway (PGlite n'a qu'une connexion).
+1. Rejouer `DELETE /api/me` connecté (connexion Clerk par le founder). ~~Verrous d'effacement sur Postgres réel~~ : prouvés
+   le 2026-10-07 (`scripts/real-db-check.ts`).
 2. ~~Séquestre pris en otage~~ : décidé et fait le 2026-10-07 (relance + « à revoir » à 14 jours, jamais de versement
    automatique) — `packages/db/src/validation-reminders.ts`.
 3. Avant toute route de création d'entreprise ou d'ajout de membre : plafond par personne, adhésion sur invitation.
