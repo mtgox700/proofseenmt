@@ -51,5 +51,6 @@ export const commandFunnel = async (o: FunnelCommand): Promise<void> => {
     ["sous contrat", m.company.contracted],
     ["argent engagé", m.company.paid],
   ]);
+  o.log(`Délai médian entre l'arrivée d'une entreprise et son premier échange : ${m.company.medianHoursToFirstExchange === null ? "—" : `${m.company.medianHoursToFirstExchange} h`}`);
   o.log(`Demandes d'audit sur la période : ${m.auditRequests}`);
 };

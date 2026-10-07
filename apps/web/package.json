@@ -20,6 +20,7 @@
     "@proofseen/client-store": "workspace:*",
     "@proofseen/db": "workspace:*",
     "@proofseen/deliverable": "workspace:*",
+    "@proofseen/engines": "workspace:*",
     "@proofseen/hub": "workspace:*",
     "@proofseen/intake": "workspace:*",
     "@proofseen/invoicing": "workspace:*",
