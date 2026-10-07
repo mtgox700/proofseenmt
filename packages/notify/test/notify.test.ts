@@ -40,6 +40,13 @@ describe("contenu des e-mails", () => {
     expect(email.text).toContain("5 000 € HT");
   });
 
+  it("annonce un relevé mensuel déposé, validé ou à corriger, avec son mois", () => {
+    const submitted = renderEmail({ kind: "contract_update", payload: { contractId: "k-2", status: "timesheet_submitted", month: "2026-12" }, to: TO }, BASE);
+    expect(submitted.subject).toBe("Un relevé mensuel attend votre validation");
+    expect(submitted.text).toContain("relevé de 2026-12");
+    expect(renderEmail({ kind: "contract_update", payload: { contractId: "k-2", status: "timesheet_rejected", month: "2026-12" }, to: TO }, BASE).text).toContain("corrigez-le et redéposez-le");
+  });
+
   it("échappe le nom affiché", () => {
     const email = renderEmail({ kind: "application_received", payload: {}, to: { lang: "fr", displayName: "<img src=x onerror=alert(1)>" } }, BASE);
     expect(email.html).not.toContain("<img");
