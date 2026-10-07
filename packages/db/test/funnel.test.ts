@@ -61,7 +61,7 @@ describe("entonnoir de la marketplace", () => {
 
     const measured = await funnel(t.db).measure();
     expect(measured.freelance).toEqual({ profiles: 3, published: 2, provenUrl: 1, firstExchange: 2, contracted: 1, paid: 1 });
-    expect(measured.company).toEqual({ organisations: 2, missionPublished: 1, firstExchange: 1, contracted: 1, paid: 1 });
+    expect(measured.company).toEqual({ organisations: 2, missionPublished: 1, firstExchange: 1, contracted: 1, paid: 1, medianHoursToFirstExchange: 0 });
     // Des totaux seulement : aucune valeur de la mesure n'est un identifiant, un nom ou une adresse.
     expect(JSON.stringify(measured)).toMatch(/^[{}":,a-zA-Z0-9]+$/);
     expect(Object.values(measured.freelance).every((n) => typeof n === "number")).toBe(true);

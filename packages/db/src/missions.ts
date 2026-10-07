@@ -68,6 +68,12 @@ export interface MissionRecord {
   readonly organisationName: string;
   /** L'entreprise est active au répertoire officiel, à cette date ; `null` si ce n'est pas établi. */
   readonly organisationRegistryActiveCheckedAt: Date | null;
+  /**
+   * Délai médian, en jours, entre une candidature et la décision de l'entreprise, sur les six derniers mois ; `null`
+   * sous RESPONSE_MIN_DECIDED décisions. Un fait sur une entreprise, pas une note de personne. Rempli par la page publique
+   * d'une mission seulement.
+   */
+  readonly organisationResponse?: { readonly medianDays: number; readonly decided: number } | null;
   readonly title: string;
   readonly description: string;
   readonly skills: readonly string[];
@@ -96,7 +102,7 @@ export interface Missions {
   publish(actor: Actor, missionId: string, now: Date): Promise<boolean>;
   close(actor: Actor, missionId: string, now: Date): Promise<boolean>;
   /** Une mission ouverte, visible de tous ; `null` sinon. */
-  findPublic(missionId: string): Promise<MissionRecord | null>;
+  findPublic(missionId: string, now?: Date): Promise<MissionRecord | null>;
   /** Toutes les missions de l'entreprise, brouillons compris, pour ses membres ; `null` pour les autres. */
   listForOrganisation(actor: Actor, organisationId: string): Promise<readonly MissionRecord[] | null>;
   search(filters: MissionSearch): Promise<{ readonly items: readonly MissionRecord[]; readonly hasMore: boolean }>;
@@ -132,6 +138,24 @@ const toRecord = ({ skills, organisation, ...row }: Row): MissionRecord => ({
 });
 
 const memberOf = (userId: string): Prisma.JobPostWhereInput => ({ organisation: { members: { some: { userId } } } });
+
+export const RESPONSE_MIN_DECIDED = 3;
+const RESPONSE_WINDOW_MS = 183 * 86_400_000;
+const DAY_MS = 86_400_000;
+
+/** Délai médian de décision d'une entreprise sur ses candidatures récentes (décisions de l'entreprise seulement). */
+const responseOf = async (db: Db, organisationId: string, now: Date): Promise<{ readonly medianDays: number; readonly decided: number } | null> => {
+  const rows = await db.application.findMany({
+    where: { jobPost: { organisationId }, status: { in: ["shortlisted", "declined", "hired"] }, createdAt: { gte: new Date(now.getTime() - RESPONSE_WINDOW_MS) } },
+    select: { createdAt: true, updatedAt: true },
+    take: 500,
+  });
+  if (rows.length < RESPONSE_MIN_DECIDED) return null;
+  const days = rows.map((r) => (r.updatedAt.getTime() - r.createdAt.getTime()) / DAY_MS).sort((a, b) => a - b);
+  const mid = Math.floor(days.length / 2);
+  const median = days.length % 2 === 1 ? (days[mid] ?? 0) : ((days[mid - 1] ?? 0) + (days[mid] ?? 0)) / 2;
+  return { medianDays: Math.max(1, Math.round(median)), decided: rows.length };
+};
 
 const ORDER: Record<SearchSort, Prisma.JobPostOrderByWithRelationInput[]> = {
   recent: [{ publishedAt: "desc" }, { id: "desc" }],
@@ -201,10 +225,11 @@ export const missions = (db: Db): Missions => ({
     return count === 1;
   },
 
-  async findPublic(missionId) {
+  async findPublic(missionId, now = new Date()) {
     if (!Uuid.safeParse(missionId).success) return null;
     const row = await db.jobPost.findFirst({ where: { id: missionId, status: "open" }, select: SELECT });
-    return row === null ? null : toRecord(row);
+    if (row === null) return null;
+    return { ...toRecord(row), organisationResponse: await responseOf(db, row.organisationId, now) };
   },
 
   async listForOrganisation(actor, organisationId) {

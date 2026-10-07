@@ -26,6 +26,7 @@ const LABELS = {
     skills: "Compétences",
     published: "Publiée le",
     registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
+    response: (days: number, decided: number) => `Répond aux candidatures en ${days} jour${days > 1 ? "s" : ""} (médiane sur ${decided} candidatures, six derniers mois)`,
     apply: "Postuler sur Proofseen",
     otherLang: "English",
     perDay: "/ jour",
@@ -43,6 +44,7 @@ const LABELS = {
     skills: "Skills",
     published: "Published on",
     registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
+    response: (days: number, decided: number) => `Answers applications within ${days} day${days > 1 ? "s" : ""} (median over ${decided} applications, last six months)`,
     apply: "Apply on Proofseen",
     otherLang: "Français",
     perDay: "/ day",
@@ -99,6 +101,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
   const published = longDate(m.publishedAt);
   // Un fait vérifié sur l'entreprise, daté ; absent tant que le répertoire n'a pas confirmé.
   const registry = m.organisationRegistryActiveCheckedAt == null ? "" : `<p class="muted">${e(l.registryActive(longDate(m.organisationRegistryActiveCheckedAt)))}</p>`;
+  const response = m.organisationResponse == null ? "" : `<p class="muted">${e(l.response(m.organisationResponse.medianDays, m.organisationResponse.decided))}</p>`;
 
   return [
     "<!doctype html>",
@@ -125,6 +128,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     `<h1 class="title">${e(m.title)}</h1>`,
     `<p class="byline">${e(m.organisationName)} · ${l.published} ${e(published)}</p>`,
     registry,
+    response,
     `<dl class="context">${context}</dl>`,
     paragraphs(m.description),
     m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,

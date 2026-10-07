@@ -33,6 +33,8 @@ export interface CompanyFunnel {
   readonly contracted: number;
   /** Au moins un paiement bloqué ou versé : de l'argent engagé sur la plateforme. */
   readonly paid: number;
+  /** Heures médianes entre la création de l'entreprise et son premier échange ; `null` sans échange. */
+  readonly medianHoursToFirstExchange: number | null;
 }
 
 export interface Funnel {
@@ -69,9 +71,17 @@ export const funnel = (db: Db) => ({
       db.organisation.count({ where: { ...org, contracts: { some: { payments: { some: { status: { in: ["held", "releasing", "released"] } } } } } } }),
       db.auditRequest.count({ where: range(cohort) }),
     ]);
+    const firsts = await db.organisation.findMany({
+      where: { ...org, conversations: { some: {} } },
+      select: { createdAt: true, conversations: { orderBy: { createdAt: "asc" }, take: 1, select: { createdAt: true } } },
+      take: 5_000,
+    });
+    const hours = firsts.flatMap((o) => (o.conversations[0] === undefined ? [] : [(o.conversations[0].createdAt.getTime() - o.createdAt.getTime()) / 3_600_000])).sort((a, b) => a - b);
+    const mid = Math.floor(hours.length / 2);
+    const medianHoursToFirstExchange = hours.length === 0 ? null : Math.round(hours.length % 2 === 1 ? (hours[mid] ?? 0) : ((hours[mid - 1] ?? 0) + (hours[mid] ?? 0)) / 2);
     return {
       freelance: { profiles, published, provenUrl, firstExchange, contracted, paid },
-      company: { organisations, missionPublished, firstExchange: companyExchange, contracted: companyContracted, paid: companyPaid },
+      company: { organisations, missionPublished, firstExchange: companyExchange, contracted: companyContracted, paid: companyPaid, medianHoursToFirstExchange },
       auditRequests,
     };
   },

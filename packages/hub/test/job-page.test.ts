@@ -48,6 +48,12 @@ describe("page publique d'une mission", () => {
     expect(html).toContain("Entreprise active au répertoire officiel des entreprises (vérifié le 7 octobre 2026)");
   });
 
+  it("donne le délai de réponse de l'entreprise comme un fait, avec sa base de calcul", () => {
+    expect(renderJobPage(MISSION, OPTIONS)).not.toContain("Répond aux candidatures");
+    const html = renderJobPage({ ...MISSION, organisationResponse: { medianDays: 3, decided: 12 } }, OPTIONS);
+    expect(html).toContain("Répond aux candidatures en 3 jours (médiane sur 12 candidatures, six derniers mois)");
+  });
+
   it("échappe tout texte venu de l'entreprise", () => {
     const html = renderJobPage({ ...MISSION, title: '<img src=x onerror="alert(1)">', organisationName: "A&B", description: "<script>alert(1)</script>" }, OPTIONS);
     expect(html).not.toContain("<img");
