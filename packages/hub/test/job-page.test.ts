@@ -42,6 +42,12 @@ describe("page publique d'une mission", () => {
     expect(renderJobPage(MISSION, { ...OPTIONS, lang: "en" })).toContain("Paris · Hybrid");
   });
 
+  it("dit l'entreprise active au répertoire seulement quand c'est vérifié, et date le fait", () => {
+    expect(renderJobPage(MISSION, OPTIONS)).not.toContain("répertoire officiel");
+    const html = renderJobPage({ ...MISSION, organisationRegistryActiveCheckedAt: new Date("2026-10-07T00:00:00Z") }, OPTIONS);
+    expect(html).toContain("Entreprise active au répertoire officiel des entreprises (vérifié le 7 octobre 2026)");
+  });
+
   it("échappe tout texte venu de l'entreprise", () => {
     const html = renderJobPage({ ...MISSION, title: '<img src=x onerror="alert(1)">', organisationName: "A&B", description: "<script>alert(1)</script>" }, OPTIONS);
     expect(html).not.toContain("<img");

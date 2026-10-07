@@ -19,6 +19,7 @@ const PROFILE: PublicProfile = {
   provenUrlCount: 2,
   missions: [{ role: "Lead Rust", clientKind: "pme", durationMonths: 8, summary: "Firmware d'objets connectés.", evidenceKind: "facture", verifiedAt: new Date("2026-09-01T00:00:00Z") }],
   reviews: [{ rating: 5, body: "Livré dans les temps.", createdAt: new Date("2026-10-01T00:00:00Z") }],
+  facts: { registryActiveCheckedAt: new Date("2026-10-05T00:00:00Z"), identityVerified: true, paidMissions: 3 },
   updatedAt: new Date("2026-10-06T00:00:00Z"),
 };
 
@@ -26,6 +27,18 @@ const OPTIONS = { baseUrl: "https://proofseen.com", lang: "fr" as const, contact
 const jsonLdOf = (html: string): Record<string, unknown> => JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "{}") as Record<string, unknown>;
 
 describe("page publique d'un profil", () => {
+  it("affiche des faits vérifiés et datés, sans SIRET, sans niveau ni score", () => {
+    const html = renderProfilePage(PROFILE, OPTIONS);
+    expect(html).toContain("Faits vérifiés");
+    expect(html).toContain("Entreprise active au répertoire officiel des entreprises (vérifié le 5 octobre 2026)");
+    expect(html).toContain("Identité vérifiée par le prestataire de paiement");
+    expect(html).toContain("3 missions payées sur Proofseen");
+    expect(html).not.toMatch(/\b\d{14}\b|niveau|score|super/i);
+    const none = renderProfilePage({ ...PROFILE, facts: { registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0 } }, OPTIONS);
+    expect(none).not.toContain("Faits vérifiés");
+  });
+
+
   it("se lit sans JavaScript et porte des faits vérifiés", () => {
     const html = renderProfilePage(PROFILE, OPTIONS);
     expect(html.match(/<script/g)).toHaveLength(1);

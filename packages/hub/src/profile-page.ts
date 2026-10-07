@@ -37,6 +37,7 @@ export interface PublicProfile {
     readonly verifiedAt: Date;
   }[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
+  readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly paidMissions: number };
   readonly updatedAt: Date;
 }
 
@@ -56,6 +57,10 @@ const LABELS = {
     proofs: "Adresses dont la possession est prouvée",
     proofCount: (n: number) => (n === 0 ? "Aucune adresse prouvée pour l'instant." : n === 1 ? "1 adresse prouvée." : `${n} adresses prouvées.`),
     reviews: "Avis de missions payées sur Proofseen",
+    facts: "Faits vérifiés",
+    registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
+    identityVerified: "Identité vérifiée par le prestataire de paiement",
+    paidMissions: (n: number) => (n === 1 ? "1 mission payée sur Proofseen" : `${n} missions payées sur Proofseen`),
     contact: "Contacter ce freelance sur Proofseen",
     updated: "Mis à jour le",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Grand groupe", eti: "ETI", pme: "PME", secteur_public: "Secteur public", editeur_logiciel: "Éditeur de logiciel", esn: "ESN", association: "Association" },
@@ -78,6 +83,10 @@ const LABELS = {
     proofs: "Addresses with proven ownership",
     proofCount: (n: number) => (n === 0 ? "No proven address yet." : n === 1 ? "1 proven address." : `${n} proven addresses.`),
     reviews: "Reviews of missions paid on Proofseen",
+    facts: "Verified facts",
+    registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
+    identityVerified: "Identity verified by the payment provider",
+    paidMissions: (n: number) => (n === 1 ? "1 mission paid on Proofseen" : `${n} missions paid on Proofseen`),
     contact: "Contact this freelancer on Proofseen",
     updated: "Updated on",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Large group", eti: "Mid-size company", pme: "SME", secteur_public: "Public sector", editeur_logiciel: "Software publisher", esn: "IT services firm", association: "Non-profit" },
@@ -143,6 +152,12 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     p.provenUrls.length > 0
       ? `<h2>${l.proofs}</h2><ul class="links">${p.provenUrls.map((u) => `<li><a href="${e(u)}" rel="me noopener">${e(u)}</a></li>`).join("")}</ul>`
       : `<h2>${l.proofs}</h2><p class="muted">${e(l.proofCount(p.provenUrlCount))}</p>`;
+  const factLines = [
+    ...(p.facts.registryActiveCheckedAt === null ? [] : [l.registryActive(date(p.facts.registryActiveCheckedAt, o.lang))]),
+    ...(p.facts.identityVerified ? [l.identityVerified] : []),
+    ...(p.facts.paidMissions === 0 ? [] : [l.paidMissions(p.facts.paidMissions)]),
+  ];
+  const facts = factLines.length === 0 ? "" : `<h2>${l.facts}</h2><ul class="links">${factLines.map((f) => `<li>${e(f)}</li>`).join("")}</ul>`;
   const reviews =
     p.reviews.length === 0
       ? ""
@@ -175,6 +190,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     `<p class="headline">${e(p.headline)}</p>`,
     `<dl class="context">${context}</dl>`,
     `<p class="lede">${e(p.summary)}</p>`,
+    facts,
     p.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${p.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
     missions,
     proofs,

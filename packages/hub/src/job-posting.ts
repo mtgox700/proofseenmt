@@ -10,6 +10,8 @@
 export interface PublicMission {
   readonly id: string;
   readonly organisationName: string;
+  /** Fait vérifié : entreprise active au répertoire officiel, à cette date. */
+  readonly organisationRegistryActiveCheckedAt?: Date | null;
   readonly title: string;
   readonly description: string;
   readonly skills: readonly string[];

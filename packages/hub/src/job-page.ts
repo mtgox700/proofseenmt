@@ -25,6 +25,7 @@ const LABELS = {
     notGiven: "Non précisé",
     skills: "Compétences",
     published: "Publiée le",
+    registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
     apply: "Postuler sur Proofseen",
     otherLang: "English",
     perDay: "/ jour",
@@ -41,6 +42,7 @@ const LABELS = {
     notGiven: "Not specified",
     skills: "Skills",
     published: "Published on",
+    registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
     apply: "Apply on Proofseen",
     otherLang: "Français",
     perDay: "/ day",
@@ -93,7 +95,10 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
   ]
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");
-  const published = new Intl.DateTimeFormat(o.lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(m.publishedAt);
+  const longDate = (d: Date): string => new Intl.DateTimeFormat(o.lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(d);
+  const published = longDate(m.publishedAt);
+  // Un fait vérifié sur l'entreprise, daté ; absent tant que le répertoire n'a pas confirmé.
+  const registry = m.organisationRegistryActiveCheckedAt == null ? "" : `<p class="muted">${e(l.registryActive(longDate(m.organisationRegistryActiveCheckedAt)))}</p>`;
 
   return [
     "<!doctype html>",
@@ -119,6 +124,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
     `<h1 class="title">${e(m.title)}</h1>`,
     `<p class="byline">${e(m.organisationName)} · ${l.published} ${e(published)}</p>`,
+    registry,
     `<dl class="context">${context}</dl>`,
     paragraphs(m.description),
     m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
