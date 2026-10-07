@@ -22,7 +22,8 @@ export async function PUT(request: Request, context: Context): Promise<NextRespo
   if (!parsed.success) return invalid(parsed.error.issues);
   const { id } = await context.params;
   try {
-    return (await billing(getDb()).setOrganisationIdentity(who.actor, id, parsed.data)) ? ok({ saved: true }) : fail("introuvable");
+    const saved = await billing(getDb()).setOrganisationIdentity(who.actor, id, parsed.data);
+    return saved === "saved" ? ok({ saved: true }) : fail(saved === "siret_taken" ? "siret déjà utilisé" : "introuvable");
   } catch {
     return fail("erreur serveur");
   }

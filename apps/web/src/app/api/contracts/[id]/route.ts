@@ -47,7 +47,16 @@ export async function POST(request: Request, context: Context): Promise<NextResp
     const repo = contracts(db);
     if (parsed.data.action === "sign") {
       const signed = await repo.sign(who.actor, id, new Date());
-      return signed === null ? fail("introuvable") : ok(signed);
+      switch (signed.kind) {
+        case "signed":
+          return ok(signed.contract);
+        case "registry_ceased":
+          return fail("entreprise fermée");
+        case "vigilance_required":
+          return fail("attestation de vigilance requise");
+        case "absent":
+          return fail("introuvable");
+      }
     }
     if (parsed.data.action === "cancel") {
       const cancelled = await repo.cancel(who.actor, id);

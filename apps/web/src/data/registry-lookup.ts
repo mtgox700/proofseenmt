@@ -30,15 +30,17 @@ export const checkDueRegistry = async (db: Db, now: Date, fetchImpl: typeof fetc
   for (const [i, subject] of due.entries()) {
     if (i > 0) await pause(SPACING_MS);
     try {
-      const verdict = registryVerdict(subject.siret, await lookUp(subject.siret, fetchImpl));
+      const verdict = registryVerdict(subject.siret, subject.declaredName, await lookUp(subject.siret, fetchImpl));
       if (verdict === null) {
         failed += 1;
+        await registry(db).attempted(subject, now);
         continue;
       }
       await registry(db).record(subject, verdict, now);
       checked += 1;
     } catch (error) {
       failed += 1;
+      await registry(db).attempted(subject, now).catch(() => undefined);
       logError("registry: lookup failed", error);
     }
   }

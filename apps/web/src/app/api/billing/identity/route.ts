@@ -17,7 +17,8 @@ export async function PUT(request: Request): Promise<NextResponse> {
   const parsed = BillingIdentitySchema.safeParse(await jsonBody(request));
   if (!parsed.success) return invalid(parsed.error.issues);
   try {
-    return (await billing(getDb()).setFreelanceIdentity(who.actor, parsed.data)) ? ok({ saved: true }) : fail("profil requis");
+    const saved = await billing(getDb()).setFreelanceIdentity(who.actor, parsed.data);
+    return saved === "saved" ? ok({ saved: true }) : fail(saved === "siret_taken" ? "siret déjà utilisé" : "profil requis");
   } catch {
     return fail("erreur serveur");
   }
