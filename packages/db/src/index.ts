@@ -132,3 +132,4 @@ export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, 
 export { REGISTRY_RECHECK_DAYS, registry, registryVerdict, sameEntityName, type RegistryAnswer, type RegistrySubject } from "./registry";
 export { contractBlocker, VIGILANCE_THRESHOLD_BY_CURRENCY, type ContractBlocker } from "./contract-checks";
 export { VIGILANCE_VALIDITY_MONTHS, vigilance, VigilanceInputSchema, vigilanceExpiresOn, type VigilanceInput, type VigilanceStatus } from "./vigilance";
+export { missionFiltersFromBrief, profileFiltersFromBrief, type MissionBriefFilters, type ProfileBriefFilters } from "./brief-filters";

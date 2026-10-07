@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { PROFILE_SORTS } from "../src/profiles";
+import { missionFiltersFromBrief, profileFiltersFromBrief } from "../src/brief-filters";
 import { SEARCH_SORTS } from "../src/missions";
+import { PROFILE_SORTS } from "../src/profiles";
 
 /*
  * AI Act : la recherche de freelances filtre sur des faits et trie sur un critère que la personne choisit ; elle ne
@@ -31,6 +32,14 @@ describe("AI Act : aucun classement automatique de personnes", () => {
     const people = ["User", "FreelanceProfile", "BillingIdentity", "Membership"].flatMap(fieldsOf);
     expect(people.length).toBeGreaterThan(10);
     expect(people.filter((f) => /score|rank|rating|grade|tier/i.test(f))).toEqual([]);
+  });
+
+  it("un brief traduit par un modèle ne donne jamais d'ordre : ni tri, ni score, ni liste de personnes", () => {
+    const hostile = { skills: ["Go"], sort: "rate_desc", order: ["FR-ABCDE"], score: 1, ranking: [1, 2], people: ["Jean"] };
+    for (const filters of [profileFiltersFromBrief(hostile), missionFiltersFromBrief(hostile)]) {
+      expect(filters).not.toBeNull();
+      expect(Object.keys(filters ?? {}).filter((k) => /sort|order|score|rank|people/i.test(k))).toEqual([]);
+    }
   });
 
   it("un avis porte sur une mission payée, sa note reste celle d'un avis : aucune moyenne stockée", () => {
