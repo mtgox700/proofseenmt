@@ -8,7 +8,7 @@
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -106,6 +106,18 @@ const body = (n: NotificationInput, base: string): Body => {
           : "The planned end of the mission passed more than two weeks ago and the work is not approved. Approve it, or report what is wrong: the Proofseen team is reviewing the case.",
       }[status] ?? (fr ? "Consultez votre contrat sur Proofseen." : "See your contract on Proofseen.");
       return { subject, lines: [line], links: [{ label: COPY[lang].open, href: app }] };
+    }
+    case "vigilance_expiring": {
+      const expiresOn = text(n.payload.expiresOn);
+      return {
+        subject: fr ? "Votre attestation de vigilance URSSAF expire bientôt" : "Your URSSAF vigilance certificate expires soon",
+        lines: [
+          fr
+            ? `Elle expire le ${expiresOn}. Sans attestation à jour, aucun nouveau contrat d'au moins 5 000 € HT ne peut être signé : téléchargez la nouvelle sur urssaf.fr et déclarez-la sur Proofseen.`
+            : `It expires on ${expiresOn}. Without a valid certificate, no new contract of 5,000 € excl. VAT or more can be signed: download the new one from urssaf.fr and declare it on Proofseen.`,
+        ],
+        links: [{ label: COPY[lang].open, href: app }],
+      };
     }
     case "mission_match": {
       const ids = list(n.payload.missionIds);

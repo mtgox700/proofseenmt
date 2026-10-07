@@ -33,6 +33,13 @@ describe("contenu des e-mails", () => {
     expect(email.text).not.toMatch(/versé|automatique/);
   });
 
+  it("rappelle l'échéance de l'attestation de vigilance et ce qu'elle bloque", () => {
+    const email = renderEmail({ kind: "vigilance_expiring", payload: { expiresOn: "2027-03-01" }, to: TO }, BASE);
+    expect(email.subject).toBe("Votre attestation de vigilance URSSAF expire bientôt");
+    expect(email.text).toContain("Elle expire le 2027-03-01");
+    expect(email.text).toContain("5 000 € HT");
+  });
+
   it("échappe le nom affiché", () => {
     const email = renderEmail({ kind: "application_received", payload: {}, to: { lang: "fr", displayName: "<img src=x onerror=alert(1)>" } }, BASE);
     expect(email.html).not.toContain("<img");

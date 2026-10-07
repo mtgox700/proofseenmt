@@ -19,7 +19,7 @@ const PROFILE: PublicProfile = {
   provenUrlCount: 2,
   missions: [{ role: "Lead Rust", clientKind: "pme", durationMonths: 8, summary: "Firmware d'objets connectés.", evidenceKind: "facture", verifiedAt: new Date("2026-09-01T00:00:00Z") }],
   reviews: [{ rating: 5, body: "Livré dans les temps.", createdAt: new Date("2026-10-01T00:00:00Z") }],
-  facts: { registryActiveCheckedAt: new Date("2026-10-05T00:00:00Z"), identityVerified: true, paidMissions: 3 },
+  facts: { registryActiveCheckedAt: new Date("2026-10-05T00:00:00Z"), identityVerified: true, paidMissions: 3, vigilanceValidUntil: new Date("2027-03-01T00:00:00Z") },
   updatedAt: new Date("2026-10-06T00:00:00Z"),
 };
 
@@ -33,8 +33,10 @@ describe("page publique d'un profil", () => {
     expect(html).toContain("Entreprise active au répertoire officiel des entreprises (vérifié le 5 octobre 2026)");
     expect(html).toContain("Identité vérifiée par le prestataire de paiement");
     expect(html).toContain("3 missions payées sur Proofseen");
+    // L'apostrophe sort échappée dans le HTML, comme tout texte.
+    expect(html).toContain("Attestation de vigilance URSSAF vérifiée, valable jusqu&#39;au 1 mars 2027");
     expect(html).not.toMatch(/\b\d{14}\b|niveau|score|super/i);
-    const none = renderProfilePage({ ...PROFILE, facts: { registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0 } }, OPTIONS);
+    const none = renderProfilePage({ ...PROFILE, facts: { registryActiveCheckedAt: null, identityVerified: false, paidMissions: 0, vigilanceValidUntil: null } }, OPTIONS);
     expect(none).not.toContain("Faits vérifiés");
   });
 

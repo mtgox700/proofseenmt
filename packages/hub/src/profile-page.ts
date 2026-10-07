@@ -37,7 +37,7 @@ export interface PublicProfile {
     readonly verifiedAt: Date;
   }[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
-  readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly paidMissions: number };
+  readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly paidMissions: number; readonly vigilanceValidUntil: Date | null };
   readonly updatedAt: Date;
 }
 
@@ -60,6 +60,7 @@ const LABELS = {
     facts: "Faits vérifiés",
     registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
     identityVerified: "Identité vérifiée par le prestataire de paiement",
+    vigilance: (d: string) => `Attestation de vigilance URSSAF vérifiée, valable jusqu'au ${d}`,
     paidMissions: (n: number) => (n === 1 ? "1 mission payée sur Proofseen" : `${n} missions payées sur Proofseen`),
     contact: "Contacter ce freelance sur Proofseen",
     updated: "Mis à jour le",
@@ -86,6 +87,7 @@ const LABELS = {
     facts: "Verified facts",
     registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
     identityVerified: "Identity verified by the payment provider",
+    vigilance: (d: string) => `URSSAF vigilance certificate verified, valid until ${d}`,
     paidMissions: (n: number) => (n === 1 ? "1 mission paid on Proofseen" : `${n} missions paid on Proofseen`),
     contact: "Contact this freelancer on Proofseen",
     updated: "Updated on",
@@ -155,6 +157,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
   const factLines = [
     ...(p.facts.registryActiveCheckedAt === null ? [] : [l.registryActive(date(p.facts.registryActiveCheckedAt, o.lang))]),
     ...(p.facts.identityVerified ? [l.identityVerified] : []),
+    ...(p.facts.vigilanceValidUntil === null ? [] : [l.vigilance(date(p.facts.vigilanceValidUntil, o.lang))]),
     ...(p.facts.paidMissions === 0 ? [] : [l.paidMissions(p.facts.paidMissions)]),
   ];
   const facts = factLines.length === 0 ? "" : `<h2>${l.facts}</h2><ul class="links">${factLines.map((f) => `<li>${e(f)}</li>`).join("")}</ul>`;
