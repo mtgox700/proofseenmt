@@ -9,3 +9,4 @@ export {
   type InvoiceDocument,
   type Party,
 } from "./render";
+export { invoiceTypeCode, renderCii } from "./cii";
