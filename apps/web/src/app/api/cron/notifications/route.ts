@@ -1,4 +1,4 @@
-import { getDb, missionAlerts, notifications, payments, retention } from "@proofseen/db";
+import { getDb, missionAlerts, notifications, payments, retention, validationReminders } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
@@ -37,6 +37,8 @@ export async function GET(request: Request): Promise<Response> {
         return null;
       });
     const queued = await missionAlerts(db).scan(now());
+    // Paid work never approved: both parties are reminded and a person reviews the case. Nothing is released here.
+    const overdue = await validationReminders(db).flagOverdue(now());
     // Escrow releases that could not go through at approval time (payout account not ready, provider down) are
     // retried here; each one is claimed in the database first, so overlapping runs never pay twice.
     let gateway;
@@ -49,7 +51,7 @@ export async function GET(request: Request): Promise<Response> {
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, queued, releases, sent: 0, failed: 0, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, releases, sent: 0, failed: 0, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -61,7 +63,7 @@ export async function GET(request: Request): Promise<Response> {
       sent += report.sent;
       failed += report.failed;
     }
-    return json({ ok: true, data: { purged, queued, releases, sent, failed, transport: "resend" } });
+    return json({ ok: true, data: { purged, queued, overdue, releases, sent, failed, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);
