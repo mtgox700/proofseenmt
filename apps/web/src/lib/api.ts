@@ -10,7 +10,7 @@ import { session } from "./session";
  * an underlying message: a driver error can carry a host name, a stack can carry a path.
  */
 
-export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "erreur serveur";
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "hors de la période du contrat" | "relevé déjà validé" | "plafond de jours dépassé" | "erreur serveur";
 
 const STATUS: Record<ApiError, number> = {
   "non-configuré": 503,
@@ -38,6 +38,9 @@ const STATUS: Record<ApiError, number> = {
   "attestation de vigilance requise": 422,
   "siret déjà utilisé": 409,
   "brief incompris": 422,
+  "hors de la période du contrat": 422,
+  "relevé déjà validé": 409,
+  "plafond de jours dépassé": 409,
   "erreur serveur": 500,
 };
 
