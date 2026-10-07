@@ -63,7 +63,8 @@ export interface PublicProfilePage {
   readonly facts: {
     readonly registryActiveCheckedAt: Date | null;
     readonly identityVerified: boolean;
-    readonly paidMissions: number;
+    /** Entreprises distinctes qui ont payé au moins une mission sur Proofseen (paiement acquis). */
+    readonly payingClients: number;
     /** Attestation de vigilance URSSAF vérifiée par un opérateur et en cours de validité : sa date d'échéance. */
     readonly vigilanceValidUntil: Date | null;
   };
@@ -105,7 +106,8 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
         billing: { select: { registryStatus: true, registryCheckedAt: true, payoutsEnabledAt: true } },
         vigilance: { select: { issuedOn: true, verifiedAt: true } },
-        _count: { select: { contracts: { where: { payments: { some: SETTLED_PAYMENT } } } } },
+        // Des entreprises distinctes, pas des contrats : dix micro-contrats avec la même entreprise ne font pas dix clients.
+        contracts: { where: { payments: { some: SETTLED_PAYMENT }, organisationId: { not: null } }, select: { organisationId: true }, distinct: ["organisationId"] },
       },
     });
     // Une page sans contenu réel n'est jamais servie : un profil publié a toujours titre, résumé et ville (la base
@@ -134,7 +136,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         registryActiveCheckedAt: row.billing?.registryStatus === "active" ? row.billing.registryCheckedAt : null,
         // Le prestataire de paiement n'ouvre les versements qu'après avoir vérifié l'identité du titulaire.
         identityVerified: row.billing?.payoutsEnabledAt != null,
-        paidMissions: row._count.contracts,
+        payingClients: row.contracts.length,
         vigilanceValidUntil: vigilanceShown(row.vigilance, now),
       },
       updatedAt: row.updatedAt,
