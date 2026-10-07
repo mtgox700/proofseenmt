@@ -18,8 +18,16 @@ export const createDb = (connectionString: string): Db => {
   if (/\.railway\.internal\b/.test(connectionString) && process.env.RAILWAY_ENVIRONMENT === undefined) {
     throw new Error("DATABASE_URL pointe vers l'adresse interne de Railway, injoignable d'ici : utiliser DATABASE_PUBLIC_URL");
   }
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString, max: poolSize() }) });
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString, max: poolSize() }), transactionOptions: TRANSACTION_OPTIONS });
 };
+
+/*
+ * Délais des transactions. Ceux de Prisma par défaut (2 s pour obtenir une connexion, 5 s pour la transaction) ont été
+ * dépassés en conditions réelles : une connexion neuve vers Railway coûte plusieurs secondes, et une transaction de
+ * quatre requêtes depuis un poste a pris 7 s. Une transaction expirée est annulée en entier, donc sans dégât, mais
+ * l'action échoue pour rien. Les verrous pris restent courts : aucune transaction n'attend un service extérieur.
+ */
+const TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 20_000 } as const;
 
 const DEFAULT_POOL_SIZE = 5;
 
