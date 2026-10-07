@@ -24,6 +24,8 @@ Responsable de traitement : **e-kigai**, SCOP SAS à capital variable (marque Sp
 | 13 | Limitation de débit | tous | HMAC de l'adresse IP ou de l'identifiant, jamais l'adresse | intérêt légitime (sécurité) | 1 jour (`retention.purge` et purge aléatoire) |
 | 14 | Événements Stripe | — | identifiant et type d'événement | obligation (idempotence des paiements) | 90 jours (`retention.purge`) |
 | 16 | Retours de la bêta | visiteurs, freelances, entreprises | nature, côté, chemin de la page (sans paramètres), texte ; compte si connecté | intérêt légitime (amélioration du service) | 1 an (`retention.purge`) ; supprimés avec le compte, inclus dans l'export |
+| 17 | Contrôle des SIRET au répertoire officiel | freelances, entreprises | SIRET envoyé à l'API publique Recherche d'entreprises ; verdict (actif, fermé, inconnu) et date | intérêt légitime (lutte contre la fraude, confiance) | avec l'identité de facturation ; revérifié tous les 30 jours ; le SIRET n'est jamais publié |
+| 18 | Attestation de vigilance URSSAF | freelances | date de délivrance, code de sécurité, date de vérification par un opérateur | obligation légale de l'entreprise cliente (art. L8222-1 du Code du travail) | avec le profil ; remplacée à chaque nouvelle déclaration ; incluse dans l'export, effacée avec le compte |
 | 15 | Journaux serveur | — | événement, nom de classe d'erreur, date ; jamais de message d'erreur, d'e-mail ni d'identifiant | intérêt légitime (exploitation) | selon l'hébergeur |
 
 ## Droits des personnes

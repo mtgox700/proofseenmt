@@ -35,7 +35,9 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
 4. Tâche planifiée : `GET /api/cron/notifications` avec `Authorization: Bearer $CRON_SECRET`, toutes les 5 minutes.
 5. Surveillance : `GET /api/health` toutes les minutes (200 attendu, 503 = base injoignable). **Désactiver la mise en veille
    du service Postgres sur Railway** : le 2026-10-07, la base a mis 6 s à répondre au réveil (P1001 au premier essai), au-delà
-   du délai de 3 s de la route de santé.
+   du délai de 3 s de la route de santé. Toute nouvelle connexion prend environ 6 s depuis l'extérieur (relevé répété le 2026-10-07) :
+   le moteur de migration de Prisma abandonne à 5 s, donc lancer `migrate deploy` avec `connect_timeout=30` ajouté à
+   l'adresse, et vérifier la région du service Postgres par rapport à celle du site.
 6. Webhook Stripe (mode test) vers `/api/webhooks/stripe`.
 
 ## 3. Vérifications après déploiement (preuves à coller dans `TEAM_MEMORY.md`)
