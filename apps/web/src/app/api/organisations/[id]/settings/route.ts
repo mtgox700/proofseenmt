@@ -25,7 +25,14 @@ export async function PUT(request: Request, context: Context): Promise<NextRespo
   if (!parsed.success) return fail("requête invalide");
   const { id } = await context.params;
   try {
-    return (await largeAccounts(getDb()).setApprovalLevels(who.actor, id, parsed.data.approvalLevels)) ? ok({ approvalLevels: parsed.data.approvalLevels }) : fail("introuvable");
+    switch (await largeAccounts(getDb()).setApprovalLevels(who.actor, id, parsed.data.approvalLevels)) {
+      case "saved":
+        return ok({ approvalLevels: parsed.data.approvalLevels });
+      case "single_admin":
+        return fail("un seul administrateur");
+      case "absent":
+        return fail("introuvable");
+    }
   } catch (error) {
     logError("organisation settings failed", error);
     return fail("erreur serveur");

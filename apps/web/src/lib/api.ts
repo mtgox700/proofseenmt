@@ -10,7 +10,7 @@ import { session } from "./session";
  * an underlying message: a driver error can carry a host name, a stack can carry a path.
  */
 
-export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "hors de la période du contrat" | "relevé déjà validé" | "plafond de jours dépassé" | "paiement par relevé mensuel" | "relevé modifié entre-temps" | "relevé invraisemblable" | "régie pas encore ouverte" | "erreur serveur";
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "hors de la période du contrat" | "relevé déjà validé" | "plafond de jours dépassé" | "paiement par relevé mensuel" | "relevé modifié entre-temps" | "relevé invraisemblable" | "régie pas encore ouverte" | "clé invalide" | "trop de clés" | "période invalide" | "export trop volumineux" | "un seul administrateur" | "déjà facturé" | "erreur serveur";
 
 const STATUS: Record<ApiError, number> = {
   "non-configuré": 503,
@@ -45,6 +45,12 @@ const STATUS: Record<ApiError, number> = {
   "relevé modifié entre-temps": 409,
   "relevé invraisemblable": 422,
   "régie pas encore ouverte": 409,
+  "clé invalide": 401,
+  "trop de clés": 409,
+  "période invalide": 422,
+  "export trop volumineux": 422,
+  "un seul administrateur": 409,
+  "déjà facturé": 409,
   "erreur serveur": 500,
 };
 
