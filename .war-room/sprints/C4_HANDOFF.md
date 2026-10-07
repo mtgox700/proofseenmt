@@ -15,7 +15,7 @@
 ## Reste à faire pour clore C4
 
 1. Écrans des deux tableaux de bord (session design), Lighthouse ≥ 95 et AA.
-2. **Remesure J+45 de Zak** vers le 2026-11-19 : `clients/FR-ZK7M4/manifest-J45.json`, rapport comparé avec
+2. **Remesure J+45 de Zak — programmée le 2026-11-19 à 09:00 (tâche planifiée « proofseen-zak-j45 », GO API donné le 2026-10-07)** : `clients/FR-ZK7M4/manifest-J45.json`, rapport comparé avec
    `--baseline AUDIT-FR-ZK7M4`. **GO API requis** (appels payants). Avec `DATABASE_URL`, la commande `audit` enregistre
    les résultats pour le tableau de bord.
 3. Décompte des préventes au 2026-11-27 : le chiffre réel, sans arrondi.
