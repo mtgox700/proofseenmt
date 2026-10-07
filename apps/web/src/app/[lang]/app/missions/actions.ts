@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { applications, CoverNoteSchema, missions } from "@proofseen/db";
+import { notifyMissionChanged } from "@/data/indexnow";
 import { throttled } from "@/data/throttle";
 import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
 import { missionFromForm } from "@/lib/mission-form";
@@ -40,6 +41,8 @@ export async function updateMission(formData: FormData): Promise<void> {
   const input = missionFromForm(formData);
   if (!input.success) redirect(edit("invalide"));
   const result = await missions(market.db).update(market.actor, id, input.data);
+  // Search engines learn about a change to a public page right away; a draft is not public.
+  if (result.kind === "ok" && result.mission.status === "open") notifyMissionChanged(id);
   redirect(result.kind === "ok" ? missionPath(lang, id) : result.kind === "locked" ? missionPath(lang, id, "verrouillee") : `/${lang}/app/missions`);
 }
 
@@ -47,7 +50,7 @@ export async function publishMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
   const id = text(formData.get("missionId"));
   const market = await actionMarket(lang);
-  await missions(market.db).publish(market.actor, id, new Date());
+  if (await missions(market.db).publish(market.actor, id, new Date())) notifyMissionChanged(id);
   redirect(missionPath(lang, id));
 }
 
@@ -55,7 +58,7 @@ export async function closeMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
   const id = text(formData.get("missionId"));
   const market = await actionMarket(lang);
-  await missions(market.db).close(market.actor, id, new Date());
+  if (await missions(market.db).close(market.actor, id, new Date())) notifyMissionChanged(id);
   redirect(missionPath(lang, id));
 }
 
