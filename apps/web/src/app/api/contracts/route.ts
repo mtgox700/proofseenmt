@@ -45,6 +45,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         return fail("contrat avec soi-même");
       case "registry_ceased":
         return fail("entreprise fermée");
+      case "vigilance_required":
+        return fail("attestation de vigilance requise");
       case "absent":
         return fail("introuvable");
     }

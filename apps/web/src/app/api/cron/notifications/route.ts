@@ -1,4 +1,4 @@
-import { getDb, missionAlerts, notifications, payments, retention, validationReminders } from "@proofseen/db";
+import { getDb, missionAlerts, notifications, payments, retention, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
@@ -40,6 +40,7 @@ export async function GET(request: Request): Promise<Response> {
     const queued = await missionAlerts(db).scan(now());
     // Paid work never approved: both parties are reminded and a person reviews the case. Nothing is released here.
     const overdue = await validationReminders(db).flagOverdue(now());
+    const vigilanceReminders = await vigilance(db).remindExpiring(now());
     // SIRET numbers checked against the official directory; an unreachable directory only delays the check.
     const registryChecks = await checkDueRegistry(db, now()).catch((error: unknown) => {
       logError("cron: registry checks failed", error);
@@ -57,7 +58,7 @@ export async function GET(request: Request): Promise<Response> {
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, registryChecks, releases, sent: 0, failed: 0, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent: 0, failed: 0, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -69,7 +70,7 @@ export async function GET(request: Request): Promise<Response> {
       sent += report.sent;
       failed += report.failed;
     }
-    return json({ ok: true, data: { purged, queued, overdue, registryChecks, releases, sent, failed, transport: "resend" } });
+    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent, failed, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);
