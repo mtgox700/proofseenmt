@@ -6,7 +6,7 @@ import { messaging } from "../src/messaging";
 import { missions } from "../src/missions";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 let t: TestDatabase;
 
@@ -30,6 +30,7 @@ describe("entonnoir de la marketplace", () => {
     const contacted = await createProfile(t.db, contactedUser);
     const paidUser = await createUser(t.db);
     const paid = await createProfile(t.db, paidUser);
+    await verifiedVigilance(t.db, paid);
     await t.db.ownedUrl.create({ data: { profileId: paid, url: "https://paid.dev", urlKey: "https://paid.dev", proofMethod: "meta_tag", verifiedAt: NOW } });
 
     // Deux entreprises : une qui n'a rien fait, une qui publie, contacte, contracte et paie.
@@ -40,8 +41,8 @@ describe("entonnoir de la marketplace", () => {
     await missions(t.db).publish({ userId: recruiter }, mission?.id ?? "", NOW);
     await messaging(t.db).contact({ userId: recruiter }, org, contacted, "Bonjour, une mission ?");
 
-    await billing(t.db).setFreelanceIdentity({ userId: paidUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
-    await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: "73282932000074", address: ADDRESS });
+    await billing(t.db).setFreelanceIdentity({ userId: paidUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+    await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: nextSiret("732829320"), address: ADDRESS });
     await t.db.billingIdentity.update({ where: { profileId: paid }, data: { stripeAccountId: "acct_testfunnel1", payoutsEnabledAt: NOW } });
     const contact = await messaging(t.db).contact({ userId: recruiter }, org, paid, "Bonjour, une mission ?");
     if (contact.kind !== "opened") throw new Error(contact.kind);

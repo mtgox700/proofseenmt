@@ -87,6 +87,7 @@ enum RegistryStatus {
   active    // établissement et entreprise actifs
   ceased    // établissement ou entreprise fermés
   not_found // inconnu du répertoire
+  mismatch  // actif, mais sous un autre nom que la raison sociale déclarée : le SIRET n'est pas celui de cette partie
 }
 
 enum JobPostStatus {
@@ -172,12 +173,17 @@ model Organisation {
   name           String
   kind           ClientKind
   /// Identité légale, nécessaire pour facturer. Copiée dans chaque contrat et chaque facture au moment de leur création.
-  siret          String?
+  /// Un SIRET n'appartient qu'à une seule entreprise de la plateforme.
+  siret          String?    @unique
   vatNumber      String?
   billingAddress Json?
   /// Contrôle du SIRET au répertoire officiel ; remis à zéro quand le SIRET change.
-  registryStatus    RegistryStatus?
-  registryCheckedAt DateTime?       @db.Timestamptz(3)
+  registryStatus      RegistryStatus?
+  registryCheckedAt   DateTime?       @db.Timestamptz(3)
+  /// Nom officiel au répertoire, comparé à la raison sociale déclarée.
+  registryName        String?
+  /// Dernière tentative, réussie ou non : un SIRET dont le contrôle échoue ne bloque pas la file des autres.
+  registryAttemptedAt DateTime?       @db.Timestamptz(3)
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -248,7 +254,8 @@ model BillingIdentity {
   id        String   @id @default(uuid(7)) @db.Uuid
   profileId String   @unique @db.Uuid
   legalName String
-  siret     String?
+  /// Un SIRET n'appartient qu'à un seul freelance de la plateforme.
+  siret     String?  @unique
   vatNumber String?
   address   Json
   /// Taux de TVA facturé par le freelance, en points de base : 0 en franchise (art. 293 B du CGI), 2000 au taux normal.
@@ -258,8 +265,10 @@ model BillingIdentity {
   /// Date à laquelle Stripe a confirmé que le compte peut recevoir des versements ; aucun versement avant.
   payoutsEnabledAt DateTime? @db.Timestamptz(3)
   /// Contrôle du SIRET au répertoire officiel ; remis à zéro quand le SIRET change.
-  registryStatus    RegistryStatus?
-  registryCheckedAt DateTime?       @db.Timestamptz(3)
+  registryStatus      RegistryStatus?
+  registryCheckedAt   DateTime?       @db.Timestamptz(3)
+  registryName        String?
+  registryAttemptedAt DateTime?       @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 

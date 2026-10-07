@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { containsDirectContact, NO_CONTACT } from "./contact-detection";
+import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 
@@ -63,9 +64,9 @@ export const LegalSnapshotSchema = z.object({
 
 export interface Billing {
   /** Enregistre l'identité de facturation du freelance. `false` s'il n'a pas de profil. */
-  setFreelanceIdentity(actor: Actor, input: BillingIdentityInput): Promise<boolean>;
+  setFreelanceIdentity(actor: Actor, input: BillingIdentityInput): Promise<SaveIdentityResult>;
   /** Enregistre l'identité légale de l'entreprise. Réservé à ses propriétaires et administrateurs. */
-  setOrganisationIdentity(actor: Actor, organisationId: string, input: BillingIdentityInput): Promise<boolean>;
+  setOrganisationIdentity(actor: Actor, organisationId: string, input: BillingIdentityInput): Promise<SaveIdentityResult>;
 }
 
 /** L'identité figée d'un freelance, ou `null` s'il ne l'a pas encore renseignée. */
@@ -86,28 +87,47 @@ export const organisationSnapshot = async (tx: Prisma.TransactionClient, organis
   return address.success ? { legalName: row.name, siret: row.siret, vatNumber: row.vatNumber, address: address.data, vatRateBp: null } : null;
 };
 
+/** Un SIRET déjà revendiqué par un autre compte : il ne peut appartenir qu'à une seule partie de la plateforme. */
+export type SaveIdentityResult = "saved" | "absent" | "siret_taken";
+
+const RESET = { registryStatus: null, registryName: null, registryCheckedAt: null, registryAttemptedAt: null } as const;
+
 export const billing = (db: Db): Billing => ({
   async setFreelanceIdentity(actor, raw) {
     const input = BillingIdentitySchema.parse(raw);
     const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
-    if (profile === null) return false;
+    if (profile === null) return "absent";
     const data = { legalName: input.legalName, siret: input.siret, vatNumber: input.vatNumber, address: input.address as Prisma.InputJsonObject, vatRateBp: input.vatRateBp };
-    const before = await db.billingIdentity.findUnique({ where: { profileId: profile.id }, select: { siret: true } });
-    // Un SIRET changé n'a plus de verdict : le contrôle au répertoire repart de zéro.
-    const recheck = before === null || before.siret !== input.siret ? { registryStatus: null, registryCheckedAt: null } : {};
-    await db.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: { ...data, ...recheck } });
-    return true;
+    try {
+      await db.$transaction(async (tx) => {
+        const before = await tx.billingIdentity.findUnique({ where: { profileId: profile.id }, select: { siret: true, legalName: true } });
+        // Un SIRET ou une raison sociale changés n'ont plus de verdict : le contrôle au répertoire repart de zéro.
+        const recheck = before === null || before.siret !== input.siret || before.legalName !== input.legalName ? RESET : {};
+        await tx.billingIdentity.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: { ...data, ...recheck } });
+      });
+      return "saved";
+    } catch (error) {
+      if (isUniqueViolation(error)) return "siret_taken";
+      throw error;
+    }
   },
 
   async setOrganisationIdentity(actor, organisationId, raw) {
-    if (!z.uuid().safeParse(organisationId).success) return false;
+    if (!z.uuid().safeParse(organisationId).success) return "absent";
     const input = BillingIdentitySchema.parse(raw);
-    const before = await db.organisation.findUnique({ where: { id: organisationId }, select: { siret: true } });
-    const recheck = before === null || before.siret !== input.siret ? { registryStatus: null, registryCheckedAt: null } : {};
-    const { count } = await db.organisation.updateMany({
-      where: { id: organisationId, members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } },
-      data: { name: input.legalName, siret: input.siret, vatNumber: input.vatNumber, billingAddress: input.address as Prisma.InputJsonObject, ...recheck },
-    });
-    return count === 1;
+    try {
+      return await db.$transaction(async (tx) => {
+        const before = await tx.organisation.findUnique({ where: { id: organisationId }, select: { siret: true, name: true } });
+        const recheck = before === null || before.siret !== input.siret || before.name !== input.legalName ? RESET : {};
+        const { count } = await tx.organisation.updateMany({
+          where: { id: organisationId, members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } },
+          data: { name: input.legalName, siret: input.siret, vatNumber: input.vatNumber, billingAddress: input.address as Prisma.InputJsonObject, ...recheck },
+        });
+        return count === 1 ? "saved" : "absent";
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) return "siret_taken";
+      throw error;
+    }
   },
 });

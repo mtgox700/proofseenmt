@@ -86,6 +86,26 @@ export const createProfile = async (db: Db, userId: string, visibility: "pseudon
   return id;
 };
 
+let siretSequence = 0;
+
+/**
+ * Un SIRET neuf pour un SIREN donné : un SIRET n'appartient qu'à une seule partie de la plateforme, et des tests qui
+ * créent plusieurs freelances ou entreprises ont besoin d'établissements distincts. Le SIREN reste celui demandé.
+ */
+export const nextSiret = (siren: string): string => {
+  siretSequence += 1;
+  return `${siren}${String(siretSequence).padStart(5, "0")}`;
+};
+
+/**
+ * Une attestation de vigilance URSSAF vérifiée, délivrée aujourd'hui : sans elle, aucun contrat d'au moins 5 000 € HT
+ * ne peut naître ni être signé.
+ */
+export const verifiedVigilance = async (db: Db, profileId: string): Promise<void> => {
+  const data = { issuedOn: new Date(new Date().toISOString().slice(0, 10)), securityCode: "TESTCODE1", verifiedAt: new Date() };
+  await db.vigilanceAttestation.upsert({ where: { profileId }, create: { profileId, ...data }, update: data });
+};
+
 /** Une entreprise dont `ownerId` est membre. */
 export const createOrganisation = async (db: Db, ownerId: string): Promise<string> => {
   const { id } = await db.organisation.create({

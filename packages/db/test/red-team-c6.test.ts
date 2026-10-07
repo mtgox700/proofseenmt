@@ -11,7 +11,7 @@ import { profiles } from "../src/profiles";
 import { publicProfiles } from "../src/public-profiles";
 import { MIN_QUOTE_TOTAL_CENTS, quotes } from "../src/quotes";
 import { reviews } from "../src/reviews";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 /*
  * Chaque contournement trouvé par la red team du sprint C6 (2026-10-06), rejoué. Un test par scénario : s'il repasse un
@@ -36,6 +36,7 @@ const setup = async () => {
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = await createUser(t.db);
   const profile = await createProfile(t.db, freelanceUser);
+  await verifiedVigilance(t.db, profile);
   return { recruiter, org, freelanceUser, profile };
 };
 
@@ -132,9 +133,9 @@ const PROOFSEEN: LegalSnapshot = { legalName: "Proofseen (test)", siret: "123456
 const NOW = new Date("2026-11-20T10:00:00Z");
 
 /** Un fil accepté entre une entreprise et un freelance qui ont tous deux leur identité de facturation. */
-const parties = async (orgSiret = "73282932000074") => {
+const parties = async (orgSiret = nextSiret("732829320")) => {
   const s = await setup();
-  await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+  await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
   await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", siret: orgSiret, address: ADDRESS });
   await t.db.billingIdentity.update({ where: { profileId: s.profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });
   const contact = await messaging(t.db).contact({ userId: s.recruiter }, s.org, s.profile, "Bonjour, une mission ?");

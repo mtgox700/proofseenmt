@@ -7,7 +7,7 @@ import { missions } from "../src/missions";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
 import { reviews } from "../src/reviews";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 let t: TestDatabase;
 
@@ -29,7 +29,8 @@ const signedContract = async () => {
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = await createUser(t.db);
   const profile = await createProfile(t.db, freelanceUser);
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", address: ADDRESS });
+  await verifiedVigilance(t.db, profile);
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), address: ADDRESS });
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", address: ADDRESS });
   await t.db.billingIdentity.update({ where: { profileId: profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });
   const contact = await messaging(t.db).contact({ userId: recruiter }, org, profile, "Bonjour");

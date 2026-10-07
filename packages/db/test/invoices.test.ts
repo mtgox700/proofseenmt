@@ -4,7 +4,7 @@ import { contracts } from "../src/contracts";
 import { invoices, vatOf } from "../src/invoices";
 import { messaging } from "../src/messaging";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 let t: TestDatabase;
 
@@ -26,7 +26,8 @@ const completedContract = async (vatRateBp: 0 | 2000, freelance?: { userId: stri
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = freelance?.userId ?? (await createUser(t.db));
   const profile = freelance?.profile ?? (await createProfile(t.db, freelanceUser));
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp });
+  await verifiedVigilance(t.db, profile);
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp });
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", address: ADDRESS });
   const contact = await messaging(t.db).contact({ userId: recruiter }, org, profile, "Bonjour");
   if (contact.kind !== "opened") throw new Error(contact.kind);
@@ -56,7 +57,7 @@ describe("facture de la mission", () => {
       vatCents: 0,
       totalCents: 600_000,
       label: "Prestation de services : 10 jours, du 2026-11-02 au 2026-11-13",
-      seller: { legalName: "Camille Test EI", siret: "55210055400025" },
+      seller: { legalName: "Camille Test EI", siret: expect.stringMatching(/^552100554\d{5}$/) },
       buyer: { legalName: "Acme SAS" },
       dueOn: new Date("2026-12-20T00:00:00Z"),
     });

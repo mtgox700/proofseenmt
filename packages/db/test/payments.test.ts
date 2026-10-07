@@ -4,7 +4,7 @@ import { contracts } from "../src/contracts";
 import { messaging } from "../src/messaging";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 /*
  * Le séquestre, y compris chaque scénario de la revue de sécurité du 2026-10-06 : un paiement retenté après un échec,
@@ -34,7 +34,8 @@ const activeContract = async (opts: { payouts?: boolean; dailyRateCents?: number
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = await createUser(t.db);
   const profile = await createProfile(t.db, freelanceUser);
-  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "55210055400025", vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+  await verifiedVigilance(t.db, profile);
+  await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
   await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", address: ADDRESS });
   if (opts.payouts !== false) {
     await t.db.billingIdentity.update({ where: { profileId: profile }, data: { stripeAccountId: `acct_test${Math.random().toString(36).slice(2, 10)}`, payoutsEnabledAt: NOW } });

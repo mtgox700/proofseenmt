@@ -3,7 +3,7 @@ import { billing } from "../src/billing";
 import { contracts } from "../src/contracts";
 import { messaging } from "../src/messaging";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 let t: TestDatabase;
 
@@ -23,13 +23,14 @@ const setup = async (identities = true) => {
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = await createUser(t.db);
   const profile = await createProfile(t.db, freelanceUser);
+  await verifiedVigilance(t.db, profile);
   const contact = await messaging(t.db).contact({ userId: recruiter }, org, profile, "Bonjour, une mission ?");
   if (contact.kind !== "opened") throw new Error(contact.kind);
   const conversation = contact.conversation.id;
   await messaging(t.db).decide({ userId: freelanceUser }, conversation, "accepted", new Date());
   if (identities) {
-    await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: "552 100 554 00025", address: ADDRESS });
-    await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: "73282932000074", vatNumber: "FR 40 732829320", address: ADDRESS });
+    await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { legalName: "Camille Test EI", siret: nextSiret("552100554"), address: ADDRESS });
+    await billing(t.db).setOrganisationIdentity({ userId: recruiter }, org, { legalName: "Acme SAS", siret: nextSiret("732829320"), vatNumber: "FR 40 732829320", address: ADDRESS });
   }
   return { recruiter, org, freelanceUser, profile, conversation };
 };
@@ -92,13 +93,13 @@ describe("contrat", () => {
     // Une adresse modifiée après coup ne réécrit pas le contrat.
     await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "Autre nom", address: { ...ADDRESS, city: "Lyon" } });
     const row = await t.db.contract.findUniqueOrThrow({ where: { id }, select: { sellerSnapshot: true, buyerSnapshot: true } });
-    expect(row.sellerSnapshot).toMatchObject({ legalName: "Camille Test EI", siret: "55210055400025", address: { city: "Paris" } });
+    expect(row.sellerSnapshot).toMatchObject({ legalName: "Camille Test EI", siret: expect.stringMatching(/^552100554\d{5}$/), address: { city: "Paris" } });
     expect(row.buyerSnapshot).toMatchObject({ legalName: "Acme SAS", vatNumber: "FR40732829320" });
 
     expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toEqual({ kind: "absent" });
-    expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T10:00:00Z"))).toMatchObject({ status: "pending_signatures" });
-    expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T11:00:00Z"))).toMatchObject({ acceptedByOrgAt: new Date("2026-10-20T10:00:00Z") });
-    expect(await contracts(t.db).sign({ userId: s.freelanceUser }, id, new Date("2026-10-20T12:00:00Z"))).toMatchObject({ status: "active" });
+    expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T10:00:00Z"))).toMatchObject({ kind: "signed", contract: { status: "pending_signatures" } });
+    expect(await contracts(t.db).sign({ userId: s.recruiter }, id, new Date("2026-10-20T11:00:00Z"))).toMatchObject({ kind: "signed", contract: { acceptedByOrgAt: new Date("2026-10-20T10:00:00Z") } });
+    expect(await contracts(t.db).sign({ userId: s.freelanceUser }, id, new Date("2026-10-20T12:00:00Z"))).toMatchObject({ kind: "signed", contract: { status: "active" } });
     expect(await contracts(t.db).cancel({ userId: s.freelanceUser }, id)).toBeNull();
 
     expect(await contracts(t.db).complete({ userId: s.recruiter }, id)).toEqual({ kind: "not_paid" });
@@ -130,7 +131,7 @@ describe("contrat", () => {
     const stranger = await createUser(t.db);
     const id = created.kind === "created" ? created.contract.id : "";
     expect(await contracts(t.db).find({ userId: stranger }, id)).toBeNull();
-    expect(await contracts(t.db).sign({ userId: stranger }, id, new Date())).toBeNull();
+    expect(await contracts(t.db).sign({ userId: stranger }, id, new Date())).toEqual({ kind: "absent" });
     expect(await contracts(t.db).createFromQuote({ userId: stranger }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "absent" });
   });
 
@@ -140,7 +141,7 @@ describe("contrat", () => {
     await expect(billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { legalName: "X Y", vatNumber: "12", address: ADDRESS })).rejects.toThrow(/TVA/);
     const member = await createUser(t.db);
     await t.db.membership.create({ data: { organisationId: s.org, userId: member, role: "member" } });
-    expect(await billing(t.db).setOrganisationIdentity({ userId: member }, s.org, { legalName: "Pirate SAS", address: ADDRESS })).toBe(false);
+    expect(await billing(t.db).setOrganisationIdentity({ userId: member }, s.org, { legalName: "Pirate SAS", address: ADDRESS })).toBe("absent");
     const quoteId = await acceptedQuote(s);
     await expect(contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-10", endsOn: "2026-11-01" })).rejects.toThrow(/fin précède/);
   });
