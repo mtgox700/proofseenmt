@@ -12,7 +12,7 @@
 
 | Sprint | Dates | Nom | Statut | Preuve de clôture |
 |---|---|---|---|---|
-| C1 | 2026-10-05 → 10-18 | Socle de la marketplace | 🟡 | Base Railway migrée le 2026-10-07, concurrence prouvée sur Postgres réel (`scripts/real-db-check.ts`) ; restent les parcours connectés exécutés de bout en bout (inscription, messagerie, export/effacement) — connexion Clerk par le founder — `sprints/C1_PLAN.md` |
+| C1 | 2026-10-05 → 10-18 | Socle de la marketplace | 🟡 | Base Railway migrée le 2026-10-07, concurrence prouvée sur Postgres réel (`scripts/real-db-check.ts`) ; parcours connecté exécuté sur Railway le 2026-10-07 (export, profil, publication, page publique, retour) ; restent la messagerie entre deux vrais comptes et l'effacement avec une adresse jetable — `sprints/C1_PLAN.md` |
 | C2 | 2026-10-19 → 11-01 | Missions et candidatures | 🟡 | Données, API, pages publiques, alertes e-mail, red team faites ; restent écrans et E2E navigateur connecté — `sprints/C2_HANDOFF.md` |
 | C3 | 2026-11-02 → 11-15 | Devis, contrat, paiement sécurisé | 🟡 | Données, Stripe (mode test), webhooks, factures, revue sécurité faites (`TEAM_MEMORY` 2026-10-06) ; manquent clés Stripe de test et taux de commission (founder), écrans, E2E navigateur |
 | C4 | 2026-11-16 → 11-29 | Tableaux de bord et preuve | 🟡 | Données et API des tableaux de bord, avis, visibilité mesurée faits ; restent écrans + Lighthouse, remesure J+45 de Zak (~19/11, GO API), décompte des préventes (27/11) |
