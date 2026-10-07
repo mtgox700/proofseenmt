@@ -1,0 +1,91 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { applications, CoverNoteSchema, missions } from "@proofseen/db";
+import { throttled } from "@/data/throttle";
+import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
+import { missionFromForm } from "@/lib/mission-form";
+
+/*
+ * Server actions of missions and applications. The session decides who acts; the repositories decide, inside their
+ * own queries, whether that person may (member of the company, owner of the profile). Outcomes travel back as
+ * `?erreur=<code>`, turned into a sentence by the page.
+ */
+
+const SAVE_RULE = { windowMs: 60_000, max: 20 };
+const APPLY_RULE = { windowMs: 60 * 60_000, max: 30 };
+const DECIDE_RULE = { windowMs: 60_000, max: 60 };
+
+const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string" ? raw : "");
+const missionPath = (lang: string, id: string, error?: string): string => `/${lang}/app/missions/${id}${error === undefined ? "" : `?erreur=${error}`}`;
+
+export async function createMission(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const market = await actionMarket(lang);
+  if (await throttled("mission-save", market.actor.userId, SAVE_RULE, new Date())) redirect(`/${lang}/app/missions/nouvelle?erreur=trop`);
+  const organisation = await currentOrganisation(market);
+  if (organisation === null) redirect(`/${lang}/app`);
+  const input = missionFromForm(formData);
+  if (!input.success) redirect(`/${lang}/app/missions/nouvelle?erreur=invalide`);
+  const mission = await missions(market.db).create(market.actor, organisation.id, input.data);
+  redirect(mission === null ? `/${lang}/app` : missionPath(lang, mission.id));
+}
+
+export async function updateMission(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const id = text(formData.get("missionId"));
+  const market = await actionMarket(lang);
+  const edit = (error: string): string => `/${lang}/app/missions/${id}/modifier?erreur=${error}`;
+  if (await throttled("mission-save", market.actor.userId, SAVE_RULE, new Date())) redirect(edit("trop"));
+  const input = missionFromForm(formData);
+  if (!input.success) redirect(edit("invalide"));
+  const result = await missions(market.db).update(market.actor, id, input.data);
+  redirect(result.kind === "ok" ? missionPath(lang, id) : result.kind === "locked" ? missionPath(lang, id, "verrouillee") : `/${lang}/app/missions`);
+}
+
+export async function publishMission(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const id = text(formData.get("missionId"));
+  const market = await actionMarket(lang);
+  await missions(market.db).publish(market.actor, id, new Date());
+  redirect(missionPath(lang, id));
+}
+
+export async function closeMission(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const id = text(formData.get("missionId"));
+  const market = await actionMarket(lang);
+  await missions(market.db).close(market.actor, id, new Date());
+  redirect(missionPath(lang, id));
+}
+
+export async function decideApplication(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const missionId = text(formData.get("missionId"));
+  const decision = formData.get("decision");
+  if (decision !== "shortlisted" && decision !== "declined" && decision !== "hired") redirect(missionPath(lang, missionId));
+  const market = await actionMarket(lang);
+  if (await throttled("application-decide", market.actor.userId, DECIDE_RULE, new Date())) redirect(missionPath(lang, missionId, "trop"));
+  await applications(market.db).decide(market.actor, text(formData.get("applicationId")), decision);
+  redirect(missionPath(lang, missionId));
+}
+
+export async function applyToMission(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const missionId = text(formData.get("missionId"));
+  const back = (error: string): string => `/${lang}/app/missions/${missionId}/postuler?erreur=${error}`;
+  const market = await actionMarket(lang);
+  if (market.person.role !== "freelance") redirect(back("entreprise"));
+  if (await throttled("application-apply", market.actor.userId, APPLY_RULE, new Date())) redirect(back("trop"));
+  const note = CoverNoteSchema.safeParse(text(formData.get("coverNote")));
+  if (!note.success) redirect(back("invalide"));
+  const result = await applications(market.db).apply(market.actor, missionId, note.data, new Date());
+  redirect(result.kind === "applied" ? `/${lang}/app/messages/${result.conversationId}` : back(result.kind));
+}
+
+export async function withdrawApplication(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const market = await actionMarket(lang);
+  await applications(market.db).withdraw(market.actor, text(formData.get("applicationId")));
+  redirect(`/${lang}/app/missions`);
+}

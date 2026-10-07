@@ -4,6 +4,7 @@ import { LangSwitch } from "@/components/LangSwitch";
 import { Logo } from "@/components/Logo";
 import { WorkspaceNav, type NavItem } from "@/components/workspace/WorkspaceNav";
 import type { Dictionary, Lang } from "@/i18n";
+import { marketDictionary } from "@/i18n/market";
 import type { Person } from "@/lib/session";
 
 interface AppShellProps {
@@ -18,8 +19,10 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const base = `/${lang}/app`;
   const home = { href: base, label: t.app.nav.home };
   const messages = { href: `${base}/messages`, label: t.app.nav.messages };
-  if (person.role === "operator" || person.role === "company") return [home, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
-  return [home, messages, { href: `/${lang}/freelance`, label: t.app.freelance.demo }];
+  const m = marketDictionary(lang).missions.nav;
+  if (person.role === "operator") return [home, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  return [home, { href: `${base}/missions`, label: m.freelance }, messages, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
 export function AppShell({ lang, t, person, children }: AppShellProps) {

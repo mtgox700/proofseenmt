@@ -31,7 +31,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     if (mission === null || mission.publishedAt === null) return html(NOT_FOUND, 404, "public, max-age=60");
     const page = renderJobPage(
       { ...mission, publishedAt: mission.publishedAt },
-      { baseUrl: publicBaseUrl(request), lang, applyHref: `/${lang}/creer-un-compte` },
+      { baseUrl: publicBaseUrl(request), lang, applyHref: `/${lang}/app/missions/${mission.id}/postuler` },
     );
     // Five minutes at the edge: an edit or a closure shows within minutes, and a crawl burst does not reach the database.
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");

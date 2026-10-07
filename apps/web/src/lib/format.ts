@@ -49,3 +49,9 @@ export const points = (delta: number, lang: Lang): string => {
   const digits = decimals(Math.abs(delta) * 100, lang);
   return lang === "fr" ? `${sign}${digits}${NARROW_NBSP}pt` : `${sign}${digits} pts`;
 };
+
+/** An amount in cents, in its currency, without cents when whole: « 650 € », "€650". */
+export const money = (cents: number, currency: string, lang: Lang): string =>
+  new Intl.NumberFormat(LOCALE[lang], { style: "currency", currency, maximumFractionDigits: cents % 100 === 0 ? 0 : 2, minimumFractionDigits: cents % 100 === 0 ? 0 : 2 })
+    .format(cents / 100)
+    .replace(/\u00a0/g, NARROW_NBSP);

@@ -24,3 +24,8 @@
 /* ---------- Company ---------- */
 .org-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); }
 .org-card strong { font: 500 var(--step-2) / 1.1 var(--serif); letter-spacing: -0.01em; }
+
+/* ---------- Rows with actions (missions, applications) ---------- */
+.row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); grid-column: 1 / -1; }
+.thread-row > .row-actions form { display: contents; }
+.tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }

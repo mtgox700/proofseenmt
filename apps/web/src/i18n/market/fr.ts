@@ -1,3 +1,5 @@
+import { missionsFr } from "./missions-fr";
+
 /*
  * Textes de l'espace connecté de la marketplace (missions, messages, devis, contrats, factures, entreprise). Séparés du
  * dictionnaire du site, qui décrit l'offre publique : chaque fichier reste lisible, et les deux langues ont exactement
@@ -17,6 +19,7 @@ const kinds = {
 };
 
 export const marketFr = {
+  missions: missionsFr,
   nav: {
     messages: "Messages",
     missions: "Missions",
