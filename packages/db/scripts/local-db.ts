@@ -1,9 +1,7 @@
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { PrismaPGlite } from "pglite-prisma-adapter";
+import { allMigrationsSql } from "../prisma/migrations";
 import { billing } from "../src/billing";
 import { contracts } from "../src/contracts";
 import { PrismaClient } from "../src/generated/client";
@@ -28,8 +26,7 @@ import { users } from "../src/users";
  */
 
 const PORT = Number(process.env.LOCAL_DB_PORT ?? 5433);
-const here = dirname(fileURLToPath(import.meta.url));
-const MIGRATION = readFileSync(resolve(here, "../prisma/migrations/20261005000000_init/migration.sql"), "utf8");
+const MIGRATION = allMigrationsSql();
 
 const pg = new PGlite();
 await pg.exec(MIGRATION);

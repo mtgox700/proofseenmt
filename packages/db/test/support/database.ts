@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { PrismaPGlite } from "pglite-prisma-adapter";
+import { allMigrationsSql } from "../../prisma/migrations";
 import type { Db } from "../../src/client";
 import { PrismaClient } from "../../src/generated/client";
 import { payments, type PaymentGateway } from "../../src/payments";
@@ -14,8 +14,7 @@ import { payments, type PaymentGateway } from "../../src/payments";
  * quelle. Les dépôts sont donc testés contre les mêmes contraintes et les mêmes déclencheurs qu'en production, et non
  * contre un faux qui accepterait tout.
  */
-const here = dirname(fileURLToPath(import.meta.url));
-const MIGRATION = readFileSync(resolve(here, "../../prisma/migrations/20261005000000_init/migration.sql"), "utf8");
+const MIGRATION = allMigrationsSql();
 
 /** Démarrer Postgres en WebAssembly et jouer la migration prend quelques secondes, et bien plus sous la charge de toute la suite. */
 export const DB_STARTUP_MS = 180_000;
