@@ -72,6 +72,8 @@ export type CompleteResult =
   | { readonly kind: "completed"; readonly contract: ContractRecord }
   /** Aucun paiement bloqué : l'entreprise doit d'abord payer. */
   | { readonly kind: "not_paid" }
+  /** L'entreprise exige deux validations : celle-ci est enregistrée, il en manque une d'un autre administrateur. */
+  | { readonly kind: "awaiting_second_approval"; readonly approvals: number; readonly required: number }
   | { readonly kind: "absent" };
 
 export interface Contracts {
@@ -219,6 +221,16 @@ export const contracts = (db: Db): Contracts => ({
       if ((await tx.contract.count({ where: mine })) === 0) return { kind: "absent" };
       // Sans fonds bloqués, valider laisserait le freelance sans paiement possible : la base le refuse aussi.
       if ((await tx.payment.count({ where: { contractId, status: "held" } })) === 0) return { kind: "not_paid" };
+      // Chaque validation est un fait daté ; une entreprise peut exiger deux administrateurs distincts avant le versement.
+      await tx.contractApproval.createMany({ data: [{ contractId, userId: actor.userId }], skipDuplicates: true });
+      const contract = await tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: { organisation: { select: { approvalLevels: true, members: { where: { role: { in: ["owner", "admin"] } }, select: { userId: true } } } } } });
+      const required = contract.organisation?.approvalLevels ?? 1;
+      const approvals = await tx.contractApproval.count({ where: { contractId, userId: { not: null } } });
+      if (approvals < required) {
+        const others = (contract.organisation?.members ?? []).map((m) => m.userId).filter((id) => id !== actor.userId);
+        await notifications(db).enqueue(tx, others, "contract_update", { contractId, status: "second_approval_needed" });
+        return { kind: "awaiting_second_approval", approvals, required };
+      }
       await tx.contract.update({ where: { id: contractId }, data: { status: "completed" } });
       await notifyParties(db, tx, contractId, "completed", actor.userId);
       return { kind: "completed", contract: await tx.contract.findUniqueOrThrow({ where: { id: contractId }, select: SELECT }) };

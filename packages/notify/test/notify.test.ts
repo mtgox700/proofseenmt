@@ -47,6 +47,12 @@ describe("contenu des e-mails", () => {
     expect(renderEmail({ kind: "contract_update", payload: { contractId: "k-2", status: "timesheet_rejected", month: "2026-12" }, to: TO }, BASE).text).toContain("corrigez-le et redéposez-le");
   });
 
+  it("demande la seconde validation aux autres administrateurs", () => {
+    const email = renderEmail({ kind: "contract_update", payload: { contractId: "k-3", status: "second_approval_needed" }, to: TO }, BASE);
+    expect(email.subject).toBe("Une prestation attend une seconde validation");
+    expect(email.text).toContain("seconde validation avant le versement");
+  });
+
   it("échappe le nom affiché", () => {
     const email = renderEmail({ kind: "application_received", payload: {}, to: { lang: "fr", displayName: "<img src=x onerror=alert(1)>" } }, BASE);
     expect(email.html).not.toContain("<img");

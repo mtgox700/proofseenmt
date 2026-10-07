@@ -180,6 +180,7 @@ model User {
   missionAlerts           MissionAlert[]
   feedback                Feedback[]
   timesheetDecisions      Timesheet[]              @relation("TimesheetDecider")
+  contractApprovals       ContractApproval[]
 }
 
 model Organisation {
@@ -198,6 +199,8 @@ model Organisation {
   registryName        String?
   /// Dernière tentative, réussie ou non : un SIRET dont le contrôle échoue ne bloque pas la file des autres.
   registryAttemptedAt DateTime?       @db.Timestamptz(3)
+  /// Nombre de validations distinctes exigées avant de valider une prestation (et donc de déclencher le versement) : 1 ou 2.
+  approvalLevels Int        @default(1)
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -523,6 +526,8 @@ model Contract {
   currency              String         @db.Char(3)
   /// En régie, `days` est un plafond : seuls les jours des relevés validés sont dus.
   billing               ContractBilling @default(fixed)
+  /// Centre de coûts de l'entreprise, libre, pour son imputation comptable.
+  costCenter            String?
   /// Nom légal, adresse, SIRET, TVA, pays — écrits à la création, jamais modifiés. Base légale de la conservation :
   /// RGPD art. 17(3)(b), obligations comptables.
   sellerSnapshot        Json
@@ -542,6 +547,7 @@ model Contract {
   invoices     Invoice[]
   review       Review?
   timesheets   Timesheet[]
+  approvals    ContractApproval[]
 
   /// Cible des clés composées de Payment et Invoice : un paiement ne peut pas être dans une autre devise que son contrat.
   @@unique([id, currency])
@@ -601,6 +607,22 @@ model Timesheet {
 
   @@unique([contractId, month])
   @@index([status, submittedAt])
+}
+
+/// Validation d'une prestation par un administrateur de l'entreprise. Quand l'entreprise exige deux niveaux, la
+/// prestation n'est validée (et le versement déclenché) qu'après deux validations de personnes distinctes.
+model ContractApproval {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  contractId String   @db.Uuid
+  /// Nul si l'administrateur a depuis effacé son compte : la validation reste un fait daté.
+  userId     String?  @db.Uuid
+  approvedAt DateTime @default(now()) @db.Timestamptz(3)
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([contractId, userId])
+  @@index([contractId])
 }
 
 model StripeEvent {

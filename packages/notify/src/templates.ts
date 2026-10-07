@@ -96,6 +96,7 @@ const body = (n: NotificationInput, base: string): Body => {
         active: fr ? "Votre contrat est signé" : "Your contract is signed",
         completed: fr ? "Prestation validée" : "Work approved",
         validation_due: fr ? "Une prestation attend sa validation" : "Work is waiting for approval",
+        second_approval_needed: fr ? "Une prestation attend une seconde validation" : "Work is waiting for a second approval",
         timesheet_submitted: fr ? "Un relevé mensuel attend votre validation" : "A monthly timesheet is waiting for your approval",
         timesheet_approved: fr ? "Votre relevé mensuel est validé" : "Your monthly timesheet was approved",
         timesheet_rejected: fr ? "Votre relevé mensuel est à corriger" : "Your monthly timesheet needs a correction",
@@ -107,6 +108,7 @@ const body = (n: NotificationInput, base: string): Body => {
         validation_due: fr
           ? "La fin prévue de la mission est passée depuis plus de deux semaines et la prestation n'est pas validée. Validez-la, ou signalez ce qui ne va pas : l'équipe Proofseen examine le dossier."
           : "The planned end of the mission passed more than two weeks ago and the work is not approved. Approve it, or report what is wrong: the Proofseen team is reviewing the case.",
+        second_approval_needed: fr ? "Un administrateur a validé la prestation ; votre entreprise exige une seconde validation avant le versement au freelance." : "An administrator approved the work; your company requires a second approval before the freelancer is paid.",
         timesheet_submitted: fr ? `Le freelance a déposé son relevé de ${text(n.payload.month)}. Validez-le ou refusez-le avec une explication.` : `The freelancer submitted the timesheet for ${text(n.payload.month)}. Approve it or send it back with an explanation.`,
         timesheet_approved: fr ? `L'entreprise a validé votre relevé de ${text(n.payload.month)}.` : `The company approved your timesheet for ${text(n.payload.month)}.`,
         timesheet_rejected: fr ? `L'entreprise demande une correction de votre relevé de ${text(n.payload.month)} : corrigez-le et redéposez-le.` : `The company asks for a correction of your timesheet for ${text(n.payload.month)}: fix it and submit it again.`,
