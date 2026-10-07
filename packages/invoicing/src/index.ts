@@ -10,3 +10,4 @@ export {
   type Party,
 } from "./render";
 export { invoiceTypeCode, renderCii } from "./cii";
+export { accountingCsv, type AccountingRow } from "./accounting-csv";
