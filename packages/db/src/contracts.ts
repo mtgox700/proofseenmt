@@ -3,7 +3,7 @@ import type { Db } from "./client";
 import { freelanceSnapshot, organisationSnapshot } from "./billing";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
-import type { ContractStatus } from "./generated/enums";
+import type { ContractBilling, ContractStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
 import { contractBlocker } from "./contract-checks";
@@ -35,7 +35,9 @@ export interface ContractRecord {
   readonly organisationId: string | null;
   readonly profileId: string | null;
   readonly dailyRateCents: number;
+  /** Au forfait, le nombre de jours vendus ; en régie, le plafond de jours. */
   readonly days: number;
+  readonly billing: ContractBilling;
   readonly totalCents: number;
   readonly currency: string;
   readonly startsOn: Date;
@@ -95,6 +97,7 @@ const SELECT = {
   days: true,
   totalCents: true,
   currency: true,
+  billing: true,
   startsOn: true,
   endsOn: true,
   acceptedByFreelanceAt: true,
@@ -129,7 +132,7 @@ export const contracts = (db: Db): Contracts => ({
             status: "accepted",
             conversation: { OR: [{ profile: { userId: actor.userId } }, { organisation: { members: { some: { userId: actor.userId } } } }] },
           },
-          select: { dailyRateCents: true, days: true, totalCents: true, currency: true, conversation: { select: { organisationId: true, profileId: true } } },
+          select: { dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, conversation: { select: { organisationId: true, profileId: true } } },
         });
         if (quote === null) return { kind: "absent" };
         const { organisationId, profileId } = quote.conversation;
@@ -157,6 +160,7 @@ export const contracts = (db: Db): Contracts => ({
             days: quote.days,
             totalCents: quote.totalCents,
             currency: quote.currency,
+            billing: quote.billing,
             sellerSnapshot: seller as unknown as Prisma.InputJsonObject,
             buyerSnapshot: buyer as unknown as Prisma.InputJsonObject,
             startsOn: draft.startsOn,

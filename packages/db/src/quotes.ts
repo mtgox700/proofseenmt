@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
-import type { QuoteStatus } from "./generated/enums";
+import type { ContractBilling, QuoteStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 
 /*
@@ -27,6 +27,8 @@ export const QuoteInputSchema = z
     dailyRateCents: z.number().int().min(1).max(10_000_000),
     days: z.number().int().min(1).max(1000),
     currency: z.enum(["EUR", "GBP", "CHF", "USD"]).default("EUR"),
+    /** Forfait (un montant) ou régie (un plafond de jours, facturé chaque mois sur relevé validé). */
+    billing: z.enum(["fixed", "monthly"]).default("fixed"),
   })
   .refine((q) => q.dailyRateCents * q.days >= MIN_QUOTE_TOTAL_CENTS, { message: BELOW_MINIMUM });
 
@@ -39,6 +41,7 @@ export interface QuoteRecord {
   readonly days: number;
   readonly totalCents: number;
   readonly currency: string;
+  readonly billing: ContractBilling;
   readonly status: QuoteStatus;
   readonly createdAt: Date;
 }
@@ -56,7 +59,7 @@ export interface Quotes {
   list(actor: Actor, conversationId: string): Promise<readonly QuoteRecord[] | null>;
 }
 
-const SELECT = { id: true, conversationId: true, dailyRateCents: true, days: true, totalCents: true, currency: true, status: true, createdAt: true } as const;
+const SELECT = { id: true, conversationId: true, dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, status: true, createdAt: true } as const;
 
 const freelanceOf = (userId: string) => ({ conversation: { profile: { userId } } });
 const memberOf = (userId: string) => ({ conversation: { organisation: { members: { some: { userId } } } } });
@@ -68,7 +71,7 @@ export const quotes = (db: Db): Quotes => ({
     const conversation = await db.conversation.count({ where: { id: conversationId, status: "accepted", profile: { userId: actor.userId } } });
     if (conversation === 0) return null;
     return db.quote.create({
-      data: { conversationId, dailyRateCents: input.dailyRateCents, days: input.days, totalCents: input.dailyRateCents * input.days, currency: input.currency },
+      data: { conversationId, dailyRateCents: input.dailyRateCents, days: input.days, totalCents: input.dailyRateCents * input.days, currency: input.currency, billing: input.billing },
       select: SELECT,
     });
   },

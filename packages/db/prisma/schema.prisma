@@ -123,6 +123,19 @@ enum QuoteStatus {
   closed // son contrat est terminé ou annulé : le fil peut accueillir un nouveau devis
 }
 
+/// Forfait : un montant, payé puis versé une fois. Régie : un plafond de jours, facturé chaque mois sur relevé validé.
+enum ContractBilling {
+  fixed
+  monthly
+}
+
+/// Relevé mensuel d'un contrat en régie : déclaré par le freelance, validé ou refusé par l'entreprise.
+enum TimesheetStatus {
+  submitted
+  approved
+  rejected
+}
+
 enum ContractStatus {
   pending_signatures
   active
@@ -166,6 +179,7 @@ model User {
   notificationPreferences NotificationPreference[]
   missionAlerts           MissionAlert[]
   feedback                Feedback[]
+  timesheetDecisions      Timesheet[]              @relation("TimesheetDecider")
 }
 
 model Organisation {
@@ -476,6 +490,7 @@ model Quote {
   days           Int
   totalCents     Int
   currency       String      @db.Char(3)
+  billing        ContractBilling @default(fixed)
   status         QuoteStatus @default(draft)
   createdAt      DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
@@ -503,6 +518,8 @@ model Contract {
   days                  Int
   totalCents            Int
   currency              String         @db.Char(3)
+  /// En régie, `days` est un plafond : seuls les jours des relevés validés sont dus.
+  billing               ContractBilling @default(fixed)
   /// Nom légal, adresse, SIRET, TVA, pays — écrits à la création, jamais modifiés. Base légale de la conservation :
   /// RGPD art. 17(3)(b), obligations comptables.
   sellerSnapshot        Json
@@ -521,6 +538,7 @@ model Contract {
   payments     Payment[]
   invoices     Invoice[]
   review       Review?
+  timesheets   Timesheet[]
 
   /// Cible des clés composées de Payment et Invoice : un paiement ne peut pas être dans une autre devise que son contrat.
   @@unique([id, currency])
@@ -558,6 +576,30 @@ model Payment {
 
 /// Événements Stripe déjà traités. Stripe renvoie chaque événement plusieurs fois, et pas toujours dans l'ordre : le
 /// traitement commence par insérer l'événement ici, et s'arrête s'il y était déjà.
+/// Relevé mensuel d'un contrat en régie, en demi-journées. Un seul par contrat et par mois ; un relevé refusé peut être
+/// corrigé et redéposé, un relevé validé ne change plus (il fonde le paiement et la facture du mois).
+model Timesheet {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  contractId      String          @db.Uuid
+  /// Mois couvert, « AAAA-MM ».
+  month           String          @db.Char(7)
+  halfDays        Int
+  note            String?
+  status          TimesheetStatus @default(submitted)
+  submittedAt     DateTime        @default(now()) @db.Timestamptz(3)
+  decidedAt       DateTime?       @db.Timestamptz(3)
+  /// Membre de l'entreprise qui a validé ou refusé ; nul s'il a depuis effacé son compte.
+  decidedByUserId String?         @db.Uuid
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
+
+  contract  Contract @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  decidedBy User?    @relation("TimesheetDecider", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([contractId, month])
+  @@index([status, submittedAt])
+}
+
 model StripeEvent {
   id         String   @id
   type       String
