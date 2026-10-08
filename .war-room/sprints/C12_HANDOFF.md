@@ -64,15 +64,14 @@ Consigné sans changement de code :
 
 - le limiteur de débit exige `PROOFSEEN_ACCESS_SECRET` en production, faute de quoi chaque instance compte seule
   (`C7_DEPLOY.md`) ;
-- un SIRET peut être déclaré par quelqu'un qui n'en est pas le titulaire. Le contrôle au répertoire signale un nom
-  différent, mais seul un SIRET fermé bloque le contrat. Décision à prendre avec le juriste : faut-il aussi bloquer
-  sur un nom différent ?
+- **SIRET d'un autre : tranché le 2026-10-08 par l'avocat du diable de la War Room** (délégation du founder). Un SIRET inconnu du répertoire, ou enregistré sous un autre nom que la raison sociale déclarée, bloque désormais la création et la signature du contrat, comme un SIRET fermé, des deux côtés (`registry_mismatch`). Un SIRET pas encore contrôlé ne bloque pas : risque résiduel accepté, pour qu'une panne de l'annuaire public ne gèle pas les contrats.
 
 ## Reste à faire
 
 1. **[FOUNDER] Deux comptes de test**, un entreprise et un freelance, pour jouer le parcours complet des deux côtés dans
-   le navigateur. Le compte opérateur ne voit pas les écrans réservés à l'entreprise ou au freelance, et l'inscription
-   Clerk ne peut pas être faite à la place du founder.
+   le navigateur. Le compte opérateur ne voit pas ces écrans, et un compte Clerk (service externe) ne peut pas être créé
+   par la War Room. En instance de développement Clerk, sans boîte mail : adresses `entreprise+clerk_test@example.com`
+   et `freelance+clerk_test@example.com`, code de vérification **424242**.
 2. **Paiement** (Stripe Elements) : à la fin du projet, avec les clés de test.
 3. **Avis** après une mission, **relevés mensuels** (seulement quand la régie ouvrira), **préférences d'e-mails** et **alertes de
    missions**.
