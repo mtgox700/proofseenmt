@@ -61,6 +61,8 @@ export type CreateContractResult =
   | { readonly kind: "self_dealing" }
   /** Le répertoire officiel dit l'une des deux entreprises fermée : on ne contracte pas avec une entreprise qui n'existe plus. */
   | { readonly kind: "registry_ceased" }
+  /** Le répertoire ne connaît pas un des SIRET, ou l'enregistre sous un autre nom que la raison sociale déclarée. */
+  | { readonly kind: "registry_mismatch" }
   /** Prestation d'au moins 5 000 € HT sans attestation de vigilance URSSAF en cours de validité (obligation légale). */
   | { readonly kind: "vigilance_required" }
   | { readonly kind: "absent" };
@@ -68,6 +70,8 @@ export type CreateContractResult =
 export type SignResult =
   | { readonly kind: "signed"; readonly contract: ContractRecord }
   | { readonly kind: "registry_ceased" }
+  /** Le répertoire ne connaît pas un des SIRET, ou l'enregistre sous un autre nom que la raison sociale déclarée. */
+  | { readonly kind: "registry_mismatch" }
   | { readonly kind: "vigilance_required" }
   | { readonly kind: "absent" };
 

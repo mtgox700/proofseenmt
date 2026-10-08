@@ -117,4 +117,22 @@ describe("contrôle des SIRET", () => {
     await t.db.organisation.update({ where: { id: s.org }, data: { registryStatus: "ceased", registryCheckedAt: NOW } });
     expect(await contracts(t.db).sign({ userId: s.freelanceUser }, created.contract.id, NOW)).toEqual({ kind: "registry_ceased" });
   });
+
+  it("refuse aussi un SIRET inconnu du répertoire ou enregistré sous un autre nom, des deux côtés", async () => {
+    const s = await setup("55210055400074", "73282932000140");
+    const contact = await messaging(t.db).contact({ userId: s.recruiter }, s.org, s.profile, "Bonjour, une mission ?");
+    if (contact.kind !== "opened") throw new Error(contact.kind);
+    await messaging(t.db).decide({ userId: s.freelanceUser }, contact.conversation.id, "accepted", NOW);
+    const draft = await quotes(t.db).draft({ userId: s.freelanceUser }, contact.conversation.id, { dailyRateCents: 60_000, days: 2 });
+    await quotes(t.db).send({ userId: s.freelanceUser }, draft?.id ?? "");
+    await quotes(t.db).decide({ userId: s.recruiter }, draft?.id ?? "", "accepted");
+    await t.db.billingIdentity.update({ where: { profileId: s.profile }, data: { registryStatus: "mismatch", registryCheckedAt: NOW } });
+    expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, draft?.id ?? "", { startsOn: "2026-12-01" })).toEqual({ kind: "registry_mismatch" });
+    await t.db.billingIdentity.update({ where: { profileId: s.profile }, data: { registryStatus: "active" } });
+    await t.db.organisation.update({ where: { id: s.org }, data: { registryStatus: "not_found", registryCheckedAt: NOW } });
+    expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, draft?.id ?? "", { startsOn: "2026-12-01" })).toEqual({ kind: "registry_mismatch" });
+    await t.db.organisation.update({ where: { id: s.org }, data: { registryStatus: "active" } });
+    const created = await contracts(t.db).createFromQuote({ userId: s.recruiter }, draft?.id ?? "", { startsOn: "2026-12-01" });
+    expect(created.kind).toBe("created");
+  });
 });

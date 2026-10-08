@@ -9,12 +9,17 @@ import { vigilanceExpiresOn } from "./vigilance";
  * 4 900 € entre les mêmes parties la dépassent. On additionne donc les contrats non annulés des six derniers mois entre
  * la même entreprise et le même freelance, dans la devise du contrat. Pour les autres devises, le seuil est fixé
  * prudemment au-dessous de l'équivalent de 5 000 € : mieux vaut demander l'attestation une fois de trop.
+ *
+ * Répertoire officiel (décision de la War Room, 2026-10-08) : un SIRET fermé, inconnu, ou enregistré sous un autre nom
+ * que la raison sociale déclarée bloque le contrat. Proofseen émet la facture de mission au nom du freelance : une
+ * facture portant le SIRET d'un autre serait une fausse facture établie par Proofseen. Un SIRET pas encore contrôlé ne
+ * bloque pas : le contrôle tourne en tâche de fond, et une panne de l'annuaire public ne doit pas geler les contrats.
  */
 
 export const VIGILANCE_THRESHOLD_BY_CURRENCY: Readonly<Record<string, number>> = { EUR: 500_000, USD: 500_000, CHF: 450_000, GBP: 400_000 };
 const SIX_MONTHS_MS = 183 * 86_400_000;
 
-export type ContractBlocker = "registry_ceased" | "vigilance_required";
+export type ContractBlocker = "registry_ceased" | "registry_mismatch" | "vigilance_required";
 
 export interface BlockerInput {
   readonly organisationId: string;
@@ -28,11 +33,13 @@ export interface BlockerInput {
 }
 
 export const contractBlocker = async (tx: Prisma.TransactionClient, i: BlockerInput): Promise<ContractBlocker | null> => {
-  const [freelanceCeased, companyCeased] = await Promise.all([
-    tx.billingIdentity.count({ where: { profileId: i.profileId, registryStatus: "ceased" } }),
-    tx.organisation.count({ where: { id: i.organisationId, registryStatus: "ceased" } }),
+  const [freelance, company] = await Promise.all([
+    tx.billingIdentity.findUnique({ where: { profileId: i.profileId }, select: { registryStatus: true } }),
+    tx.organisation.findUnique({ where: { id: i.organisationId }, select: { registryStatus: true } }),
   ]);
-  if (freelanceCeased + companyCeased > 0) return "registry_ceased";
+  const statuses = [freelance?.registryStatus ?? null, company?.registryStatus ?? null];
+  if (statuses.includes("ceased")) return "registry_ceased";
+  if (statuses.includes("mismatch") || statuses.includes("not_found")) return "registry_mismatch";
 
   const threshold = VIGILANCE_THRESHOLD_BY_CURRENCY[i.currency] ?? VIGILANCE_THRESHOLD_BY_CURRENCY.EUR ?? 500_000;
   const recent = await tx.contract.aggregate({
