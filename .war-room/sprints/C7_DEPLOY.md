@@ -14,7 +14,7 @@ Le site lit `apps/web/.env.local` (ou l'environnement de l'hébergeur) ; la lign
 | `DATABASE_POOL_MAX` | taille du pool (5 par défaut) | défaut |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | connexion (`pk_…`, `sk_…`) — les clés actuelles sont celles d'une instance **de développement** (vérifié le 2026-10-07) : créer l'instance de production Clerk et son domaine au déploiement | espace connecté désactivé |
 | `OPERATOR_EMAILS` | adresses opérateur (liste) | aucun opérateur |
-| `PROOFSEEN_ACCESS_SECRET` | HMAC du limiteur de débit et des liens d'espace (≥ 32 caractères) | limiteur partagé désactivé |
+| `PROOFSEEN_ACCESS_SECRET` | HMAC du limiteur de débit et des liens d'espace (≥ 32 caractères) — **obligatoire en production** | limiteur partagé désactivé : chaque instance compte seule, et sur un hébergement sans serveur toutes les limites (contacts, candidatures, facturation, API) deviennent inopérantes |
 | `CRON_SECRET` | appel de la tâche planifiée et détail de `/api/health` (≥ 32 caractères) | tâche planifiée refusée (401) |
 | `PROOFSEEN_PUBLIC_URL` | adresse publique (sitemaps, IndexNow, liens des e-mails) | adresse déduite de la requête |
 | `INDEXNOW_KEY` | notification Bing/Yandex à chaque publication | aucune notification |
