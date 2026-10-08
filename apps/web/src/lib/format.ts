@@ -55,3 +55,10 @@ export const money = (cents: number, currency: string, lang: Lang): string =>
   new Intl.NumberFormat(LOCALE[lang], { style: "currency", currency, maximumFractionDigits: cents % 100 === 0 ? 0 : 2, minimumFractionDigits: cents % 100 === 0 ? 0 : 2 })
     .format(cents / 100)
     .replace(/\u00a0/g, NARROW_NBSP);
+
+/**
+ * The day of an instant, as read in Paris: a contract signed at 00:30 in Paris is signed that day, not the day before in
+ * UTC. Calendar days stored without a time (start dates, due dates) keep `date`, which reads them in UTC.
+ */
+export const day = (instant: Date, lang: Lang): string =>
+  new Intl.DateTimeFormat(LOCALE[lang], { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" }).format(instant);

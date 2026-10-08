@@ -6,7 +6,7 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
-import { date } from "@/lib/format";
+import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -61,7 +61,7 @@ export default async function MessagesPage({ params }: PageProps) {
                     </>
                   )}
                 </span>
-                <span className="thread-date muted small">{date(thread.lastMessageAt.toISOString(), lang)}</span>
+                <span className="thread-date muted small">{day(thread.lastMessageAt, lang)}</span>
               </Link>
             </li>
           ))}

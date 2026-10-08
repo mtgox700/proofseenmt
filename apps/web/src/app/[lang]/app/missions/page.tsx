@@ -6,7 +6,7 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
-import { date } from "@/lib/format";
+import { day } from "@/lib/format";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { withdrawApplication } from "./actions";
 
@@ -63,7 +63,7 @@ async function CompanyMissions({ lang, market }: { readonly lang: Lang; readonly
                   {mission.skills.length === 0 ? null : ` · ${mission.skills.slice(0, 4).join(", ")}`}
                 </span>
                 <span className="thread-date muted small">
-                  {mission.publishedAt === null ? null : date(mission.publishedAt.toISOString(), lang)}
+                  {mission.publishedAt === null ? null : day(mission.publishedAt, lang)}
                 </span>
               </Link>
             </li>
@@ -102,8 +102,8 @@ async function MyApplications({ lang, market }: { readonly lang: Lang; readonly 
               </span>
               <StatusTag status={item.status} label={m.applicationStatus[item.status]} />
               <span className="thread-last muted small">
-                {m.mine.sentOn} {date(item.createdAt.toISOString(), lang)}
-                {item.updatedAt.getTime() === item.createdAt.getTime() ? null : ` · ${m.mine.updatedOn} ${date(item.updatedAt.toISOString(), lang)}`}
+                {m.mine.sentOn} {day(item.createdAt, lang)}
+                {item.updatedAt.getTime() === item.createdAt.getTime() ? null : ` · ${m.mine.updatedOn} ${day(item.updatedAt, lang)}`}
               </span>
               <span className="row-actions">
                 {item.conversationId === null ? null : (

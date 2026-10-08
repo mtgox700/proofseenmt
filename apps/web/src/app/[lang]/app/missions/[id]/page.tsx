@@ -6,7 +6,7 @@ import { StatusTag } from "@/components/market/StatusTag";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { MissionsDictionary } from "@/i18n/market/missions-fr";
-import { date, money } from "@/lib/format";
+import { day, money } from "@/lib/format";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { closeMission, decideApplication, publishMission } from "../actions";
 
@@ -31,7 +31,7 @@ function Applicant({ lang, m, missionId, applicant }: { readonly lang: Lang; rea
       </span>
       <StatusTag status={applicant.status} label={m.applicationStatus[applicant.status]} />
       <span className="thread-last muted small">
-        {d.facts(applicant.profile.verifiedUrls, applicant.profile.verifiedMissions)} · {d.receivedOn} {date(applicant.createdAt.toISOString(), lang)}
+        {d.facts(applicant.profile.verifiedUrls, applicant.profile.verifiedMissions)} · {d.receivedOn} {day(applicant.createdAt, lang)}
       </span>
       <span className="row-actions">
         {applicant.conversationId === null ? null : (
@@ -96,8 +96,8 @@ export default async function MissionPage({ params, searchParams }: PageProps) {
             {mission.city === null ? null : ` · ${mission.city}`}
             {mission.durationMonths === null ? null : ` · ${m.apply.months(mission.durationMonths)}`}
             {rate === null ? null : ` · ${rate}`}
-            {mission.publishedAt === null ? null : ` · ${d.publishedOn} ${date(mission.publishedAt.toISOString(), lang)}`}
-            {mission.closedAt === null ? null : ` · ${d.closedOn} ${date(mission.closedAt.toISOString(), lang)}`}
+            {mission.publishedAt === null ? null : ` · ${d.publishedOn} ${day(mission.publishedAt, lang)}`}
+            {mission.closedAt === null ? null : ` · ${d.closedOn} ${day(mission.closedAt, lang)}`}
           </span>
         </p>
       </header>
