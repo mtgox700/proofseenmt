@@ -28,6 +28,7 @@ export const dealsFr = {
       already_exists: "Ce devis a déjà son contrat.",
       self_dealing: "Contrat impossible : le freelance et l'entreprise ne font qu'un. Le devis est clos.",
       registry_ceased: "Le répertoire officiel indique l'une des deux entreprises fermée : pas de contrat.",
+      registry_mismatch: "Le répertoire officiel ne connaît pas l'un des SIRET, ou l'enregistre sous un autre nom que la raison sociale déclarée : corrigez l'identité de facturation concernée.",
       vigilance_required: "Prestation de 5 000 € HT ou plus : le freelance doit d'abord déclarer une attestation de vigilance URSSAF valable, vérifiée par Proofseen.",
       tooMany: "Trop d'actions en peu de temps : réessayez dans une minute.",
     },
@@ -78,6 +79,7 @@ export const dealsFr = {
     approvedByYou: "Vous avez validé ; il manque la validation d'un autre administrateur.",
     errors: {
       registry_ceased: "Signature impossible : le répertoire officiel indique l'une des deux entreprises fermée.",
+      registry_mismatch: "Signature impossible : un SIRET est inconnu du répertoire officiel, ou enregistré sous un autre nom que la raison sociale déclarée.",
       vigilance_required: "Signature impossible : une attestation de vigilance URSSAF valable et vérifiée est exigée pour ce montant.",
       not_paid: "La prestation ne se valide qu'une fois payée sous séquestre.",
       notAllowed: "Cette action n'est pas possible dans l'état actuel du contrat.",

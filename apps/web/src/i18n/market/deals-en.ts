@@ -29,6 +29,7 @@ export const dealsEn: DealsDictionary = {
       already_exists: "This quote already has its contract.",
       self_dealing: "No contract possible: the freelancer and the company are one and the same. The quote is closed.",
       registry_ceased: "The official register shows one of the two companies closed: no contract.",
+      registry_mismatch: "The official register does not know one of the SIRETs, or records it under another name than the declared legal name: correct the billing identity concerned.",
       vigilance_required: "Service of €5,000 excl. VAT or more: the freelancer must first declare a valid URSSAF vigilance certificate, verified by Proofseen.",
       tooMany: "Too many actions in a short time: try again in a minute.",
     },
@@ -79,6 +80,7 @@ export const dealsEn: DealsDictionary = {
     approvedByYou: "You approved; another administrator's approval is still needed.",
     errors: {
       registry_ceased: "Signature impossible: the official register shows one of the two companies closed.",
+      registry_mismatch: "Signature impossible: a SIRET is unknown to the official register, or registered under another name than the declared legal name.",
       vigilance_required: "Signature impossible: a valid, verified URSSAF vigilance certificate is required for this amount.",
       not_paid: "The work can only be approved once paid into escrow.",
       notAllowed: "This action is not possible in the contract's current state.",
