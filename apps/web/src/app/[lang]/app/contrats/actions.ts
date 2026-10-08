@@ -6,7 +6,7 @@ import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
 import { logError } from "@/lib/log";
-import { actionMarket, langOf } from "@/lib/market";
+import { actionMarket, langOf, uuidOf } from "@/lib/market";
 
 /*
  * Server actions of a contract. Each side signs for itself; either cancels before both signed; a company administrator
@@ -20,7 +20,8 @@ const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string
 const page = (lang: string, id: string, error?: string): string => `/${lang}/app/contrats/${id}${error === undefined ? "" : `?erreur=${error}`}`;
 
 const guard = async (lang: string, formData: FormData) => {
-  const id = text(formData.get("contractId"));
+  const id = uuidOf(formData.get("contractId"));
+  if (id === null) redirect(`/${lang}/app/contrats`);
   const market = await actionMarket(langOf(lang));
   if (await throttled("contract-move", market.actor.userId, RULE, new Date())) redirect(page(lang, id, "trop"));
   return { id, market };

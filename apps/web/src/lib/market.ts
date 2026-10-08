@@ -48,5 +48,10 @@ export const currentOrganisation = async (market: Market): Promise<OrganisationR
   return mine.find((org) => org.role === "owner") ?? mine[0] ?? null;
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** An id posted by a form, if it is a uuid; anything else never reaches a redirect path. */
+export const uuidOf = (raw: FormDataEntryValue | null): string | null => (typeof raw === "string" && UUID.test(raw.trim()) ? raw.trim() : null);
+
 /** The language posted by a form, `fr` when absent or unknown. */
 export const langOf = (raw: FormDataEntryValue | null): Lang => (raw === "en" ? "en" : "fr");

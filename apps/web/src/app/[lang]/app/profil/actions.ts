@@ -43,6 +43,8 @@ export async function setProfileVisibility(formData: FormData): Promise<void> {
   if (await throttled("profile-visibility", market.actor.userId, SAVE_RULE, new Date())) redirect(page(lang, "erreur=trop"));
   const repo = profiles(market.db);
   const before = await repo.findMine(market.actor);
+  // Nothing changes: nothing to save, nothing to announce.
+  if (before?.visibility === visibility) redirect(page(lang, ""));
   const result = await repo.setVisibility(market.actor, visibility);
   if (result.kind === "incomplete") redirect(page(lang, `manque=${result.missing.join(",")}`));
   if (result.kind === "ok") {

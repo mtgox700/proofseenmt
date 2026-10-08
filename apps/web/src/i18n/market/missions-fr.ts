@@ -36,6 +36,7 @@ export const missionsFr = {
       invalid: "Vérifiez les champs : intitulé et description remplis, une ville sur site ou en hybride, un TJM minimum sous le maximum, et aucune coordonnée.",
       locked: "Des freelances ont déjà postulé : la mission ne se modifie plus. Clôturez-la et publiez-en une nouvelle si le besoin a changé.",
       tooMany: "Trop d'enregistrements en peu de temps : réessayez dans une minute.",
+      drafts: "Votre entreprise a déjà 50 brouillons : publiez-en avant d'en créer un autre.",
     },
   },
   detail: {

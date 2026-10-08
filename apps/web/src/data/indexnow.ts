@@ -1,6 +1,7 @@
 import { INDEXNOW_ENDPOINT, INDEXNOW_KEY, indexNowOutcome } from "@proofseen/profiles";
 import { missionUrl, profileUrl } from "@proofseen/hub";
 import { logError } from "../lib/log";
+import { throttled } from "./throttle";
 
 /*
  * Tells IndexNow (Bing, Yandex, Seznam… one notification shared between them) that a mission page appeared or went
@@ -36,12 +37,26 @@ export const notifyProfileChanged = (slug: string): void => {
   notify((base) => [profileUrl(base, "fr", slug), profileUrl(base, "en", slug), `${base}/sitemap-profiles.xml`]);
 };
 
+/*
+ * One announcement per page every five minutes at most. The key is shared by the whole site: a member saving the same
+ * mission in a loop must not spend its quota and get the real announcements refused. The engines come back to a page
+ * anyway, and the sitemaps carry the latest changes.
+ */
+const DEBOUNCE = { windowMs: 5 * 60_000, max: 1 };
+
 const notify = (urlsFor: (base: string) => readonly string[]): void => {
   const key = indexNowKey();
   const base = configuredBase();
   if (key === null || base === null) return;
-  const body = { host: new URL(base).host, key, keyLocation: `${base}${KEY_PATH}`, urlList: urlsFor(base) };
-  void fetch(INDEXNOW_ENDPOINT, {
+  const urlList = urlsFor(base);
+  void throttled("indexnow", urlList[0] ?? base, DEBOUNCE, new Date())
+    .then((skip) => (skip ? undefined : send(base, key, urlList)))
+    .catch((error: unknown) => logError("indexnow: not sent", error));
+};
+
+const send = (base: string, key: string, urlList: readonly string[]): Promise<void> => {
+  const body = { host: new URL(base).host, key, keyLocation: `${base}${KEY_PATH}`, urlList };
+  return fetch(INDEXNOW_ENDPOINT, {
     method: "POST",
     headers: { "content-type": "application/json; charset=utf-8" },
     body: JSON.stringify(body),

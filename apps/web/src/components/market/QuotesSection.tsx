@@ -11,6 +11,8 @@ interface QuotesSectionProps {
   readonly d: DealsDictionary;
   readonly conversationId: string;
   readonly side: Side;
+  /** Owners and administrators accept quotes and create contracts; other members only read them. */
+  readonly canCommit: boolean;
   readonly open: boolean;
   readonly quotes: readonly QuoteRecord[];
   /** Contract of each accepted quote that already has one. */
@@ -21,7 +23,7 @@ interface QuotesSectionProps {
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
 
 /** The quotes of a conversation, and what each side can do with them next. */
-export function QuotesSection({ lang, d, conversationId, side, open, quotes, contractOf, error }: QuotesSectionProps) {
+export function QuotesSection({ lang, d, conversationId, side, canCommit, open, quotes, contractOf, error }: QuotesSectionProps) {
   const q = d.quotes;
   const hasAccepted = quotes.some((quote) => quote.status === "accepted");
   return (
@@ -44,7 +46,7 @@ export function QuotesSection({ lang, d, conversationId, side, open, quotes, con
               </span>
               <StatusTag status={quote.status} label={q.status[quote.status]} />
               <span className="row-actions">
-                {side === "company" && quote.status === "sent" ? (
+                {side === "company" && canCommit && open && quote.status === "sent" ? (
                   <form action={decideQuote} className="row-actions">
                     <Hidden name="lang" value={lang} />
                     <Hidden name="conversationId" value={conversationId} />
@@ -63,7 +65,7 @@ export function QuotesSection({ lang, d, conversationId, side, open, quotes, con
                   </Link>
                 ) : null}
               </span>
-              {side === "company" && quote.status === "accepted" && contractId === undefined ? (
+              {side === "company" && canCommit && open && quote.status === "accepted" && contractId === undefined ? (
                 <form action={createContract} className="panel-grid row-actions">
                   <Hidden name="lang" value={lang} />
                   <Hidden name="conversationId" value={conversationId} />

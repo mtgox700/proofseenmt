@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { contracts, inbox, InvalidCursorError, messaging, quotes } from "@proofseen/db";
+import { contracts, inbox, InvalidCursorError, messaging, organisations, quotes } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { QuotesSection } from "@/components/market/QuotesSection";
 import { StatusTag } from "@/components/market/StatusTag";
@@ -65,6 +65,8 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
   const quoteError = devis === undefined ? null : (quoteErrors[devis] ?? q.notAllowed);
   // Quotes exist once the conversation is accepted; the contract of an accepted quote is found among the person's own.
   const [threadQuotes, mine] = head.status === "pending" || head.status === "declined" ? [[], []] : await Promise.all([quotes(market.db).list(market.actor, id), contracts(market.db).listMine(market.actor)]);
+  const myRole = head.side === "company" ? (await organisations(market.db).listMine(market.actor)).find((org) => org.id === head.organisationId)?.role : undefined;
+  const canCommit = myRole === "owner" || myRole === "admin";
   const contractOf = new Map(mine.flatMap((contract) => (contract.quoteId === null ? [] : [[contract.quoteId, contract.id] as const])));
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
 
@@ -163,7 +165,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
       ) : null}
 
       {head.status === "pending" || head.status === "declined" ? null : (
-        <QuotesSection lang={lang} d={m.deals} conversationId={id} side={head.side} open={head.canPost} quotes={threadQuotes ?? []} contractOf={contractOf} error={quoteError} />
+        <QuotesSection lang={lang} d={m.deals} conversationId={id} side={head.side} canCommit={canCommit} open={head.canPost} quotes={threadQuotes ?? []} contractOf={contractOf} error={quoteError} />
       )}
     </>
   );

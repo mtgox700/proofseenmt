@@ -28,7 +28,8 @@ function Signatures({ lang, c, contract }: { readonly lang: Lang; readonly c: De
     </li>
   );
   const mine = contract.side === "freelance" ? contract.signedByFreelanceAt : contract.signedByCompanyAt;
-  const canSign = contract.status === "pending_signatures" && mine === null && (contract.side === "freelance" || contract.role !== null);
+  // Signing commits the company: its owners and administrators only (the database says the same).
+  const canSign = contract.status === "pending_signatures" && mine === null && (contract.side === "freelance" || contract.role === "owner" || contract.role === "admin");
   return (
     <section className="panel" aria-labelledby="signatures-title">
       <h2 id="signatures-title">{c.signatures}</h2>

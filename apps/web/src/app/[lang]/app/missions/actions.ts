@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { applications, CoverNoteSchema, missions } from "@proofseen/db";
 import { notifyMissionChanged } from "@/data/indexnow";
 import { throttled } from "@/data/throttle";
-import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
+import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
 import { missionFromForm } from "@/lib/mission-form";
 
 /*
@@ -16,6 +16,8 @@ import { missionFromForm } from "@/lib/mission-form";
 const SAVE_RULE = { windowMs: 60_000, max: 20 };
 const APPLY_RULE = { windowMs: 60 * 60_000, max: 30 };
 const DECIDE_RULE = { windowMs: 60_000, max: 60 };
+/** Drafts are never public, but they are rows: a company keeps a reasonable number of them. */
+const MAX_DRAFTS = 50;
 
 const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string" ? raw : "");
 const missionPath = (lang: string, id: string, error?: string): string => `/${lang}/app/missions/${id}${error === undefined ? "" : `?erreur=${error}`}`;
@@ -28,13 +30,16 @@ export async function createMission(formData: FormData): Promise<void> {
   if (organisation === null) redirect(`/${lang}/app`);
   const input = missionFromForm(formData);
   if (!input.success) redirect(`/${lang}/app/missions/nouvelle?erreur=invalide`);
+  const existing = (await missions(market.db).listForOrganisation(market.actor, organisation.id)) ?? [];
+  if (existing.filter((mission) => mission.status === "draft").length >= MAX_DRAFTS) redirect(`/${lang}/app/missions/nouvelle?erreur=brouillons`);
   const mission = await missions(market.db).create(market.actor, organisation.id, input.data);
   redirect(mission === null ? `/${lang}/app` : missionPath(lang, mission.id));
 }
 
 export async function updateMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("missionId"));
+  const id = uuidOf(formData.get("missionId"));
+  if (id === null) redirect(`/${lang}/app/missions`);
   const market = await actionMarket(lang);
   const edit = (error: string): string => `/${lang}/app/missions/${id}/modifier?erreur=${error}`;
   if (await throttled("mission-save", market.actor.userId, SAVE_RULE, new Date())) redirect(edit("trop"));
@@ -48,23 +53,28 @@ export async function updateMission(formData: FormData): Promise<void> {
 
 export async function publishMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("missionId"));
+  const id = uuidOf(formData.get("missionId"));
+  if (id === null) redirect(`/${lang}/app/missions`);
   const market = await actionMarket(lang);
+  if (await throttled("mission-state", market.actor.userId, SAVE_RULE, new Date())) redirect(missionPath(lang, id, "trop"));
   if (await missions(market.db).publish(market.actor, id, new Date())) notifyMissionChanged(id);
   redirect(missionPath(lang, id));
 }
 
 export async function closeMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("missionId"));
+  const id = uuidOf(formData.get("missionId"));
+  if (id === null) redirect(`/${lang}/app/missions`);
   const market = await actionMarket(lang);
+  if (await throttled("mission-state", market.actor.userId, SAVE_RULE, new Date())) redirect(missionPath(lang, id, "trop"));
   if (await missions(market.db).close(market.actor, id, new Date())) notifyMissionChanged(id);
   redirect(missionPath(lang, id));
 }
 
 export async function decideApplication(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const missionId = text(formData.get("missionId"));
+  const missionId = uuidOf(formData.get("missionId"));
+  if (missionId === null) redirect(`/${lang}/app/missions`);
   const decision = formData.get("decision");
   if (decision !== "shortlisted" && decision !== "declined" && decision !== "hired") redirect(missionPath(lang, missionId));
   const market = await actionMarket(lang);
@@ -75,7 +85,8 @@ export async function decideApplication(formData: FormData): Promise<void> {
 
 export async function applyToMission(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const missionId = text(formData.get("missionId"));
+  const missionId = uuidOf(formData.get("missionId"));
+  if (missionId === null) redirect(`/${lang}/app/missions`);
   const back = (error: string): string => `/${lang}/app/missions/${missionId}/postuler?erreur=${error}`;
   const market = await actionMarket(lang);
   if (market.person.role !== "freelance") redirect(back("entreprise"));
@@ -89,6 +100,7 @@ export async function applyToMission(formData: FormData): Promise<void> {
 export async function withdrawApplication(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
   const market = await actionMarket(lang);
+  if (await throttled("application-withdraw", market.actor.userId, DECIDE_RULE, new Date())) redirect(`/${lang}/app/missions`);
   await applications(market.db).withdraw(market.actor, text(formData.get("applicationId")));
   redirect(`/${lang}/app/missions`);
 }

@@ -23,7 +23,7 @@ export default async function NewMissionPage({ params, searchParams }: PageProps
   if (market === "unconfigured") return <MarketUnavailable text={marketDictionary(lang).notConfigured} />;
   if ((await currentOrganisation(market)) === null) redirect(`/${lang}/app`);
   const { erreur } = await searchParams;
-  const error = erreur === undefined ? null : erreur === "trop" ? m.form.errors.tooMany : m.form.errors.invalid;
+  const error = erreur === undefined ? null : erreur === "trop" ? m.form.errors.tooMany : erreur === "brouillons" ? m.form.errors.drafts : m.form.errors.invalid;
   return (
     <>
       <header className="app-head">

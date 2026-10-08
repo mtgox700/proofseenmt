@@ -37,6 +37,7 @@ export const missionsEn: MissionsDictionary = {
       invalid: "Check the fields: title and description filled in, a city on site or hybrid, a minimum rate below the maximum, and no contact details.",
       locked: "Freelancers have already applied: the mission can no longer change. Close it and publish a new one if the need changed.",
       tooMany: "Too many saves in a short time: try again in a minute.",
+      drafts: "Your company already has 50 drafts: publish some before creating another.",
     },
   },
   detail: {

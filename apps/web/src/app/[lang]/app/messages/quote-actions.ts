@@ -3,13 +3,13 @@
 import { redirect } from "next/navigation";
 import { ContractDraftSchema, contracts, quotes, QuoteInputSchema } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
-import { actionMarket, langOf } from "@/lib/market";
+import { actionMarket, langOf, uuidOf } from "@/lib/market";
 import { eurosToCents } from "@/lib/mission-form";
 
 /*
  * Server actions of quotes, inside a conversation. Only fixed-price quotes are offered here: monthly billing stays
  * closed until monthly prepayment exists (decision of 2026-10-07). The repositories check, in their queries, that the
- * freelancer writes the quote and a company member decides it.
+ * freelancer writes the quote and a company owner or administrator decides it and creates the contract.
  */
 
 const RULE = { windowMs: 60_000, max: 20 };
@@ -19,7 +19,8 @@ const thread = (lang: string, id: string, error?: string): string => `/${lang}/a
 
 export async function sendQuote(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const conversationId = text(formData.get("conversationId"));
+  const conversationId = uuidOf(formData.get("conversationId"));
+  if (conversationId === null) redirect(`/${lang}/app/messages`);
   const market = await actionMarket(lang);
   if (await throttled("quote", market.actor.userId, RULE, new Date())) redirect(thread(lang, conversationId, "trop"));
   const days = text(formData.get("days"));
@@ -33,7 +34,8 @@ export async function sendQuote(formData: FormData): Promise<void> {
 
 export async function decideQuote(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const conversationId = text(formData.get("conversationId"));
+  const conversationId = uuidOf(formData.get("conversationId"));
+  if (conversationId === null) redirect(`/${lang}/app/messages`);
   const decision = formData.get("decision");
   if (decision !== "accepted" && decision !== "declined") redirect(thread(lang, conversationId));
   const market = await actionMarket(lang);
@@ -44,7 +46,8 @@ export async function decideQuote(formData: FormData): Promise<void> {
 
 export async function createContract(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const conversationId = text(formData.get("conversationId"));
+  const conversationId = uuidOf(formData.get("conversationId"));
+  if (conversationId === null) redirect(`/${lang}/app/messages`);
   const market = await actionMarket(lang);
   if (await throttled("contract-create", market.actor.userId, RULE, new Date())) redirect(thread(lang, conversationId, "trop"));
   const endsOn = text(formData.get("endsOn"));

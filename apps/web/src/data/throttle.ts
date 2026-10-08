@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { getDb, rateLimiter, type RateLimitRule } from "@proofseen/db";
-import { hasDatabase } from "@/data/intake-sink";
+import { hasDatabase } from "./intake-sink";
 import { logError } from "../lib/log";
 
 /*

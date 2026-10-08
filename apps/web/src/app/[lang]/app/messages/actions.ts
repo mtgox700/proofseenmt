@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { inbox, messaging, MessageBodySchema } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
 import { logError } from "@/lib/log";
-import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
+import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
 
 /*
  * Server actions of the conversations. Each one re-reads the session through `actionMarket`: an id, a role or a side
@@ -15,12 +15,13 @@ import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
 const SEND_RULE = { windowMs: 60_000, max: 20 };
 const CONTACT_RULE = { windowMs: 60 * 60_000, max: 30 };
 
-const thread = (lang: string, id: string, error?: string): string => `/${lang}/app/messages/${id}${error === undefined ? "" : `?erreur=${error}`}`;
+const thread = (lang: string, id: string | null, error?: string): string => (id === null ? `/${lang}/app/messages` : `/${lang}/app/messages/${id}${error === undefined ? "" : `?erreur=${error}`}`);
 const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string" ? raw : "");
 
 export async function postMessage(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("conversationId"));
+  const id = uuidOf(formData.get("conversationId"));
+  if (id === null) redirect(`/${lang}/app/messages`);
   const market = await actionMarket(lang);
   if (await throttled("message-post", market.actor.userId, SEND_RULE, new Date())) redirect(thread(lang, id, "trop"));
   const body = MessageBodySchema.safeParse(text(formData.get("body")));
@@ -40,18 +41,22 @@ export async function postMessage(formData: FormData): Promise<void> {
 
 export async function decideConversation(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("conversationId"));
+  const id = uuidOf(formData.get("conversationId"));
+  if (id === null) redirect(`/${lang}/app/messages`);
   const decision = formData.get("decision");
   if (decision !== "accepted" && decision !== "declined") redirect(thread(lang, id));
   const market = await actionMarket(lang);
+  if (await throttled("message-decide", market.actor.userId, SEND_RULE, new Date())) redirect(thread(lang, id, "trop"));
   await messaging(market.db).decide(market.actor, id, decision, new Date());
   redirect(thread(lang, id));
 }
 
 export async function closeConversation(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
-  const id = text(formData.get("conversationId"));
+  const id = uuidOf(formData.get("conversationId"));
+  if (id === null) redirect(`/${lang}/app/messages`);
   const market = await actionMarket(lang);
+  if (await throttled("message-close", market.actor.userId, SEND_RULE, new Date())) redirect(thread(lang, id, "trop"));
   await messaging(market.db).close(market.actor, id);
   redirect(thread(lang, id));
 }

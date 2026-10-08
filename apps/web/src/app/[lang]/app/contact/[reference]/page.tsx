@@ -30,7 +30,15 @@ export default async function ContactPage({ params, searchParams }: PageProps) {
   const m = marketDictionary(lang);
   const market = await pageMarket(lang);
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
-  const target = await inbox(market.db).contactTarget(decodeURIComponent(reference));
+  // A malformed escape in the address is a page that does not exist, not a server error.
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(reference);
+    } catch {
+      return null;
+    }
+  })();
+  const target = decoded === null ? null : await inbox(market.db).contactTarget(decoded);
   if (target === null) notFound();
   const error = errorText((await searchParams).erreur, m);
 
