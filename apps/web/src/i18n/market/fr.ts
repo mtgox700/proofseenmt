@@ -1,4 +1,5 @@
 import { billingFr } from "./billing-fr";
+import { dealsFr } from "./deals-fr";
 import { missionsFr } from "./missions-fr";
 import { profileFr } from "./profile-fr";
 
@@ -22,6 +23,7 @@ const kinds = {
 
 export const marketFr = {
   billing: billingFr,
+  deals: dealsFr,
   missions: missionsFr,
   profile: profileFr,
   nav: {

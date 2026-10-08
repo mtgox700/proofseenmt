@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { inbox, InvalidCursorError, messaging } from "@proofseen/db";
+import { contracts, inbox, InvalidCursorError, messaging, quotes } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { QuotesSection } from "@/components/market/QuotesSection";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
-import { date } from "@/lib/format";
+import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 import { closeConversation, decideConversation, postMessage } from "../actions";
 
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string; avant?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; avant?: string; devis?: string }>;
 }
 
 const MAX_BODY = 10_000;
@@ -46,7 +47,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
   const m = marketDictionary(lang);
   const market = await pageMarket(lang);
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
-  const { erreur, avant } = await searchParams;
+  const { erreur, avant, devis } = await searchParams;
   const head = await inbox(market.db).thread(market.actor, id);
   if (head === null) notFound();
   const page = await messaging(market.db)
@@ -59,6 +60,12 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
   const counterpart = head.counterpart.kind === "organisation" ? head.counterpart.name : head.counterpart.reference;
   const messages = [...page.items].reverse();
   const error = errorText(erreur, m);
+  const q = m.deals.quotes.errors;
+  const quoteErrors: Readonly<Record<string, string>> = { ...q, invalide: q.invalid, etat: q.notAllowed, deja: q.alreadyAccepted, dates: q.dates, trop: q.tooMany };
+  const quoteError = devis === undefined ? null : (quoteErrors[devis] ?? q.notAllowed);
+  // Quotes exist once the conversation is accepted; the contract of an accepted quote is found among the person's own.
+  const [threadQuotes, mine] = head.status === "pending" || head.status === "declined" ? [[], []] : await Promise.all([quotes(market.db).list(market.actor, id), contracts(market.db).listMine(market.actor)]);
+  const contractOf = new Map(mine.flatMap((contract) => (contract.quoteId === null ? [] : [[contract.quoteId, contract.id] as const])));
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
 
   return (
@@ -93,7 +100,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
               <p className="bubble-body">{message.body}</p>
               {message.containsContact ? <span className="tag tag-quiet small">{m.thread.flagged}</span> : null}
               <time className="bubble-at small muted" dateTime={message.createdAt.toISOString()}>
-                {date(message.createdAt.toISOString(), lang)}
+                {day(message.createdAt, lang)}
               </time>
             </li>
           );
@@ -154,6 +161,10 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
       ) : head.status === "closed" ? (
         <p className="muted">{m.thread.closed}</p>
       ) : null}
+
+      {head.status === "pending" || head.status === "declined" ? null : (
+        <QuotesSection lang={lang} d={m.deals} conversationId={id} side={head.side} open={head.canPost} quotes={threadQuotes ?? []} contractOf={contractOf} error={quoteError} />
+      )}
     </>
   );
 }

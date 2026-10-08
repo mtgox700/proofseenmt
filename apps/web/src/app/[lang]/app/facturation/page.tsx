@@ -5,7 +5,7 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { BillingDictionary } from "@/i18n/market/billing-fr";
-import { date } from "@/lib/format";
+import { date, day } from "@/lib/format";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { declareVigilance, saveBilling } from "./actions";
 
@@ -34,7 +34,7 @@ function Registry({ lang, b, registry, hasSiret }: { readonly lang: Lang; readon
   return (
     <p className={registry.status === "active" || registry.status === null ? "muted small" : "form-error"}>
       {text}
-      {registry.checkedAt === null ? null : ` · ${b.registry.checkedOn} ${date(registry.checkedAt.toISOString(), lang)}`}
+      {registry.checkedAt === null ? null : ` · ${b.registry.checkedOn} ${day(registry.checkedAt, lang)}`}
     </p>
   );
 }
@@ -125,7 +125,7 @@ export default async function BillingPage({ params, searchParams }: PageProps) {
           <p className="muted small">{identity.payoutsReady ? b.payouts.ready : b.payouts.missing}</p>
         </>
       )}
-      <BillingForm lang={lang} b={b} action={saveBilling} values={identity} freelance mandateAt={identity?.invoicingMandateAt === null || identity === null ? null : date(identity.invoicingMandateAt.toISOString(), lang)} />
+      <BillingForm lang={lang} b={b} action={saveBilling} values={identity} freelance mandateAt={identity?.invoicingMandateAt === null || identity === null ? null : day(identity.invoicingMandateAt, lang)} />
       <Vigilance lang={lang} b={b} market={market} code={vigilanceCode} />
     </>
   );
