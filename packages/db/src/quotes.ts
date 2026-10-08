@@ -62,7 +62,6 @@ export interface Quotes {
 const SELECT = { id: true, conversationId: true, dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, status: true, createdAt: true } as const;
 
 const freelanceOf = (userId: string) => ({ conversation: { profile: { userId } } });
-const memberOf = (userId: string) => ({ conversation: { organisation: { members: { some: { userId } } } } });
 /** Accepter un devis engage l'entreprise : propriétaires et administrateurs seulement, dans un fil encore ouvert. */
 const deciderOf = (userId: string) => ({ conversation: { status: "accepted" as const, organisation: { members: { some: { userId, role: { in: ["owner" as const, "admin" as const] } } } } } });
 
