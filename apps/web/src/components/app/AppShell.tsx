@@ -25,7 +25,7 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const deals = marketDictionary(lang).deals;
   const contractsItem = { href: `${base}/contrats`, label: deals.contracts.nav };
   const invoicesItem = { href: `${base}/factures`, label: deals.invoices.nav };
-  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
   return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
