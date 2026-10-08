@@ -140,3 +140,4 @@ export { API_PAGE_MAX, ApiPageSchema, companyApi, EXPORT_MAX_ROWS, type ApiContr
 export { INBOX_LIMIT, inbox, type Counterpart, type Inbox, type InboxThread, type Side, type ThreadHeader } from "./inbox";
 export { isUniqueViolation } from "./errors";
 export { billingView, type BillingView, type FreelanceIdentityView, type OrganisationIdentityView, type RegistryView } from "./billing-view";
+export { CONTRACT_LIST_LIMIT, contractView, type ContractDetail, type ContractSide, type ContractSummary, type ContractView } from "./contract-view";
