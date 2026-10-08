@@ -39,14 +39,53 @@ const contract = async () => {
   await quotes(t.db).decide({ userId: owner }, draft?.id ?? "", "accepted");
   const created = await contracts(t.db).createFromQuote({ userId: owner }, draft?.id ?? "", { startsOn: "2026-11-02" }, NOW);
   if (created.kind !== "created") throw new Error(created.kind);
-  return { owner, admin, organisationId, freelanceUser, contractId: created.contract.id, conversationId: contact.conversation.id };
+  const reference = (await t.db.freelanceProfile.findUniqueOrThrow({ where: { id: profile }, select: { reference: true } })).reference;
+  return { owner, admin, organisationId, freelanceUser, reference, contractId: created.contract.id, conversationId: contact.conversation.id, quoteId: draft?.id ?? "" };
 };
 
-describe("contrats vus des écrans", () => {
-  it("chaque partie voit l'autre par son nom légal, et son propre côté", async () => {
+describe("engager l'entreprise", () => {
+  it("un simple membre n'accepte pas de devis, ne crée ni ne signe de contrat", async () => {
     const c = await contract();
-    const [company] = await contractView(t.db).list({ userId: c.owner });
-    expect(company).toMatchObject({ id: c.contractId, side: "company", counterpart: "Camille Test EI", totalCents: 600_000, status: "pending_signatures" });
+    const member = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId: c.organisationId, userId: member, role: "member" } });
+    expect(await contracts(t.db).sign({ userId: member }, c.contractId, NOW)).toEqual({ kind: "absent" });
+    expect(await contracts(t.db).sign({ userId: c.admin }, c.contractId, NOW)).toMatchObject({ kind: "signed" });
+
+    const draft = await quotes(t.db).draft({ userId: c.freelanceUser }, c.conversationId, { dailyRateCents: 50_000, days: 2 });
+    await quotes(t.db).send({ userId: c.freelanceUser }, draft?.id ?? "");
+    expect(await quotes(t.db).decide({ userId: member }, draft?.id ?? "", "accepted")).toEqual({ kind: "absent" });
+  });
+
+  it("un devis ne s'accepte plus, ni ne devient contrat, une fois le fil clos", async () => {
+    const owner = await createUser(t.db);
+    const organisationId = await createOrganisation(t.db, owner);
+    await billing(t.db).setOrganisationIdentity({ userId: owner }, organisationId, { legalName: "Beta SAS", siret: nextSiret("732829320"), address: ADDRESS });
+    const freelanceUser = await createUser(t.db);
+    const profile = await createProfile(t.db, freelanceUser);
+    await billing(t.db).setFreelanceIdentity({ userId: freelanceUser }, { acceptInvoicingMandate: true, legalName: "Dom Test EI", siret: nextSiret("552100554"), vatNumber: "FR40552100554", address: ADDRESS, vatRateBp: 2000 });
+    const contact = await messaging(t.db).contact({ userId: owner }, organisationId, profile, "Bonjour, une mission ?");
+    if (contact.kind !== "opened") throw new Error(contact.kind);
+    await messaging(t.db).decide({ userId: freelanceUser }, contact.conversation.id, "accepted", NOW);
+    const sent = await quotes(t.db).draft({ userId: freelanceUser }, contact.conversation.id, { dailyRateCents: 50_000, days: 2 });
+    await quotes(t.db).send({ userId: freelanceUser }, sent?.id ?? "");
+    await messaging(t.db).close({ userId: freelanceUser }, contact.conversation.id);
+    expect(await quotes(t.db).decide({ userId: owner }, sent?.id ?? "", "accepted")).toEqual({ kind: "absent" });
+  });
+});
+
+describe("contrats vus des écrans", () => {
+  it("l'entreprise ne voit l'identité légale du freelance qu'une fois qu'il a signé", async () => {
+    const c = await contract();
+    const [before] = await contractView(t.db).list({ userId: c.owner });
+    expect(before).toMatchObject({ id: c.contractId, side: "company", counterpart: c.reference, totalCents: 600_000, status: "pending_signatures" });
+    expect((await contractView(t.db).find({ userId: c.owner }, c.contractId))?.seller).toEqual({ legalName: c.reference, siret: null });
+    await contracts(t.db).sign({ userId: c.freelanceUser }, c.contractId, NOW);
+    const [after] = await contractView(t.db).list({ userId: c.owner });
+    expect(after?.counterpart).toBe("Camille Test EI");
+  });
+
+  it("chaque partie voit l'autre et son propre côté", async () => {
+    const c = await contract();
     const [freelance] = await contractView(t.db).list({ userId: c.freelanceUser });
     expect(freelance).toMatchObject({ side: "freelance", counterpart: "Acme SAS" });
 

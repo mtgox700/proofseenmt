@@ -136,7 +136,8 @@ export const contracts = (db: Db): Contracts => ({
           where: {
             id: quoteId,
             status: "accepted",
-            conversation: { OR: [{ profile: { userId: actor.userId } }, { organisation: { members: { some: { userId: actor.userId } } } }] },
+            // Le fil doit être encore ouvert ; côté entreprise, seuls ses propriétaires et administrateurs l'engagent.
+            conversation: { status: "accepted", OR: [{ profile: { userId: actor.userId } }, { organisation: { members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } } }] },
           },
           select: { dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, conversation: { select: { organisationId: true, profileId: true } } },
         });
@@ -191,7 +192,8 @@ export const contracts = (db: Db): Contracts => ({
     if (!Uuid.safeParse(contractId).success) return { kind: "absent" };
     return db.$transaction(async (tx): Promise<SignResult> => {
       const contract = await tx.contract.findFirst({
-        where: { id: contractId, status: "pending_signatures", ...party(actor.userId) },
+        // Signer engage la partie : le freelance pour lui-même, un propriétaire ou un administrateur pour l'entreprise.
+        where: { id: contractId, status: "pending_signatures", OR: [{ profile: { userId: actor.userId } }, { organisation: { members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } } }] },
         select: { profile: { select: { userId: true } }, organisationId: true, profileId: true, currency: true, totalCents: true },
       });
       if (contract === null) return { kind: "absent" };

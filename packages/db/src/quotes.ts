@@ -63,6 +63,8 @@ const SELECT = { id: true, conversationId: true, dailyRateCents: true, days: tru
 
 const freelanceOf = (userId: string) => ({ conversation: { profile: { userId } } });
 const memberOf = (userId: string) => ({ conversation: { organisation: { members: { some: { userId } } } } });
+/** Accepter un devis engage l'entreprise : propriétaires et administrateurs seulement, dans un fil encore ouvert. */
+const deciderOf = (userId: string) => ({ conversation: { status: "accepted" as const, organisation: { members: { some: { userId, role: { in: ["owner" as const, "admin" as const] } } } } } });
 
 export const quotes = (db: Db): Quotes => ({
   async draft(actor, conversationId, raw) {
@@ -89,7 +91,7 @@ export const quotes = (db: Db): Quotes => ({
   async decide(actor, quoteId, decision) {
     if (!Uuid.safeParse(quoteId).success) return { kind: "absent" };
     try {
-      const { count } = await db.quote.updateMany({ where: { id: quoteId, status: "sent", ...memberOf(actor.userId) }, data: { status: decision } });
+      const { count } = await db.quote.updateMany({ where: { id: quoteId, status: "sent", ...deciderOf(actor.userId) }, data: { status: decision } });
       if (count === 0) return { kind: "absent" };
     } catch (error) {
       // L'index unique « un seul devis accepté par fil » a refusé : un autre devis du fil est déjà accepté.

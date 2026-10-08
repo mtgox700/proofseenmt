@@ -6,9 +6,13 @@ import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 
 /*
- * Ce que les écrans montrent d'un contrat : les deux parties par leur nom légal (un contrat est signé entre personnes
- * identifiées, les noms viennent des identités figées à sa création), le côté de la personne, où en sont les
- * signatures et, pour l'entreprise, les validations de la prestation. Pour les parties seulement.
+ * Ce que les écrans montrent d'un contrat : les deux parties par leur nom légal (les noms viennent des identités figées à
+ * sa création), le côté de la personne, où en sont les signatures et, pour l'entreprise, les validations de la
+ * prestation. Pour les parties seulement.
+ *
+ * L'identité légale du freelance n'est montrée à l'entreprise qu'une fois qu'il a signé : l'entreprise crée seule le
+ * contrat, et un contrat qu'il ne signe pas ne doit rien lui avoir fait perdre de son pseudonymat. Avant, l'entreprise
+ * voit sa référence publique.
  */
 
 const Uuid = z.uuid();
@@ -55,16 +59,23 @@ const SELECT = {
   startsOn: true,
   sellerSnapshot: true,
   buyerSnapshot: true,
-  profile: { select: { userId: true } },
+  acceptedByFreelanceAt: true,
+  profile: { select: { userId: true, reference: true } },
 } as const;
 
 type Row = Prisma.ContractGetPayload<{ select: typeof SELECT }>;
 
+/** Le vendeur tel que la personne peut le voir : son identité légale, ou sa référence tant qu'il n'a pas signé. */
+const sellerFor = (row: Row, side: ContractSide): { readonly legalName: string; readonly siret: string | null } => {
+  const seller = LegalSnapshotSchema.parse(row.sellerSnapshot);
+  if (side === "freelance" || row.acceptedByFreelanceAt !== null) return { legalName: seller.legalName, siret: seller.siret };
+  return { legalName: row.profile?.reference ?? "—", siret: null };
+};
+
 const summary = (row: Row, userId: string): ContractSummary => {
   const side: ContractSide = row.profile?.userId === userId ? "freelance" : "company";
-  const seller = LegalSnapshotSchema.parse(row.sellerSnapshot);
   const buyer = LegalSnapshotSchema.parse(row.buyerSnapshot);
-  return { id: row.id, side, status: row.status, counterpart: side === "freelance" ? buyer.legalName : seller.legalName, totalCents: row.totalCents, currency: row.currency, startsOn: row.startsOn };
+  return { id: row.id, side, status: row.status, counterpart: side === "freelance" ? buyer.legalName : sellerFor(row, side).legalName, totalCents: row.totalCents, currency: row.currency, startsOn: row.startsOn };
 };
 
 export const contractView = (db: Db) => ({
@@ -87,7 +98,6 @@ export const contractView = (db: Db) => ({
         repeatClient: true,
         endsOn: true,
         costCenter: true,
-        acceptedByFreelanceAt: true,
         acceptedByOrgAt: true,
         quote: { select: { conversationId: true } },
         organisation: { select: { approvalLevels: true, members: { where: { role: { in: ["owner", "admin"] } }, select: { userId: true } } } },
@@ -96,7 +106,6 @@ export const contractView = (db: Db) => ({
     });
     if (row === null) return null;
     const head = summary(row, actor.userId);
-    const seller = LegalSnapshotSchema.parse(row.sellerSnapshot);
     const buyer = LegalSnapshotSchema.parse(row.buyerSnapshot);
     const admins = row.organisation?.members.map((m) => m.userId) ?? [];
     const role =
@@ -105,7 +114,7 @@ export const contractView = (db: Db) => ({
         : ((await db.membership.findFirst({ where: { organisation: { contracts: { some: { id: contractId } } }, userId: actor.userId }, select: { role: true } }))?.role ?? null);
     return {
       ...head,
-      seller: { legalName: seller.legalName, siret: seller.siret },
+      seller: sellerFor(row, head.side),
       buyer: { legalName: buyer.legalName, siret: buyer.siret },
       dailyRateCents: row.dailyRateCents,
       days: row.days,
