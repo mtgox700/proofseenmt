@@ -45,6 +45,8 @@ export interface ContractDetail extends ContractSummary {
   readonly role: MemberRole | null;
   readonly approvals: { readonly count: number; readonly mine: boolean; readonly required: number };
   readonly conversationId: string | null;
+  /** L'avis de l'entreprise sur la mission est écrit (un seul par contrat). */
+  readonly reviewed: boolean;
 }
 
 const party = (userId: string): Prisma.ContractWhereInput => ({
@@ -102,6 +104,7 @@ export const contractView = (db: Db) => ({
         quote: { select: { conversationId: true } },
         organisation: { select: { approvalLevels: true, members: { where: { role: { in: ["owner", "admin"] } }, select: { userId: true } } } },
         approvals: { select: { userId: true } },
+        review: { select: { id: true } },
       },
     });
     if (row === null) return null;
@@ -132,6 +135,7 @@ export const contractView = (db: Db) => ({
         required: Math.max(1, Math.min(row.organisation?.approvalLevels ?? 1, admins.length)),
       },
       conversationId: row.quote?.conversationId ?? null,
+      reviewed: row.review !== null,
     };
   },
 });
