@@ -18,10 +18,12 @@ export const PRIVATE_PATHS = ["/api/", "/fr/app", "/en/app", "/fr/espace", "/en/
 
 export const marketplaceRobots = (baseUrl: string): string => {
   const base = baseUrl.replace(/\/$/, "");
-  const rules = ["Allow: /", ...PRIVATE_PATHS.map((path) => `Disallow: ${path}`)].join("\n");
+  // The machine-readable profile list of the former static site stays public, inside the otherwise private /api/.
+  const rules = ["Allow: /", "Allow: /api/profiles.json", ...PRIVATE_PATHS.map((path) => `Disallow: ${path}`)].join("\n");
   return [
     ...AI_SEARCH_BOTS.map((bot) => `User-agent: ${bot}\n${rules}\n`),
     `User-agent: *\n${rules}\n`,
+    `Sitemap: ${base}/sitemap-pages.xml`,
     `Sitemap: ${base}/sitemap-profiles.xml`,
     `Sitemap: ${base}/sitemap-missions.xml`,
     `Sitemap: ${base}/sitemap-skills.xml`,

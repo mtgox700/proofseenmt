@@ -52,7 +52,8 @@ describe("vérification des pages publiques de la marketplace", () => {
 
   it("garde les espaces privés hors d'indexation dans robots.txt", () => {
     const robots = marketplaceRobots(BASE);
-    expect(robots).toContain("User-agent: OAI-SearchBot\nAllow: /\nDisallow: /api/");
+    expect(robots).toContain("User-agent: OAI-SearchBot\nAllow: /\nAllow: /api/profiles.json\nDisallow: /api/");
+    expect(robots).toContain(`Sitemap: ${BASE}/sitemap-pages.xml`);
     expect(robots).toContain("Disallow: /fr/app");
     expect(robots).toContain(`Sitemap: ${BASE}/sitemap-missions.xml`);
   });
