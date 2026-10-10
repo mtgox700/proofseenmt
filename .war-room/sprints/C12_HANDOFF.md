@@ -66,12 +66,23 @@ Consigné sans changement de code :
   (`C7_DEPLOY.md`) ;
 - **SIRET d'un autre : tranché le 2026-10-08 par l'avocat du diable de la War Room** (délégation du founder). Un SIRET inconnu du répertoire, ou enregistré sous un autre nom que la raison sociale déclarée, bloque désormais la création et la signature du contrat, comme un SIRET fermé, des deux côtés (`registry_mismatch`). Un SIRET pas encore contrôlé ne bloque pas : risque résiduel accepté, pour qu'une panne de l'annuaire public ne gèle pas les contrats.
 
+## Parcours complet joué dans le navigateur (le 2026-10-10)
+
+Avec deux comptes de test Clerk créés par le founder (adresses `+clerk_test`), contre Railway, en passant d'un compte à l'autre :
+
+1. Freelance : profil FR-JVD6W créé puis publié sous sa référence ; identité de facturation (franchise de TVA) et mandat de facturation accepté.
+2. Entreprise : « Entreprise Test SAS » créée, identité légale, mission publiée (TJM 550 à 650 €, 1 mois).
+3. Freelance : candidature depuis le bouton de la page publique ; l'échange s'ouvre accepté, rattaché à la mission ; devis 600 € × 5 jours.
+4. Entreprise : la candidature montre la référence et les faits, jamais un nom ; « Choisir » ; devis accepté.
+5. **Création du contrat refusée** : les deux SIRET de test partageaient le même SIREN, et la règle « pas de contrat avec soi-même » a joué dans l'interface réelle, avec le bon message, en closant le devis. SIRET de l'entreprise corrigé, nouveau devis, accepté.
+6. Contrat créé : avant la signature du freelance, l'entreprise ne voit que **FR-JVD6W**, sans nom ni SIRET. Signé côté entreprise.
+7. Freelance : signature ; le contrat passe **En cours**, paiement « pas encore payé » (Stripe en fin de projet).
+
+Les comptes et les données de test restent sur Railway pour les prochains passages (paiement Stripe en mode test, validation, factures).
+
 ## Reste à faire
 
-1. **[FOUNDER] Deux comptes de test**, un entreprise et un freelance, pour jouer le parcours complet des deux côtés dans
-   le navigateur. Le compte opérateur ne voit pas ces écrans, et un compte Clerk (service externe) ne peut pas être créé
-   par la War Room. En instance de développement Clerk, sans boîte mail : adresses `entreprise+clerk_test@example.com`
-   et `freelance+clerk_test@example.com`, code de vérification **424242**.
+1. ~~Deux comptes de test~~ ✅ créés le 2026-10-10, parcours joué (voir plus haut).
 2. **Paiement** (Stripe Elements) : à la fin du projet, avec les clés de test.
 3. **Avis** après une mission, **relevés mensuels** (seulement quand la régie ouvrira), **préférences d'e-mails** et **alertes de
    missions**.
