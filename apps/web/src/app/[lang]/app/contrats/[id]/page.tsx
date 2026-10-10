@@ -9,14 +9,15 @@ import { marketDictionary } from "@/i18n/market";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
 import { date, day, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
-import { cancelContract, completeContract, saveCostCenter, signContract } from "../actions";
+import { cancelContract, completeContract, saveCostCenter, signContract, writeReview } from "../actions";
+import type { AccountDictionary } from "@/i18n/market/account-fr";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; avis?: string }>;
 }
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
@@ -67,6 +68,44 @@ function Signatures({ lang, c, contract }: { readonly lang: Lang; readonly c: De
   );
 }
 
+/** The client company's review, once the mission is completed; the database checks it was also paid. */
+function Review({ lang, r, contractId, code }: { readonly lang: Lang; readonly r: AccountDictionary["review"]; readonly contractId: string; readonly code: string | undefined }) {
+  const error = code === "invalide" ? r.invalid : code === "deja" ? r.already : code === "inadmissible" ? r.notEligible : null;
+  return (
+    <form action={writeReview} className="panel" aria-labelledby="review-title">
+      <Hidden name="lang" value={lang} />
+      <Hidden name="contractId" value={contractId} />
+      <h2 id="review-title">{r.title}</h2>
+      <p className="muted measure">{r.lead}</p>
+      {error === null ? null : (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="field">
+        <label htmlFor="rating">{r.rating}</label>
+        <select id="rating" name="rating" defaultValue="5">
+          {(["5", "4", "3", "2", "1"] as const).map((value) => (
+            <option key={value} value={value}>
+              {r.ratings[value]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="review-body">{r.body}</label>
+        <textarea id="review-body" name="body" required maxLength={4000} rows={5} aria-describedby="review-hint" />
+        <p id="review-hint" className="field-hint">
+          {r.bodyHint}
+        </p>
+      </div>
+      <button type="submit" className="btn btn-primary">
+        {r.send}
+      </button>
+    </form>
+  );
+}
+
 /** One contract, for its two parties only: anyone else gets 404. */
 export default async function ContractPage({ params, searchParams }: PageProps) {
   const { lang, id } = await params;
@@ -79,7 +118,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
   if (contract === null) notFound();
   const [payment, allInvoices] = await Promise.all([payments(market.db).find(market.actor, id), invoices(market.db).listMine(market.actor)]);
   const mineInvoices = allInvoices.filter((invoice) => invoice.contractId === id);
-  const { erreur } = await searchParams;
+  const { erreur, avis } = await searchParams;
   const errors: Readonly<Record<string, string>> = { ...c.errors, trop: c.errors.tooMany };
   const error = erreur === undefined ? null : (errors[erreur] ?? c.errors.notAllowed);
   const admin = contract.role === "owner" || contract.role === "admin";
@@ -181,6 +220,14 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
             </button>
           </div>
         </form>
+      ) : null}
+
+      {avis === "ok" ? (
+        <p className="form-ok" role="status">
+          {dict.account.review.written}
+        </p>
+      ) : contract.side === "company" && contract.status === "completed" && !contract.reviewed ? (
+        <Review lang={lang} r={dict.account.review} contractId={contract.id} code={avis} />
       ) : null}
 
       {mineInvoices.length === 0 ? null : <InvoiceList lang={lang} d={dict.deals.invoices} invoices={mineInvoices} headingLevel={2} />}

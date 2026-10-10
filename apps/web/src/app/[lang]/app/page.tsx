@@ -11,9 +11,10 @@ import { date } from "@/lib/format";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
-import { profiles } from "@proofseen/db";
+import { dashboards, profiles } from "@proofseen/db";
+import { CompanyTiles, FreelanceTiles } from "@/components/market/DashboardTiles";
 import { marketDictionary } from "@/i18n/market";
-import { currentOrganisation, pageMarket } from "@/lib/market";
+import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { createOrganisation } from "./actions";
 
 /** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
@@ -143,8 +144,9 @@ async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
   const p = dict.profile;
   const market = await pageMarket(lang, ["freelance"]);
   if (market === "unconfigured") return null;
-  const profile = await profiles(market.db).findMine(market.actor);
+  const [profile, board] = await Promise.all([profiles(market.db).findMine(market.actor), dashboards(market.db).freelance(market.actor)]);
   return (
+    <>
     <section className="panel" aria-labelledby="market-title">
       <h2 id="market-title">{p.homeTitle}</h2>
       {profile === null ? (
@@ -164,6 +166,8 @@ async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
         </Link>
       </div>
     </section>
+    {profile === null ? null : <FreelanceTiles lang={lang} b={dict.account.dashboard} board={board} />}
+    </>
   );
 }
 
@@ -254,6 +258,12 @@ function CreateOrganisation({ lang, error }: { readonly lang: Lang; readonly err
   );
 }
 
+/** The company's figures, for its members. */
+async function CompanyBoard({ lang, market, organisationId }: { readonly lang: Lang; readonly market: Market; readonly organisationId: string }) {
+  const board = await dashboards(market.db).company(market.actor, organisationId);
+  return board === null ? null : <CompanyTiles lang={lang} b={marketDictionary(lang).account.dashboard} board={board} />;
+}
+
 async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person; readonly error: string | undefined }) {
   const c = t.app.company;
   const m = marketDictionary(lang);
@@ -273,7 +283,7 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
         )}
         <p className="muted measure">{c.lead}</p>
       </header>
-      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : null}
+      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : <CompanyBoard lang={lang} market={market} organisationId={organisation.id} />}
       <form className="filters" method="get" action={`/${lang}/entreprise`} role="search" aria-label={c.search}>
         <div className="field">
           <label htmlFor="skill">{t.directory.form.skill}</label>

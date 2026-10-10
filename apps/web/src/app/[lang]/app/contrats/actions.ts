@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { contracts, CostCenterSchema, largeAccounts, payments } from "@proofseen/db";
+import { contracts, CostCenterSchema, largeAccounts, payments, ReviewInputSchema, reviews } from "@proofseen/db";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
@@ -71,4 +71,19 @@ export async function saveCostCenter(formData: FormData): Promise<void> {
   if (!costCenter.success) redirect(page(lang, id, "etat"));
   const result = await largeAccounts(market.db).setCostCenter(market.actor, id, costCenter.data);
   redirect(page(lang, id, result === "saved" ? undefined : "etat"));
+}
+
+const REVIEW_RULE = { windowMs: 60 * 60_000, max: 10 };
+
+/** The client company's review of a completed, paid mission; the repository checks both, once per contract. */
+export async function writeReview(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const id = uuidOf(formData.get("contractId"));
+  if (id === null) redirect(`/${lang}/app/contrats`);
+  const market = await actionMarket(lang);
+  if (await throttled("review-write", market.actor.userId, REVIEW_RULE, new Date())) redirect(page(lang, id, "trop"));
+  const input = ReviewInputSchema.safeParse({ rating: Number(text(formData.get("rating"))), body: text(formData.get("body")) });
+  if (!input.success) redirect(`${page(lang, id)}?avis=invalide`);
+  const result = await reviews(market.db).write(market.actor, id, input.data);
+  redirect(`${page(lang, id)}?avis=${result.kind === "written" ? "ok" : result.kind === "already_written" ? "deja" : "inadmissible"}`);
 }
