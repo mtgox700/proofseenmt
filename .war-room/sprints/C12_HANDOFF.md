@@ -84,6 +84,5 @@ Les comptes et les données de test restent sur Railway pour les prochains passa
 
 1. ~~Deux comptes de test~~ ✅ créés le 2026-10-10, parcours joué (voir plus haut).
 2. **Paiement** (Stripe Elements) : à la fin du projet, avec les clés de test.
-3. **Avis** après une mission, **relevés mensuels** (seulement quand la régie ouvrira), **préférences d'e-mails** et **alertes de
-   missions**.
+3. ~~Tableaux de bord, préférences d'e-mails, alertes de missions, avis~~ ✅ 2026-10-10 : tuiles de faits sur les deux accueils, page « Alertes et e-mails » (préférences et alertes jouées dans le navigateur), formulaire d'avis sur un contrat terminé (jouable seulement avec Stripe). Restent les **relevés mensuels**, quand la régie ouvrira.
 4. Lighthouse et accessibilité sur les écrans connectés.
