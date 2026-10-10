@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#070b14">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070b14'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='%233fcf9c'/%3E%3C/svg%3E">
+<title>How we verify — Proofseen</title>
+<meta name="description" content="Every mission published on Proofseen was checked against at least one document. The document itself is never published: only the kind of check is, so everyone knows what &quot;verified&quot; means.">
+<link rel="canonical" href="https://proofseen.com/en/method/">
+<link rel="alternate" hreflang="en" href="https://proofseen.com/en/method/">
+<link rel="alternate" hreflang="fr" href="https://proofseen.com/methode/">
+<style>
+:root{--bg:#070b14;--bg-raised:#0a111f;--surface:#0e1626;--ink:#edf1f7;--muted:#a3aec2;--line:#1f2a40;--strong:#7c8aa8;--accent:#3fcf9c;--on-accent:#06110c;--warn:#f5a524;
+--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+--radius:16px;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:radial-gradient(60rem 30rem at 88% -8rem,color-mix(in srgb,var(--accent) 13%,transparent),transparent 70%),radial-gradient(40rem 24rem at -10% 40rem,color-mix(in srgb,#8ab0ff 6%,transparent),transparent 70%),var(--bg);color:var(--ink);font:1.0625rem/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}a:focus-visible,.cta:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{width:min(100% - 2rem,68rem);margin-inline:auto}
+.top{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 80%,transparent)}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:3.5rem;font-size:.9rem}
+.top a{text-decoration:none}.brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:-.01em}
+.brand::before{content:"";width:.8rem;height:.8rem;border-radius:3px;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+main{padding-block:clamp(1.75rem,5vh,3.5rem) 4.5rem}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;letter-spacing:-.018em}
+h1{font-size:clamp(2.4rem,1.7rem + 3.2vw,4rem);line-height:1.02}
+h2{display:flex;align-items:center;gap:.6rem;margin:3rem 0 1.2rem;font:500 .78rem/1.2 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+h2::before{content:"";width:1rem;height:.6rem;border-inline:2px solid currentColor;background:linear-gradient(currentColor,currentColor) center/100% 1px no-repeat}
+h3{font-size:1.2rem}p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{margin-bottom:.9rem;font:500 .78rem/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.headline{margin-top:1rem;font-size:clamp(1.1rem,1rem + .4vw,1.3rem);line-height:1.5;color:var(--muted);max-width:44rem}
+.lede{font-size:1.1rem;line-height:1.75;max-width:46rem}
+.crumbs ol{list-style:none;margin:0 0 1.5rem;padding:0;display:flex;flex-wrap:wrap;gap:.4rem;font:500 .78rem/1.4 var(--mono);color:var(--muted)}
+.crumbs li+li::before{content:"/";margin-right:.4rem;color:var(--strong)}
+.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--ink)}
+.status{display:inline-flex;align-items:center;gap:.5rem;padding:.3rem .75rem;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:999px;font:500 .8rem/1.2 var(--mono);color:var(--accent);justify-self:start}
+.status.off{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.status i{width:.5rem;height:.5rem;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
+ul.tags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem}
+ul.tags li,ul.tags a{border:1px solid var(--line);border-radius:8px;padding:.3rem .7rem;background:var(--surface);font:500 .84rem/1.3 var(--mono);text-decoration:none;display:inline-block}
+ul.tags a:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem 1.35rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:650;text-decoration:none;box-shadow:0 10px 30px -12px color-mix(in srgb,var(--accent) 70%,transparent)}
+.cta:hover{background:color-mix(in srgb,var(--accent) 88%,#fff)}
+.ghost{font-size:.9rem;color:var(--muted);text-align:center}
+.profile{display:grid;gap:2rem;grid-template-areas:"head" "aside" "main"}
+.profile>header{grid-area:head}.profile>aside{grid-area:aside}.profile>.content{grid-area:main;min-width:0}
+.panel{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,var(--accent)),var(--surface) 40%);border:1px solid var(--line);border-radius:var(--radius);padding:1.4rem;display:grid;gap:1.15rem}
+.panel dl{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0}
+.panel dt,.band dt{font:500 .7rem/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.panel dd{margin:.3rem 0 0;font-weight:650}
+.trust{font:500 .78rem/1.55 var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:1rem}
+.trust strong{color:var(--accent);font-weight:600}
+@media (min-width:60rem){.profile{grid-template-columns:minmax(0,1fr) 21rem;grid-template-areas:"head aside" "main aside";column-gap:3.5rem}.profile>aside .panel{position:sticky;top:1.5rem}}
+.hero{padding-bottom:.5rem}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1px;margin:2.2rem 0 1rem;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.band div{background:var(--surface);padding:1.1rem 1.2rem}
+.band dd{margin:.45rem 0 0;font:600 clamp(1.5rem,1.2rem + 1vw,2rem)/1.05 var(--serif);letter-spacing:-.02em}
+.trustline{font:500 .82rem/1.5 var(--mono);color:var(--muted)}.trustline a{color:var(--accent)}
+.cards{list-style:none;margin:0;padding:0;display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(min(100%,21rem),1fr))}
+.card{position:relative;display:grid;gap:.6rem;align-content:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.25rem 1.35rem;transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--line));box-shadow:0 18px 40px -24px color-mix(in srgb,var(--accent) 55%,transparent)}
+.card:focus-within{outline:2px solid var(--accent);outline-offset:3px}
+.card h3 a{text-decoration:none}.card h3 a::after{content:"";position:absolute;inset:0;border-radius:inherit}
+.card .row{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;font:500 .78rem/1.3 var(--mono);color:var(--muted)}
+.card .row .status{padding:.2rem .6rem;font-size:.74rem}
+.card .rate{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:no-preference){.card:hover{transform:translateY(-2px)}}
+.foot{border-top:1px solid var(--line);padding-block:2rem;font-size:.85rem;color:var(--muted)}
+ol.missions{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.mission{background:var(--surface);padding:1.3rem 1.4rem;display:grid;gap:.75rem}
+.mission h3{font-size:1.1rem}
+.mission .meta{margin:0;font:500 .78rem/1.5 var(--mono);color:var(--muted)}
+.mission .meta a{color:var(--accent)}
+ul.did{margin:0;padding-left:1.1rem;display:grid;gap:.35rem}
+ol.steps{margin:1.5rem 0 0;padding:0;list-style:none;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;counter-reset:step}
+ol.steps li{background:var(--surface);padding:1.1rem 1.3rem 1.1rem 3.4rem;position:relative;counter-increment:step}
+ol.steps li::before{content:counter(step);position:absolute;left:1.2rem;top:1.05rem;width:1.5rem;height:1.5rem;border-radius:50%;display:grid;place-items:center;font:600 .78rem/1 var(--mono);color:var(--on-accent);background:var(--accent)}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Proofseen","item":"https://proofseen.com/en/"},{"@type":"ListItem","position":2,"name":"How we verify","item":"https://proofseen.com/en/method/"}]}</script>
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="/en/">Proofseen</a><a href="/methode/" hreflang="fr" lang="fr">Version française</a></div></header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/en/">Proofseen</a></li><li aria-current="page">How we verify</li></ol></nav>
+<h1>How we verify</h1>
+<p class="lede" style="margin-top:1rem">Every mission published on Proofseen was checked against at least one document. The document itself is never published: only the kind of check is, so everyone knows what &quot;verified&quot; means.</p>
+<h2>What we check</h2><ol class="missions"><li class="mission"><p>Invoice — we check an invoice issued for the mission: issuer, period, an amount consistent with the duration. The invoice is never published.</p></li><li class="mission"><p>Contract — we check the contract or purchase order: parties, scope, duration. The document is never published.</p></li><li class="mission"><p>Client attestation — the client confirms the mission, the role and the period in writing. The client&#39;s name is never published.</p></li><li class="mission"><p>Repository access — the freelancer shows us their contributions in the project repository. Neither the code nor the repository name is published.</p></li><li class="mission"><p>Public deliverable — the result is publicly visible and the freelancer&#39;s contribution was checked. The link is not published: it would name the client.</p></li></ol>
+<h2>What verification does not guarantee</h2><p class="lede">It establishes that a mission took place, with that role and that duration. It does not judge the quality of the work, the fit with your needs or future availability: the conversation with the freelancer decides that.</p>
+</main>
+<footer class="foot"><div class="wrap"><p>Proofseen — The real identity is never published. It is shared with the company only after the freelancer agrees, before any commitment. · <a href="/en/method/">How we verify</a></p></div></footer>
+</body>
+</html>

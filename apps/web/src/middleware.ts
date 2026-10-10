@@ -1,6 +1,7 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { authConfigured } from "@/lib/auth-config";
+import { legacyRoute } from "@/lib/legacy-pages";
 
 /*
  * Two jobs, in this order:
@@ -42,7 +43,20 @@ const spaceLink = (request: NextRequest): NextResponse | null => {
 
 const withClerk = clerkMiddleware((_auth, request) => spaceLink(request) ?? NextResponse.next());
 
+/** Pages of the former static site, served at their indexed address; otherwise the usual no-trailing-slash rule. */
+const legacy = (request: NextRequest): NextResponse | null => {
+  const route = legacyRoute(request.nextUrl.pathname);
+  if (route.kind === "none") return null;
+  // A plain URL, not a clone of `nextUrl`: the latter re-applies its own trailing-slash form when written out, which
+  // turned both redirects into loops (seen on the production build, 2026-10-10).
+  const target = new URL(route.kind === "redirect" ? route.to : route.file, request.url);
+  target.search = request.nextUrl.search;
+  return route.kind === "redirect" ? NextResponse.redirect(target, 308) : NextResponse.rewrite(target);
+};
+
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
+  const old = legacy(request);
+  if (old !== null) return old;
   if (authConfigured()) return withClerk(request, event);
   return spaceLink(request) ?? NextResponse.next();
 }
