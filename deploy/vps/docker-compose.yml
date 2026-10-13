@@ -1,0 +1,17 @@
+# Proofseen on the shared VPS. It joins the network of the existing Caddy (DEMOMEA stack), which terminates TLS for
+# proofseen.com and proxies to this container; no port is published on the host.
+services:
+  web:
+    build:
+      context: ../..
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    image: proofseen-web
+    container_name: proofseen-web
+    env_file: ../../.env.production
+    restart: unless-stopped
+    networks: [demoema_web]
+
+networks:
+  demoema_web:
+    external: true

@@ -1,0 +1,8 @@
+
+# --- Proofseen (added 2026-10-14) ---
+proofseen.com, www.proofseen.com {
+	encode zstd gzip
+	reverse_proxy proofseen-web:3100 {
+		header_up X-Real-IP {remote_host}
+	}
+}
