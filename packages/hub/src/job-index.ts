@@ -1,5 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, STYLES } from "./html";
+import { marketHeader, MENU_STYLES } from "./market-shell";
 import { rateText } from "./job-page";
 import type { PublicMission } from "./job-posting";
 
@@ -35,7 +36,6 @@ const LABELS = {
     empty: "Aucune mission ne correspond à ces filtres.",
     next: "Page suivante",
     previous: "Page précédente",
-    otherLang: "English",
   },
   en: {
     title: "Open freelance missions",
@@ -51,7 +51,6 @@ const LABELS = {
     empty: "No mission matches these filters.",
     next: "Next page",
     previous: "Previous page",
-    otherLang: "Français",
   },
 } as const;
 
@@ -121,11 +120,10 @@ export const renderJobIndex = (
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(`${o.baseUrl}/fr/missions`)}">`,
     `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
-    `<style>${STYLES}${FORM_STYLES}</style>`,
+    `<style>${STYLES}${MENU_STYLES}${FORM_STYLES}</style>`,
     "</head>",
     "<body>",
-    `<header class="top"><div class="wrap"><a class="me" href="/${o.lang}">Proofseen</a>` +
-      `<a class="lang" href="/${other}/missions" hreflang="${other}" lang="${other}">${l.otherLang}</a></div></header>`,
+    marketHeader(o.lang, `/${other}/missions`, "missions"),
     '<main class="wrap">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,

@@ -1,5 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { marketHeader, MENU_STYLES } from "./market-shell";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -66,7 +67,6 @@ const LABELS = {
     updated: "Mis à jour le",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Grand groupe", eti: "ETI", pme: "PME", secteur_public: "Secteur public", editeur_logiciel: "Éditeur de logiciel", esn: "ESN", association: "Association" },
     evidenceKinds: { facture: "Facture", contrat: "Contrat", attestation_client: "Attestation du client", acces_depot: "Accès au dépôt de code", livrable_public: "Livrable public" },
-    otherLang: "English",
     pseudonym: (ref: string) => `Freelance ${ref}`,
   },
   en: {
@@ -93,7 +93,6 @@ const LABELS = {
     updated: "Updated on",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Large group", eti: "Mid-size company", pme: "SME", secteur_public: "Public sector", editeur_logiciel: "Software publisher", esn: "IT services firm", association: "Non-profit" },
     evidenceKinds: { facture: "Invoice", contrat: "Contract", attestation_client: "Client attestation", acces_depot: "Repository access", livrable_public: "Public deliverable" },
-    otherLang: "Français",
     pseudonym: (ref: string) => `Freelancer ${ref}`,
   },
 } as const;
@@ -182,12 +181,11 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}</style>`,
+    `<style>${STYLES}${MENU_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
-    `<header class="top"><div class="wrap"><a class="me" href="/${o.lang}">Proofseen</a>` +
-      `<a class="lang" href="${e(profileUrl(o.baseUrl, other, p.slug))}" hreflang="${other}" lang="${other}">${l.otherLang}</a></div></header>`,
+    marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
     '<main class="wrap">',
     `<h1 class="title">${e(name)}</h1>`,
     `<p class="headline">${e(p.headline)}</p>`,

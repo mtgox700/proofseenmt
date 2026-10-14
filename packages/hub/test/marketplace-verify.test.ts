@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { marketplaceRobots, verifyMarketplace, type FetchAs, type Served } from "../src/marketplace-verify";
+import { renderProfileDirectory } from "../src/profile-directory";
+import { renderSkillIndex } from "../src/skill-index";
+import { renderSkillPage, skillSitemap, type SkillPageView } from "../src/skill-page";
 
 const BASE = "https://proofseen.com";
 const PAGE_URL = `${BASE}/fr/profils/fr-abcde`;
@@ -48,6 +51,43 @@ describe("vérification des pages publiques de la marketplace", () => {
     expect(await failing(site({ page: () => html(page().replace("Lyon", "Paris")) }))).toEqual(["faits dans le HTML"]);
     expect(await failing(site({ page: () => html(page("<script src=\"/app.js\"></script>")) }))).toEqual(["aucun JavaScript"]);
     expect(await failing(site({ sitemap: "<urlset></urlset>" }))).toEqual(["sitemaps"]);
+  });
+
+  it("valide l'annuaire, l'index des métiers et une page métier tels que les renderers les produisent", async () => {
+    const pagesSitemap = `${BASE}/sitemap-pages.xml`;
+    const skillsSitemap = `${BASE}/sitemap-skills.xml`;
+    const view: SkillPageView = {
+      key: "rust",
+      label: "Rust",
+      missions: [],
+      profiles: [{ slug: "fr-abcde", reference: "FR-ABCDE", displayName: null, headline: "Dev Rust", city: "Lyon" }],
+      facts: { profileCount: 2, missionCount: 0, dailyRate: null, cities: ["Lyon"] },
+      generatedAt: new Date("2026-10-14T00:00:00Z"),
+    };
+    const card = { slug: "fr-abcde", reference: "FR-ABCDE", displayName: null, headline: "Dev Rust", city: "Lyon", workMode: "remote" as const, skills: ["Rust"], facts: { registryActive: false, identityVerified: true, vigilanceValid: false, verifiedMissions: 0, payingClients: 0 }, updatedAt: view.generatedAt };
+    const served: Record<string, string> = {
+      [`${BASE}/fr/freelances`]: renderProfileDirectory([card], { baseUrl: BASE, lang: "fr", filters: { skill: "", city: "", page: 1 }, hasMore: false }),
+      [`${BASE}/fr/metiers`]: renderSkillIndex([{ key: "rust", label: "Rust", missions: 0, profiles: 2 }], { baseUrl: BASE, lang: "fr" }),
+      [`${BASE}/fr/metiers/rust`]: renderSkillPage(view, { baseUrl: BASE, lang: "fr" }),
+    };
+    const fetchAs: FetchAs = async (url) => {
+      const body = served[url];
+      if (body !== undefined) return html(body);
+      if (url === `${BASE}/robots.txt`) return text(marketplaceRobots(BASE));
+      if (url === pagesSitemap) return text(`<urlset><url><loc>${BASE}/fr/freelances</loc></url><url><loc>${BASE}/fr/metiers</loc></url></urlset>`);
+      if (url === skillsSitemap) return text(skillSitemap(BASE, [{ key: "rust" }]));
+      return { status: 404, body: "", contentType: "text/plain", robotsHeader: null };
+    };
+    const report = await verifyMarketplace({
+      baseUrl: BASE,
+      fetchAs,
+      pages: [
+        { url: `${BASE}/fr/freelances`, texts: ["Freelance FR-ABCDE", "Identité vérifiée par le prestataire de paiement"], sitemap: pagesSitemap },
+        { url: `${BASE}/fr/metiers`, texts: ["Rust", "0 mission ouverte · 2 profils publiés"], sitemap: pagesSitemap },
+        { url: `${BASE}/fr/metiers/rust`, texts: ["Au 14 octobre 2026, Proofseen compte 2 profils publiés et 0 mission ouverte pour la compétence Rust."], sitemap: skillsSitemap },
+      ],
+    });
+    expect(report.checks.filter((c) => c.status === "fail")).toEqual([]);
   });
 
   it("garde les espaces privés hors d'indexation dans robots.txt", () => {

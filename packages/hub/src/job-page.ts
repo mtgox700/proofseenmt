@@ -1,5 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { marketHeader, MENU_STYLES } from "./market-shell";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 
 /*
@@ -28,7 +29,6 @@ const LABELS = {
     registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
     response: (days: number, decided: number) => `Répond aux candidatures en ${days} jour${days > 1 ? "s" : ""} (médiane sur ${decided} candidatures, six derniers mois)`,
     apply: "Postuler sur Proofseen",
-    otherLang: "English",
     perDay: "/ jour",
   },
   en: {
@@ -46,7 +46,6 @@ const LABELS = {
     registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
     response: (days: number, decided: number) => `Answers applications within ${days} day${days > 1 ? "s" : ""} (median over ${decided} applications, last six months)`,
     apply: "Apply on Proofseen",
-    otherLang: "Français",
     perDay: "/ day",
   },
 } as const;
@@ -117,12 +116,11 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
-    `<style>${STYLES}</style>`,
+    `<style>${STYLES}${MENU_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jobPosting(m, { baseUrl: o.baseUrl, lang: o.lang }))}</script>`,
     "</head>",
     "<body>",
-    `<header class="top"><div class="wrap"><a class="me" href="/${o.lang}">Proofseen</a>` +
-      `<a class="lang" href="${e(url(other))}" hreflang="${other}" lang="${other}">${l.otherLang}</a></div></header>`,
+    marketHeader(o.lang, url(other)),
     '<main class="wrap">',
     `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
     `<h1 class="title">${e(m.title)}</h1>`,
