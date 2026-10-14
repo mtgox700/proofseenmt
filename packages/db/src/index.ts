@@ -152,3 +152,20 @@ export { isUniqueViolation } from "./errors";
 export { billingView, type BillingView, type FreelanceIdentityView, type OrganisationIdentityView, type RegistryView } from "./billing-view";
 export { CONTRACT_LIST_LIMIT, contractView, type ContractDetail, type ContractSide, type ContractSummary, type ContractView } from "./contract-view";
 export { organisationView, type MemberView, type OrganisationView } from "./organisation-view";
+export {
+  MAX_OWNED_URL_LENGTH,
+  MAX_OWNED_URLS,
+  normaliseOwnedUrl,
+  ownedUrls,
+  PROOF_GRACE_DAYS,
+  RECHECK_AFTER_DAYS,
+  RECHECK_BATCH,
+  RETRY_AFTER_HOURS,
+  type AddOwnedUrlResult,
+  type AutomaticProofMethod,
+  type DueProof,
+  type MarkVerifiedResult,
+  type OwnedUrlRecord,
+  type OwnedUrls,
+  type RecheckResult,
+} from "./owned-urls";

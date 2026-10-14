@@ -348,6 +348,10 @@ model OwnedUrl {
   proofMethod ProofMethod
   /// Date de la preuve de possession. Nulle tant que rien n'est prouvé : aucune mesure ne part sans elle.
   verifiedAt  DateTime?   @db.Timestamptz(3)
+  /// Dernière relecture de la preuve, réussie ou non : une preuve se revérifie, elle ne vaut pas pour toujours.
+  checkedAt   DateTime?   @db.Timestamptz(3)
+  /// Début des échecs de relecture en cours. La preuve tient pendant un délai de grâce, puis tombe.
+  failedAt    DateTime?   @db.Timestamptz(3)
   createdAt   DateTime    @default(now()) @db.Timestamptz(3)
 
   profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
