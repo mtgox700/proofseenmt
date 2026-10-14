@@ -21,7 +21,7 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[]): string =
   return [
     "# Proofseen",
     "",
-    "> Proofseen is a French marketplace for tech freelance missions. Companies publish missions; freelancers publish profiles that carry verified facts (business registry status, identity verified by the payment provider, missions checked against a document). Profiles are never scored or ranked.",
+    "> Proofseen is a French marketplace for tech freelance missions. Companies publish missions; freelancers publish profiles that carry verified, dated facts (business registry status, social-contribution certificate checked by an operator, proven ownership of their websites). Profiles are never scored or ranked.",
     "",
     "Every public page is plain server-rendered HTML in French (`/fr/`) and English (`/en/`), readable without JavaScript, with schema.org JSON-LD. Pseudonymous profiles show a reference (FR-XXXXX) instead of a name. Contact between companies and freelancers goes through the platform.",
     "",
