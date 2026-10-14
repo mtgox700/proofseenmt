@@ -14,6 +14,16 @@ export interface LlmsSkill {
 }
 
 const MAX_SKILLS = 200;
+const FORMAT = new RegExp(String.raw`\p{Cf}`, "gu");
+const CONTROL = new RegExp(String.raw`\p{Cc}`, "gu");
+
+/**
+ * Le texte d'un lien, sur une seule ligne : un saut de ligne dans un libellé ajouterait une ligne entière (un titre, une
+ * consigne) au fichier que lisent les moteurs. Nettoyé ici aussi, et pas seulement à l'écriture : un libellé enregistré
+ * avant ce nettoyage reste en base.
+ */
+const linkText = (skill: LlmsSkill): string =>
+  skill.label.replace(FORMAT, "").replace(CONTROL, " ").replace(/[[\]]/g, "").replace(/\s+/g, " ").trim() || skill.key;
 
 export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[]): string => {
   const base = baseUrl.replace(/\/$/, "");
@@ -31,7 +41,7 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[]): string =
     `- [Freelancers](${directoryUrl(base, "fr")}): directory of published profiles, most recently updated first, filterable by skill and city. English: ${directoryUrl(base, "en")}`,
     `- [Skills](${skillIndexUrl(base, "fr")}): one page per skill that real open missions or published profiles carry, with dated counts. English: ${skillIndexUrl(base, "en")}`,
     "",
-    ...(sorted.length === 0 ? [] : ["## Skill pages", "", ...sorted.map((s) => `- [${s.label.replace(/[[\]]/g, "")}](${skillUrl(base, "fr", s.key)})`), ""]),
+    ...(sorted.length === 0 ? [] : ["## Skill pages", "", ...sorted.map((s) => `- [${linkText(s)}](${skillUrl(base, "fr", s.key)})`), ""]),
     "## Sitemaps",
     "",
     `- [Sitemap index](${base}/sitemap.xml): points to every sitemap below.`,
