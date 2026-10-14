@@ -24,7 +24,8 @@ const fieldsOf = (model: string): string[] => {
 
 describe("AI Act : aucun classement automatique de personnes", () => {
   it("les tris proposés sont des faits choisis par l'utilisateur, jamais un score", () => {
-    expect([...PROFILE_SORTS].sort()).toEqual(["rate_asc", "rate_desc", "recent"]);
+    // C14 : la date de disponibilité s'ajoute, un fait déclaré par le freelance et daté, affiché comme critère choisi.
+    expect([...PROFILE_SORTS].sort()).toEqual(["availability", "rate_asc", "rate_desc", "recent"]);
     expect([...SEARCH_SORTS].sort()).toEqual(["rate_asc", "rate_desc", "recent"]);
   });
 

@@ -18,7 +18,8 @@ export const VIGILANCE_REMINDER_DAYS = 30;
 
 const DAY_MS = 86_400_000;
 
-const sixMonthsBefore = (now: Date): Date => {
+/** Une attestation délivrée après cette date est encore en cours de validité à `now`. */
+export const sixMonthsBefore = (now: Date): Date => {
   const d = new Date(now);
   d.setUTCMonth(d.getUTCMonth() - VIGILANCE_VALIDITY_MONTHS);
   return d;

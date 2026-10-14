@@ -5,15 +5,16 @@ import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
 import type { AvailabilityStatus, ProfileVisibility, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { searchProfiles, type ProfileSearch, type ProfileSearchPage } from "./profile-search";
 import { ensureSkills, skillKey } from "./skills";
 
 /*
  * Profil freelance : un par personne, privé tant qu'elle ne le publie pas.
  *
  * Ce qu'une entreprise voit d'un profil publié : des faits (titre, ville, mode de travail, TJM, disponibilité,
- * compétences, nombre d'adresses dont la possession est prouvée, nombre de missions vérifiées). Jamais le nom de la
- * personne — il vit sur le compte, pas sur le profil — et jamais une note ou un rang. L'adresse publique du profil
- * dérive de sa référence tirée au hasard, pas du nom.
+ * compétences, nombre d'adresses dont la possession est prouvée, nombre de missions vérifiées). Le nom de la personne
+ * vit sur le compte, pas sur le profil : seul un profil nominatif le montre, jamais un profil pseudonyme ; et jamais une
+ * note ou un rang. L'adresse publique du profil dérive de sa référence tirée au hasard, pas du nom.
  *
  * La recherche filtre et l'utilisateur choisit l'ordre (AI Act) ; à ordre égal, l'identifiant départage, de façon
  * stable et sans signification.
@@ -59,22 +60,7 @@ export interface ProfileFacts {
   readonly verifiedMissions: number;
 }
 
-export const PROFILE_SORTS = ["recent", "rate_asc", "rate_desc"] as const;
-
-export const ProfileSearchSchema = z.object({
-  workModes: z.array(z.enum(["onsite", "hybrid", "remote"])).max(3).default([]),
-  city: z.string().trim().min(1).max(120).optional(),
-  skills: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
-  maxDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
-  availableOnly: z.boolean().default(false),
-  /** Seulement les profils qui ont prouvé posséder au moins une adresse. */
-  provenOnly: z.boolean().default(false),
-  sort: z.enum(PROFILE_SORTS).default("recent"),
-  page: z.number().int().min(1).max(50).default(1),
-  pageSize: z.number().int().min(1).max(50).default(20),
-});
-
-export type ProfileSearch = z.input<typeof ProfileSearchSchema>;
+export { PROFILE_SORTS, ProfileSearchSchema, type ProfileCard, type ProfileSearch, type ProfileSearchPage, type ProfileSort } from "./profile-search";
 
 /** Ce qu'un profil doit renseigner avant d'être publié. */
 export const REQUIRED_TO_PUBLISH = ["headline", "summary", "city"] as const;
@@ -93,7 +79,8 @@ export interface Profiles {
   findMine(actor: Actor): Promise<ProfileFacts | null>;
   /** Un profil publié, par son adresse publique ; `null` s'il est privé ou n'existe pas. */
   findPublic(slug: string): Promise<ProfileFacts | null>;
-  search(filters: ProfileSearch): Promise<{ readonly items: readonly ProfileFacts[]; readonly hasMore: boolean }>;
+  /** Les profils publiés qui répondent aux filtres, dans l'ordre choisi par l'entreprise (voir `profile-search`). */
+  search(filters: ProfileSearch, now?: Date): Promise<ProfileSearchPage>;
 }
 
 const SELECT = {
@@ -135,12 +122,6 @@ const columns = (p: z.output<typeof ProfileInputSchema>) => ({
   availableFrom: p.availableFrom,
   availabilityAt: new Date(),
 });
-
-const ORDER: Record<(typeof PROFILE_SORTS)[number], Prisma.FreelanceProfileOrderByWithRelationInput[]> = {
-  recent: [{ availabilityAt: "desc" }, { id: "desc" }],
-  rate_asc: [{ dailyRateCents: { sort: "asc", nulls: "last" } }, { id: "desc" }],
-  rate_desc: [{ dailyRateCents: { sort: "desc", nulls: "last" } }, { id: "desc" }],
-};
 
 const SLUG = /^[a-z0-9-]{3,60}$/;
 
@@ -206,25 +187,7 @@ export const profiles = (db: Db): Profiles => ({
     return row === null ? null : toFacts(row);
   },
 
-  async search(raw) {
-    const f = ProfileSearchSchema.parse(raw);
-    const skillKeys = [...new Set(f.skills.map(skillKey).filter((key) => key !== ""))];
-    const where: Prisma.FreelanceProfileWhereInput = {
-      visibility: { not: "private" },
-      ...(f.workModes.length === 0 ? {} : { workMode: { in: f.workModes } }),
-      ...(f.city === undefined ? {} : { cityKey: cityKey(f.city) }),
-      ...(f.maxDailyRateCents === undefined ? {} : { dailyRateCents: { lte: f.maxDailyRateCents } }),
-      ...(f.availableOnly ? { availability: { not: "unavailable" } } : {}),
-      ...(f.provenOnly ? { ownedUrls: { some: { verifiedAt: { not: null } } } } : {}),
-      ...(skillKeys.length === 0 ? {} : { AND: skillKeys.map((key) => ({ skills: { some: { skill: { key } } } })) }),
-    };
-    const rows = await db.freelanceProfile.findMany({
-      where,
-      orderBy: ORDER[f.sort],
-      skip: (f.page - 1) * f.pageSize,
-      take: f.pageSize + 1,
-      select: SELECT,
-    });
-    return { items: rows.slice(0, f.pageSize).map(toFacts), hasMore: rows.length > f.pageSize };
+  search(raw, now = new Date()) {
+    return searchProfiles(db, raw, now);
   },
 });
