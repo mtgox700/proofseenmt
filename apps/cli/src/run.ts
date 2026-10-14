@@ -1,14 +1,14 @@
 import {
   assertJdFreeOfIdentity,
-  renderPrompt,
-  sanitizeJobDescription,
+  planDraws,
+  promptForStep,
+  stepWorstCaseUsd,
+  type DrawStep,
   type EngineId,
   type Identity,
-  type JobDescription,
   type Manifest,
-  type PromptTemplate,
 } from "@proofseen/core";
-import { assertCanSpend, BudgetExceededError, charge, createBudget, WORST_CASE_DRAW_USD, type BudgetState, type EngineAdapter } from "@proofseen/engines";
+import { assertCanSpend, BudgetExceededError, charge, createBudget, type BudgetState, type EngineAdapter } from "@proofseen/engines";
 import { analyzeAnswer, writeSealed, type ExtractFn } from "@proofseen/extract";
 import { appendJsonl, CliError, readJsonl, wavePaths, writeText } from "./files";
 import { drawIdFor, StoredDrawSchema, type StoredDraw, type WaveMeta } from "./records";
@@ -34,17 +34,6 @@ export interface RunOptions {
   readonly log: (message: string) => void;
 }
 
-interface Step {
-  readonly jd: JobDescription;
-  readonly prompt: PromptTemplate;
-  readonly index: number;
-}
-
-const planSteps = (m: Manifest): Step[] =>
-  m.jobDescriptions.flatMap((jd) =>
-    m.prompts.flatMap((prompt) => Array.from({ length: m.drawsPerCell }, (_, index) => ({ jd, prompt, index }))),
-  );
-
 /** Anti-inflation (REVUE #7): no JD may contain the client's identity. */
 const assertManifestSafe = (m: Manifest, identity: Identity): void => {
   m.jobDescriptions.forEach((jd) => {
@@ -65,7 +54,7 @@ const errorCode = (error: unknown): string => {
   return "UnknownError";
 };
 
-const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: EngineAdapter): Promise<{ record: StoredDraw; costUsd: number }> => {
+const runOne = async (opts: RunOptions, step: DrawStep, engine: EngineId, adapter: EngineAdapter): Promise<{ record: StoredDraw; costUsd: number }> => {
   const paths = wavePaths(opts.runsDir, opts.manifest.waveId);
   const id = drawIdFor(opts.manifest.waveId, engine, step.jd.id, step.prompt.id, step.index);
   const base = {
@@ -79,7 +68,7 @@ const runOne = async (opts: RunOptions, step: Step, engine: EngineId, adapter: E
     drawIndex: step.index,
     timestamp: opts.now().toISOString(),
   };
-  const prompt = renderPrompt(step.prompt, { jd: sanitizeJobDescription(step.jd.text), brief: step.jd.brief });
+  const prompt = promptForStep(step);
   try {
     const answer = await adapter.runDraw(prompt);
     const analysis = await analyzeAnswer({ answer, identity: opts.identity, extract: opts.extract, judge: opts.judge, arms: opts.arms });
@@ -150,12 +139,12 @@ export const runWave = async (opts: RunOptions): Promise<WaveMeta> => {
   });
   await writeMeta(opts, meta(null));
 
-  for (const step of planSteps(opts.manifest)) {
+  for (const step of planDraws(opts.manifest)) {
     const pending = opts.manifest.engines.filter(
       (e) => !done.has(drawIdFor(opts.manifest.waveId, e, step.jd.id, step.prompt.id, step.index)),
     );
     if (pending.length === 0) continue;
-    const worstCase = pending.reduce((a, e) => a + WORST_CASE_DRAW_USD[e] + EXTRACTOR_COST_ESTIMATE_USD, 0);
+    const worstCase = stepWorstCaseUsd(pending);
     try {
       assertCanSpend(budget, worstCase);
     } catch (error) {

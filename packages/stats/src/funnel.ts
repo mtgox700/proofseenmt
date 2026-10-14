@@ -12,6 +12,36 @@ export interface DrawOutcome {
   readonly cited: boolean;
 }
 
+/**
+ * Ce qu'un tirage réussi laisse derrière lui, quel que soit l'endroit où il est conservé (fichiers de la CLI ou
+ * mémoire de la mesure lancée depuis l'application). Seuls les tirages réussis en ont une : un tirage en erreur ne
+ * compte ni au numérateur ni au dénominateur.
+ */
+export interface DrawEvidence {
+  readonly engine: Engine;
+  readonly jdId: string;
+  readonly retrieved: boolean;
+  /** Citations pointant vers les domaines propres du client (décompte des domaines cités). */
+  readonly clientCitations: number;
+  readonly match: { readonly type: "certain" | "probable"; readonly rank: number | null; readonly clientUrlCited: boolean } | null;
+}
+
+/**
+ * La seule définition des étapes de l'entonnoir pour un tirage. Seules les correspondances certaines comptent : une
+ * correspondance probable est montrée « à revoir », jamais comptée — en cas de doute, on ne compte pas.
+ */
+export const outcomeOf = (draw: DrawEvidence): DrawOutcome => {
+  const certain = draw.match !== null && draw.match.type === "certain";
+  return {
+    engine: draw.engine,
+    jdId: draw.jdId,
+    retrieved: draw.retrieved,
+    named: certain,
+    top5: certain && draw.match !== null && draw.match.rank !== null && draw.match.rank <= 5,
+    cited: draw.clientCitations > 0 || (certain && draw.match !== null && draw.match.clientUrlCited),
+  };
+};
+
 export interface StageCount {
   readonly successes: number;
   readonly interval: Interval | null;

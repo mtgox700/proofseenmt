@@ -4,6 +4,7 @@ import {
   differenceInDifferences,
   funnel,
   isRenderedVisible,
+  outcomeOf,
   sorvAt5,
   wilson,
   type ClusterCount,
@@ -51,19 +52,10 @@ export const toOutcomes = (draws: readonly StoredDraw[], matches: readonly Match
   const byDraw = new Map(matches.map((m) => [m.drawId, m]));
   return draws
     .filter((d) => d.status === "ok")
-    .map((d) => {
-      const m = byDraw.get(d.id);
-      const certain = m !== undefined && m.type === "certain";
-      return {
-        engine: d.engine,
-        jdId: d.jdId,
-        role: d.jdRole,
-        retrieved: d.retrieved,
-        named: certain,
-        top5: certain && m.rank !== null && m.rank <= 5,
-        cited: d.citedDomains.client > 0 || (certain && m.clientUrlCited),
-      };
-    });
+    .map((d) => ({
+      ...outcomeOf({ engine: d.engine, jdId: d.jdId, retrieved: d.retrieved, clientCitations: d.citedDomains.client, match: byDraw.get(d.id) ?? null }),
+      role: d.jdRole,
+    }));
 };
 
 const MIN_ENGINE_COVERAGE = 0.8;
