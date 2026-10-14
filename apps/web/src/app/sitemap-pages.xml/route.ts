@@ -1,8 +1,11 @@
 import { publicBaseUrl } from "@/lib/public-url";
 
-/** The fixed pages: both home pages, the mission indexes, and the pages kept from the former static site. */
+/**
+ * The fixed pages: both home pages, the mission indexes, the freelancer directory, the skill index, and the pages kept
+ * from the former static site.
+ */
 
-const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/p/FR-7H2XK/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/", "/en/p/FR-7H2XK/"] as const;
+const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/fr/freelances", "/en/freelances", "/fr/metiers", "/en/metiers", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/p/FR-7H2XK/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/", "/en/p/FR-7H2XK/"] as const;
 
 export function GET(request: Request): Response {
   const base = publicBaseUrl(request);

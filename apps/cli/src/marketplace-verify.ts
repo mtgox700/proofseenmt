@@ -1,5 +1,5 @@
 import { getDb, missions, publicProfiles, skillPages } from "@proofseen/db";
-import { missionUrl, profileName, profileUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
+import { directoryUrl, missionUrl, profileName, profileUrl, skillIndexUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
 import { CliError } from "./files";
 
 /*
@@ -35,17 +35,19 @@ const expectations = async (baseUrl: string, limit: number): Promise<PageExpecta
     if (s === null) continue;
     pages.push({ url: skillUrl(baseUrl, "fr", key), texts: [s.label, ...s.missions.map((m) => m.title), ...s.profiles.map((p) => p.headline)], sitemap: `${baseUrl}/sitemap-skills.xml` });
   }
+  // L'annuaire et l'index des métiers : leur première page porte les profils et les métiers que la base liste.
+  const directory = (await publicProfiles(db).directory({})).items.slice(0, limit);
+  pages.push({ url: directoryUrl(baseUrl, "fr"), texts: directory.map((c) => c.headline), sitemap: `${baseUrl}/sitemap-pages.xml` });
+  const skills = (await skillPages(db).listForSitemap()).slice(0, limit);
+  pages.push({ url: skillIndexUrl(baseUrl, "fr"), texts: skills.map((s) => s.label), sitemap: `${baseUrl}/sitemap-pages.xml` });
   return pages;
 };
 
 export const commandMarketplaceVerify = async (o: MarketplaceVerifyCommand): Promise<void> => {
   if ((process.env.DATABASE_URL ?? "") === "") throw new CliError("DATABASE_URL absente : la liste des pages publiques vient de la base.");
   const baseUrl = new URL(o.baseUrl).origin;
+  // Jamais vide : l'annuaire et l'index des métiers existent même sans profil publié ni mission ouverte.
   const pages = await expectations(baseUrl, o.limit);
-  if (pages.length === 0) {
-    o.log("Aucun profil publié ni mission ouverte en base : rien à vérifier.");
-    return;
-  }
   const doFetch = o.fetchImpl ?? fetch;
   o.log(`${pages.length} pages à vérifier sur ${baseUrl}, comme un navigateur puis comme chaque robot d'IA…`);
   const report = await verifyMarketplace({
