@@ -20,12 +20,19 @@ import { subjectOf, type MeasuredProfile, type SubjectRefusal } from "./subject"
 
 /** Étapes menées en parallèle : une mesure tient en quelques minutes au lieu d'une dizaine. */
 const STEP_CONCURRENCY = 2;
+/**
+ * Durée maximale d'une mesure, en temps réel. Bien en deçà du bail de la file (30 minutes) : passé le bail, une autre
+ * exécution reprendrait la demande et deux mesures tourneraient pour une. À l'échéance, la mesure rend ce qu'elle a,
+ * et compte au pire cas les étapes encore en vol (elles ont pu être facturées).
+ */
+export const MEASUREMENT_MAX_RUN_MS = 20 * 60_000;
+const TIME_LIMIT = "time limit reached";
 
 export type MeasureRefusal = SubjectRefusal | "not_published" | "over_budget";
 
 export type MeasureOutcome =
   | { readonly kind: "refused"; readonly code: MeasureRefusal }
-  | { readonly kind: "failed"; readonly code: "no_answers"; readonly spentUsd: number; readonly engines: readonly EngineId[] }
+  | { readonly kind: "failed"; readonly code: "no_answers" | "time_limit"; readonly spentUsd: number; readonly engines: readonly EngineId[] }
   | {
       readonly kind: "measured";
       readonly engines: readonly EngineId[];
@@ -44,7 +51,22 @@ export interface MeasureInput {
   readonly profile: MeasuredProfile & { readonly published: boolean };
   readonly kit: MeasurementKit;
   readonly now: () => Date;
+  /** `MEASUREMENT_MAX_RUN_MS` par défaut ; plus court dans les tests. */
+  readonly maxDurationMs?: number;
 }
+
+/** Résout `true` si `work` s'est terminé avant `ms`, `false` sinon ; le minuteur ne survit jamais à la course. */
+const finishedWithin = async (work: Promise<unknown>, ms: number): Promise<boolean> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const expired = new Promise<false>((resolve) => {
+    timer = setTimeout(() => resolve(false), Math.max(0, ms));
+  });
+  try {
+    return await Promise.race([work.then(() => true as const), expired]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 interface DrawResult {
   readonly costUsd: number;
@@ -68,7 +90,8 @@ const drawOne = async (step: DrawStep, engine: EngineId, adapter: EngineAdapter,
   }
 };
 
-export const runMeasurement = async ({ profile, kit, now }: MeasureInput): Promise<MeasureOutcome> => {
+export const runMeasurement = async ({ profile, kit, now, maxDurationMs = MEASUREMENT_MAX_RUN_MS }: MeasureInput): Promise<MeasureOutcome> => {
+  const deadline = Date.now() + maxDurationMs;
   if (!profile.published) return { kind: "refused", code: "not_published" };
   const subject = subjectOf(profile);
   if ("refusal" in subject) return { kind: "refused", code: subject.refusal };
@@ -91,6 +114,10 @@ export const runMeasurement = async ({ profile, kit, now }: MeasureInput): Promi
       const step = steps[next];
       next += 1;
       if (step === undefined) break;
+      if (Date.now() >= deadline) {
+        stoppedReason = TIME_LIMIT;
+        break;
+      }
       try {
         assertCanSpend({ ...budget, spentUsd: spent + reserved }, stepWorst);
       } catch (error) {
@@ -116,12 +143,15 @@ export const runMeasurement = async ({ profile, kit, now }: MeasureInput): Promi
       }
     }
   };
-  await Promise.all(Array.from({ length: STEP_CONCURRENCY }, worker));
+  // Arrêt dur : un moteur qui ne répond jamais ne garde pas la mesure en vie au-delà de son échéance.
+  const finished = await finishedWithin(Promise.all(Array.from({ length: STEP_CONCURRENCY }, worker)), deadline - Date.now());
+  if (!finished) stoppedReason = TIME_LIMIT;
 
-  const spentUsd = Math.round(spent * 1e6) / 1e6;
+  // Interrompue, une étape en vol a pu être facturée : elle compte à son pire cas.
+  const spentUsd = Math.round((spent + (finished ? 0 : reserved)) * 1e6) / 1e6;
   // Toutes les offres d'une mesure sont des offres cibles : l'entonnoir les compte toutes, comme le rapport client.
-  const engineFunnel = funnel(evidence.map(outcomeOf));
-  if (engineFunnel.length === 0) return { kind: "failed", code: "no_answers", spentUsd, engines };
+  const engineFunnel = funnel([...evidence].map(outcomeOf));
+  if (engineFunnel.length === 0) return { kind: "failed", code: finished ? "no_answers" : "time_limit", spentUsd, engines };
   return {
     kind: "measured",
     engines,

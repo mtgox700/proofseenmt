@@ -61,8 +61,9 @@ const persist = async (input: ProcessInput, request: ClaimedMeasurement, outcome
       return report("refused", outcome.code, 0);
     }
     if (outcome.kind === "failed") {
-      // Aucune réponse obtenue : l'essai a peu coûté, une nouvelle tentative plus tard a un sens.
-      await repo.fail(request, { code: outcome.code, costCents, retry: true }, input.now());
+      // Aucune réponse obtenue : l'essai a peu coûté, une nouvelle tentative plus tard a un sens. Pas après un arrêt à
+      // la durée maximale : des moteurs qui ne répondent pas feraient payer chaque essai au pire cas.
+      await repo.fail(request, { code: outcome.code, costCents, retry: outcome.code === "no_answers" }, input.now());
       return report("failed", outcome.code, costCents);
     }
     const stoppedEarly = outcome.stoppedReason !== null;
