@@ -1,8 +1,9 @@
+import { checklistEn } from "./checklist-en";
 import type { VisibilityDictionary } from "./visibility-fr";
 
 export const visibilityEn: VisibilityDictionary = {
   nav: "AI visibility",
-  title: "Visibility in AI engines",
+  title: "My AI visibility",
   lead: "A measurement asks AI engines the questions a recruiter would ask from your headline and skills, without ever naming you. It then counts how many answers find your page, name you, put you in the top five and cite you with a link to an address you have proven.",
   engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" },
   enginesNow: (list: string) => `Engines queried at the moment: ${list}. A measurement always states the engines it actually queried.`,
@@ -44,8 +45,56 @@ export const visibilityEn: VisibilityDictionary = {
       over_budget: "Measurement too costly to run.",
     },
   },
+  latest: {
+    title: "Latest measurement",
+    measuredOn: (date: string) => `Measured on ${date}`,
+    engines: (list: string) => `Engines queried: ${list}.`,
+    answers: (count: string) => `${count} answers obtained`,
+    outOf: (count: string, draws: string) => `${count} of ${draws}`,
+    range: "95% interval",
+    noAnswer: "No answer obtained from this engine: nothing was counted.",
+    stepsTitle: "What each step means",
+    steps: {
+      retrieved: { label: "Page found", what: "The engine came across one of your proven addresses while looking for an answer." },
+      named: { label: "Named", what: "The answer points to you without ambiguity among the profiles it suggests." },
+      top5: { label: "In the top five", what: "The answer names you among the first five profiles it suggests." },
+      cited: { label: "Cited with link", what: "The answer links to one of your proven addresses: that is what brings a company to you." },
+    },
+  },
+  evolution: {
+    title: "Change",
+    lead: (previous: string, current: string) =>
+      `Between the measurement of ${previous} and that of ${current}. The change is given in share points, because the number of answers can differ from one measurement to the next.`,
+    single: "A second measurement will show the change, step by step.",
+    step: "Step",
+    previous: "Before",
+    current: "Now",
+    change: "Change",
+    none: "—",
+    kinds: { new: "Queried for the first time: no change to compute.", dropped: "Not queried in the latest measurement." },
+  },
+  start: {
+    title: "To get your first measurement",
+    lead: "Three steps, in this order. A measurement only counts what is published and tied to an address you have proven.",
+    done: "Done",
+    todo: "To do",
+    steps: {
+      publish: { label: "Publish your profile", what: "Only what engines can read is measured.", action: "Open my profile" },
+      prove: { label: "Prove an address", what: "Your website, your GitHub…: a citation only counts towards a proven address.", action: "Prove an address" },
+      request: { label: "Run a measurement", what: "The result shows here, engine by engine, a few minutes after the scheduled job runs.", action: "Go to the button" },
+    },
+  },
+  home: {
+    title: "AI citations",
+    notMeasured: "Not measured yet.",
+    measure: "Measure my visibility",
+    see: "See the details",
+    cited: (count: string, draws: string) => `cited with link in ${count} of ${draws} answers`,
+    measuredOn: (date: string) => `Measurement of ${date}`,
+  },
+  checklist: checklistEn,
   waves: {
-    title: "Measured results",
+    title: "All measurements",
     empty: "No completed measurement yet.",
     measuredOn: (date: string) => `Measurement of ${date}`,
     engine: "Engine",

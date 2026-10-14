@@ -1,7 +1,9 @@
+import { checklistFr } from "./checklist-fr";
+
 /** Mesure de visibilité dans les moteurs d'IA, demandée par le freelance. */
 export const visibilityFr = {
   nav: "Visibilité IA",
-  title: "Visibilité dans les moteurs d'IA",
+  title: "Ma visibilité IA",
   lead: "Une mesure pose aux moteurs d'IA les questions qu'un recruteur poserait à partir de votre titre et de vos compétences, sans jamais vous nommer. Elle compte ensuite combien de réponses retrouvent votre page, vous nomment, vous placent dans les cinq premiers et vous citent avec un lien vers une adresse que vous avez prouvée.",
   engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" },
   enginesNow: (list: string) => `Moteurs interrogés en ce moment : ${list}. Une mesure dit toujours les moteurs qu'elle a réellement interrogés.`,
@@ -43,8 +45,56 @@ export const visibilityFr = {
       over_budget: "Mesure trop coûteuse pour être lancée.",
     } as Readonly<Record<string, string>>,
   },
+  latest: {
+    title: "Dernière mesure",
+    measuredOn: (date: string) => `Mesurée le ${date}`,
+    engines: (list: string) => `Moteurs interrogés : ${list}.`,
+    answers: (count: string) => `${count} réponses obtenues`,
+    outOf: (count: string, draws: string) => `${count} sur ${draws}`,
+    range: "intervalle à 95 %",
+    noAnswer: "Aucune réponse obtenue de ce moteur : rien n'a été compté.",
+    stepsTitle: "Ce que veut dire chaque étape",
+    steps: {
+      retrieved: { label: "Page retrouvée", what: "Le moteur est tombé sur une de vos adresses prouvées en cherchant de quoi répondre." },
+      named: { label: "Nommé·e", what: "La réponse vous désigne sans ambiguïté parmi les profils qu'elle propose." },
+      top5: { label: "Dans les cinq premiers", what: "La réponse vous nomme parmi les cinq premiers profils proposés." },
+      cited: { label: "Cité·e avec lien", what: "La réponse donne un lien vers une de vos adresses prouvées : c'est ce qui amène une entreprise jusqu'à vous." },
+    },
+  },
+  evolution: {
+    title: "Évolution",
+    lead: (previous: string, current: string) =>
+      `Entre la mesure du ${previous} et celle du ${current}. L'écart est donné en points de part, parce que le nombre de réponses peut changer d'une mesure à l'autre.`,
+    single: "Une deuxième mesure permettra de voir l'évolution, étape par étape.",
+    step: "Étape",
+    previous: "Avant",
+    current: "Maintenant",
+    change: "Écart",
+    none: "—",
+    kinds: { new: "Interrogé pour la première fois : pas d'écart à calculer.", dropped: "Pas interrogé lors de la dernière mesure." },
+  },
+  start: {
+    title: "Pour obtenir votre première mesure",
+    lead: "Trois étapes, dans cet ordre. Une mesure ne compte que ce qui est publié et rattaché à une adresse que vous avez prouvée.",
+    done: "Fait",
+    todo: "À faire",
+    steps: {
+      publish: { label: "Publier votre profil", what: "On ne mesure que ce que les moteurs peuvent lire.", action: "Ouvrir mon profil" },
+      prove: { label: "Prouver une adresse", what: "Votre site, votre GitHub… : une citation ne compte que vers une adresse prouvée.", action: "Prouver une adresse" },
+      request: { label: "Lancer une mesure", what: "Le résultat s'affiche ici, moteur par moteur, quelques minutes après le passage de la tâche planifiée.", action: "Aller au bouton" },
+    },
+  },
+  home: {
+    title: "Citations par les IA",
+    notMeasured: "Pas encore mesurée.",
+    measure: "Mesurer ma visibilité",
+    see: "Voir le détail",
+    cited: (count: string, draws: string) => `cité·e avec lien dans ${count} réponses sur ${draws}`,
+    measuredOn: (date: string) => `Mesure du ${date}`,
+  },
+  checklist: checklistFr,
   waves: {
-    title: "Résultats mesurés",
+    title: "Toutes les mesures",
     empty: "Aucune mesure terminée pour l'instant.",
     measuredOn: (date: string) => `Mesure du ${date}`,
     engine: "Moteur",

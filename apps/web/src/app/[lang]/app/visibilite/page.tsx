@@ -1,12 +1,18 @@
 import { notFound } from "next/navigation";
-import { measurements, MEASUREMENT_WINDOW_DAYS, MEASUREMENTS_PER_WINDOW, visibility, type Eligibility, type MeasurementView, type WaveView } from "@proofseen/db";
+import { measurements, MEASUREMENT_WINDOW_DAYS, MEASUREMENTS_PER_WINDOW, profiles, visibility, type Eligibility, type MeasurementView, type WaveView } from "@proofseen/db";
 import { configuredEngines, measurementsEnabled } from "@proofseen/measure";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { engineLabel } from "@/components/visibility/engine-label";
+import { FirstSteps } from "@/components/visibility/FirstSteps";
+import { LatestWave } from "@/components/visibility/LatestWave";
+import { WaveEvolution } from "@/components/visibility/WaveEvolution";
+import { WaveHistory } from "@/components/visibility/WaveHistory";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { VisibilityDictionary } from "@/i18n/market/visibility-fr";
-import { count, day } from "@/lib/format";
+import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { evolutionOf, firstSteps, type FirstStep } from "@/lib/visibility-view";
 import { requestMeasurement } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -16,8 +22,6 @@ interface PageProps {
   readonly params: Promise<{ lang: string }>;
   readonly searchParams: Promise<{ erreur?: string; demande?: string }>;
 }
-
-const engineLabel = (engine: string, v: VisibilityDictionary): string => (engine in v.engines ? v.engines[engine as keyof typeof v.engines] : engine);
 
 /** Why a measurement cannot be requested now, in the person's words; `null` when it can. */
 const refusalText = (eligibility: Eligibility, v: VisibilityDictionary, lang: Lang): string | null => {
@@ -93,50 +97,27 @@ function Requests({ lang, v, rows }: { readonly lang: Lang; readonly v: Visibili
   );
 }
 
-function Waves({ lang, v, waves }: { readonly lang: Lang; readonly v: VisibilityDictionary; readonly waves: readonly WaveView[] }) {
-  const w = v.waves;
+/** The measured result first: the latest wave and its change since the one before; the first steps until there is one. */
+function Results({ lang, v, waves, steps }: { readonly lang: Lang; readonly v: VisibilityDictionary; readonly waves: readonly WaveView[]; readonly steps: readonly FirstStep[] }) {
+  const [latest] = waves;
+  if (latest === undefined) return <FirstSteps lang={lang} v={v} steps={steps} />;
+  const evolution = evolutionOf(waves);
   return (
-    <section className="panel" aria-labelledby="measure-waves">
-      <h2 id="measure-waves">{w.title}</h2>
-      <p className="muted measure">{w.note}</p>
-      {waves.length === 0 ? (
-        <p className="muted">{w.empty}</p>
+    <>
+      <LatestWave lang={lang} v={v} wave={latest} />
+      {evolution === null ? (
+        <section className="panel" aria-labelledby="wave-evolution">
+          <h2 id="wave-evolution">{v.evolution.title}</h2>
+          <p className="muted measure">{v.evolution.single}</p>
+        </section>
       ) : (
-        waves.map((wave) => (
-          <div key={wave.waveId} className="table-scroll" tabIndex={0} role="region" aria-label={w.measuredOn(day(wave.measuredAt, lang))}>
-            <table className="ops">
-              <caption>{w.measuredOn(day(wave.measuredAt, lang))}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">{w.engine}</th>
-                  <th scope="col" className="num-col">{w.draws}</th>
-                  <th scope="col" className="num-col">{w.retrieved}</th>
-                  <th scope="col" className="num-col">{w.named}</th>
-                  <th scope="col" className="num-col">{w.top5}</th>
-                  <th scope="col" className="num-col">{w.cited}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wave.engines.map((result) => (
-                  <tr key={result.engine}>
-                    <th scope="row">{engineLabel(result.engine, v)}</th>
-                    <td className="num num-col">{count(result.draws, lang)}</td>
-                    <td className="num num-col">{count(result.retrieved, lang)}</td>
-                    <td className="num num-col">{count(result.named, lang)}</td>
-                    <td className="num num-col">{count(result.top5, lang)}</td>
-                    <td className="num num-col">{count(result.cited, lang)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))
+        <WaveEvolution lang={lang} v={v} evolution={evolution} />
       )}
-    </section>
+    </>
   );
 }
 
-/** The freelancer's AI visibility: request a measurement, follow it, read the measured funnel per engine. */
+/** "My AI visibility": the measured funnel per engine, its change, the request of a new measurement and the record. */
 export default async function VisibilityPage({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
@@ -145,10 +126,11 @@ export default async function VisibilityPage({ params, searchParams }: PageProps
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
   const v = m.visibility;
   const now = new Date();
-  const [eligibility, requests, waves] = await Promise.all([
+  const [eligibility, requests, waves, profile] = await Promise.all([
     measurements(market.db).eligibility(market.actor, now),
     measurements(market.db).listMine(market.actor),
     visibility(market.db).mine(market.actor),
+    profiles(market.db).findMine(market.actor),
   ]);
   const { erreur, demande } = await searchParams;
 
@@ -167,9 +149,10 @@ export default async function VisibilityPage({ params, searchParams }: PageProps
           {v.request.queued}
         </p>
       ) : null}
+      <Results lang={lang} v={v} waves={waves} steps={firstSteps({ profile, requests })} />
       <RequestPanel lang={lang} v={v} eligibility={eligibility} engines={measurementsEnabled(process.env) ? configuredEngines(process.env) : []} />
       <Requests lang={lang} v={v} rows={requests} />
-      <Waves lang={lang} v={v} waves={waves} />
+      {waves.length === 0 ? null : <WaveHistory lang={lang} v={v} waves={waves} />}
     </>
   );
 }

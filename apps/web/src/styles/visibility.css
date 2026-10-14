@@ -1,0 +1,42 @@
+/* "My AI visibility" screen, the profile checklist and the home tile. Built on the tokens and the workspace primitives
+   (.panel, .tag, .ops, .tiles): only what those do not cover lives here. No client script: bars are plain CSS. */
+
+/* ---------- Latest wave: one card per engine ---------- */
+.vis-engines { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+.vis-engine { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4); background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
+.vis-engine-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.vis-engine-head h3 { font: 500 var(--step-1) / 1.2 var(--serif); }
+.vis-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.vis-step { display: grid; gap: var(--space-1); }
+.vis-step-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3); font-size: var(--step--1); }
+.vis-step-line b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.vis-bar { position: relative; display: block; height: 0.5rem; background: var(--line); border-radius: 1px; overflow: hidden; }
+.vis-bar span { position: absolute; inset: 0 auto 0 0; width: var(--share, 0%); background: var(--proof); }
+.vis-step[data-step="cited"] .vis-bar span { background: var(--signal); }
+.vis-range { font-size: var(--step--2); color: var(--muted); }
+.vis-legend { margin: 0; display: grid; gap: var(--space-3) var(--space-6); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.vis-legend div { padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.vis-legend dt { font-weight: 600; margin-bottom: var(--space-1); }
+.vis-legend dd { margin: 0; font-size: var(--step--1); color: var(--muted); }
+
+/* ---------- Evolution ---------- */
+.vis-delta { font-variant-numeric: tabular-nums; font-weight: 600; }
+.vis-delta[data-sign="up"] { color: var(--proof); }
+.vis-delta[data-sign="down"] { color: var(--signal); }
+
+/* ---------- Ordered steps and checklists ---------- */
+.vis-todo { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.vis-todo > li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--space-1) var(--space-4); align-items: baseline; padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.vis-todo > li > .tag { justify-self: start; }
+.vis-todo-body { display: grid; gap: var(--space-1); min-width: 0; }
+.vis-todo-body strong { font-weight: 600; }
+.vis-todo-body a { justify-self: start; }
+.vis-todo > li[data-done] .vis-todo-body strong { color: var(--muted); font-weight: 500; }
+@media (max-width: 30rem) { .vis-todo > li { grid-template-columns: minmax(0, 1fr); } }
+.vis-group { font-size: var(--step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Home tile ---------- */
+.vis-tile-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
+.vis-tile-list b { font-weight: 600; }
+.tile-value.vis-tile-text { font-size: var(--step-1); line-height: 1.2; letter-spacing: 0; }
+.ops caption { caption-side: top; text-align: left; padding-bottom: var(--space-2); font-weight: 600; }
