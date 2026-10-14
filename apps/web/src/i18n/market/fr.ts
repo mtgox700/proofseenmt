@@ -3,6 +3,7 @@ import { billingFr } from "./billing-fr";
 import { dealsFr } from "./deals-fr";
 import { missionsFr } from "./missions-fr";
 import { profileFr } from "./profile-fr";
+import { proofsFr } from "./proofs-fr";
 import { teamFr } from "./team-fr";
 
 /*
@@ -29,6 +30,7 @@ export const marketFr = {
   deals: dealsFr,
   missions: missionsFr,
   profile: profileFr,
+  proofs: proofsFr,
   team: teamFr,
   nav: {
     messages: "Messages",
