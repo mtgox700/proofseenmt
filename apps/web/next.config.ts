@@ -11,7 +11,7 @@ const config: NextConfig = {
   devIndicators: false,
   reactStrictMode: true,
   // Les paquets du monorepo sont publiés en TypeScript source : Next les compile avec l'application.
-  transpilePackages: ["@proofseen/access", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing"],
+  transpilePackages: ["@proofseen/access", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
   async redirects() {
     return [{ source: "/", destination: "/fr", permanent: false }];
   },

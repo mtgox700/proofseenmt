@@ -24,6 +24,7 @@
     "@proofseen/hub": "workspace:*",
     "@proofseen/intake": "workspace:*",
     "@proofseen/invoicing": "workspace:*",
+    "@proofseen/measure": "workspace:*",
     "@proofseen/notify": "workspace:*",
     "@proofseen/payments": "workspace:*",
     "@proofseen/presale": "workspace:*",
