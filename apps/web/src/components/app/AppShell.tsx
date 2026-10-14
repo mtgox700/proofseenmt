@@ -20,13 +20,13 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const home = { href: base, label: t.app.nav.home };
   const messages = { href: `${base}/messages`, label: t.app.nav.messages };
   const m = marketDictionary(lang).missions.nav;
-  if (person.role === "operator") return [home, messages, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  if (person.role === "operator") return [home, messages, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
   const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
   const deals = marketDictionary(lang).deals;
   const alertsItem = { href: `${base}/alertes`, label: marketDictionary(lang).account.alerts.nav };
   const contractsItem = { href: `${base}/contrats`, label: deals.contracts.nav };
   const invoicesItem = { href: `${base}/factures`, label: deals.invoices.nav };
-  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, alertsItem, { href: `/${lang}/entreprise`, label: t.app.nav.directory }];
+  if (person.role === "company") return [home, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, alertsItem, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
   return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, alertsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
