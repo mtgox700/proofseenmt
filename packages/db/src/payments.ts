@@ -7,6 +7,7 @@ import type { Prisma } from "./generated/client";
 import type { PaymentStatus } from "./generated/enums";
 import { invoices, vatOf } from "./invoices";
 import type { Actor } from "./messaging";
+import { recordPaidMission } from "./verified-missions";
 
 /*
  * Paiement sous séquestre (Stripe Connect, « charges et virements séparés ») :
@@ -184,6 +185,8 @@ export const payments = (db: Db): Payments => {
       await db.payment.update({ where: { id: payment.id }, data: { needsReviewAt: now } });
       return { kind: "not_releasable" };
     }
+    // Fonds versés, factures émises : la mission devient un fait vérifié du profil (une seule fois par contrat).
+    await recordPaidMission(db, contractId, now);
     return { kind: "released", transferId, missionInvoice: mission.invoice.number, commissionInvoice: commission.invoice.number };
   };
 

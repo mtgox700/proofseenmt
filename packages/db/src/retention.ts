@@ -34,6 +34,11 @@ export const RETENTION = {
    * elle, reste avec le profil : c'est le résultat, pas la trace de la demande.
    */
   finishedMeasurementsDays: 365,
+  /**
+   * Demandes de confirmation de mission : décidées, ou échues sans réponse, elles partent 90 jours après. Elles portent
+   * l'adresse d'un tiers (le contact du client) ; la mission confirmée, elle, reste sur le profil.
+   */
+  missionConfirmationsDays: 90,
 } as const;
 
 export interface PurgeReport {
@@ -45,6 +50,7 @@ export interface PurgeReport {
   readonly rateLimitBuckets: number;
   readonly feedback: number;
   readonly measurementRequests: number;
+  readonly missionConfirmations: number;
 }
 
 export interface Retention {
@@ -57,7 +63,8 @@ const before = (now: Date, days: number): Date => new Date(now.getTime() - days 
 export const retention = (db: Db): Retention => ({
   async purge(now) {
     const conversationCutoff = before(now, RETENTION.unansweredConversationsDays);
-    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows, measurementRows] = await Promise.all([
+    const confirmationCutoff = before(now, RETENTION.missionConfirmationsDays);
+    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows, measurementRows, confirmationRows] = await Promise.all([
       db.notification.deleteMany({
         where: {
           OR: [
@@ -75,6 +82,9 @@ export const retention = (db: Db): Retention => ({
       db.measurementRequest.deleteMany({
         where: { status: { in: ["done", "failed", "refused"] }, finishedAt: { lt: before(now, RETENTION.finishedMeasurementsDays) } },
       }),
+      db.missionConfirmationRequest.deleteMany({
+        where: { OR: [{ decidedAt: { lt: confirmationCutoff } }, { status: "pending", expiresAt: { lt: confirmationCutoff } }] },
+      }),
     ]);
     return {
       notifications: notifications.count,
@@ -85,6 +95,7 @@ export const retention = (db: Db): Retention => ({
       rateLimitBuckets: rateLimitBuckets.count,
       feedback: feedbackRows.count,
       measurementRequests: measurementRows.count,
+      missionConfirmations: confirmationRows.count,
     };
   },
 });

@@ -37,6 +37,10 @@ export interface PublicMissionFact {
   readonly summary: string;
   readonly evidenceKind: EvidenceKind;
   readonly verifiedAt: Date;
+  /** Seulement si le client a lui-même autorisé l'affichage de son nom en confirmant ; `null` sinon. */
+  readonly clientName: string | null;
+  /** Pour une confirmation du client : par l'entreprise inscrite, ou par un contact chez lui (lien envoyé par e-mail). */
+  readonly confirmedBy: "company" | "contact" | null;
 }
 
 export interface PublicProfilePage {
@@ -152,7 +156,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         user: { select: { displayName: true } },
         skills: { select: { skill: { select: { label: true } } } },
         ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true } },
-        missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true } },
+        missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true, clientName: true, confirmedByDomain: true } },
         reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
         billing: { select: { registryStatus: true, registryCheckedAt: true, payoutsEnabledAt: true } },
         vigilance: { select: { issuedOn: true, verifiedAt: true } },
@@ -180,7 +184,11 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       skills: row.skills.map((s) => s.skill.label),
       provenUrls: named ? row.ownedUrls.map((u) => u.url) : [],
       provenUrlCount: row.ownedUrls.length,
-      missions: row.missions,
+      // Le domaine qui a confirmé n'est jamais publié : seulement le fait qu'il s'agit d'un contact, pas de l'entreprise.
+      missions: row.missions.map(({ confirmedByDomain, ...m }) => ({
+        ...m,
+        confirmedBy: m.evidenceKind !== "client_confirmation" ? null : confirmedByDomain === null ? "company" : "contact",
+      })),
       reviews: row.reviews,
       facts: {
         registryActiveCheckedAt: row.billing?.registryStatus === "active" ? row.billing.registryCheckedAt : null,

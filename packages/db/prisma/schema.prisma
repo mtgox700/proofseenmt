@@ -3,7 +3,8 @@
 // Principes portés par le schéma lui-même, pas laissés à la discipline du code :
 // - l'argent est en centimes entiers, la devise explicite et prise dans une liste fermée ; jamais de flottant ;
 // - aucune colonne de score ou de classement de personnes (AI Act : la recherche filtre, elle ne classe pas) ;
-// - aucun nom de tiers : le client final d'une mission n'a pas de colonne, seulement un type en vocabulaire fermé ;
+// - aucun nom de tiers : le client final d'une mission vérifiée est un type en vocabulaire fermé ; son nom n'est gardé
+//   pour publication que si le client lui-même l'a autorisé en confirmant la mission (C13) ;
 // - la suppression d'un utilisateur emporte ses données par cascade (RGPD), sauf ce que la loi impose de garder
 //   (contrats, paiements, factures), qui est détaché de la personne mais garde une copie figée de l'identité légale
 //   des parties : une facture sans émetteur ni destinataire ne vaut rien ;
@@ -47,6 +48,8 @@ enum EvidenceKind {
   attestation_client
   acces_depot
   livrable_public
+  client_confirmation // confirmée sur Proofseen par l'entreprise cliente (compte ou lien signé)
+  paid_on_platform    // mission contractée et payée sur Proofseen
 }
 
 /// Identique au statut de disponibilité de `@proofseen/profiles`.
@@ -186,6 +189,7 @@ model User {
   freelanceListsCreated   FreelanceList[]          @relation("FreelanceListCreator")
   freelanceListItemsAdded FreelanceListItem[]      @relation("FreelanceListItemAdder")
   freelanceListReactions  FreelanceListReaction[]
+  missionConfirmationsDecided MissionConfirmationRequest[] @relation("MissionConfirmationDecider")
 }
 
 model Organisation {
@@ -215,6 +219,8 @@ model Organisation {
   contracts     Contract[]
   apiKeys       ApiKey[]
   freelanceLists FreelanceList[]
+  missionConfirmations MissionConfirmationRequest[]
+  missionsConfirmed    VerifiedMission[]
 }
 
 model Membership {
@@ -269,6 +275,7 @@ model FreelanceProfile {
   measurements   MeasurementRequest[]
   vigilance      VigilanceAttestation?
   listedIn       FreelanceListItem[]
+  missionConfirmations MissionConfirmationRequest[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -368,7 +375,9 @@ model OwnedUrl {
   @@unique([urlKey], where: raw("\"verifiedAt\" IS NOT NULL"), map: "OwnedUrl_verified_uq")
 }
 
-/// Une mission passée, vérifiée par Proofseen. Le client n'est jamais nommé : seulement son type.
+/// Une mission passée, vérifiée par Proofseen. Le client n'est nommé que s'il l'a lui-même accepté en confirmant ;
+/// sinon, seulement son type. Jamais déclarée par le freelance seul : elle naît d'une confirmation du client ou d'un
+/// contrat payé sur la plateforme.
 model VerifiedMission {
   id             String       @id @default(uuid(7)) @db.Uuid
   profileId      String       @db.Uuid
@@ -379,10 +388,76 @@ model VerifiedMission {
   evidenceKind   EvidenceKind
   verifiedAt     DateTime     @db.Timestamptz(3)
   createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+  /// Nom du client, publié seulement si le client l'a autorisé en confirmant (case décochée par défaut).
+  clientName     String?
+  /// Demande de confirmation d'origine : une demande ne crée jamais deux missions.
+  confirmationId String?      @unique @db.Uuid
+  /// Contrat payé d'origine : un contrat ne crée jamais deux missions.
+  contractId     String?      @unique @db.Uuid
+  /// Qui a confirmé, pour contrôle interne, jamais publié : l'entreprise inscrite, ou le domaine de l'adresse du contact.
+  confirmedByOrganisationId String? @db.Uuid
+  confirmedByDomain         String?
 
-  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile        FreelanceProfile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  confirmation   MissionConfirmationRequest? @relation(fields: [confirmationId], references: [id], onDelete: SetNull)
+  contract       Contract?                   @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  confirmedByOrg Organisation?               @relation(fields: [confirmedByOrganisationId], references: [id], onDelete: SetNull)
 
   @@index([profileId])
+  @@index([confirmedByOrganisationId], where: raw("\"confirmedByOrganisationId\" IS NOT NULL"), map: "VerifiedMission_confirmedByOrganisationId_idx")
+}
+
+enum MissionConfirmationStatus {
+  pending   // en attente de la réponse du client (expire au bout de 30 jours sans rien publier)
+  confirmed // confirmée : une mission vérifiée est née
+  refused   // refusée par le client : rien n'est publié
+}
+
+/// Demande de confirmation d'une mission passée, adressée par le freelance à son client : à une entreprise inscrite
+/// (SIRET reconnu), dont les propriétaires et administrateurs décident, ou à un contact par e-mail, qui décide sans
+/// compte par un lien signé, à usage unique et qui expire. Seule l'empreinte du jeton est gardée.
+model MissionConfirmationRequest {
+  id              String                    @id @default(uuid(7)) @db.Uuid
+  profileId       String                    @db.Uuid
+  role            String
+  /// Nom du client tel que déclaré : montré au client seulement, publié seulement s'il l'autorise.
+  clientName      String
+  clientSiret     String?                   @db.Char(14)
+  clientKind      ClientKind
+  /// Exactement une cible : l'entreprise inscrite, ou l'adresse du contact (en minuscules).
+  organisationId  String?                   @db.Uuid
+  contactEmail    String?
+  startedOn       DateTime                  @db.Date
+  endedOn         DateTime                  @db.Date
+  summary         String
+  /// Langue de l'e-mail envoyé au contact.
+  lang            String                    @default("fr") @db.Char(2)
+  /// SHA-256 du jeton du lien ; nul pour une demande adressée à une entreprise inscrite.
+  tokenHash       String?                   @unique
+  status          MissionConfirmationStatus @default(pending)
+  expiresAt       DateTime                  @db.Timestamptz(3)
+  decidedAt       DateTime?                 @db.Timestamptz(3)
+  /// Membre de l'entreprise qui a décidé ; nul pour un contact sans compte, ou s'il a effacé son compte.
+  decidedByUserId String?                   @db.Uuid
+  /// Le client autorise l'affichage du nom de son entreprise sur le profil public.
+  showClientName  Boolean                   @default(false)
+  /// File d'envoi de l'e-mail au contact : la ligne elle-même, réessayée comme les notifications.
+  emailSendAfter  DateTime?                 @db.Timestamptz(3)
+  emailSentAt     DateTime?                 @db.Timestamptz(3)
+  emailAttempts   Int                       @default(0)
+  createdAt       DateTime                  @default(now()) @db.Timestamptz(3)
+
+  profile         FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  organisation    Organisation?    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  decidedBy       User?            @relation("MissionConfirmationDecider", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+  verifiedMission VerifiedMission?
+
+  @@index([profileId, createdAt(sort: Desc)])
+  @@index([organisationId, status], where: raw("\"organisationId\" IS NOT NULL"), map: "MissionConfirmationRequest_organisation_idx")
+  @@index([emailSendAfter, id], where: raw("\"emailSentAt\" IS NULL AND \"contactEmail\" IS NOT NULL AND \"status\" = 'pending'"), map: "MissionConfirmationRequest_mail_idx")
+  @@index([contactEmail], where: raw("\"contactEmail\" IS NOT NULL"), map: "MissionConfirmationRequest_contactEmail_idx")
+  @@index([decidedByUserId], where: raw("\"decidedByUserId\" IS NOT NULL"), map: "MissionConfirmationRequest_decidedByUserId_idx")
+  @@index([expiresAt])
 }
 
 // ─── Missions publiées et candidatures ──────────────────────────────────────────────────────────────────────────────
@@ -564,6 +639,7 @@ model Contract {
   review       Review?
   timesheets   Timesheet[]
   approvals    ContractApproval[]
+  verifiedMission VerifiedMission?
 
   /// Cible des clés composées de Payment et Invoice : un paiement ne peut pas être dans une autre devise que son contrat.
   @@unique([id, currency])
@@ -849,6 +925,7 @@ enum NotificationKind {
   mission_match        // nouvelles missions pour une alerte enregistrée (freelance)
   contract_update      // contrat à signer, actif, prestation validée
   vigilance_expiring   // l'attestation de vigilance URSSAF expire bientôt (freelance)
+  mission_confirmation // demande de confirmation reçue (entreprise), confirmée ou refusée (freelance)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a

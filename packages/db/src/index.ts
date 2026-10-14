@@ -208,3 +208,28 @@ export {
   type OwnedUrls,
   type RecheckResult,
 } from "./owned-urls";
+export {
+  CONFIRMATION_SUMMARY_MAX,
+  CONFIRMATION_TTL_DAYS,
+  ConfirmationInputSchema,
+  confirmationTokenHash,
+  MAX_PENDING_CONFIRMATIONS,
+  MAX_REQUESTS_PER_CONTACT,
+  type ConfirmationInput,
+} from "./mission-confirmation-input";
+export {
+  missionConfirmations,
+  type CompanyConfirmationRequest,
+  type ConfirmationLink,
+  type ConfirmationState,
+  type ConfirmationTarget,
+  type ConfirmationView,
+  type DecideResult as ConfirmationDecideResult,
+  type Decision as ConfirmationDecision,
+  type MissionConfirmations,
+  type MyConfirmationRequest,
+  type RequestConfirmationResult,
+  type TokenLookup,
+} from "./mission-confirmations";
+export { confirmationMail, type ConfirmationMail, type PendingConfirmationEmail } from "./mission-confirmation-mail";
+export { monthsBetween, recordPaidMission, verifiedMissions, type VerifiedMissionRecord, type VerifiedMissions } from "./verified-missions";

@@ -56,7 +56,7 @@ export const CLIENT_KINDS = ["startup", "scaleup", "grand_groupe", "eti", "pme",
  * What Proofseen looked at to verify a mission. Closed vocabulary, like the client kinds: the method is public, the
  * document never is. Each kind is explained on the public method page (render.ts, `methodPath`).
  */
-export const EVIDENCE_KINDS = ["facture", "contrat", "attestation_client", "acces_depot", "livrable_public"] as const;
+export const EVIDENCE_KINDS = ["facture", "contrat", "attestation_client", "acces_depot", "livrable_public", "client_confirmation", "paid_on_platform"] as const;
 export type EvidenceKind = (typeof EVIDENCE_KINDS)[number];
 
 /**

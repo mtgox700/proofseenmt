@@ -151,13 +151,15 @@ export const LABELS = {
     methodLimits: "Ce que la vérification ne garantit pas",
     methodLimitsText:
       "Elle établit qu'une mission a eu lieu, avec ce rôle et cette durée. Elle ne juge ni la qualité du travail, ni l'adéquation à votre besoin, ni la disponibilité future : c'est l'échange avec le freelance qui en décide.",
-    evidenceShort: { facture: "facture", contrat: "contrat", attestation_client: "attestation client", acces_depot: "accès au dépôt", livrable_public: "livrable public" },
+    evidenceShort: { facture: "facture", contrat: "contrat", attestation_client: "attestation client", acces_depot: "accès au dépôt", livrable_public: "livrable public", client_confirmation: "confirmée par le client", paid_on_platform: "payée sur Proofseen" },
     evidenceLong: {
       facture: "Facture — nous contrôlons une facture émise pour la mission : émetteur, période, montant cohérent avec la durée. La facture n'est jamais publiée.",
       contrat: "Contrat — nous contrôlons le contrat ou le bon de commande : parties, objet, durée. Le document n'est jamais publié.",
       attestation_client: "Attestation client — le client confirme par écrit la mission, le rôle et la période. Son nom n'est jamais publié.",
       acces_depot: "Accès au dépôt — le freelance nous montre ses contributions dans le dépôt du projet. Ni le code ni le nom du dépôt ne sont publiés.",
       livrable_public: "Livrable public — le résultat est consultable publiquement et la contribution du freelance a été contrôlée. Le lien n'est pas publié : il désignerait le client.",
+      client_confirmation: "Confirmation du client — l'entreprise cliente confirme elle-même la mission sur Proofseen, depuis son compte ou par un lien signé à usage unique envoyé à son contact. Son nom n'est publié que si elle l'autorise.",
+      paid_on_platform: "Paiement sur Proofseen — la mission a été contractée et payée sur la plateforme : le contrat, la validation et le versement font foi. Le nom du client n'est jamais publié.",
     },
     relatedProfiles: "Profils proches",
     contact: "Demander ce profil",
@@ -228,13 +230,15 @@ export const LABELS = {
     methodLimits: "What verification does not guarantee",
     methodLimitsText:
       "It establishes that a mission took place, with that role and that duration. It does not judge the quality of the work, the fit with your needs or future availability: the conversation with the freelancer decides that.",
-    evidenceShort: { facture: "invoice", contrat: "contract", attestation_client: "client attestation", acces_depot: "repository access", livrable_public: "public deliverable" },
+    evidenceShort: { facture: "invoice", contrat: "contract", attestation_client: "client attestation", acces_depot: "repository access", livrable_public: "public deliverable", client_confirmation: "confirmed by the client", paid_on_platform: "paid on Proofseen" },
     evidenceLong: {
       facture: "Invoice — we check an invoice issued for the mission: issuer, period, an amount consistent with the duration. The invoice is never published.",
       contrat: "Contract — we check the contract or purchase order: parties, scope, duration. The document is never published.",
       attestation_client: "Client attestation — the client confirms the mission, the role and the period in writing. The client's name is never published.",
       acces_depot: "Repository access — the freelancer shows us their contributions in the project repository. Neither the code nor the repository name is published.",
       livrable_public: "Public deliverable — the result is publicly visible and the freelancer's contribution was checked. The link is not published: it would name the client.",
+      client_confirmation: "Client confirmation — the client company confirms the mission itself on Proofseen, from its account or through a signed single-use link sent to its contact. Its name is published only if it allows it.",
+      paid_on_platform: "Paid on Proofseen — the mission was contracted and paid on the platform: the contract, the approval and the payout are the evidence. The client's name is never published.",
     },
     relatedProfiles: "Related profiles",
     contact: "Request this profile",

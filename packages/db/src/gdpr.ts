@@ -5,8 +5,8 @@ import type { Db } from "./client";
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
  *
  * L'export rassemble tout ce que la base tient sur la personne, dans un format lisible par une machine. L'effacement
- * supprime le compte, ce qui emporte par cascade le profil, les compétences, les adresses, les missions vérifiées, les
- * candidatures, les fils côté freelance et les appartenances ; les demandes d'audit faites avec la même adresse
+ * supprime le compte, ce qui emporte par cascade le profil, les compétences, les adresses, les missions vérifiées et
+ * les demandes de confirmation, les candidatures, les fils côté freelance et les appartenances ; les demandes d'audit faites avec la même adresse
  * partent dans la même transaction.
  *
  * Ce qui reste, et pourquoi : les contrats, paiements et factures, détachés de la personne mais gardant la copie figée
@@ -46,6 +46,8 @@ export interface UserExport {
   readonly feedback: unknown;
   /** Listes de freelances créées, freelances ajoutés (avec la note de l'entreprise) et pouces donnés par la personne. */
   readonly freelanceLists: unknown;
+  /** Demandes de confirmation de mission décidées au nom d'une entreprise, ou adressées à l'adresse du compte. */
+  readonly missionConfirmations: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -76,6 +78,22 @@ const exportLists = async (db: Db, userId: string) => {
   ]);
   return { created, itemsAdded, reactions };
 };
+const CONFIRMATION_EXPORT = {
+  role: true,
+  clientName: true,
+  clientSiret: true,
+  clientKind: true,
+  contactEmail: true,
+  startedOn: true,
+  endedOn: true,
+  summary: true,
+  status: true,
+  createdAt: true,
+  expiresAt: true,
+  decidedAt: true,
+  showClientName: true,
+  emailSentAt: true,
+} as const;
 
 export const gdpr = (db: Db): Gdpr => ({
   async exportUser(userId, now) {
@@ -86,7 +104,7 @@ export const gdpr = (db: Db): Gdpr => ({
     });
     if (user === null) return null;
 
-    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests, missionAlerts, notificationPreferences, notificationRows, feedbackRows] = await Promise.all([
+    const [memberships, freelanceProfile, messagesSent, reviewsWritten, jobPostsAuthored, auditRequests, missionAlerts, notificationPreferences, notificationRows, feedbackRows, confirmationsDecided, confirmationsAddressed] = await Promise.all([
       db.membership.findMany({ where: { userId }, select: { organisationId: true, role: true, createdAt: true, organisation: { select: { name: true } } } }),
       db.freelanceProfile.findUnique({
         where: { userId },
@@ -111,6 +129,8 @@ export const gdpr = (db: Db): Gdpr => ({
             },
           },
           measurements: { select: { status: true, engines: true, createdAt: true, finishedAt: true, errorCode: true, costCents: true } },
+          // Demandes de confirmation de missions : tout sauf l'empreinte du jeton, qui ne dit rien de la personne.
+          missionConfirmations: { select: CONFIRMATION_EXPORT },
         },
       }),
       db.message.findMany({ where: { senderUserId: userId }, select: { id: true, conversationId: true, body: true, createdAt: true }, orderBy: { createdAt: "asc" } }),
@@ -121,6 +141,8 @@ export const gdpr = (db: Db): Gdpr => ({
       db.notificationPreference.findMany({ where: { userId }, select: { kind: true, email: true } }),
       db.notification.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, createdAt: true, sentAt: true } }),
       db.feedback.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { kind: true, side: true, page: true, body: true, createdAt: true } }),
+      db.missionConfirmationRequest.findMany({ where: { decidedByUserId: userId }, orderBy: { decidedAt: "asc" }, select: { role: true, clientName: true, status: true, decidedAt: true, showClientName: true } }),
+      db.missionConfirmationRequest.findMany({ where: { contactEmail: user.email }, orderBy: { createdAt: "asc" }, select: { role: true, clientName: true, contactEmail: true, status: true, createdAt: true, decidedAt: true } }),
     ]);
 
     // Côté entreprise, la copie de l'identité légale du freelance n'est pas une donnée de la personne qui demande : un
@@ -149,6 +171,7 @@ export const gdpr = (db: Db): Gdpr => ({
       notifications: notificationRows,
       feedback: feedbackRows,
       freelanceLists,
+      missionConfirmations: { decided: confirmationsDecided, addressedToMe: confirmationsAddressed },
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
@@ -179,6 +202,9 @@ export const gdpr = (db: Db): Gdpr => ({
         await tx.jobPost.updateMany({ where: { organisationId: { in: lastMemberOf }, status: "open" }, data: { status: "closed", closedAt: new Date() } });
       }
       await tx.auditRequest.deleteMany({ where: { email: user.email } });
+      // Les demandes de confirmation adressées à cette adresse partent aussi ; une mission déjà confirmée reste un fait
+      // du profil du freelance, sans plus de lien vers la demande.
+      await tx.missionConfirmationRequest.deleteMany({ where: { contactEmail: user.email } });
       // Les vagues mesurées décrivent la personne : elles partent avec elle au lieu de rester détachées. Les demandes de
       // mesure partent par cascade avec le profil.
       if (user.freelanceProfile !== null) await tx.wave.deleteMany({ where: { profileId: user.freelanceProfile.id } });

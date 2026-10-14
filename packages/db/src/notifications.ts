@@ -18,7 +18,7 @@ import type { Actor } from "./messaging";
  * Le contenu ne porte que des références. Jamais le texte d'un message : la conversation reste sur la plateforme.
  */
 
-export const NOTIFICATION_KINDS = ["contact_received", "application_received", "message_received", "application_status", "mission_match", "contract_update", "vigilance_expiring"] as const;
+export const NOTIFICATION_KINDS = ["contact_received", "application_received", "message_received", "application_status", "mission_match", "contract_update", "vigilance_expiring", "mission_confirmation"] as const;
 
 /** Au-delà, la notification est abandonnée : une adresse qui rejette cinq fois de suite ne recevra rien de plus. */
 export const MAX_ATTEMPTS = 5;
