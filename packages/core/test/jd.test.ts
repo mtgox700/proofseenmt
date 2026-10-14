@@ -59,4 +59,26 @@ describe("assertJdFreeOfIdentity", () => {
   it("rejects a JD containing a client-owned host", () => {
     expect(() => assertJdFreeOfIdentity("inspiré de ayoub-hammoudi.dev", identity)).toThrow(/identity/i);
   });
+
+  it("sees through invisible characters, punctuation and spacing slipped into the name or the host", () => {
+    // Built from code points: an editor or a shell must not be able to strip them from the test.
+    const [zwsp, zwj, soft, nul] = [0x200b, 0x200d, 0x00ad, 0].map((code) => String.fromCharCode(code));
+    for (const text of [
+      `profil type Ay${zwsp}oub Ham${zwj}moudi`,
+      `profil type Ayoub${soft}Hammoudi`,
+      `profil type Ayoub${nul}Hammoudi`,
+      "profil type A.y.o.u.b H-a-m-m-o-u-d-i",
+      "profil type ayoub_hammoudi",
+    ]) {
+      expect(() => assertJdFreeOfIdentity(text, identity), JSON.stringify(text)).toThrow(/identity \(name\)/);
+    }
+    expect(() => assertJdFreeOfIdentity(`voir ayoub${zwsp}-hammoudi . dev`, identity)).toThrow(/identity/);
+    expect(() => assertJdFreeOfIdentity("le site ayoubhammoudi", identity)).toThrow(/identity/);
+  });
+
+  it("does not flag look-alikes built from initials across words", () => {
+    // « A. Hammoudi » must not match a different first name that happens to end with an « a ».
+    const other = IdentitySchema.parse({ ...identity, nameVariants: ["A. Hammoudi"], ownedUrls: [identity.ownedUrls[1]] });
+    expect(() => assertJdFreeOfIdentity("Lisa Hammoudi recrute un développeur TypeScript", other)).not.toThrow();
+  });
 });
