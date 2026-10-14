@@ -122,16 +122,20 @@ export const ownedUrls = (db: Db): OwnedUrls => ({
   async add(actor, raw, { manual }) {
     const normalised = normaliseOwnedUrl(raw);
     if (normalised === null) return { kind: "invalid" };
-    const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
-    if (profile === null) return { kind: "no_profile" };
-    if ((await db.ownedUrl.count({ where: { profileId: profile.id } })) >= MAX_OWNED_URLS) return { kind: "limit" };
     try {
-      const record = await db.ownedUrl.create({
-        // La méthode d'une adresse en attente n'est qu'une prévision : celle qui réussira la remplacera.
-        data: { profileId: profile.id, ...normalised, proofMethod: manual ? "profile_token" : "well_known_file" },
-        select: SELECT,
+      return await db.$transaction(async (tx): Promise<AddOwnedUrlResult> => {
+        const profile = await tx.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
+        if (profile === null) return { kind: "no_profile" };
+        // Verrou du profil, puis compte, puis ajout : des ajouts simultanés passent un à un et le plafond tient.
+        await tx.$queryRaw`SELECT "id" FROM "FreelanceProfile" WHERE "id" = ${profile.id}::uuid FOR UPDATE`;
+        if ((await tx.ownedUrl.count({ where: { profileId: profile.id } })) >= MAX_OWNED_URLS) return { kind: "limit" };
+        const record = await tx.ownedUrl.create({
+          // La méthode d'une adresse en attente n'est qu'une prévision : celle qui réussira la remplacera.
+          data: { profileId: profile.id, ...normalised, proofMethod: manual ? "profile_token" : "well_known_file" },
+          select: SELECT,
+        });
+        return { kind: "added", record };
       });
-      return { kind: "added", record };
     } catch (error) {
       if (isUniqueViolation(error)) return { kind: "duplicate" };
       throw error;

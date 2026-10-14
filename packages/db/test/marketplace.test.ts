@@ -46,6 +46,13 @@ describe("compétences", () => {
     expect(skillKey("C++")).toBe("c++");
     expect(uniqueSkills(["React", "react", " REACT ", "Vue"]).map((s) => s.label)).toEqual(["React", "Vue"]);
   });
+
+  it("n'écrit jamais un libellé sur plusieurs lignes ni avec des caractères invisibles", () => {
+    // Construits par code : un saut de ligne dans un libellé ajouterait une ligne à /llms.txt.
+    const [lf, cr, nul, zwsp, bidi] = [10, 13, 0, 0x200b, 0x202e].map((code) => String.fromCharCode(code));
+    const labels = uniqueSkills([`Type${lf}Script`, `Rust${nul}`, `React${zwsp} Native`, `  Go ${cr}${lf}  lang `, `${bidi}Kotlin`]).map((s) => s.label);
+    expect(labels).toEqual(["Type Script", "Rust", "React Native", "Go lang", "Kotlin"]);
+  });
 });
 
 describe("parcours : publier, trouver, postuler, échanger", () => {

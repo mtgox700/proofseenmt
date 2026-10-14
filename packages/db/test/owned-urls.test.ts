@@ -106,6 +106,14 @@ describe("déclarer et retirer ses adresses", () => {
     for (let i = 0; i < MAX_OWNED_URLS; i += 1) await added(actor, nextSite());
     expect(await ownedUrls(t.db).add(actor, nextSite(), { manual: false })).toEqual({ kind: "limit" });
   });
+
+  it("le plafond tient sous des ajouts simultanés", async () => {
+    const { actor, profileId } = await freelance();
+    const results = await Promise.all(Array.from({ length: MAX_OWNED_URLS + 5 }, () => ownedUrls(t.db).add(actor, nextSite(), { manual: false })));
+    expect(results.filter((r) => r.kind === "added")).toHaveLength(MAX_OWNED_URLS);
+    expect(results.filter((r) => r.kind === "limit")).toHaveLength(5);
+    expect(await t.db.ownedUrl.count({ where: { profileId } })).toBe(MAX_OWNED_URLS);
+  });
 });
 
 describe("le contrôle d'accès", () => {

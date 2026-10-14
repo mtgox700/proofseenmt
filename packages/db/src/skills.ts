@@ -18,11 +18,20 @@ export const skillKey = (label: string): string =>
     .trim()
     .replace(/\s+/g, "-");
 
-/** Les libellés reçus, dédoublonnés par clé ; le premier libellé d'une clé est gardé tel qu'écrit. */
+const INVISIBLE = new RegExp(String.raw`\p{Cf}`, "gu");
+const CONTROL = new RegExp(String.raw`\p{Cc}`, "gu");
+
+/**
+ * Un libellé sur une seule ligne, sans caractère invisible : il est écrit tel quel dans des pages, des balises et
+ * /llms.txt, où un saut de ligne ajouterait une ligne entière et un caractère de format masquerait ce qui est affiché.
+ */
+export const cleanSkillLabel = (raw: string): string => raw.replace(INVISIBLE, "").replace(CONTROL, " ").replace(/\s+/g, " ").trim();
+
+/** Les libellés reçus, nettoyés et dédoublonnés par clé ; le premier libellé d'une clé est gardé tel qu'écrit. */
 export const uniqueSkills = (labels: readonly string[]): readonly { readonly key: string; readonly label: string }[] => {
   const byKey = new Map<string, string>();
   for (const raw of labels) {
-    const label = raw.trim();
+    const label = cleanSkillLabel(raw);
     const key = skillKey(label);
     if (key !== "" && !byKey.has(key)) byKey.set(key, label);
   }
