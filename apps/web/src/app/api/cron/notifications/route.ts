@@ -1,16 +1,19 @@
-import { getDb, missionAlerts, notifications, payments, retention, validationReminders, vigilance } from "@proofseen/db";
+import { getDb, missionAlerts, notifications, ownedUrls, payments, retention, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { checkDueRegistry } from "@/data/registry-lookup";
 import { hasDatabase } from "@/data/intake-sink";
+import { recheckProofs } from "@/data/ownership";
 import { cronAuthorised } from "@/lib/cron-auth";
 import { logError } from "@/lib/log";
+import { proofSecret } from "@/lib/proof-secret";
 import { publicBaseUrl } from "@/lib/public-url";
 
 /*
  * Periodic job, called by a scheduler with `Authorization: Bearer <CRON_SECRET>`: deletes what has outlived its
- * retention period, replays the saved mission alerts, then sends what is waiting in the notification queue.
+ * retention period, replays the saved mission alerts, rereads the ownership proofs that are due, then sends what is
+ * waiting in the notification queue.
  *
  * Without a mail transport configured (RESEND_API_KEY and NOTIFY_FROM), alerts are still turned into queued
  * notifications but nothing is sent: they wait, they are not lost. Several runs at once are safe — each batch is
@@ -46,6 +49,16 @@ export async function GET(request: Request): Promise<Response> {
       logError("cron: registry checks failed", error);
       return null;
     });
+    // Proven addresses are reread every 30 days, a bounded batch per run. Without a proof secret no token can be
+    // computed: nothing is reread, rather than every proof failing and, after the grace period, being revoked.
+    const secret = proofSecret();
+    const proofChecks =
+      secret === null
+        ? null
+        : await recheckProofs(ownedUrls(db), secret, now()).catch((error: unknown) => {
+            logError("cron: proof rechecks failed", error);
+            return null;
+          });
     // Escrow releases that could not go through at approval time (payout account not ready, provider down) are
     // retried here; each one is claimed in the database first, so overlapping runs never pay twice.
     let gateway;
@@ -58,7 +71,7 @@ export async function GET(request: Request): Promise<Response> {
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent: 0, failed: 0, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent: 0, failed: 0, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -70,7 +83,7 @@ export async function GET(request: Request): Promise<Response> {
       sent += report.sent;
       failed += report.failed;
     }
-    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent, failed, transport: "resend" } });
+    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent, failed, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);
