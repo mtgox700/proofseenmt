@@ -47,12 +47,29 @@ export {
   ProfileInputSchema,
   ProfileSearchSchema,
   REQUIRED_TO_PUBLISH,
+  type ProfileCard,
   type ProfileFacts,
   type ProfileInput,
   type Profiles,
   type ProfileSearch,
+  type ProfileSearchPage,
+  type ProfileSort,
   type VisibilityResult,
 } from "./profiles";
+export {
+  freelanceLists,
+  ListNameSchema,
+  ListNoteSchema,
+  MAX_ITEMS_PER_LIST,
+  MAX_LISTS_PER_ORGANISATION,
+  type AddItemResult,
+  type CreateListResult,
+  type FreelanceLists,
+  type ListDetail,
+  type ListedProfile,
+  type ListSummary,
+  type ListWriteResult,
+} from "./freelance-lists";
 export { organisations, OrganisationInputSchema, type OrganisationInput, type OrganisationRecord, type Organisations } from "./organisations";
 export {
   MAX_ATTEMPTS,

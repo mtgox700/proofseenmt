@@ -183,6 +183,9 @@ model User {
   contractApprovals       ContractApproval[]
   apiKeysCreated          ApiKey[]
   measurementRequests     MeasurementRequest[]
+  freelanceListsCreated   FreelanceList[]          @relation("FreelanceListCreator")
+  freelanceListItemsAdded FreelanceListItem[]      @relation("FreelanceListItemAdder")
+  freelanceListReactions  FreelanceListReaction[]
 }
 
 model Organisation {
@@ -211,6 +214,7 @@ model Organisation {
   conversations Conversation[]
   contracts     Contract[]
   apiKeys       ApiKey[]
+  freelanceLists FreelanceList[]
 }
 
 model Membership {
@@ -264,6 +268,7 @@ model FreelanceProfile {
   waves          Wave[]
   measurements   MeasurementRequest[]
   vigilance      VigilanceAttestation?
+  listedIn       FreelanceListItem[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -936,5 +941,71 @@ model Feedback {
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
+  @@index([userId])
+}
+
+// ─── Listes de freelances d'une entreprise ──────────────────────────────────────────────────────────────────────────
+
+/// Avis d'un membre de l'entreprise sur un freelance d'une liste : pouce levé ou baissé, rien d'autre.
+enum ListReaction {
+  up
+  down
+}
+
+/// Liste de freelances d'une entreprise (favoris, présélection d'une mission), partagée par tous ses membres. Jamais
+/// publique, jamais lue par une autre entreprise.
+model FreelanceList {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  organisationId  String   @db.Uuid
+  name            String
+  createdByUserId String?  @db.Uuid
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  organisation Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  /// Le créateur peut quitter l'entreprise ou effacer son compte : la liste reste à l'entreprise.
+  createdBy    User?               @relation("FreelanceListCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items        FreelanceListItem[]
+
+  @@index([organisationId, createdAt(sort: Desc)])
+  @@index([createdByUserId], where: raw("\"createdByUserId\" IS NOT NULL"), map: "FreelanceList_createdByUserId_idx")
+}
+
+/// Un freelance dans une liste, avec la note privée de l'entreprise. Le freelance qui efface son compte disparaît de
+/// toutes les listes (cascade du profil).
+model FreelanceListItem {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  listId        String   @db.Uuid
+  profileId     String   @db.Uuid
+  addedByUserId String?  @db.Uuid
+  /// Note privée : lue par les seuls membres de l'entreprise, jamais par le freelance ni par une autre entreprise.
+  note          String?
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  list      FreelanceList           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  profile   FreelanceProfile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  addedBy   User?                   @relation("FreelanceListItemAdder", fields: [addedByUserId], references: [id], onDelete: SetNull)
+  reactions FreelanceListReaction[]
+
+  /// Un freelance figure une seule fois dans une liste.
+  @@unique([listId, profileId])
+  @@index([profileId])
+  @@index([addedByUserId], where: raw("\"addedByUserId\" IS NOT NULL"), map: "FreelanceListItem_addedByUserId_idx")
+}
+
+/// Le pouce d'un membre sur un freelance d'une liste : un par membre et par ligne. Les compteurs sont calculés à la
+/// lecture, dans la liste et pour l'entreprise seulement ; aucun total n'est stocké ni agrégé entre entreprises.
+model FreelanceListReaction {
+  itemId    String       @db.Uuid
+  userId    String       @db.Uuid
+  reaction  ListReaction
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime     @default(now()) @updatedAt @db.Timestamptz(3)
+
+  item FreelanceListItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, userId])
   @@index([userId])
 }

@@ -26,6 +26,8 @@ export const RETAINED_AFTER_ERASURE = [
   "contrats, paiements et factures : conservés pour obligation comptable, détachés du compte, identité légale figée",
   "messages écrits au nom d'une entreprise : conservés sans auteur, comme correspondance du freelance",
   "conversations d'un freelance : supprimées avec son profil",
+  "listes de freelances créées au nom d'une entreprise : conservées pour elle, sans créateur ; les pouces de la personne sont supprimés",
+  "présence d'un freelance dans les listes des entreprises : supprimée avec son profil",
 ] as const;
 
 export interface UserExport {
@@ -42,6 +44,8 @@ export interface UserExport {
   readonly notificationPreferences: unknown;
   readonly notifications: unknown;
   readonly feedback: unknown;
+  /** Listes de freelances créées, freelances ajoutés (avec la note de l'entreprise) et pouces donnés par la personne. */
+  readonly freelanceLists: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -59,6 +63,19 @@ export interface Gdpr {
 }
 
 const Uuid = z.uuid();
+
+/*
+ * Ce que la personne a fait dans les listes de freelances de ses entreprises. Les listes restent à l'entreprise après
+ * son départ (créateur et auteur d'ajout remis à nul) ; ses pouces partent avec son compte.
+ */
+const exportLists = async (db: Db, userId: string) => {
+  const [created, itemsAdded, reactions] = await Promise.all([
+    db.freelanceList.findMany({ where: { createdByUserId: userId }, orderBy: { createdAt: "asc" }, select: { id: true, organisationId: true, name: true, createdAt: true } }),
+    db.freelanceListItem.findMany({ where: { addedByUserId: userId }, orderBy: { createdAt: "asc" }, select: { listId: true, note: true, createdAt: true, profile: { select: { reference: true } } } }),
+    db.freelanceListReaction.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { itemId: true, reaction: true, createdAt: true } }),
+  ]);
+  return { created, itemsAdded, reactions };
+};
 
 export const gdpr = (db: Db): Gdpr => ({
   async exportUser(userId, now) {
@@ -115,6 +132,7 @@ export const gdpr = (db: Db): Gdpr => ({
       db.contract.findMany({ where: { organisationId: { in: organisationIds } }, select: { ...terms, organisationId: true, buyerSnapshot: true } }),
     ]);
     const contracts = { asFreelance, asCompany };
+    const freelanceLists = await exportLists(db, userId);
 
     return {
       exportedAt: now.toISOString(),
@@ -130,6 +148,7 @@ export const gdpr = (db: Db): Gdpr => ({
       notificationPreferences,
       notifications: notificationRows,
       feedback: feedbackRows,
+      freelanceLists,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
