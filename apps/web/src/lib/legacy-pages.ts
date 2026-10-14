@@ -42,7 +42,14 @@ const retired = (pathname: string): LegacyRoute | null => {
   return null;
 };
 
+/**
+ * A path that a URL parser could read as another host: `//host` is scheme-relative, and browsers treat `\` as `/`.
+ * Production already collapses `//`, but a redirect is never built from such a path, whatever sits in front.
+ */
+const hostLike = (pathname: string): boolean => pathname.startsWith("//") || pathname.includes("\\");
+
 export const legacyRoute = (pathname: string): LegacyRoute => {
+  if (hostLike(pathname)) return { kind: "none" };
   const file = FILES[pathname];
   if (file !== undefined) return { kind: "serve", file };
   const gone = retired(pathname);
@@ -52,4 +59,14 @@ export const legacyRoute = (pathname: string): LegacyRoute => {
   if (PAGES.has(`${pathname}/`)) return { kind: "redirect", to: `${pathname}/` };
   if (pathname.length > 1 && pathname.endsWith("/")) return { kind: "redirect", to: pathname.replace(/\/+$/, "") || "/" };
   return { kind: "none" };
+};
+
+/**
+ * The address a legacy route sends the request to: always the request's own origin and query, with only the path
+ * replaced. A path is set, never resolved against the request, so even `//host` stays a path on this site.
+ */
+export const legacyTarget = (route: Exclude<LegacyRoute, { kind: "none" }>, requestUrl: string): URL => {
+  const target = new URL(requestUrl);
+  target.pathname = route.kind === "redirect" ? route.to : route.file;
+  return target;
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { legacyRoute } from "../src/lib/legacy-pages";
+import { legacyRoute, legacyTarget } from "../src/lib/legacy-pages";
 
 describe("legacy pages of the static site", () => {
   it("serves each indexed address as it is, from the saved page", () => {
@@ -39,5 +39,23 @@ describe("legacy pages of the static site", () => {
   it("never serves a path it does not list", () => {
     expect(legacyRoute("/n/someone-else/")).toEqual({ kind: "redirect", to: "/n/someone-else" });
     expect(legacyRoute("/n/../../etc/passwd/")).toEqual({ kind: "redirect", to: "/n/../../etc/passwd" });
+  });
+});
+
+describe("redirect targets never leave the site", () => {
+  it("builds no redirect from a path that a URL parser would read as another host", () => {
+    for (const path of ["//evil.example/", "//evil.example", "///evil.example/", "/\\evil.example/", "/a\\b/", "/fr/freelance\\..\\x"]) {
+      expect(legacyRoute(path), path).toEqual({ kind: "none" });
+    }
+  });
+
+  it("keeps the request's origin whatever the route says, and carries the query", () => {
+    const base = "https://proofseen.com/contact?ref=mail";
+    for (const route of [{ kind: "redirect", to: "//evil.example/x" }, { kind: "redirect", to: "/contact/" }, { kind: "serve", file: "/legacy/contact/index.html" }] as const) {
+      const target = legacyTarget(route, base);
+      expect(target.origin, JSON.stringify(route)).toBe("https://proofseen.com");
+      expect(target.search).toBe("?ref=mail");
+    }
+    expect(legacyTarget({ kind: "redirect", to: "/contact/" }, base).pathname).toBe("/contact/");
   });
 });

@@ -1,7 +1,7 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { authConfigured } from "@/lib/auth-config";
-import { legacyRoute } from "@/lib/legacy-pages";
+import { legacyRoute, legacyTarget } from "@/lib/legacy-pages";
 
 /*
  * Two jobs, in this order:
@@ -51,9 +51,9 @@ const legacy = (request: NextRequest): NextResponse | null => {
   const route = legacyRoute(request.nextUrl.pathname);
   if (route.kind === "none") return null;
   // A plain URL, not a clone of `nextUrl`: the latter re-applies its own trailing-slash form when written out, which
-  // turned both redirects into loops (seen on the production build, 2026-10-10).
-  const target = new URL(route.kind === "redirect" ? route.to : route.file, request.url);
-  target.search = request.nextUrl.search;
+  // turned both redirects into loops (seen on the production build, 2026-10-10). Built from the request's own URL with
+  // only the path replaced: the target can never be read as another host.
+  const target = legacyTarget(route, request.url);
   return route.kind === "redirect" ? NextResponse.redirect(target, 308) : NextResponse.rewrite(target);
 };
 
