@@ -5,6 +5,7 @@ import { missionsFr } from "./missions-fr";
 import { profileFr } from "./profile-fr";
 import { proofsFr } from "./proofs-fr";
 import { teamFr } from "./team-fr";
+import { visibilityFr } from "./visibility-fr";
 
 /*
  * Textes de l'espace connecté de la marketplace (missions, messages, devis, contrats, factures, entreprise). Séparés du
@@ -32,6 +33,7 @@ export const marketFr = {
   profile: profileFr,
   proofs: proofsFr,
   team: teamFr,
+  visibility: visibilityFr,
   nav: {
     messages: "Messages",
     missions: "Missions",
