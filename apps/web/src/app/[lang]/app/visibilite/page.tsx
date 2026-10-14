@@ -44,6 +44,12 @@ function RequestPanel({ lang, v, eligibility, engines }: { readonly lang: Lang; 
       ) : (
         <p className="form-error" role="status">
           {refusal}
+          {eligibility.kind === "refused" && eligibility.reason === "no_proven_url" ? (
+            <>
+              {" "}
+              <a href={`/${lang}/app/preuves`}>{v.request.prove}</a>
+            </>
+          ) : null}
         </p>
       )}
     </section>

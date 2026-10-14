@@ -11,6 +11,7 @@ export const visibilityFr = {
     lead: (max: number, days: number) => `${max} mesures au plus par période de ${days} jours : chaque mesure interroge réellement les moteurs. Elle part au prochain passage de la tâche planifiée et dure quelques minutes.`,
     remaining: (count: number) => (count > 1 ? `${count} mesures disponibles.` : "1 mesure disponible."),
     button: "Lancer une mesure",
+    prove: "Prouver une adresse",
     queued: "Mesure demandée : elle partira au prochain passage de la tâche planifiée, son état s'affiche ci-dessous.",
     tooMany: "Trop de demandes en peu de temps : réessayez plus tard.",
   },

@@ -12,6 +12,7 @@ export const visibilityEn: VisibilityDictionary = {
     lead: (max: number, days: number) => `At most ${max} measurements per ${days}-day period: each one really queries the engines. It starts at the next run of the scheduled job and takes a few minutes.`,
     remaining: (count: number) => (count > 1 ? `${count} measurements available.` : "1 measurement available."),
     button: "Run a measurement",
+    prove: "Prove an address",
     queued: "Measurement requested: it will start at the next run of the scheduled job, its status shows below.",
     tooMany: "Too many requests in a short time: try again later.",
   },
