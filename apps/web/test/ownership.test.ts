@@ -47,6 +47,12 @@ const probeServing = (pages: Record<string, string>) => {
   return { probe, asked };
 };
 
+/** Une sonde dont aucune lecture ne se termine : une cible qui envoie au goutte-à-goutte, ou un DNS muet. */
+const hanging = (): EvidenceProbe => ({
+  fetchText: () => new Promise<string>(() => undefined),
+  resolveTxt: () => new Promise<readonly string[]>(() => undefined),
+});
+
 const repoWith = (found: OwnedUrlRecord | null, marked: MarkVerifiedResult = { kind: "verified", record: record({ verifiedAt: NOW }) }) => {
   const markVerified = vi.fn(async (_actor: unknown, _id: string, _method: AutomaticProofMethod, _now: Date) => marked);
   return { repo: { get: vi.fn(async () => found), markVerified }, markVerified };
@@ -110,7 +116,7 @@ describe("la relecture planifiée", () => {
     const pages = Object.fromEntries(proofs.slice(0, 2).map((p) => [kitFor(PROFILE, p.url).wellKnown.url, kitFor(PROFILE, p.url).wellKnown.content]));
     const { probe } = probeServing(pages);
     const { repo, recorded } = repoFor(proofs, (method) => (method === null ? "grace" : "confirmed"));
-    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 3, confirmed: 2, grace: 1, revoked: 0, failed: 0 });
+    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 3, confirmed: 2, grace: 1, revoked: 0, failed: 0, deferred: 0 });
     expect(recorded.filter((m) => m === "well_known_file")).toHaveLength(2);
   });
 
@@ -125,13 +131,43 @@ describe("la relecture planifiée", () => {
         return call === 2 ? "revoked" : null;
       }),
     };
-    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 3, confirmed: 0, grace: 0, revoked: 1, failed: 2 });
+    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 3, confirmed: 0, grace: 0, revoked: 1, failed: 2, deferred: 0 });
   });
 
   it("ne relit rien quand rien n'est dû", async () => {
     const { probe, asked } = probeServing({});
     const { repo } = repoFor([], () => "confirmed");
-    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 0, confirmed: 0, grace: 0, revoked: 0, failed: 0 });
+    expect(await recheckProofs(repo, SECRET, NOW, probe)).toEqual({ checked: 0, confirmed: 0, grace: 0, revoked: 0, failed: 0, deferred: 0 });
     expect(asked).toEqual([]);
+  });
+
+  it("une cible qui ne répond jamais ne retient pas le passage : chaque relecture a son délai, rien n'est enregistré", async () => {
+    const { repo, recorded } = repoFor(due(2), () => "confirmed");
+    const started = Date.now();
+    const report = await recheckProofs(repo, SECRET, NOW, hanging(), { perCheckMs: 50, budgetMs: 5_000 });
+    expect(report).toEqual({ checked: 2, confirmed: 0, grace: 0, revoked: 0, failed: 2, deferred: 0 });
+    expect(Date.now() - started).toBeLessThan(1_000);
+    // Une relecture coupée n'est pas un échec de la preuve : l'adresse reste due, sans entamer sa grâce.
+    expect(recorded).toEqual([]);
+  });
+
+  it("le passage entier a un budget : ce qui reste est remis au passage suivant", async () => {
+    const { repo } = repoFor(due(12), () => "confirmed");
+    const started = Date.now();
+    const report = await recheckProofs(repo, SECRET, NOW, hanging(), { perCheckMs: 100, budgetMs: 150 });
+    expect(Date.now() - started).toBeLessThan(1_000);
+    expect(report.deferred).toBeGreaterThan(0);
+    expect(report.checked + report.deferred).toBe(12);
+    expect(report.failed).toBe(report.checked);
+  });
+});
+
+describe("« Vérifier maintenant » face à une cible qui traîne", () => {
+  it("répond dans le délai, sans rien enregistrer", async () => {
+    const { repo, markVerified } = repoWith(record());
+    const started = Date.now();
+    expect(await verifyOwnedUrl(repo, ACTOR, ID, SECRET, NOW, hanging(), { deadlineMs: 50 })).toBe("absent");
+    expect(Date.now() - started).toBeLessThan(1_000);
+    expect(markVerified).not.toHaveBeenCalled();
   });
 });
