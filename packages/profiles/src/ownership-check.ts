@@ -36,14 +36,32 @@ export const defaultProbe = (timeoutMs: number = DEFAULT_PROBE_TIMEOUT_MS): Evid
   },
 });
 
-/** Le contenu où la preuve doit apparaître : TXT du nom d'hôte, fichier à la racine du domaine, ou la page elle-même. */
+const META_ELEMENT = /<meta[^>]*>/gi;
+const ATTRIBUTE = /([a-zA-Z:-]+)=(?:"([^"]*)"|'([^']*)'|([^ "'>]+))/g;
+
+/**
+ * Les valeurs `content` des balises `<meta name="proofseen-verification">` de la page, et rien d'autre. Lire la page
+ * entière ferait accepter un jeton posé en simple texte — un commentaire sous l'article de quelqu'un d'autre suffirait
+ * à « prouver » sa page. Une vraie balise dans le HTML brut demande d'en contrôler le code : c'est ce que la méthode
+ * prétend prouver.
+ */
+export const metaTagProofs = (html: string): readonly string[] =>
+  (html.match(META_ELEMENT) ?? []).flatMap((element) => {
+    const attributes = new Map([...element.matchAll(ATTRIBUTE)].map((m) => [(m[1] ?? "").toLowerCase(), m[2] ?? m[3] ?? m[4] ?? ""]));
+    return attributes.get("name")?.toLowerCase() === PROOF_PREFIX ? [attributes.get("content") ?? ""] : [];
+  });
+
+/**
+ * Le contenu où la preuve doit apparaître : TXT du nom d'hôte, fichier à la racine du domaine, ou les balises de
+ * preuve de la page elle-même.
+ */
 export const readEvidence = async (challenge: Challenge, probe: EvidenceProbe): Promise<string> => {
   if (challenge.manual || isManualOnlyHost(challenge.url)) {
     throw new Error("vérification manuelle : aucune requête n'est émise vers cette plateforme");
   }
   if (challenge.method === "dns_txt") return (await probe.resolveTxt(new URL(challenge.url).hostname)).join("\n");
-  const target = challenge.method === "well_known_file" ? wellKnownUrl(challenge.url) : challenge.url;
-  return probe.fetchText(target);
+  if (challenge.method === "well_known_file") return probe.fetchText(wellKnownUrl(challenge.url));
+  return metaTagProofs(await probe.fetchText(challenge.url)).join("\n");
 };
 
 export interface OwnershipInput {

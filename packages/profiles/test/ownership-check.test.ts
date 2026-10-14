@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AUTOMATIC_METHODS, defaultProbe, proofKit, proveOwnership, readEvidence, type EvidenceProbe } from "../src/ownership-check";
+import { AUTOMATIC_METHODS, defaultProbe, metaTagProofs, proofKit, proveOwnership, readEvidence, type EvidenceProbe } from "../src/ownership-check";
 import { PROOF_PREFIX, issueChallenge, WELL_KNOWN_PATH } from "../src/possession";
 
 const SECRET = "un-secret-de-preuve-suffisamment-long-pour-le-hmac";
@@ -64,6 +64,23 @@ describe("la vérification", () => {
     const html = `<html><head>${kit().metaTag.tag}</head><body>Camille</body></html>`;
     const p = probe({ [SITE]: html });
     expect(await proveOwnership({ secret: SECRET, identityId: PROFILE, url: SITE }, p.impl)).toEqual({ kind: "proven", method: "meta_tag" });
+  });
+
+  it("lit la balise quel que soit l'ordre des attributs, les guillemets ou la casse", async () => {
+    const token = kit().metaTag.tag.split('content="')[1]?.slice(0, 32) ?? "";
+    for (const tag of [`<meta content="${token}" name="${PROOF_PREFIX}" />`, `<META NAME='${PROOF_PREFIX}' CONTENT='${token}'>`, `<meta name=${PROOF_PREFIX} content=${token}>`]) {
+      expect(metaTagProofs(`<head>${tag}</head>`), tag).toEqual([token]);
+    }
+  });
+
+  it("n'accepte pas le jeton posé en simple texte dans la page : un commentaire ne prouve pas la page d'un autre", async () => {
+    const token = kit().metaTag.tag.split('content="')[1]?.slice(0, 32) ?? "";
+    const html = `<html><head><meta name="description" content="${token}"></head><body><p>${PROOF_PREFIX}=${token}</p><p>&lt;meta name="${PROOF_PREFIX}" content="${token}"&gt;</p></body></html>`;
+    const p = probe({ [SITE]: html });
+    expect(await proveOwnership({ secret: SECRET, identityId: PROFILE, url: SITE, methods: ["meta_tag"] }, p.impl)).toEqual({
+      kind: "not_found",
+      failures: [{ method: "meta_tag", reason: "absent" }],
+    });
   });
 
   it("trouve l'enregistrement TXT, même entouré de guillemets", async () => {
