@@ -13,6 +13,7 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
 import { dashboards, profiles } from "@proofseen/db";
 import { CompanyTiles, FreelanceTiles } from "@/components/market/DashboardTiles";
+import { HomeVisibility } from "@/components/visibility/HomeVisibility";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { createOrganisation } from "./actions";
@@ -166,6 +167,7 @@ async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
         </Link>
       </div>
     </section>
+    <HomeVisibility lang={lang} market={market} profile={profile} />
     {profile === null ? null : <FreelanceTiles lang={lang} b={dict.account.dashboard} board={board} />}
     </>
   );

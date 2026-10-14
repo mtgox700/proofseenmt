@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { profiles, REQUIRED_TO_PUBLISH, type ProfileFacts } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
+import { ProfileChecklist } from "@/components/visibility/ProfileChecklist";
+import { checklistFor } from "@/data/profile-checklist";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { ProfileDictionary } from "@/i18n/market/profile-fr";
@@ -132,6 +134,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   if (market === "unconfigured") return <MarketUnavailable text={dict.notConfigured} />;
   const p = dict.profile;
   const profile = await profiles(market.db).findMine(market.actor);
+  const checklist = await checklistFor(market, lang, profile, new Date());
   const { erreur, manque, enregistre } = await searchParams;
   const missing = (manque ?? "")
     .split(",")
@@ -155,6 +158,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           {p.saved}
         </p>
       )}
+      <ProfileChecklist c={dict.visibility.checklist} checklist={checklist} headingId="profile-checklist" />
       {profile === null ? null : <Publication lang={lang} p={p} profile={profile} />}
       <ProfileForm lang={lang} p={p} modes={dict.missions.workModes} profile={profile} />
     </>
