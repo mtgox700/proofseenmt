@@ -12,3 +12,5 @@ export * from "./indexnow";
 export * from "./possession";
 export * from "./manipulation";
 export * from "./surface-record";
+export * from "./safe-fetch";
+export * from "./ownership-check";

@@ -1,7 +1,6 @@
 import { IdentitySchema, type Identity, type OwnedUrl } from "@proofseen/core";
-import { checkEvidence, issueChallenge, wellKnownUrl, type Challenge, type ProofMethod } from "@proofseen/profiles";
+import { checkEvidence, issueChallenge, readEvidence, safeFetchText, type Challenge } from "@proofseen/profiles";
 import { CliError, loadJson, writeText } from "./files";
-import { safeFetchText } from "./safe-fetch";
 import type { CommonOptions } from "./commands";
 
 /*
@@ -13,14 +12,6 @@ import type { CommonOptions } from "./commands";
  *  - une URL qui échoue **reste non vérifiée** : on n'écrit jamais une date de vérification qu'on n'a pas obtenue ;
  *  - le secret de preuve vient de l'environnement et n'est jamais affiché, pas même tronqué.
  */
-
-/** Ce que la commande sait aller chercher elle-même, et par quel moyen. */
-type Source = "https" | "dns";
-const SOURCE_OF: Readonly<Record<Exclude<ProofMethod, "profile_token">, Source>> = {
-  well_known_file: "https",
-  meta_tag: "https",
-  dns_txt: "dns",
-};
 
 export type FetchText = (url: string, timeoutMs: number) => Promise<string>;
 export type ResolveTxt = (host: string) => Promise<readonly string[]>;
@@ -47,16 +38,12 @@ const defaultResolveTxt: ResolveTxt = async (host) => {
   return (await resolveTxt(host)).map((chunks) => chunks.join(""));
 };
 
-/** Où la preuve se lit, pour chaque méthode automatisable. */
-const evidenceFor = async (challenge: Challenge, o: PossessionCommand): Promise<string> => {
-  const method = challenge.method as Exclude<ProofMethod, "profile_token">;
-  if (SOURCE_OF[method] === "dns") {
-    const records = await (o.resolveTxt ?? defaultResolveTxt)(new URL(challenge.url).hostname);
-    return records.join("\n");
-  }
-  const target = method === "well_known_file" ? wellKnownUrl(challenge.url) : challenge.url;
-  return await (o.fetchText ?? defaultFetchText)(target, o.timeoutMs);
-};
+/** Où la preuve se lit, pour chaque méthode automatisable : la lecture elle-même est celle de `@proofseen/profiles`. */
+const evidenceFor = (challenge: Challenge, o: PossessionCommand): Promise<string> =>
+  readEvidence(challenge, {
+    fetchText: (url) => (o.fetchText ?? defaultFetchText)(url, o.timeoutMs),
+    resolveTxt: o.resolveTxt ?? defaultResolveTxt,
+  });
 
 interface Outcome {
   readonly url: OwnedUrl;

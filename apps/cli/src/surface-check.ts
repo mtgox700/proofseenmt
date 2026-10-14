@@ -1,7 +1,6 @@
 import { IdentitySchema, verifiedUrls } from "@proofseen/core";
-import { SurfaceCheckRecordSchema, findManipulations, isManual, isManualOnlyHost, refusesMeasurement, type Finding } from "@proofseen/profiles";
+import { SurfaceCheckRecordSchema, findManipulations, isManual, isManualOnlyHost, refusesMeasurement, safeFetchText, type Finding } from "@proofseen/profiles";
 import { CliError, loadJson, writeText } from "./files";
-import { safeFetchText } from "./safe-fetch";
 import type { CommonOptions } from "./commands";
 
 /*
