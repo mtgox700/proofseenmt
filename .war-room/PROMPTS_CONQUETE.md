@@ -601,7 +601,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 
 | Sprint | Nom | Statut | Preuve de clôture |
 |---|---|---|---|
-| C13 | Moteur de référencement, visible et prouvé | 🟡 | démarré le 2026-10-14 |
+| C13 | Moteur de référencement, visible et prouvé | 🟡 | Lots A (adresses prouvées), C (mesure depuis l application, plafonds) et D (public sans démo, annuaire, métiers, llms.txt) en production le 2026-10-14 ; restent écran de visibilité complet, liste de contrôle du profil, missions vérifiées, relecture sécurité, parcours joué en production |
 | C14 | Profils riches et recherche de freelances réelle | ⬜ | |
 | C15 | Messagerie vivante | ⬜ | |
 | C16 | Espace missions vivant | ⬜ | |
