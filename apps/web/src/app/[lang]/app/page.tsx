@@ -286,15 +286,15 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
         <p className="muted measure">{c.lead}</p>
       </header>
       {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : <CompanyBoard lang={lang} market={market} organisationId={organisation.id} />}
-      <form className="filters" method="get" action={`/${lang}/freelances`} role="search" aria-label={c.search}>
+      <form className="filters" method="get" action={`/${lang}/app/recherche`} role="search" aria-label={c.search}>
         <div className="field">
           <label htmlFor="skill">{t.directory.form.skill}</label>
-          <input id="skill" name="competence" type="search" maxLength={60} aria-describedby="skill-hint" />
+          <input id="skill" name="competences" type="search" maxLength={200} aria-describedby="skill-hint" />
           <p id="skill-hint" className="field-hint">{t.directory.form.skillHint}</p>
         </div>
         <div className="field">
           <label htmlFor="area">{t.directory.form.area}</label>
-          <input id="area" name="ville" type="search" maxLength={60} aria-describedby="area-hint" />
+          <input id="area" name="ville" type="search" maxLength={120} aria-describedby="area-hint" />
           <p id="area-hint" className="field-hint">{t.directory.form.areaHint}</p>
         </div>
         <div className="filters-actions">
