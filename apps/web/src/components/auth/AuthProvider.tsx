@@ -1,11 +1,11 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { enUS, frFR } from "@clerk/localizations";
 import type { Lang } from "@/i18n";
-import { authConfigured } from "@/lib/auth-config";
+import { clerkClientConfigured } from "@/lib/auth-config";
 
 /*
- * Clerk around the app, only when its keys exist. Its widgets are themed from the product tokens: Clerk computes
- * shades from colour values, so the values below mirror `:root` in styles/tokens.css (the one documented exception to
+ * Clerk around the app, only when its publishable key exists (see `clerkClientConfigured`). Its widgets are themed from
+ * the product tokens: Clerk computes shades from colour values, so the values below mirror `:root` in styles/tokens.css (the one documented exception to
  * "no raw colour outside :root"). Change a token there, change it here.
  */
 const appearance = {
@@ -25,7 +25,7 @@ const appearance = {
 };
 
 export function AuthProvider({ lang, children }: { readonly lang: Lang; readonly children: React.ReactNode }) {
-  if (!authConfigured()) return <>{children}</>;
+  if (!clerkClientConfigured()) return <>{children}</>;
   return (
     <ClerkProvider localization={lang === "fr" ? frFR : enUS} appearance={appearance} signInUrl={`/${lang}/connexion`} signUpUrl={`/${lang}/creer-un-compte`}>
       {children}
