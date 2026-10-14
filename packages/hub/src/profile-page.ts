@@ -36,6 +36,10 @@ export interface PublicProfile {
     readonly summary: string;
     readonly evidenceKind: string;
     readonly verifiedAt: Date;
+    /** Nom du client, seulement s'il a lui-même autorisé son affichage en confirmant la mission. */
+    readonly clientName?: string | null;
+    /** Confirmation par l'entreprise inscrite, ou par un contact chez le client. */
+    readonly confirmedBy?: "company" | "contact" | null;
   }[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
   readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly payingClients: number; readonly vigilanceValidUntil: Date | null };
@@ -67,6 +71,8 @@ const LABELS = {
     updated: "Mis à jour le",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Grand groupe", eti: "ETI", pme: "PME", secteur_public: "Secteur public", editeur_logiciel: "Éditeur de logiciel", esn: "ESN", association: "Association" },
     evidenceKinds: { facture: "Facture", contrat: "Contrat", attestation_client: "Attestation du client", acces_depot: "Accès au dépôt de code", livrable_public: "Livrable public" },
+    verifiedOn: (kind: string, d: string, contact: boolean) =>
+      kind === "client_confirmation" ? (contact ? `Confirmée par un contact chez le client le ${d}` : `Confirmée par le client le ${d}`) : kind === "paid_on_platform" ? `Payée sur Proofseen, vérifiée le ${d}` : `Vérifiée le ${d}`,
     pseudonym: (ref: string) => `Freelance ${ref}`,
   },
   en: {
@@ -93,6 +99,8 @@ const LABELS = {
     updated: "Updated on",
     clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Large group", eti: "Mid-size company", pme: "SME", secteur_public: "Public sector", editeur_logiciel: "Software publisher", esn: "IT services firm", association: "Non-profit" },
     evidenceKinds: { facture: "Invoice", contrat: "Contract", attestation_client: "Client attestation", acces_depot: "Repository access", livrable_public: "Public deliverable" },
+    verifiedOn: (kind: string, d: string, contact: boolean) =>
+      kind === "client_confirmation" ? (contact ? `Confirmed by a contact at the client on ${d}` : `Confirmed by the client on ${d}`) : kind === "paid_on_platform" ? `Paid on Proofseen, verified on ${d}` : `Verified on ${d}`,
     pseudonym: (ref: string) => `Freelancer ${ref}`,
   },
 } as const;
@@ -106,6 +114,18 @@ const money = (cents: number, currency: string, lang: Lang): string =>
 
 /** Le libellé d'une valeur de vocabulaire, ou la valeur elle-même si elle est inconnue (jamais une case vide). */
 const pick = (table: Readonly<Record<string, string>>, key: string): string => table[key] ?? key;
+
+/*
+ * Une mission vérifiée : un fait daté, avec la façon dont il a été vérifié. Le client est désigné par son type, sauf
+ * s'il a lui-même autorisé son nom en confirmant ; aucun résumé n'est inventé quand il n'y en a pas.
+ */
+const missionItem = (m: PublicProfile["missions"][number], lang: Lang): string => {
+  const l = LABELS[lang];
+  const client = m.clientName === undefined || m.clientName === null || m.clientName === "" ? pick(l.clientKinds, m.clientKind) : m.clientName;
+  const how = m.evidenceKind in l.evidenceKinds ? ` · ${l.evidence} : ${e(pick(l.evidenceKinds, m.evidenceKind))}` : "";
+  const summary = m.summary.trim() === "" ? "" : `<p>${e(m.summary)}</p>`;
+  return `<li class="card"><h3>${e(m.role)}</h3><p class="when">${e(client)} · ${e(l.months(m.durationMonths))} · ${e(l.verifiedOn(m.evidenceKind, date(m.verifiedAt, lang), m.confirmedBy === "contact"))}${how}</p>${summary}</li>`;
+};
 
 /** Le nom sous lequel la page désigne la personne : son nom si elle l'a choisi, sa référence sinon. */
 export const profileName = (p: PublicProfile, lang: Lang): string => (p.visibility === "named" && p.displayName !== null ? p.displayName : LABELS[lang].pseudonym(p.reference));
@@ -140,15 +160,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
   ]
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");
-  const missions =
-    p.missions.length === 0
-      ? ""
-      : `<h2>${l.missions}</h2><ul class="missions">${p.missions
-          .map(
-            (m) =>
-              `<li class="card"><h3>${e(m.role)}</h3><p class="when">${e(pick(l.clientKinds, m.clientKind))} · ${e(l.months(m.durationMonths))} · ${l.evidence} : ${e(pick(l.evidenceKinds, m.evidenceKind))}</p><p>${e(m.summary)}</p></li>`,
-          )
-          .join("")}</ul>`;
+  const missions = p.missions.length === 0 ? "" : `<h2>${l.missions}</h2><ul class="missions">${p.missions.map((m) => missionItem(m, o.lang)).join("")}</ul>`;
   const proofs =
     p.provenUrls.length > 0
       ? `<h2>${l.proofs}</h2><ul class="links">${p.provenUrls.map((u) => `<li><a href="${e(u)}" rel="me noopener">${e(u)}</a></li>`).join("")}</ul>`
