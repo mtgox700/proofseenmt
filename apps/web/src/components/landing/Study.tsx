@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CountUp } from "@/components/motion/CountUp";
 import { InView } from "@/components/motion/InView";
 import type { Dictionary, Lang } from "@/i18n";
@@ -68,9 +67,6 @@ export function Study({ lang, t }: { readonly lang: Lang; readonly t: Dictionary
 
         <p className="small muted measure study-source">{t.study.source}</p>
         <p className="small muted measure">{t.study.limits}</p>
-        <p className="study-link">
-          <Link href={`/${lang}/freelance`}>{t.study.open}</Link>
-        </p>
       </div>
     </section>
   );

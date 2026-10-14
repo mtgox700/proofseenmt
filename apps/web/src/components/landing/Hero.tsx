@@ -30,13 +30,13 @@ export function Hero({ lang, t, answers }: HeroProps) {
             <Link className="btn btn-primary" href={`/${lang}/inscription`}>
               {t.hero.primary}
             </Link>
-            <Link className="btn" href={`/${lang}/freelance`}>
+            <a className="btn" href={`/${lang}/missions`}>
               {t.hero.secondary}
-            </Link>
+            </a>
           </div>
         </div>
         {answers === null ? null : (
-          <AnswerField t={t.field} engines={answers.engines.map((engine) => t.ws.engines[engine] ?? engine)} offers={answers.offers} points={points} />
+          <AnswerField t={t.field} engines={answers.engines.map((engine) => t.field.engines[engine] ?? engine)} offers={answers.offers} points={points} />
         )}
       </div>
     </section>

@@ -107,7 +107,7 @@ pnpm sim:report --wave J0 --runs-dir runs-dryrun --report-dir report-dryrun
 Espace web (données tirées de la vague J0 réelle, jamais inventées) :
 
 ```bash
-pnpm --filter @proofseen/web snapshot   # régénère apps/web/data depuis runs/ et proofseen-dist/
+pnpm --filter @proofseen/web snapshot   # régénère apps/web/data/j0-answers.json depuis runs/
 pnpm --filter @proofseen/web build && pnpm --filter @proofseen/web start   # http://localhost:3100
 ```
 

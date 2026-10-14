@@ -20,6 +20,22 @@ describe("legacy pages of the static site", () => {
     expect(legacyRoute("/")).toEqual({ kind: "none" });
   });
 
+  it("sends the retired demonstration spaces to the connected space and to the public directory", () => {
+    expect(legacyRoute("/fr/freelance")).toEqual({ kind: "redirect", to: "/fr/app" });
+    expect(legacyRoute("/en/freelance/rapport")).toEqual({ kind: "redirect", to: "/en/app" });
+    expect(legacyRoute("/fr/freelance/preuves/")).toEqual({ kind: "redirect", to: "/fr/app" });
+    expect(legacyRoute("/fr/entreprise")).toEqual({ kind: "redirect", to: "/fr/freelances" });
+    expect(legacyRoute("/en/entreprise/FR-7H2XK")).toEqual({ kind: "redirect", to: "/en/freelances" });
+  });
+
+  it("leaves the public directory and look-alike addresses alone", () => {
+    expect(legacyRoute("/fr/freelances")).toEqual({ kind: "none" });
+    expect(legacyRoute("/en/freelances")).toEqual({ kind: "none" });
+    expect(legacyRoute("/fr/freelancer")).toEqual({ kind: "none" });
+    expect(legacyRoute("/fr/entreprises")).toEqual({ kind: "none" });
+    expect(legacyRoute("/de/freelance")).toEqual({ kind: "none" });
+  });
+
   it("never serves a path it does not list", () => {
     expect(legacyRoute("/n/someone-else/")).toEqual({ kind: "redirect", to: "/n/someone-else" });
     expect(legacyRoute("/n/../../etc/passwd/")).toEqual({ kind: "redirect", to: "/n/../../etc/passwd" });

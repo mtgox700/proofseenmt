@@ -43,7 +43,10 @@ const spaceLink = (request: NextRequest): NextResponse | null => {
 
 const withClerk = clerkMiddleware((_auth, request) => spaceLink(request) ?? NextResponse.next());
 
-/** Pages of the former static site, served at their indexed address; otherwise the usual no-trailing-slash rule. */
+/**
+ * Pages of the former static site, served at their indexed address; retired addresses (the demonstration spaces),
+ * redirected for good; otherwise the usual no-trailing-slash rule.
+ */
 const legacy = (request: NextRequest): NextResponse | null => {
   const route = legacyRoute(request.nextUrl.pathname);
   if (route.kind === "none") return null;

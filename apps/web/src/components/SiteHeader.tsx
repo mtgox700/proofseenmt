@@ -6,12 +6,16 @@ import { Logo } from "./Logo";
 interface SiteHeaderProps {
   readonly lang: Lang;
   readonly t: Dictionary;
-  /** "site" shows the landing anchors; "app" shows the two workspaces. */
+  /** "site" shows the public menu (missions, freelancers, skills, sign-in); "app" keeps only the brand and the language. */
   readonly variant: "site" | "app";
-  readonly current?: "freelance" | "recruiter" | undefined;
 }
 
-export function SiteHeader({ lang, t, variant, current }: SiteHeaderProps) {
+/*
+ * The public menu points only at pages filled from the database: the open missions, the directory of published
+ * profiles and the skill pages. Plain links (`<a>`) for those three: they are route handlers serving raw HTML, not
+ * pages of the React tree.
+ */
+export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
   return (
     <header className="site-header">
@@ -20,23 +24,16 @@ export function SiteHeader({ lang, t, variant, current }: SiteHeaderProps) {
           <Logo />
           <span>Proofseen</span>
         </Link>
-        <nav className="nav" aria-label={variant === "site" ? t.nav.home : t.ws.sectionNav}>
+        <nav className="nav" aria-label={t.nav.label}>
           {variant === "site" ? (
             <>
-              <a className="hide-narrow" href={`/${lang}#methode`}>{t.nav.method}</a>
-              <a className="hide-narrow" href={`/${lang}#mesure`}>{t.nav.study}</a>
-              <a className="hide-narrow" href={`/${lang}#offres`}>{t.nav.offers}</a>
-              <Link className="hide-narrow" href={`/${lang}/entreprise`}>{t.nav.recruiter}</Link>
-              <Link className="hide-narrow" href={`/${lang}/freelance`}>{t.nav.freelance}</Link>
+              <a className="hide-narrow" href={`/${lang}/missions`}>{t.nav.missions}</a>
+              <a className="hide-narrow" href={`/${lang}/freelances`}>{t.nav.freelancers}</a>
+              <a className="hide-narrow" href={`/${lang}/metiers`}>{t.nav.skills}</a>
               <Link className="hide-narrow" href={`/${lang}/connexion`}>{t.nav.signIn}</Link>
-              <Link className="nav-cta" href={`/${lang}/inscription`}>{t.nav.start}</Link>
+              <Link className="nav-cta" href={`/${lang}/creer-un-compte`}>{t.nav.signUp}</Link>
             </>
-          ) : (
-            <>
-              <Link href={`/${lang}/freelance`} aria-current={current === "freelance" ? "page" : undefined}>{t.ws.freelanceShort}</Link>
-              <Link href={`/${lang}/entreprise`} aria-current={current === "recruiter" ? "page" : undefined}>{t.ws.recruiterShort}</Link>
-            </>
-          )}
+          ) : null}
           <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
         </nav>
       </div>

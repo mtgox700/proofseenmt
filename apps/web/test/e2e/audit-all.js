@@ -114,7 +114,7 @@ async (page) => {
 
   return { url, desktop, mobile: { ...mobile, ...mobileVitals }, contrast, keyboard, reduced, consoleErrors: errors };
 };
-  const urls = ["/fr", "/en", "/fr/freelance", "/fr/freelance/rapport", "/fr/freelance/preuves", "/fr/freelance/evolution", "/en/freelance", "/fr/entreprise", "/fr/entreprise/FR-7H2XK", "/fr/commande", "/en/commande", "/fr/inscription", "/fr/connexion", "/fr/app"];
+  const urls = ["/fr", "/en", "/fr/missions", "/fr/freelances", "/en/freelances", "/fr/metiers", "/fr/commande", "/en/commande", "/fr/inscription", "/fr/connexion", "/fr/app"];
   const out = {};
   for (const path of urls) {
     await page.goto(`http://localhost:3100${path}`);

@@ -6,7 +6,6 @@ export function Deliverable({ lang, t }: { readonly lang: Lang; readonly t: Dict
   const shots: Shot[] = t.deliverable.shots.map((shot) => ({
     key: shot.key,
     label: shot.label,
-    path: `/${lang}${shot.path}`,
     src: `/shots/${shot.key}-${lang}`,
     alt: shot.alt,
   }));

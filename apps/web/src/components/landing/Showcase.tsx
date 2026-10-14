@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 export interface Shot {
   readonly key: string;
   readonly label: string;
-  readonly path: string;
   readonly src: string;
   readonly alt: string;
 }
@@ -77,7 +76,7 @@ export function Showcase({ shots, label }: ShowcaseProps) {
       <div className="showcase-stage" onPointerMove={lean} onPointerLeave={rest}>
         <div className="showcase-window" ref={frame} role="tabpanel" id="shot-panel" aria-labelledby={current === undefined ? undefined : `shot-tab-${current.key}`}>
           <div className="showcase-bar" aria-hidden="true">
-            <span className="showcase-path">{current?.path}</span>
+            <span className="showcase-path">{current?.label}</span>
           </div>
           <div className="showcase-view">
             {shots.map((shot, i) => (
