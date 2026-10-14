@@ -124,8 +124,18 @@ export {
 export { ReviewInputSchema, reviews, type PublicReview, type ReviewInput, type Reviews, type WriteReviewResult } from "./reviews";
 export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashboard } from "./dashboards";
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
-export { MAX_SITEMAP_PROFILES, publicProfiles, type PublicMissionFact, type PublicProfilePage, type PublicProfiles } from "./public-profiles";
-export { MIN_REAL_ITEMS, skillPages, type SkillPage, type SkillPages } from "./skill-pages";
+export {
+  DIRECTORY_PAGE_SIZE,
+  DirectorySearchSchema,
+  MAX_SITEMAP_PROFILES,
+  publicProfiles,
+  type DirectoryCard,
+  type DirectorySearch,
+  type PublicMissionFact,
+  type PublicProfilePage,
+  type PublicProfiles,
+} from "./public-profiles";
+export { MIN_REAL_ITEMS, MIN_STAT_SAMPLE, skillPages, type SkillIndexEntry, type SkillPage, type SkillPageFacts, type SkillPages } from "./skill-pages";
 export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./validation-reminders";
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";
 export { feedback, FeedbackInputSchema, type FeedbackEntry, type FeedbackInput, type FeedbackPeriod, type FeedbackSummary } from "./feedback";

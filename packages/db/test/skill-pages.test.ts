@@ -58,6 +58,32 @@ describe("pages métiers", () => {
     expect(page?.profiles.every((p) => p.displayName === null)).toBe(true);
   });
 
+  it("compte ses faits dans la base, et ne publie la fourchette de TJM qu'à partir de cinq valeurs", async () => {
+    const rated = async (city: string, dailyRateCents: number | null) => {
+      const userId = await createUser(t.db);
+      await profiles(t.db).create({ userId }, { headline: "Dev", summary: "Résumé.", city, workMode: "remote", dailyRateCents, skills: ["Erlang"] }, nextReference);
+      await profiles(t.db).setVisibility({ userId }, "pseudonymous");
+    };
+    const now = new Date("2026-10-14T09:00:00Z");
+    for (const rate of [50_000, 60_000, 70_000, 80_000]) await rated("Nantes", rate);
+    await rated("nantes", null);
+    await openMission(["Erlang"]);
+
+    const four = await skillPages(t.db).page("erlang", now);
+    expect(four?.facts).toEqual({ profileCount: 5, missionCount: 1, dailyRate: null, cities: ["Nantes"] });
+    expect(four?.generatedAt).toEqual(now);
+
+    await rated("Brest", 45_000);
+    const five = await skillPages(t.db).page("erlang", now);
+    expect(five?.facts.dailyRate).toEqual({ n: 5, minCents: 45_000, maxCents: 80_000, currency: "EUR" });
+    expect(five?.facts.cities).toEqual(["Brest", "Nantes"]);
+  });
+
+  it("donne à l'index des métiers le libellé et les nombres de chaque page", async () => {
+    const entry = (await skillPages(t.db).listForSitemap()).find((s) => s.key === "elixir");
+    expect(entry).toEqual({ key: "elixir", label: "Elixir", missions: 1, profiles: 1 });
+  });
+
   it("refuse une clé qui n'est pas sous sa forme normalisée", async () => {
     expect(await skillPages(t.db).page("Elixir")).toBeNull();
     expect(await skillPages(t.db).page("../etc")).toBeNull();

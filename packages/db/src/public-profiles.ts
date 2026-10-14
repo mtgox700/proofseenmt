@@ -1,6 +1,9 @@
+import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
+import type { Prisma } from "./generated/client";
 import { SETTLED_PAYMENT } from "./reviews";
+import { skillKey } from "./skills";
 import { vigilanceExpiresOn } from "./vigilance";
 
 /** Une attestation ne se montre que vérifiée et non échue. */
@@ -71,15 +74,62 @@ export interface PublicProfilePage {
   readonly updatedAt: Date;
 }
 
+/*
+ * L'annuaire public : les profils publiés, filtrés par compétence et par ville, du plus récemment mis à jour au plus
+ * ancien. Cet ordre est un fait daté, affiché comme tel : jamais une pertinence, un score ni un classement de personnes.
+ */
+export const DIRECTORY_PAGE_SIZE = 20;
+
+export const DirectorySearchSchema = z.object({
+  skill: z.string().trim().max(60).default(""),
+  city: z.string().trim().max(120).default(""),
+  page: z.number().int().min(1).max(50).default(1),
+});
+export type DirectorySearch = z.input<typeof DirectorySearchSchema>;
+
+/** Une carte de l'annuaire : seulement des faits publics, les mêmes que ceux de la page du profil. */
+export interface DirectoryCard {
+  readonly slug: string;
+  readonly reference: string;
+  readonly displayName: string | null;
+  readonly headline: string;
+  readonly city: string;
+  readonly workMode: WorkMode;
+  readonly skills: readonly string[];
+  readonly facts: {
+    readonly registryActive: boolean;
+    readonly identityVerified: boolean;
+    readonly vigilanceValid: boolean;
+    readonly verifiedMissions: number;
+    readonly payingClients: number;
+  };
+  readonly updatedAt: Date;
+}
+
 export interface PublicProfiles {
   /** La page d'un profil publié et complet ; `null` sinon. */
   page(slug: string, now?: Date): Promise<PublicProfilePage | null>;
   /** Les profils publiés, pour le sitemap. */
   listForSitemap(): Promise<readonly { readonly slug: string; readonly updatedAt: Date }[]>;
+  /** Une page de l'annuaire public. */
+  directory(search: DirectorySearch, now?: Date): Promise<{ readonly items: readonly DirectoryCard[]; readonly hasMore: boolean }>;
 }
 
 const SLUG = /^[a-z0-9-]{3,60}$/;
 export const MAX_SITEMAP_PROFILES = 25_000;
+
+const directoryWhere = (f: z.output<typeof DirectorySearchSchema>): Prisma.FreelanceProfileWhereInput => {
+  const skill = skillKey(f.skill);
+  const city = skillKey(f.city);
+  return {
+    visibility: { not: "private" },
+    slug: { not: null },
+    headline: { not: null },
+    city: { not: null },
+    ...(city === "" ? {} : { cityKey: city }),
+    ...(skill === "" ? {} : { skills: { some: { skill: { key: skill } } } }),
+  };
+};
 
 export const publicProfiles = (db: Db): PublicProfiles => ({
   async page(slug, now = new Date()) {
@@ -151,5 +201,55 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       select: { slug: true, updatedAt: true },
     });
     return rows.flatMap((r) => (r.slug === null ? [] : [{ slug: r.slug, updatedAt: r.updatedAt }]));
+  },
+
+  async directory(search, now = new Date()) {
+    const f = DirectorySearchSchema.parse(search);
+    const rows = await db.freelanceProfile.findMany({
+      where: directoryWhere(f),
+      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      skip: (f.page - 1) * DIRECTORY_PAGE_SIZE,
+      take: DIRECTORY_PAGE_SIZE + 1,
+      select: {
+        slug: true,
+        reference: true,
+        visibility: true,
+        headline: true,
+        city: true,
+        workMode: true,
+        updatedAt: true,
+        user: { select: { displayName: true } },
+        skills: { select: { skill: { select: { label: true } } } },
+        billing: { select: { registryStatus: true, payoutsEnabledAt: true } },
+        vigilance: { select: { issuedOn: true, verifiedAt: true } },
+        _count: { select: { missions: true } },
+        contracts: { where: { payments: { some: SETTLED_PAYMENT }, organisationId: { not: null } }, select: { organisationId: true } },
+      },
+    });
+    const items = rows.slice(0, DIRECTORY_PAGE_SIZE).flatMap((r): DirectoryCard[] =>
+      r.slug === null || r.headline === null || r.city === null || r.visibility === "private"
+        ? []
+        : [
+            {
+              slug: r.slug,
+              reference: r.reference,
+              displayName: publicName(r.visibility, r.user.displayName),
+              headline: r.headline,
+              city: r.city,
+              workMode: r.workMode,
+              skills: r.skills.map((s) => s.skill.label).sort((a, b) => a.localeCompare(b, "fr")),
+              facts: {
+                registryActive: r.billing?.registryStatus === "active",
+                identityVerified: r.billing?.payoutsEnabledAt != null,
+                vigilanceValid: vigilanceShown(r.vigilance, now) !== null,
+                verifiedMissions: r._count.missions,
+                // Des entreprises distinctes, comme sur la page du profil.
+                payingClients: new Set(r.contracts.map((c) => c.organisationId)).size,
+              },
+              updatedAt: r.updatedAt,
+            },
+          ],
+    );
+    return { items, hasMore: rows.length > DIRECTORY_PAGE_SIZE };
   },
 });
