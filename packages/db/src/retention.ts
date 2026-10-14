@@ -29,6 +29,11 @@ export const RETENTION = {
   feedbackDays: 365,
   /** Compteurs du limiteur de débit : une fenêtre passée ne sert plus. */
   rateLimitBucketsDays: 1,
+  /**
+   * Demandes de mesure terminées : un an suffit à expliquer un historique et à contrôler la dépense. La vague produite,
+   * elle, reste avec le profil : c'est le résultat, pas la trace de la demande.
+   */
+  finishedMeasurementsDays: 365,
 } as const;
 
 export interface PurgeReport {
@@ -39,6 +44,7 @@ export interface PurgeReport {
   readonly declinedMessages: number;
   readonly rateLimitBuckets: number;
   readonly feedback: number;
+  readonly measurementRequests: number;
 }
 
 export interface Retention {
@@ -51,7 +57,7 @@ const before = (now: Date, days: number): Date => new Date(now.getTime() - days 
 export const retention = (db: Db): Retention => ({
   async purge(now) {
     const conversationCutoff = before(now, RETENTION.unansweredConversationsDays);
-    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows] = await Promise.all([
+    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows, measurementRows] = await Promise.all([
       db.notification.deleteMany({
         where: {
           OR: [
@@ -66,6 +72,9 @@ export const retention = (db: Db): Retention => ({
       db.message.deleteMany({ where: { conversation: { status: "declined", decidedAt: { lt: conversationCutoff } } } }),
       db.rateLimitBucket.deleteMany({ where: { windowStart: { lt: before(now, RETENTION.rateLimitBucketsDays) } } }),
       db.feedback.deleteMany({ where: { createdAt: { lt: before(now, RETENTION.feedbackDays) } } }),
+      db.measurementRequest.deleteMany({
+        where: { status: { in: ["done", "failed", "refused"] }, finishedAt: { lt: before(now, RETENTION.finishedMeasurementsDays) } },
+      }),
     ]);
     return {
       notifications: notifications.count,
@@ -75,6 +84,7 @@ export const retention = (db: Db): Retention => ({
       declinedMessages: declinedMessages.count,
       rateLimitBuckets: rateLimitBuckets.count,
       feedback: feedbackRows.count,
+      measurementRequests: measurementRows.count,
     };
   },
 });

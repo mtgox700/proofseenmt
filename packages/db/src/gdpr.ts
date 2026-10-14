@@ -81,6 +81,19 @@ export const gdpr = (db: Db): Gdpr => ({
           missions: true,
           applications: { select: { id: true, jobPostId: true, coverNote: true, status: true, createdAt: true } },
           reviews: { select: { rating: true, body: true, createdAt: true } },
+          // Mesures de visibilité : les chiffres de l'entonnoir et l'historique des demandes. Aucune réponse brute de
+          // moteur n'est en base, il n'y a donc rien d'autre à rendre.
+          waves: {
+            select: {
+              waveId: true,
+              measuredAt: true,
+              draws: true,
+              costCents: true,
+              currency: true,
+              results: { select: { engine: true, draws: true, retrieved: true, named: true, top5: true, cited: true } },
+            },
+          },
+          measurements: { select: { status: true, engines: true, createdAt: true, finishedAt: true, errorCode: true, costCents: true } },
         },
       }),
       db.message.findMany({ where: { senderUserId: userId }, select: { id: true, conversationId: true, body: true, createdAt: true }, orderBy: { createdAt: "asc" } }),
@@ -147,6 +160,9 @@ export const gdpr = (db: Db): Gdpr => ({
         await tx.jobPost.updateMany({ where: { organisationId: { in: lastMemberOf }, status: "open" }, data: { status: "closed", closedAt: new Date() } });
       }
       await tx.auditRequest.deleteMany({ where: { email: user.email } });
+      // Les vagues mesurées décrivent la personne : elles partent avec elle au lieu de rester détachées. Les demandes de
+      // mesure partent par cascade avec le profil.
+      if (user.freelanceProfile !== null) await tx.wave.deleteMany({ where: { profileId: user.freelanceProfile.id } });
       await tx.user.delete({ where: { id: userId } });
       return "erased";
     });

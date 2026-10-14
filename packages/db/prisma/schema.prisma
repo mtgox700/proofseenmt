@@ -182,6 +182,7 @@ model User {
   timesheetDecisions      Timesheet[]              @relation("TimesheetDecider")
   contractApprovals       ContractApproval[]
   apiKeysCreated          ApiKey[]
+  measurementRequests     MeasurementRequest[]
 }
 
 model Organisation {
@@ -261,6 +262,7 @@ model FreelanceProfile {
   contracts      Contract[]
   reviews        Review[]          @relation("ReviewTarget")
   waves          Wave[]
+  measurements   MeasurementRequest[]
   vigilance      VigilanceAttestation?
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
@@ -759,8 +761,9 @@ model Wave {
   currency   String?  @db.Char(3)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
 
-  profile FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
-  results VisibilityResult[]
+  profile     FreelanceProfile?   @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  results     VisibilityResult[]
+  measurement MeasurementRequest?
 
   @@index([profileId], where: raw("\"profileId\" IS NOT NULL"), map: "Wave_profileId_idx")
 }
@@ -781,6 +784,54 @@ model VisibilityResult {
   wave Wave @relation(fields: [waveRefId], references: [id], onDelete: Cascade)
 
   @@unique([waveRefId, engine])
+}
+
+/// Où en est une demande de mesure lancée depuis l'application.
+enum MeasurementStatus {
+  queued  // en file, en attente d'un passage de la tâche planifiée (ou d'un plafond de dépense qui se libère)
+  running // prise en charge, sous bail
+  done    // vague enregistrée
+  failed  // abandonnée après plusieurs essais
+  refused // refusée au moment de mesurer : profil dépublié, plus aucune adresse prouvée, aucun moteur configuré
+}
+
+/// Une demande de mesure de visibilité faite par le freelance depuis l'application. Elle ne porte aucune réponse de
+/// moteur : seulement son état, ce qu'elle a coûté et la vague qu'elle a produite. Les montants sont en centimes de
+/// dollar (les fournisseurs facturent en dollars).
+model MeasurementRequest {
+  id                 String            @id @default(uuid(7)) @db.Uuid
+  profileId          String            @db.Uuid
+  requestedByUserId  String            @db.Uuid
+  status             MeasurementStatus @default(queued)
+  /// Moteurs effectivement interrogés, fixés au moment de mesurer : ceux dont la clé est configurée, pas une promesse.
+  engines            String[]          @default([])
+  attempts           Int               @default(0)
+  /// Pas de nouvelle tentative avant cette date (reprise après échec).
+  runAfter           DateTime          @default(now()) @db.Timestamptz(3)
+  /// Bail de la prise en charge : passé cette date, une autre exécution peut la reprendre.
+  leasedUntil        DateTime?         @db.Timestamptz(3)
+  /// Plafond dur de la mesure en cours (pire cas), réservé sur les plafonds de la plateforme tant qu'elle tourne.
+  estimatedCostCents Int?
+  /// Dépense réelle cumulée sur tous les essais ; un essai interrompu sans bilan est compté à son pire cas.
+  costCents          Int?
+  waveRefId          String?           @unique @db.Uuid
+  /// Code d'erreur court, jamais un message de fournisseur.
+  errorCode          String?
+  createdAt          DateTime          @default(now()) @db.Timestamptz(3)
+  startedAt          DateTime?         @db.Timestamptz(3)
+  finishedAt         DateTime?         @db.Timestamptz(3)
+  updatedAt          DateTime          @default(now()) @updatedAt @db.Timestamptz(3)
+
+  profile     FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  requestedBy User             @relation(fields: [requestedByUserId], references: [id], onDelete: Cascade)
+  wave        Wave?            @relation(fields: [waveRefId], references: [id], onDelete: SetNull)
+
+  /// Une seule demande active par profil, garantie par la base et pas seulement par le code.
+  @@unique([profileId], where: raw("\"status\" IN ('queued', 'running')"), map: "MeasurementRequest_active_uq")
+  @@index([profileId, createdAt(sort: Desc)])
+  @@index([requestedByUserId])
+  @@index([runAfter, id], where: raw("\"status\" = 'queued'"), map: "MeasurementRequest_queue_idx")
+  @@index([startedAt])
 }
 
 // ─── Notifications ──────────────────────────────────────────────────────────────────────────────────────────────────

@@ -125,6 +125,28 @@ export { ReviewInputSchema, reviews, type PublicReview, type ReviewInput, type R
 export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashboard } from "./dashboards";
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
 export {
+  CompletionSchema,
+  MEASUREMENT_CURRENCY,
+  MEASUREMENT_WINDOW_DAYS,
+  measurements,
+  MEASUREMENTS_PER_WINDOW,
+  measurementWaveId,
+  type Completion,
+  type Eligibility,
+  type MeasurementRefusal,
+  type Measurements,
+  type MeasurementView,
+  type RequestResult,
+} from "./measurements";
+export {
+  ClaimPlanSchema,
+  MEASUREMENT_LEASE_MS,
+  MEASUREMENT_MAX_ATTEMPTS,
+  type ClaimedMeasurement,
+  type ClaimPlan,
+  type ClaimResult,
+} from "./measurement-queue";
+export {
   DIRECTORY_PAGE_SIZE,
   DirectorySearchSchema,
   MAX_SITEMAP_PROFILES,
