@@ -43,12 +43,15 @@ const digest = (value: string, secret: string): string =>
  * Without either, everyone would share one bucket and one client could lock everybody out, so the request is keyed on
  * nothing better than its own scope — still limited, by the coarse in-memory cap.
  */
-export const clientAddress = (request: Request): string | null => {
-  const real = request.headers.get("x-real-ip")?.trim();
+/** Read from request headers alone: also usable in server actions (`headers()` from next/headers). */
+export const addressFromHeaders = (headers: Pick<Headers, "get">): string | null => {
+  const real = headers.get("x-real-ip")?.trim();
   if (real !== undefined && real !== "") return real;
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",").map((part) => part.trim()).filter(Boolean);
+  const forwarded = headers.get("x-forwarded-for")?.split(",").map((part) => part.trim()).filter(Boolean);
   return forwarded?.at(-1) ?? null;
 };
+
+export const clientAddress = (request: Request): string | null => addressFromHeaders(request.headers);
 
 let warnedAboutSecret = false;
 

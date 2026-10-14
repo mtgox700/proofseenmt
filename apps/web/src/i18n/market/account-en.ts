@@ -52,6 +52,7 @@ export const accountEn: AccountDictionary = {
       mission_match: "An alert finds new missions",
       contract_update: "A contract moves forward (signature, approval, payment)",
       vigilance_expiring: "Your vigilance certificate is about to expire",
+      mission_confirmation: "A mission to confirm, or your client's answer",
     },
     save: "Save my choices",
     saved: "Preferences saved.",

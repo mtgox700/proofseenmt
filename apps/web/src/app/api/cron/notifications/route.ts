@@ -1,10 +1,12 @@
-import { getDb, missionAlerts, notifications, ownedUrls, payments, retention, validationReminders, vigilance } from "@proofseen/db";
+import { confirmationMail, getDb, missionAlerts, notifications, ownedUrls, payments, retention, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
+import { sendConfirmationEmails } from "@/data/confirmation-mail";
 import { checkDueRegistry } from "@/data/registry-lookup";
 import { hasDatabase } from "@/data/intake-sink";
 import { recheckProofs } from "@/data/ownership";
+import { confirmationSecret } from "@/lib/confirmation-secret";
 import { cronAuthorised } from "@/lib/cron-auth";
 import { logError } from "@/lib/log";
 import { proofSecret } from "@/lib/proof-secret";
@@ -71,7 +73,7 @@ export async function GET(request: Request): Promise<Response> {
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent: 0, failed: 0, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent: 0, failed: 0, confirmationMails: null, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -83,7 +85,17 @@ export async function GET(request: Request): Promise<Response> {
       sent += report.sent;
       failed += report.failed;
     }
-    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent, failed, transport: "resend" } });
+    // Mission confirmation requests addressed to a client contact without an account: their link is recomputed from
+    // the secret, so without it nothing is sent (the requests wait, then expire without publishing anything).
+    const linkSecret = confirmationSecret();
+    const confirmationMails =
+      linkSecret === null
+        ? null
+        : await sendConfirmationEmails({ outbox: confirmationMail(db), transport, secret: linkSecret, baseUrl: publicBaseUrl(request), now }).catch((error: unknown) => {
+            logError("cron: confirmation e-mails failed", error);
+            return null;
+          });
+    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, proofChecks, releases, sent, failed, confirmationMails, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);

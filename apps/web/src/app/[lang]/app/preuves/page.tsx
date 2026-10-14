@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MAX_OWNED_URL_LENGTH, MAX_OWNED_URLS, ownedUrls, PROOF_GRACE_DAYS, type OwnedUrlRecord } from "@proofseen/db";
+import { MAX_OWNED_URL_LENGTH, MAX_OWNED_URLS, MAX_PENDING_CONFIRMATIONS, missionConfirmations, ownedUrls, PROOF_GRACE_DAYS, verifiedMissions, type OwnedUrlRecord } from "@proofseen/db";
 import { proofKit } from "@proofseen/profiles";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { ProofWays } from "@/components/market/ProofWays";
+import { VerifiedMissionsPanel } from "@/components/market/VerifiedMissionsPanel";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
@@ -16,12 +17,34 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; enregistre?: string; prouve?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; enregistre?: string; prouve?: string; mission?: string; "mission-erreur"?: string }>;
 }
 
 type Proofs = MarketDictionary["proofs"];
 
 const DAY_MS = 86_400_000;
+
+/** The notice of the verified missions section, from the codes its actions redirect with. */
+const missionNotice = (ok: string | undefined, failed: string | undefined, m: MarketDictionary): { readonly kind: "ok" | "error"; readonly text: string } | null => {
+  const f = m.confirmations.freelance;
+  const errors: Readonly<Record<string, string>> = {
+    trop: f.errors.tooMany,
+    invalide: f.errors.invalid,
+    profil: f.errors.noProfile,
+    limite: f.limit(MAX_PENDING_CONFIRMATIONS),
+    future: f.errors.future,
+    soi: f.errors.self,
+    contact: f.errors.contactRequired,
+    "contact-limite": f.errors.contactLimit,
+    introuvable: f.errors.notFound,
+    indisponible: f.errors.unavailable,
+  };
+  const done: Readonly<Record<string, string>> = { entreprise: f.sent.organisation, email: f.sent.email, retiree: f.withdrawn };
+  const error = failed === undefined ? undefined : errors[failed];
+  if (error !== undefined) return { kind: "error", text: error };
+  const success = ok === undefined ? undefined : done[ok];
+  return success === undefined ? null : { kind: "ok", text: success };
+};
 
 const errorText = (code: string | undefined, p: Proofs): string | null => {
   const e = p.errors;
@@ -99,9 +122,13 @@ export default async function ProofsPage({ params, searchParams }: PageProps) {
   const p = m.proofs;
   const market = await pageMarket(lang, ["freelance"]);
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
-  const records = await ownedUrls(market.db).list(market.actor);
+  const [records, missions, requests] = await Promise.all([
+    ownedUrls(market.db).list(market.actor),
+    verifiedMissions(market.db).listMine(market.actor),
+    missionConfirmations(market.db).listMine(market.actor, new Date()),
+  ]);
   const secret = proofSecret();
-  const { erreur, enregistre, prouve } = await searchParams;
+  const { erreur, enregistre, prouve, mission, "mission-erreur": missionError } = await searchParams;
   const error = errorText(erreur, p);
   const success = error !== null ? null : prouve !== undefined ? p.proven : enregistre !== undefined ? p.saved : null;
   const full = records.length >= MAX_OWNED_URLS;
@@ -154,6 +181,7 @@ export default async function ProofsPage({ params, searchParams }: PageProps) {
           </button>
         </form>
       )}
+      <VerifiedMissionsPanel lang={lang} m={m} missions={missions} requests={requests} notice={missionNotice(mission, missionError, m)} />
     </>
   );
 }

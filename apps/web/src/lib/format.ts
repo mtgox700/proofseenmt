@@ -62,3 +62,7 @@ export const money = (cents: number, currency: string, lang: Lang): string =>
  */
 export const day = (instant: Date, lang: Lang): string =>
   new Intl.DateTimeFormat(LOCALE[lang], { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" }).format(instant);
+
+/** A calendar month stored as its first day (UTC): « mars 2025 », "March 2025". */
+export const month = (firstDay: Date, lang: Lang): string =>
+  new Intl.DateTimeFormat(LOCALE[lang], { month: "long", year: "numeric", timeZone: "UTC" }).format(firstDay);

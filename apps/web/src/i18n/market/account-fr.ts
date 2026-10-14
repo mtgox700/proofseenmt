@@ -51,6 +51,7 @@ export const accountFr = {
       mission_match: "Une alerte trouve de nouvelles missions",
       contract_update: "Un contrat avance (signature, validation, paiement)",
       vigilance_expiring: "Votre attestation de vigilance va expirer",
+      mission_confirmation: "Une mission à confirmer, ou la réponse de votre client",
     },
     save: "Enregistrer mes choix",
     saved: "Préférences enregistrées.",
