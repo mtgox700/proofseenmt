@@ -8,7 +8,7 @@
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -125,6 +125,34 @@ const body = (n: NotificationInput, base: string): Body => {
             : `It expires on ${expiresOn}. Without a valid certificate, no new contract of 5,000 € excl. VAT or more can be signed: download the new one from urssaf.fr and declare it on Proofseen.`,
         ],
         links: [{ label: COPY[lang].open, href: app }],
+      };
+    }
+    case "mission_confirmation": {
+      const status = text(n.payload.status);
+      if (status === "requested") {
+        return {
+          subject: fr ? "Un freelance demande la confirmation d'une mission" : "A freelancer asks you to confirm a mission",
+          lines: [
+            fr
+              ? "Un freelance indique avoir réalisé une mission pour votre entreprise et vous demande de la confirmer. Rien n'est publié sans votre confirmation ; sans réponse, la demande expire au bout de trente jours."
+              : "A freelancer says they completed a mission for your company and asks you to confirm it. Nothing is published without your confirmation; without an answer, the request expires after thirty days.",
+          ],
+          links: [{ label: COPY[lang].open, href: `${app}/confirmations` }],
+        };
+      }
+      const confirmed = status === "confirmed";
+      return {
+        subject: confirmed ? (fr ? "Votre mission est confirmée par le client" : "Your mission was confirmed by the client") : fr ? "Le client n'a pas confirmé votre mission" : "The client did not confirm your mission",
+        lines: [
+          confirmed
+            ? fr
+              ? "Le client a confirmé la mission : elle apparaît maintenant sur votre profil public, datée, comme mission vérifiée."
+              : "The client confirmed the mission: it now appears on your public profile, dated, as a verified mission."
+            : fr
+              ? "Le client a refusé de confirmer la mission. Rien n'est publié."
+              : "The client declined to confirm the mission. Nothing is published.",
+        ],
+        links: [{ label: COPY[lang].open, href: `${app}/preuves` }],
       };
     }
     case "mission_match": {
