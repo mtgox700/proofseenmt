@@ -26,7 +26,9 @@ interface PageProps {
 /** Why a measurement cannot be requested now, in the person's words; `null` when it can. */
 const refusalText = (eligibility: Eligibility, v: VisibilityDictionary, lang: Lang): string | null => {
   if (eligibility.kind === "allowed") return null;
-  if (eligibility.reason === "monthly_limit") return v.refusals.monthly_limit(day(eligibility.availableAt ?? new Date(), lang));
+  if (eligibility.reason === "monthly_limit" || eligibility.reason === "too_recent") {
+    return v.refusals[eligibility.reason](day(eligibility.availableAt ?? new Date(), lang));
+  }
   return v.refusals[eligibility.reason];
 };
 

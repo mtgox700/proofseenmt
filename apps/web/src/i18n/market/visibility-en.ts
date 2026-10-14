@@ -21,8 +21,10 @@ export const visibilityEn: VisibilityDictionary = {
     no_profile: "Create your freelance profile first: the measurement starts from your headline and skills.",
     not_published: "Publish your profile first: only what is visible is measured.",
     no_proven_url: "First prove that at least one address is yours (website, GitHub…): without a proven address, no citation can be recognised as yours.",
+    too_recent: (date: string) => `Your account is brand new: the first measurement can be requested 24 hours after it was created, from ${date}.`,
     already_active: "A measurement is already queued or running: wait for its result.",
     monthly_limit: (date: string) => `You have used this period's measurements. Next measurement possible on ${date}.`,
+    platform_busy: "Many measurements are already waiting their turn: try again in a few hours, your allowance is untouched.",
   },
   requests: {
     title: "Your requests",
@@ -38,6 +40,7 @@ export const visibilityEn: VisibilityDictionary = {
       unexpected: "Technical error, retried automatically.",
       record_failed: "Measured but the result could not be saved: the team sees it in its logs.",
       no_answers: "No engine answered.",
+      time_limit: "Stopped at its maximum duration: the engines did not answer in time.",
       not_published: "Profile unpublished before the measurement.",
       no_proven_url: "No proven address left when measuring.",
       nothing_to_ask: "Profile without headline or skills: nothing to ask the engines.",

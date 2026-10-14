@@ -21,8 +21,10 @@ export const visibilityFr = {
     no_profile: "Créez d'abord votre profil freelance : la mesure part de votre titre et de vos compétences.",
     not_published: "Publiez d'abord votre profil : on ne mesure que ce qui est visible.",
     no_proven_url: "Prouvez d'abord qu'au moins une adresse vous appartient (site, GitHub…) : sans adresse prouvée, aucune citation ne peut être reconnue comme la vôtre.",
+    too_recent: (date: string) => `Votre compte est tout neuf : la première mesure se demande 24 heures après sa création, à partir du ${date}.`,
     already_active: "Une mesure est déjà en file ou en cours : attendez son résultat.",
     monthly_limit: (date: string) => `Vous avez utilisé vos mesures de la période. Prochaine mesure possible le ${date}.`,
+    platform_busy: "Beaucoup de mesures attendent déjà leur tour : réessayez dans quelques heures, votre place n'est pas entamée.",
   },
   requests: {
     title: "Vos demandes",
@@ -38,6 +40,7 @@ export const visibilityFr = {
       unexpected: "Erreur technique, nouvel essai automatique.",
       record_failed: "Mesure faite mais résultat non enregistré : l'équipe est prévenue par ses journaux.",
       no_answers: "Aucun moteur n'a répondu.",
+      time_limit: "Arrêtée à sa durée maximale : les moteurs ne répondaient pas à temps.",
       not_published: "Profil dépublié avant la mesure.",
       no_proven_url: "Plus aucune adresse prouvée au moment de mesurer.",
       nothing_to_ask: "Profil sans titre ni compétence : rien à demander aux moteurs.",
