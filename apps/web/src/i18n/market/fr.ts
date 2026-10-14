@@ -4,6 +4,7 @@ import { dealsFr } from "./deals-fr";
 import { missionsFr } from "./missions-fr";
 import { profileFr } from "./profile-fr";
 import { proofsFr } from "./proofs-fr";
+import { searchFr } from "./search-fr";
 import { teamFr } from "./team-fr";
 import { visibilityFr } from "./visibility-fr";
 
@@ -32,6 +33,7 @@ export const marketFr = {
   missions: missionsFr,
   profile: profileFr,
   proofs: proofsFr,
+  search: searchFr,
   team: teamFr,
   visibility: visibilityFr,
   nav: {
