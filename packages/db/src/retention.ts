@@ -1,4 +1,5 @@
 import type { Db } from "./client";
+import { MEASUREMENT_SPEND_RETENTION_DAYS } from "./measurement-ledger";
 import { MAX_ATTEMPTS } from "./notifications";
 
 /*
@@ -39,6 +40,11 @@ export const RETENTION = {
    * l'adresse d'un tiers (le contact du client) ; la mission confirmée, elle, reste sur le profil.
    */
   missionConfirmationsDays: 90,
+  /**
+   * Registre de dépense des mesures : ses fenêtres les plus longues (plafond mensuel, limite par profil) couvrent 30
+   * jours. Au-delà, ses empreintes d'adresses ne servent plus à rien et ne sont pas gardées.
+   */
+  measurementSpendDays: MEASUREMENT_SPEND_RETENTION_DAYS,
 } as const;
 
 export interface PurgeReport {
@@ -51,6 +57,7 @@ export interface PurgeReport {
   readonly feedback: number;
   readonly measurementRequests: number;
   readonly missionConfirmations: number;
+  readonly measurementSpend: number;
 }
 
 export interface Retention {
@@ -64,7 +71,7 @@ export const retention = (db: Db): Retention => ({
   async purge(now) {
     const conversationCutoff = before(now, RETENTION.unansweredConversationsDays);
     const confirmationCutoff = before(now, RETENTION.missionConfirmationsDays);
-    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows, measurementRows, confirmationRows] = await Promise.all([
+    const [notifications, stripeEvents, auditRequests, unansweredConversations, declinedMessages, rateLimitBuckets, feedbackRows, measurementRows, confirmationRows, spendRows] = await Promise.all([
       db.notification.deleteMany({
         where: {
           OR: [
@@ -85,6 +92,7 @@ export const retention = (db: Db): Retention => ({
       db.missionConfirmationRequest.deleteMany({
         where: { OR: [{ decidedAt: { lt: confirmationCutoff } }, { status: "pending", expiresAt: { lt: confirmationCutoff } }] },
       }),
+      db.measurementSpend.deleteMany({ where: { startedAt: { lt: before(now, RETENTION.measurementSpendDays) } } }),
     ]);
     return {
       notifications: notifications.count,
@@ -96,6 +104,7 @@ export const retention = (db: Db): Retention => ({
       feedback: feedbackRows.count,
       measurementRequests: measurementRows.count,
       missionConfirmations: confirmationRows.count,
+      measurementSpend: spendRows.count,
     };
   },
 });

@@ -915,6 +915,27 @@ model MeasurementRequest {
   @@index([startedAt])
 }
 
+/// Registre de dépense des mesures : une ligne par essai pris en charge. Volontairement SANS relation vers un compte
+/// ou un profil : effacer un compte ne doit pas effacer ce que la plateforme a dépensé, ni remettre à zéro ses
+/// plafonds. La réserve (pire cas) est posée à la prise en charge ; la dépense réelle est réglée à la fin, à l'échec
+/// ou à l'expiration du bail (au pire cas). `hostKeys` porte les empreintes des adresses prouvées du profil mesuré
+/// (pseudonymes, jamais l'adresse elle-même) : la limite par profil survit ainsi à l'effacement. Gardé 60 jours.
+model MeasurementSpend {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  /// Demande d'origine, sans clé étrangère : la ligne reste quand la demande part avec le compte.
+  requestId     String    @db.Uuid
+  attempt       Int
+  reservedCents Int
+  /// Nul tant que l'essai tourne : il compte alors pour sa réserve.
+  actualCents   Int?
+  hostKeys      String[]  @default([])
+  startedAt     DateTime  @db.Timestamptz(3)
+  settledAt     DateTime? @db.Timestamptz(3)
+
+  @@unique([requestId, attempt])
+  @@index([startedAt])
+}
+
 // ─── Notifications ──────────────────────────────────────────────────────────────────────────────────────────────────
 
 enum NotificationKind {

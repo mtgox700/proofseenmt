@@ -29,6 +29,8 @@ let sequence = 0;
 const freelancer = async (): Promise<{ userId: string; profileId: string; client: { name: string; url: string } }> => {
   sequence += 1;
   const userId = await createUser(t.db);
+  // Un compte de moins de 24 heures ne peut pas encore demander de mesure.
+  await t.db.user.update({ where: { id: userId }, data: { createdAt: new Date(NOW.getTime() - 2 * 86_400_000) } });
   const profileId = await createProfile(t.db, userId);
   const url = `https://freelance-${sequence}.example.fr/`;
   await t.db.ownedUrl.create({ data: { profileId, url, urlKey: url.slice(0, -1), proofMethod: "well_known_file", verifiedAt: NOW } });

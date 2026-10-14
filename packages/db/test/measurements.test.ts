@@ -31,13 +31,23 @@ const proveUrl = async (profileId: string, verified = true): Promise<void> => {
   await t.db.ownedUrl.create({ data: { profileId, url, urlKey: url.slice(0, -1), proofMethod: "well_known_file", verifiedAt: verified ? NOW : null } });
 };
 
+/** Un compte créé avant NOW : un compte de moins de 24 heures ne peut pas encore demander de mesure. */
+const settledAccount = async (): Promise<string> => {
+  const userId = await createUser(t.db);
+  await t.db.user.update({ where: { id: userId }, data: { createdAt: new Date(NOW.getTime() - 2 * DAY) } });
+  return userId;
+};
+
 /** Un freelance publié avec une adresse prouvée : le seul cas où une mesure est acceptée. */
 const eligibleFreelancer = async (): Promise<{ userId: string; profileId: string }> => {
-  const userId = await createUser(t.db);
+  const userId = await settledAccount();
   const profileId = await createProfile(t.db, userId);
   await proveUrl(profileId);
   return { userId, profileId };
 };
+
+/** La référence d'un premier essai : fin, échec et refus ne valent que pour l'essai en cours. */
+const firstRun = (id: string): { id: string; attempts: number } => ({ id, attempts: 1 });
 
 const stage = (successes: number) => ({ successes });
 const completion = (costCents: number): Completion => ({
@@ -92,7 +102,7 @@ describe("demander une mesure", () => {
       if (queued.kind !== "queued") throw new Error(`demande ${i} refusée`);
       const { claimed } = await repo.claim(1, at(i * DAY), PLAN);
       expect(claimed.map((c) => c.id)).toEqual([queued.id]);
-      expect(await repo.complete(queued.id, completion(80), at(i * DAY))).toBe("done");
+      expect(await repo.complete(firstRun(queued.id), completion(80), at(i * DAY))).toBe("done");
     }
     const refused = await repo.request({ userId }, at(5 * DAY));
     expect(refused).toEqual({ kind: "refused", reason: "monthly_limit", availableAt: at(30 * DAY) });
@@ -103,14 +113,14 @@ describe("demander une mesure", () => {
     const first = await repo.request({ userId: other.userId }, NOW);
     if (first.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
-    await repo.fail(first.id, { code: "engine_down", costCents: 0, retry: false }, NOW);
+    await repo.fail(firstRun(first.id), { code: "engine_down", costCents: 0, retry: false }, NOW);
     expect(await repo.eligibility({ userId: other.userId }, NOW)).toEqual({ kind: "allowed", remaining: MEASUREMENTS_PER_WINDOW });
 
     // Un échec qui a coûté, lui, compte : redemander en boucle ne ferait pas payer la plateforme sans limite.
     const second = await repo.request({ userId: other.userId }, NOW);
     if (second.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
-    await repo.fail(second.id, { code: "record_failed", costCents: 90, retry: false }, NOW);
+    await repo.fail(firstRun(second.id), { code: "record_failed", costCents: 90, retry: false }, NOW);
     expect(await repo.eligibility({ userId: other.userId }, NOW)).toEqual({ kind: "allowed", remaining: MEASUREMENTS_PER_WINDOW - 1 });
   });
 
@@ -122,7 +132,7 @@ describe("demander une mesure", () => {
     if (queued.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
     // Fin tardive, après l'échéance du bail mais avant le passage suivant : elle fait foi.
-    expect(await repo.complete(queued.id, completion(70), at(MEASUREMENT_LEASE_MS + MINUTE))).toBe("done");
+    expect(await repo.complete(firstRun(queued.id), completion(70), at(MEASUREMENT_LEASE_MS + MINUTE))).toBe("done");
     expect((await repo.claim(1, at(MEASUREMENT_LEASE_MS + 2 * MINUTE), PLAN)).claimed).toEqual([]);
     expect(await t.db.measurementRequest.findUniqueOrThrow({ where: { id: queued.id } })).toMatchObject({ status: "done", costCents: 70 });
   });
@@ -183,8 +193,8 @@ describe("file des mesures", () => {
     expect(await repo.claim(1, day, tight)).toEqual({ claimed: [], held: "daily_cap" });
 
     // Terminée pour 300 réels : 700 restent sur 1 000, la seconde passe ; le plafond mensuel, lui, la retient.
-    const running = await t.db.measurementRequest.findFirstOrThrow({ where: { status: "running" }, select: { id: true } });
-    await repo.complete(running.id, completion(300), day);
+    const running = await t.db.measurementRequest.findFirstOrThrow({ where: { status: "running" }, select: { id: true, attempts: true } });
+    await repo.complete(running, completion(300), day);
     expect(await repo.claim(1, day, { ...tight, monthlyCapCents: 800 })).toEqual({ claimed: [], held: "monthly_cap" });
     expect((await repo.claim(1, day, tight)).claimed).toHaveLength(1);
   });
@@ -196,9 +206,9 @@ describe("file des mesures", () => {
     const queued = await repo.request({ userId }, NOW);
     if (queued.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
-    expect(await repo.complete(queued.id, { ...completion(123), stoppedEarly: true }, at(MINUTE))).toBe("done");
+    expect(await repo.complete(firstRun(queued.id), { ...completion(123), stoppedEarly: true }, at(MINUTE))).toBe("done");
     // Rejouer une fin déjà enregistrée ne crée rien.
-    expect(await repo.complete(queued.id, completion(123), at(MINUTE))).toBe("not_running");
+    expect(await repo.complete(firstRun(queued.id), completion(123), at(MINUTE))).toBe("not_running");
 
     const wave = await t.db.wave.findUniqueOrThrow({ where: { waveId: measurementWaveId(queued.id) } });
     expect(wave).toMatchObject({ profileId, draws: 20, costCents: 123, currency: "USD" });
@@ -215,11 +225,11 @@ describe("file des mesures", () => {
     const queued = await repo.request({ userId: a.userId }, NOW);
     if (queued.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
-    await repo.fail(queued.id, { code: "unexpected", costCents: 40, retry: true }, NOW);
+    await repo.fail(firstRun(queued.id), { code: "unexpected", costCents: 40, retry: true }, NOW);
     expect(await t.db.measurementRequest.findUniqueOrThrow({ where: { id: queued.id } })).toMatchObject({ status: "queued", costCents: 40, runAfter: at(15 * MINUTE) });
     expect((await repo.claim(1, at(MINUTE), PLAN)).claimed).toEqual([]);
     expect((await repo.claim(1, at(16 * MINUTE), PLAN)).claimed).toHaveLength(1);
-    await repo.refuse(queued.id, { code: "not_published", costCents: 0 }, at(16 * MINUTE));
+    await repo.refuse({ id: queued.id, attempts: 2 }, { code: "not_published", costCents: 0 }, at(16 * MINUTE));
     expect(await t.db.measurementRequest.findUniqueOrThrow({ where: { id: queued.id } })).toMatchObject({ status: "refused", costCents: 40, errorCode: "not_published" });
   });
 });
@@ -241,7 +251,7 @@ describe("accès, RGPD et conservation", () => {
     const queued = await repo.request({ userId }, NOW);
     if (queued.kind !== "queued") throw new Error("refusée");
     await repo.claim(1, NOW, PLAN);
-    await repo.complete(queued.id, completion(50), NOW);
+    await repo.complete(firstRun(queued.id), completion(50), NOW);
 
     const exported = await gdpr(t.db).exportUser(userId, NOW);
     expect(JSON.stringify(exported?.freelanceProfile)).toContain(measurementWaveId(queued.id));

@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { ProofMethod, WorkMode } from "./generated/enums";
+import { reserveSpend, settleExpiredSpend, spentSince } from "./measurement-ledger";
 
 /*
  * La file des mesures, vue de la tâche planifiée : prise en charge sous bail, plafonds de dépense de la plateforme.
@@ -13,11 +14,17 @@ import type { ProofMethod, WorkMode } from "./generated/enums";
  *
  * Un bail expiré signifie que l'exécution est morte sans bilan : sa dépense est inconnue, elle est donc comptée à son
  * pire cas. Surestimer bloque la file un peu plus tôt ; sous-estimer laisserait passer une dépense non voulue.
+ *
+ * Les plafonds se lisent dans le registre de dépense (`measurement-ledger`), jamais dans les demandes : une demande
+ * part avec le compte qui l'a faite, la dépense de la plateforme reste.
  */
 
 /** Au-delà, la demande est abandonnée : trois échecs de suite disent un problème que réessayer ne réglera pas. */
 export const MEASUREMENT_MAX_ATTEMPTS = 3;
-/** Bail d'une mesure prise en charge : largement plus que sa durée attendue (quelques minutes). */
+/**
+ * Bail d'une mesure prise en charge : largement plus que sa durée attendue (quelques minutes), et plus que la durée
+ * maximale qu'une exécution s'accorde (`@proofseen/measure`, 20 minutes) : un bail n'expire pas sous une mesure vivante.
+ */
 export const MEASUREMENT_LEASE_MS = 30 * 60_000;
 /** Attente avant chaque nouvelle tentative : 15 min, puis 2 h. */
 const BACKOFF_MS = [15 * 60_000, 2 * 60 * 60_000] as const;
@@ -79,21 +86,8 @@ const reclaimExpired = async (tx: Prisma.TransactionClient, now: Date): Promise<
       },
     });
   }
-};
-
-const SpentRow = z.object({ spent: z.number() });
-
-/**
- * Dépense comptée depuis `from` : le réel des essais commencés depuis, plus la réserve de ce qui tourne encore. Une
- * seule requête, donc un seul instantané : une mesure qui se termine pendant le calcul ne peut pas disparaître des deux
- * sommes à la fois (plus en cours, coût pas encore écrit).
- */
-const spentSince = async (tx: Prisma.TransactionClient, from: Date): Promise<number> => {
-  const [row] = await tx.$queryRaw<unknown[]>`
-    SELECT (COALESCE(SUM(CASE WHEN "startedAt" >= ${from} THEN "costCents" END), 0)
-          + COALESCE(SUM(CASE WHEN "status" = 'running' THEN "estimatedCostCents" END), 0))::float8 AS "spent"
-    FROM "MeasurementRequest"`;
-  return SpentRow.parse(row).spent;
+  // Au registre, tout essai sans bilan passé son bail est réglé au pire cas, y compris celui d'une demande effacée.
+  await settleExpiredSpend(tx, new Date(now.getTime() - MEASUREMENT_LEASE_MS), now);
 };
 
 const details = async (tx: Prisma.TransactionClient, ids: readonly string[]): Promise<ClaimedMeasurement[]> => {
@@ -171,6 +165,7 @@ export const claimMeasurements = (db: Db, limit: number, now: Date, rawPlan: Cla
         errorCode: null,
       },
     });
+    await reserveSpend(tx, picked, plan.reserveCents, now);
     return { claimed: await details(tx, picked), held: null };
   });
 };

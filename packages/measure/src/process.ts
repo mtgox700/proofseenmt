@@ -57,23 +57,23 @@ const persist = async (input: ProcessInput, request: ClaimedMeasurement, outcome
   const costCents = outcome.kind === "refused" ? 0 : toCents(outcome.spentUsd);
   try {
     if (outcome.kind === "refused") {
-      await repo.refuse(request.id, { code: outcome.code, costCents: 0 }, input.now());
+      await repo.refuse(request, { code: outcome.code, costCents: 0 }, input.now());
       return report("refused", outcome.code, 0);
     }
     if (outcome.kind === "failed") {
       // Aucune réponse obtenue : l'essai a peu coûté, une nouvelle tentative plus tard a un sens.
-      await repo.fail(request.id, { code: outcome.code, costCents, retry: true }, input.now());
+      await repo.fail(request, { code: outcome.code, costCents, retry: true }, input.now());
       return report("failed", outcome.code, costCents);
     }
     const stoppedEarly = outcome.stoppedReason !== null;
     await repo.complete(
-      request.id,
+      request,
       { measuredAt: outcome.measuredAt, draws: outcome.draws, engines: [...outcome.engines], funnel: [...outcome.funnel], costCents, stoppedEarly },
       input.now(),
     );
     return report("done", stoppedEarly ? "budget_stopped" : null, costCents);
   } catch {
-    await repo.fail(request.id, { code: "record_failed", costCents, retry: false }, input.now());
+    await repo.fail(request, { code: "record_failed", costCents, retry: false }, input.now());
     return report("failed", "record_failed", costCents);
   }
 };
@@ -84,7 +84,7 @@ const measure = async (input: ProcessInput, request: ClaimedMeasurement, reserve
     outcome = await runMeasurement({ profile: request, kit: input.kit, now: input.now });
   } catch {
     // Dépense inconnue : comptée au plafond dur.
-    await measurements(input.db).fail(request.id, { code: "unexpected", costCents: reserveCents, retry: true }, input.now());
+    await measurements(input.db).fail(request, { code: "unexpected", costCents: reserveCents, retry: true }, input.now());
     return { kind: "failed", requestId: request.id, code: "unexpected", costCents: reserveCents };
   }
   return persist(input, request, outcome);

@@ -1,39 +1,41 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
-import type { Prisma } from "./generated/client";
 import type { MeasurementStatus } from "./generated/enums";
+import { checkEligibility, refused, type Eligibility } from "./measurement-eligibility";
+import { settleSpend, type RunRef } from "./measurement-ledger";
 import { backoffAfter, claimMeasurements, MEASUREMENT_MAX_ATTEMPTS, type ClaimPlan, type ClaimResult } from "./measurement-queue";
 import type { Actor } from "./messaging";
 import { visibility } from "./visibility";
 
+export {
+  MEASUREMENT_MIN_ACCOUNT_AGE_HOURS,
+  MEASUREMENT_QUEUE_MAX,
+  MEASUREMENT_WINDOW_DAYS,
+  MEASUREMENTS_PER_WINDOW,
+  type Eligibility,
+  type MeasurementRefusal,
+} from "./measurement-eligibility";
+export type { RunRef } from "./measurement-ledger";
+
 /*
  * Mesures de visibilité demandées par le freelance depuis l'application.
  *
- * Une demande n'est acceptée que pour un profil **publié** qui a **au moins une adresse prouvée** : sans adresse
- * prouvée, aucune citation ne peut être reconnue comme la sienne, et la mesure dépenserait de l'argent pour un zéro
- * certain. Une seule demande active par profil (garanti aussi par un index unique partiel), et un nombre limité de
- * demandes par période glissante : chaque mesure est payée par la plateforme.
+ * Qui peut demander, et les limites qui bornent la dépense de la plateforme : `measurement-eligibility`. La dépense
+ * elle-même est tenue dans un registre qui survit à l'effacement des comptes : `measurement-ledger`.
  *
- * Les accès sont contrôlés dans les requêtes : on ne demande, on ne liste que pour le profil de l'acteur.
+ * Les accès sont contrôlés dans les requêtes : on ne demande, on ne liste que pour le profil de l'acteur. Une fin, un
+ * échec ou un refus ne valent que pour l'essai qu'ils terminent (`RunRef`) : une exécution périmée, dont le bail a
+ * expiré et dont la demande a été reprise, ne clôt jamais l'essai suivant.
  *
  * Le résultat passe par le chemin d'enregistrement existant des vagues (`visibility(db).record`) : une mesure faite
  * depuis l'application et une vague importée par la CLI aboutissent aux mêmes lignes, lues par le même écran.
  */
 
-/** Demandes acceptées par profil sur la période glissante. */
-export const MEASUREMENTS_PER_WINDOW = 2;
-export const MEASUREMENT_WINDOW_DAYS = 30;
 /** Les fournisseurs facturent en dollars : les montants des mesures sont en centimes de dollar. */
 export const MEASUREMENT_CURRENCY = "USD";
-const DAY_MS = 86_400_000;
-const COUNTED: readonly MeasurementStatus[] = ["queued", "running", "done"];
-
-export type MeasurementRefusal = "no_profile" | "not_published" | "no_proven_url" | "already_active" | "monthly_limit";
-
-export type Eligibility =
-  | { readonly kind: "allowed"; readonly remaining: number }
-  | { readonly kind: "refused"; readonly reason: MeasurementRefusal; readonly availableAt: Date | null };
+/** Clé du verrou consultatif qui sérialise les demandes : la limite de file de la plateforme tient sous la concurrence. */
+const REQUEST_LOCK_KEY = 4_213_014;
 
 export type RequestResult = { readonly kind: "queued"; readonly id: string } | Extract<Eligibility, { kind: "refused" }>;
 
@@ -75,49 +77,25 @@ export interface Measurements {
   listMine(actor: Actor, limit?: number): Promise<readonly MeasurementView[]>;
   /** Prise en charge par la tâche planifiée, sous bail et dans la limite des plafonds de la plateforme. */
   claim(limit: number, now: Date, plan: ClaimPlan): Promise<ClaimResult>;
-  /** Enregistre la vague d'une mesure prise en charge ; « not_running » si la demande n'est plus en cours. */
-  complete(id: string, completion: Completion, now: Date): Promise<"done" | "not_running">;
-  /** Échec d'un essai : nouvelle tentative plus tard si `retry` et qu'il en reste, abandon sinon. Dépense cumulée. */
-  fail(id: string, failure: { readonly code: string; readonly costCents: number; readonly retry: boolean }, now: Date): Promise<void>;
+  /** Enregistre la vague de l'essai `run` ; « not_running » si cet essai n'est plus en cours. */
+  complete(run: RunRef, completion: Completion, now: Date): Promise<"done" | "not_running">;
+  /** Échec de l'essai `run` : nouvelle tentative plus tard si `retry` et qu'il en reste, abandon sinon. Dépense cumulée. */
+  fail(run: RunRef, failure: { readonly code: string; readonly costCents: number; readonly retry: boolean }, now: Date): Promise<void>;
   /** Refus au moment de mesurer (profil dépublié, plus d'adresse prouvée…) : définitif, sans nouvelle tentative. */
-  refuse(id: string, refusal: { readonly code: string; readonly costCents: number }, now: Date): Promise<void>;
+  refuse(run: RunRef, refusal: { readonly code: string; readonly costCents: number }, now: Date): Promise<void>;
 }
 
 /** Identifiant de la vague produite par une demande : stable, donc un enregistrement rejoué remplace au lieu d'ajouter. */
 export const measurementWaveId = (requestId: string): string => `MEASURE-${requestId}`;
 
-const refused = (reason: MeasurementRefusal, availableAt: Date | null = null): Extract<Eligibility, { kind: "refused" }> => ({ kind: "refused", reason, availableAt });
-
-const check = async (client: Prisma.TransactionClient, userId: string, now: Date): Promise<Eligibility & { readonly profileId?: string }> => {
-  const profile = await client.freelanceProfile.findUnique({
-    where: { userId },
-    select: { id: true, visibility: true, ownedUrls: { where: { verifiedAt: { not: null } }, select: { id: true }, take: 1 } },
-  });
-  if (profile === null) return refused("no_profile");
-  if (profile.visibility === "private") return refused("not_published");
-  if (profile.ownedUrls.length === 0) return refused("no_proven_url");
-  const active = await client.measurementRequest.count({ where: { profileId: profile.id, status: { in: ["queued", "running"] } } });
-  if (active > 0) return refused("already_active");
-  const since = new Date(now.getTime() - MEASUREMENT_WINDOW_DAYS * DAY_MS);
-  const recent = await client.measurementRequest.findMany({
-    // Un échec qui a coûté compte aussi : sinon redemander en boucle ferait payer la plateforme sans limite.
-    where: { profileId: profile.id, createdAt: { gte: since }, OR: [{ status: { in: [...COUNTED] } }, { status: "failed", costCents: { gt: 0 } }] },
-    orderBy: { createdAt: "asc" },
-    select: { createdAt: true },
-  });
-  if (recent.length >= MEASUREMENTS_PER_WINDOW) {
-    // La plus ancienne demande comptée sort de la fenêtre : c'est la date à laquelle une place se libère.
-    const oldest = recent[0]?.createdAt ?? now;
-    return refused("monthly_limit", new Date(oldest.getTime() + MEASUREMENT_WINDOW_DAYS * DAY_MS));
-  }
-  return { kind: "allowed", remaining: MEASUREMENTS_PER_WINDOW - recent.length, profileId: profile.id };
-};
-
 const Uuid = z.uuid();
+
+/** L'essai encore en cours, et seulement lui : une exécution périmée ne retrouve pas la demande reprise depuis. */
+const current = (run: RunRef) => ({ id: run.id, status: "running" as const, attempts: run.attempts });
 
 export const measurements = (db: Db): Measurements => ({
   async eligibility(actor, now) {
-    const result = await check(db, actor.userId, now);
+    const result = await checkEligibility(db, actor.userId, now);
     return result.kind === "allowed" ? { kind: "allowed", remaining: result.remaining } : result;
   },
 
@@ -125,9 +103,11 @@ export const measurements = (db: Db): Measurements => ({
     if (!Uuid.safeParse(actor.userId).success) return refused("no_profile");
     try {
       return await db.$transaction(async (tx): Promise<RequestResult> => {
+        // Les demandes passent une à une : la limite de file de la plateforme ne se dépasse pas à plusieurs.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(${REQUEST_LOCK_KEY})`;
         // Verrou du profil : deux clics simultanés attendent leur tour au lieu de passer tous les deux le contrôle.
         await tx.$queryRaw`SELECT "id" FROM "FreelanceProfile" WHERE "userId" = ${actor.userId}::uuid FOR UPDATE`;
-        const result = await check(tx, actor.userId, now);
+        const result = await checkEligibility(tx, actor.userId, now);
         if (result.kind === "refused") return result;
         if (result.profileId === undefined) return refused("no_profile");
         const { id } = await tx.measurementRequest.create({
@@ -157,13 +137,15 @@ export const measurements = (db: Db): Measurements => ({
     return claimMeasurements(db, limit, now, plan);
   },
 
-  async complete(id, raw, now) {
-    if (!Uuid.safeParse(id).success) return "not_running";
+  async complete(run, raw, now) {
+    if (!Uuid.safeParse(run.id).success) return "not_running";
     const completion = CompletionSchema.parse(raw);
-    const row = await db.measurementRequest.findFirst({ where: { id, status: "running" }, select: { costCents: true, profile: { select: { reference: true } } } });
+    // Au registre d'abord : la dépense réelle y est inscrite même si la demande est partie avec son compte.
+    await settleSpend(db, run, completion.costCents, now);
+    const row = await db.measurementRequest.findFirst({ where: current(run), select: { costCents: true, profile: { select: { reference: true } } } });
     if (row === null) return "not_running";
     const costCents = (row.costCents ?? 0) + completion.costCents;
-    const waveId = measurementWaveId(id);
+    const waveId = measurementWaveId(run.id);
     await visibility(db).record({
       waveId,
       reference: row.profile.reference,
@@ -175,7 +157,7 @@ export const measurements = (db: Db): Measurements => ({
     });
     const wave = await db.wave.findUniqueOrThrow({ where: { waveId }, select: { id: true } });
     const { count } = await db.measurementRequest.updateMany({
-      where: { id, status: "running" },
+      where: current(run),
       data: {
         status: "done",
         finishedAt: now,
@@ -189,18 +171,20 @@ export const measurements = (db: Db): Measurements => ({
     return count === 1 ? "done" : "not_running";
   },
 
-  async fail(id, failure, now) {
-    if (!Uuid.safeParse(id).success) return;
+  async fail(run, failure, now) {
+    if (!Uuid.safeParse(run.id).success) return;
     const code = CodeSchema.parse(failure.code);
-    const row = await db.measurementRequest.findFirst({ where: { id, status: "running" }, select: { attempts: true, costCents: true } });
+    const spent = Math.max(0, Math.round(failure.costCents));
+    await settleSpend(db, run, spent, now);
+    const row = await db.measurementRequest.findFirst({ where: current(run), select: { attempts: true, costCents: true } });
     if (row === null) return;
     const again = failure.retry && row.attempts < MEASUREMENT_MAX_ATTEMPTS;
     // Le coût nul en base devient zéro avant l'incrément : `increment` sur NULL resterait NULL.
-    if (row.costCents === null) await db.measurementRequest.updateMany({ where: { id, costCents: null }, data: { costCents: 0 } });
+    if (row.costCents === null) await db.measurementRequest.updateMany({ where: { id: run.id, costCents: null }, data: { costCents: 0 } });
     await db.measurementRequest.updateMany({
-      where: { id, status: "running" },
+      where: current(run),
       data: {
-        costCents: { increment: Math.max(0, Math.round(failure.costCents)) },
+        costCents: { increment: spent },
         errorCode: code,
         leasedUntil: null,
         ...(again ? { status: "queued", runAfter: new Date(now.getTime() + backoffAfter(row.attempts)) } : { status: "failed", finishedAt: now }),
@@ -208,15 +192,17 @@ export const measurements = (db: Db): Measurements => ({
     });
   },
 
-  async refuse(id, refusal, now) {
-    if (!Uuid.safeParse(id).success) return;
+  async refuse(run, refusal, now) {
+    if (!Uuid.safeParse(run.id).success) return;
     const code = CodeSchema.parse(refusal.code);
-    const row = await db.measurementRequest.findFirst({ where: { id, status: "running" }, select: { costCents: true } });
+    const spent = Math.max(0, Math.round(refusal.costCents));
+    await settleSpend(db, run, spent, now);
+    const row = await db.measurementRequest.findFirst({ where: current(run), select: { costCents: true } });
     if (row === null) return;
-    if (row.costCents === null) await db.measurementRequest.updateMany({ where: { id, costCents: null }, data: { costCents: 0 } });
+    if (row.costCents === null) await db.measurementRequest.updateMany({ where: { id: run.id, costCents: null }, data: { costCents: 0 } });
     await db.measurementRequest.updateMany({
-      where: { id, status: "running" },
-      data: { status: "refused", errorCode: code, finishedAt: now, leasedUntil: null, costCents: { increment: Math.max(0, Math.round(refusal.costCents)) } },
+      where: current(run),
+      data: { status: "refused", errorCode: code, finishedAt: now, leasedUntil: null, costCents: { increment: spent } },
     });
   },
 });
