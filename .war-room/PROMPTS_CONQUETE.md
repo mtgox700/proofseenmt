@@ -585,3 +585,254 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 - [ ] API de lecture testée : clé révoquée refusée, aucune donnée d'une autre entreprise
 - [ ] Gate complet vert
 </definition_of_done>
+
+---
+
+# SPRINTS PRODUIT — parité complète avec Malt et Free-Work (décision du founder, 2026-10-14)
+
+> **Ordre d'exécution en vigueur.** Le founder, le 2026-10-14 : le produit d'abord, l'acquisition ensuite (« on n'a
+> même pas fait 40 % du projet »). Point de départ mesuré le même jour sur le code de `main` : fonctions serveur
+> environ 70 % du cœur Malt/Free-Work, écrans utilisables environ 40 %, **expérience réelle d'un utilisateur Malt ou
+> Free-Work environ 30-35 %** (pas de recherche de freelances réelle, profils pauvres, visibilité IA sans écran,
+> paiement fermé, pas de blog). Veille : `research/CONQUETE_PARITE.md` §5.
+> Le PROTOCOLE D'ENCHAÎNEMENT s'applique à **ce tableau** : on prend la première ligne qui n'est pas ✅. Les 🟡 de C1 à
+> C12 restent ouverts pour ce qui dépend du founder (Stripe, Clerk production) et ne bloquent rien ici.
+> Sprints d'une semaine : la production tourne, chaque lot est déployé sur le VPS dès qu'il est fusionné.
+
+| Sprint | Nom | Statut | Preuve de clôture |
+|---|---|---|---|
+| C13 | Moteur de référencement, visible et prouvé | 🟡 | démarré le 2026-10-14 |
+| C14 | Profils riches et recherche de freelances réelle | ⬜ | |
+| C15 | Messagerie vivante | ⬜ | |
+| C16 | Espace missions vivant | ⬜ | |
+| C17 | Tableaux de bord freelance et entreprise, réglages du compte | ⬜ | |
+| C18 | Blog, guides et baromètres citables | ⬜ | |
+| C19 | Back-office opérateur | ⬜ | |
+| C20 | Paiement de bout en bout et application mobile | ⬜ | attend Stripe (fin de projet, founder) |
+
+**Règles propres à ces sprints**, en plus du BLOC COMMUN :
+- Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
+  base ou retirée du menu.
+- Chaque écran est joué dans le navigateur sur la production (comptes de test, puis données de test retirées du public).
+- Les pages publiques gardent `marketplace-verify` vert et zéro JavaScript ; l'espace connecté peut en utiliser là où il
+  apporte quelque chose (messagerie, téléversements), jamais pour afficher un fait.
+- Aucun score, aucun classement de personnes (AI Act) ; une liste de contrôle du profil dit ce qui manque, elle ne note
+  pas la personne.
+
+---
+
+## C13 — MOTEUR DE RÉFÉRENCEMENT, VISIBLE ET PROUVÉ
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C13 : « Moteur de référencement, visible et prouvé »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+La promesse de Proofseen, être cité par les IA, n'a aujourd'hui aucun écran : le freelance ne voit pas sa visibilité,
+ne peut pas prouver ses adresses ni ses missions, et ne sait pas quoi améliorer. Malt montre des visites et des
+mots-clés de sa propre recherche ; Proofseen montre ce que disent ChatGPT, Perplexity, Claude et Google.
+</objectif>
+
+<perimetre>
+- Écran « Ma visibilité IA » branché sur la base (vagues, résultats par moteur et par question, sources citées, date),
+  à la place des pages de démonstration `/freelance/rapport`, `/preuves`, `/evolution`.
+- Mesure lancée depuis l'application pour un profil publié : questions tirées du profil, plafond de coût par mesure et
+  par mois, file d'attente traitée par la tâche planifiée (GO API donné le 2026-10-07).
+- Preuves créées par le freelance : adresse possédée (balise, fichier ou DNS, contrôle et revérification), mission
+  vérifiée (confirmée par l'entreprise, ou payée sur Proofseen). Affichées comme des faits datés sur le profil public.
+- Liste de contrôle du profil : les faits qu'une IA a besoin de lire (titre, résumé, compétences, ville, TJM,
+  disponibilité, preuves), ce qui manque, pourquoi, en un clic vers le champ.
+- Pages métiers enrichies : texte factuel produit depuis la base (nombre de profils et de missions, fourchette de TJM
+  avec n), FAQ structurée ; `llms.txt` ; données structurées vérifiées.
+- Menu public : Missions et Freelances à la place des pages de démonstration.
+</perimetre>
+
+<definition_of_done>
+- [ ] Un freelance de test lance une mesure en production et lit son résultat moteur par moteur
+- [ ] Une adresse prouvée et une mission vérifiée apparaissent sur son profil public, datées
+- [ ] Aucune page servie ne lit `data/demo.ts`
+- [ ] `marketplace-verify` vert, gate complet vert, relecture sécurité sans critique ni haute
+</definition_of_done>
+
+---
+
+## C14 — PROFILS RICHES ET RECHERCHE DE FREELANCES RÉELLE
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C14 : « Profils riches et recherche réelle »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Une entreprise ne peut pas chercher de freelances aujourd'hui (l'annuaire lit un fichier de démonstration à un profil),
+et un profil Proofseen est plus pauvre qu'un profil Malt. Parité sur les deux.
+</objectif>
+
+<perimetre>
+- Profil : photo, expériences, formations, certifications liées aux compétences, langues, portfolio (liens et
+  images), séniorité déclarée, disponibilité à confirmer (fraîcheur affichée, profil masqué des recherches au-delà).
+- Import d'un CV ou d'un PDF LinkedIn **déposé par le freelance** (lecture par modèle, champs proposés puis validés par
+  lui ; jamais de récupération sur LinkedIn).
+- Stockage des fichiers sur le VPS (volume dédié, adresses signées, types et tailles contrôlés).
+- Recherche de freelances branchée sur `profiles.search` : filtres compétences, ville, mode, TJM, disponibilité,
+  langues, preuves ; brief en une phrase → filtres modifiables ; tri choisi par l'entreprise, jamais un score.
+- Listes de l'entreprise : favoris, listes partagées avec les collègues, notes privées.
+</perimetre>
+
+<definition_of_done>
+- [ ] Profil complet rempli dans le navigateur, page publique enrichie et `marketplace-verify` vert
+- [ ] Recherche réelle jouée côté entreprise, brief → filtres, liste partagée avec un collègue
+- [ ] Red team téléversement (type, taille, contenu actif, adresse devinée)
+- [ ] Gate complet vert
+</definition_of_done>
+
+---
+
+## C15 — MESSAGERIE VIVANTE
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C15 : « Messagerie vivante »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+La messagerie est le point de commission : elle doit être au moins aussi agréable que celle de Malt.
+</objectif>
+
+<perimetre>
+- Messages en direct (événements serveur), sans rechargement ; non-lus par fil et dans l'en-tête ; « lu » visible.
+- Pièces jointes (stockage de C14), aperçu, filtre des coordonnées conservé.
+- Centre de notifications dans l'application ; résumé quotidien par e-mail ; réponse depuis l'e-mail de notification.
+- E-mails réellement envoyés en production (Resend, domaine vérifié chez IONOS).
+</perimetre>
+
+<definition_of_done>
+- [ ] Deux comptes échangent en direct dans deux navigateurs, pièce jointe comprise
+- [ ] Non-lus justes après lecture, e-mail reçu et réponse par e-mail arrivée dans le fil
+- [ ] Gate complet vert, relecture sécurité fermée
+</definition_of_done>
+
+---
+
+## C16 — ESPACE MISSIONS VIVANT
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C16 : « Espace missions vivant »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Free-Work est d'abord un tableau d'offres. Les entreprises publient, les freelances trouvent et postulent, et chacun
+sait toujours où il en est.
+</objectif>
+
+<perimetre>
+- Liste publique : recherche plein texte, filtres TJM, durée, date, lieu ; pages indexables par compétence, métier et
+  ville ; Missions dans le menu.
+- Candidature avec CV ou profil joint et réponses aux questions de l'entreprise ; **« candidature lue »** visible du
+  freelance (personne ne le fait) ; missions enregistrées ; invitation à postuler envoyée par l'entreprise.
+- Pages entreprises publiques (faits vérifiés, missions ouvertes, délai de réponse) et entreprises suivies.
+- Côté entreprise : suivi des candidatures en colonnes, modèles de mission, duplication.
+</perimetre>
+
+<definition_of_done>
+- [ ] Parcours publier → trouver → postuler → lu → retenu joué sur la production
+- [ ] Pages par compétence et par ville dans les sitemaps, `marketplace-verify` vert
+- [ ] Gate complet vert
+</definition_of_done>
+
+---
+
+## C17 — TABLEAUX DE BORD FREELANCE ET ENTREPRISE, RÉGLAGES DU COMPTE
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C17 : « Tableaux de bord »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Malt montre au freelance ses visites, ses apparitions en recherche et ses mots-clés sur 90 jours. Proofseen montre cela
+plus la visibilité dans les IA, et donne à l'entreprise une vue de ses recrutements et de ses dépenses.
+</objectif>
+
+<perimetre>
+- Mesure des vues de profil et des apparitions en recherche (comptage agrégé, sans pistage nominatif, RGPD).
+- Freelance : visites, apparitions, recherches qui l'ont trouvé, citations IA, candidatures, revenus, sur 90 jours ;
+  tableau de bord qui suit l'étape (arrivée, candidature, mission).
+- Entreprise : missions et candidatures par étape, délais, dépenses par mois et par centre de coûts.
+- Réglages : compte, e-mail, langue, notifications, export et effacement RGPD (boutons sur les routes existantes),
+  changement d'entreprise pour qui en a plusieurs.
+</perimetre>
+
+<definition_of_done>
+- [ ] Chiffres des tableaux de bord recalculés à la main sur la base pour un compte de test
+- [ ] Export et effacement joués depuis l'écran
+- [ ] Gate complet vert, Lighthouse ≥ 95 sur les écrans
+</definition_of_done>
+
+---
+
+## C18 — BLOG, GUIDES ET BAROMÈTRES CITABLES
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C18 : « Blog, guides et baromètres citables »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Free-Work vit de son contenu (baromètres, guides, forum) ; ses baromètres ne donnent pas leur effectif. Proofseen
+publie un contenu que les IA citent : daté, sourcé, avec n, lisible par les machines.
+</objectif>
+
+<perimetre>
+- Blog et guides pour les freelances et pour les entreprises : articles en base, éditeur pour l'opérateur, auteurs,
+  catégories, données structurées Article, flux RSS, sitemap.
+- Baromètre des TJM issu des missions et des profils publiés (n affiché, date, méthode), en page et en jeu de données
+  (CSV + JSON-LD Dataset) ; baromètre des compétences demandées par les missions.
+- Guides : statuts (micro, EURL, SASU, portage), facturation, TJM ; simulateur de revenu net.
+- Aucune statistique publiée sous un seuil d'effectif (pas de chiffre sur 3 missions).
+</perimetre>
+
+<definition_of_done>
+- [ ] 6 articles réels publiés, relus (aucun chiffre sans source), indexés
+- [ ] Baromètre publié avec n et méthode, jeu de données téléchargeable
+- [ ] `marketplace-verify` étendu au blog, vert
+</definition_of_done>
+
+---
+
+## C19 — BACK-OFFICE OPÉRATEUR
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C19 : « Back-office opérateur »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Tout passe aujourd'hui par la ligne de commande. Avec de vrais utilisateurs, l'opérateur doit modérer, vérifier et
+répondre depuis un écran.
+</objectif>
+
+<perimetre>
+- Modération des premiers messages, des profils et des missions publiés (masquer, motif, journal).
+- Vérifications : attestations URSSAF, adresses prouvées contestées, entreprises.
+- Retours de la bêta (classement), utilisateurs (recherche, suspension), litiges.
+- Chaque action d'opérateur journalisée ; accès réservé à `OPERATOR_EMAILS`.
+</perimetre>
+
+<definition_of_done>
+- [ ] Une attestation vérifiée et un profil masqué depuis l'écran, journal à jour
+- [ ] Red team : accès d'un non-opérateur à chaque route
+- [ ] Gate complet vert
+</definition_of_done>
+
+---
+
+## C20 — PAIEMENT DE BOUT EN BOUT ET APPLICATION MOBILE
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C20 : « Paiement et mobile »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Fermer la boucle mission → paiement → avis, et être dans la poche des deux côtés (Malt n'a d'application que pour
+les freelances, Free-Work aucune).
+</objectif>
+
+<perimetre>
+- Stripe Connect (mode test puis GO PAIEMENT LIVE) : compte de versement du freelance, paiement sous séquestre,
+  validation, versement, factures en PDF, relevés au temps passé, avis des deux côtés.
+- Application installable (PWA) : messagerie, candidatures, notifications push, disponibilité.
+</perimetre>
+
+<definition_of_done>
+- [ ] Mission payée en mode test de bout en bout, facture et avis visibles
+- [ ] Application installée sur un téléphone, notification reçue
+- [ ] Gate complet vert, relecture sécurité fermée
+</definition_of_done>

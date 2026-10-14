@@ -238,3 +238,46 @@ sécurité de paiement, la preuve et la visibilité IA.
 4. Existence et prix d'un « Malt Premium » freelance (49 €/mois cité par des tiers seulement).
 5. Assureur actuel Malt (AXA 2023 ou Hiscox 2024) et plafonds 2026.
 6. Prix Turnover-IT (non affichés publiquement).
+
+## 5. Complément de veille du 2026-10-14
+
+> Pages publiques seulement, une par une (9 pages lues, 15 recherches). Malt renvoie toujours 403 : ses lignes viennent
+> d'extraits de moteur de **pages officielles Malt** et restent **À VÉRIFIER (bloqué)**, marquées `*`. Free-Work lu en
+> direct. Toutes les sources consultées le 2026-10-14.
+
+### Fonctions absentes de la matrice §2
+
+| Domaine | Fonction | Malt | Free-Work | Source |
+|---|---|---|---|---|
+| Profil | Photo vérifiée par reconnaissance faciale, portfolio, certifications liées aux compétences, « Top Skills » (4 domaines minimum pour apparaître, description ≥ 200 caractères), import LinkedIn PDF ou CV | oui* | import CV | help.malt.com/hc/en-150/articles/29517405925778 * ; free-work.com/fr/tech-it |
+| Profil | Disponibilité à confirmer tous les 7 jours, sinon profil masqué | oui* | interrupteur | même * ; forum Free-Work « sondage activation désactivation de votre CV » |
+| Statistiques freelance | Visites, apparitions en recherche, favoris, **mots-clés et position moyenne**, courbe 90 jours ; tableau de bord selon l'étape (arrivée, candidature, projet) | oui* | histogramme 7/30 j (forum, À VÉRIFIER) | help.malt.com/hc/fr/articles/29607768270482 * ; malt.fr/resources/article/mises-a-jour-produits-freelance-de-malt-en-2023 * |
+| Espace freelance | Favoris, entreprises suivies, historique des candidatures | — | oui | free-work.com/fr/tech-it |
+| Rapprochement | Malt Plus : rapprochement automatique (compétences > métier > TJM > lieu, seuil 70 %) | oui* | « matching IA » | help.malt.com/kb/guide/en/how-does-malt-plus-work-for-freelancers * |
+| Missions | Pages de missions indexables par compétence, métier et lieu | — | oui | free-work.com/fr/tech-it |
+| Messagerie | Réponse depuis l'e-mail de notification ; premiers messages modérés jusqu'à 24 h | oui* | contact direct recruteur (2024) | help.malt.com/hc/en-150/articles/29534106868114 * ; forum Free-Work (réponse équipe 2024-10-10) |
+| Messagerie | Pièces jointes, visio intégrée | non trouvé | non trouvé | À VÉRIFIER |
+| Conseil court | Appel payant d'une heure (100 € min, **30 % de commission**, prépayé, lien Meet, bêta) | oui* | non | help.malt.com/hc/en-150/articles/35915965777170 * |
+| Entreprise | Rôles administrateur / utilisateur, listes partagées (lien ou e-mail), pouces haut/bas, favoris des collègues | oui* | sièges (Turnover-IT) | help.malt.com/hc/en-150/articles/29561887621138 * |
+| Entreprise | Suivi des candidatures, viviers, **apporter ses propres freelances**, validation budgétaire, analytique, contrat-cadre, paiement à 30 jours, conformité (documents vérifiés avant démarrage) | oui* (Advanced, Enterprise) | ATS (Turnover-IT) | en.malt.fr/c/pricing * ; en.malt.fr/platform/compliance * |
+| Entreprise | Annuaire des recruteurs et pages entreprises | — | oui | free-work.com/fr/companies |
+| Contenu | **Baromètre IT** : 20 compétences les plus cherchées côté candidats et recruteurs, recalculé chaque lundi | — | oui | free-work.com/fr/tech-it/barometer |
+| Contenu | **Baromètre des salaires et TJM** par métier, région, expérience (contributions anonymes, lissé 7 j, taille d'échantillon non donnée) | baromètre TJM (tiers) | oui | free-work.com/fr/tech-it/earnings |
+| Contenu | Guides statuts (micro, EURL, SASU) et portage ; études (« Freelancing in Europe », AI Trends) ; Malt Academy (webinaires), événements, ambassadeurs | oui | guides, newsletter, contributions, support en direct | free-work.com/fr/tech-it ; malt.fr/c/freelancers * |
+| Services | Réductions partenaires | — | oui | free-work.com/fr/deals |
+| Services | Apport d'affaires : 5 % du facturé pendant 1 an, projet ≥ 3 000 € | oui* | non | malt.fr/resources/article/malt-programme-dapport-daffaires * |
+| Mobile | Application iOS/Android côté freelance seulement (profil, messages, devis, disponibilité, notifications) | oui* | aucune trouvée | help.malt.com/hc/en-150/articles/29597656442770 * |
+
+**Conflit nouveau** : la page tarifs Malt* présente des offres « sur demande », contre les 5 % / 9 % de la §2. À vérifier
+à la main (liste du founder, point 1).
+
+### Ce que ni l'un ni l'autre ne fait bien
+
+- Les statistiques s'arrêtent à la plateforme : personne ne mesure si ChatGPT, Perplexity ou Google citent le freelance.
+- Les baromètres sont opaques (pas d'effectif). Proofseen peut publier un baromètre **issu des missions payées**, daté,
+  avec n, en données lisibles par les machines (jeu de données + JSON-LD) : la source que les IA citent.
+- Les avis et badges sont enfermés (Super Malter non exportable, aucun avis chez Free-Work). Proofseen : preuves
+  vérifiées portables.
+- Le rapprochement est opaque (70 %, « IA ») : Proofseen montre le brief transformé en filtres modifiables.
+- Free-Work n'a ni application ni paiement ; l'application Malt ignore les entreprises.
+- Personne ne dit au freelance que sa candidature a été lue (fils publics Free-Work, S30).
