@@ -73,6 +73,13 @@ describe("la vérification", () => {
     }
   });
 
+  it("sur un attribut répété, le premier fait foi, comme pour un navigateur", () => {
+    const token = kit().metaTag.tag.split('content="')[1]?.slice(0, 32) ?? "";
+    // Une page qui laisse un tiers ajouter des attributs à sa balise ne doit pas lui laisser remplacer ceux du site.
+    expect(metaTagProofs(`<meta name="description" name="${PROOF_PREFIX}" content="${token}">`)).toEqual([]);
+    expect(metaTagProofs(`<meta name="${PROOF_PREFIX}" content="vrai" content="${token}">`)).toEqual(["vrai"]);
+  });
+
   it("n'accepte pas le jeton posé en simple texte dans la page : un commentaire ne prouve pas la page d'un autre", async () => {
     const token = kit().metaTag.tag.split('content="')[1]?.slice(0, 32) ?? "";
     const html = `<html><head><meta name="description" content="${token}"></head><body><p>${PROOF_PREFIX}=${token}</p><p>&lt;meta name="${PROOF_PREFIX}" content="${token}"&gt;</p></body></html>`;

@@ -44,10 +44,17 @@ const ATTRIBUTE = /([a-zA-Z:-]+)=(?:"([^"]*)"|'([^']*)'|([^ "'>]+))/g;
  * entière ferait accepter un jeton posé en simple texte — un commentaire sous l'article de quelqu'un d'autre suffirait
  * à « prouver » sa page. Une vraie balise dans le HTML brut demande d'en contrôler le code : c'est ce que la méthode
  * prétend prouver.
+ *
+ * Sur un attribut répété, le premier fait foi, comme pour un analyseur HTML : sinon un attribut ajouté en fin de balise
+ * remplacerait celui que le site a écrit, et nous lirions une autre balise que celle que voit un navigateur.
  */
 export const metaTagProofs = (html: string): readonly string[] =>
   (html.match(META_ELEMENT) ?? []).flatMap((element) => {
-    const attributes = new Map([...element.matchAll(ATTRIBUTE)].map((m) => [(m[1] ?? "").toLowerCase(), m[2] ?? m[3] ?? m[4] ?? ""]));
+    const attributes = new Map<string, string>();
+    for (const m of element.matchAll(ATTRIBUTE)) {
+      const key = (m[1] ?? "").toLowerCase();
+      if (!attributes.has(key)) attributes.set(key, m[2] ?? m[3] ?? m[4] ?? "");
+    }
     return attributes.get("name")?.toLowerCase() === PROOF_PREFIX ? [attributes.get("content") ?? ""] : [];
   });
 
