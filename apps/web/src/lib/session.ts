@@ -2,7 +2,7 @@ import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import type { Lang } from "@/i18n";
 import { authConfigured } from "./auth-config";
-import { isChosenRole, operatorEmails, resolveRole, type ChosenRole, type Role } from "./roles";
+import { isChosenRole, operatorEmails, resolveRole, verifiedEmails, type ChosenRole, type Role } from "./roles";
 
 /*
  * The signed-in person, as the server sees it. Every connected page and every server action goes through here:
@@ -32,7 +32,7 @@ export const session = async (): Promise<SessionState> => {
       id: user.id,
       name: [user.firstName, user.lastName].filter(Boolean).join(" ") || primary,
       email: primary,
-      role: resolveRole({ emails, stored: user.publicMetadata.role }, operatorEmails(process.env.OPERATOR_EMAILS)),
+      role: resolveRole({ emails: verifiedEmails(user.emailAddresses), stored: user.publicMetadata.role }, operatorEmails(process.env.OPERATOR_EMAILS)),
     },
   };
 };

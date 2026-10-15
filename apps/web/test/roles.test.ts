@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { operatorEmails, resolveRole } from "../src/lib/roles";
+import { operatorEmails, resolveRole, verifiedEmails } from "../src/lib/roles";
 
 describe("operatorEmails", () => {
   it("reads a comma-separated allowlist, case-insensitively, ignoring blanks", () => {
@@ -30,5 +30,17 @@ describe("resolveRole", () => {
   it("returns null for a new account that has not chosen yet, or junk metadata", () => {
     expect(resolveRole({ emails: ["a@example.com"], stored: undefined }, ops)).toBeNull();
     expect(resolveRole({ emails: ["a@example.com"], stored: 42 }, ops)).toBeNull();
+  });
+});
+
+describe("verifiedEmails", () => {
+  it("keeps only the addresses Clerk has verified: an address added but not confirmed never counts", () => {
+    const addresses = [
+      { emailAddress: "me@example.com", verification: { status: "verified" } },
+      { emailAddress: "ops@example.com", verification: { status: "unverified" } },
+      { emailAddress: "other@example.com", verification: null },
+    ];
+    expect(verifiedEmails(addresses)).toEqual(["me@example.com"]);
+    expect(resolveRole({ emails: verifiedEmails(addresses), stored: "freelance" }, new Set(["ops@example.com"]))).toBe("freelance");
   });
 });
