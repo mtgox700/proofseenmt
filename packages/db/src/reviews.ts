@@ -4,6 +4,7 @@ import { containsContact } from "./contact-detection";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Avis. Un avis n'existe que pour une mission terminée **et payée sur la plateforme**, écrit par un membre de
@@ -81,7 +82,7 @@ export const reviews = (db: Db): Reviews => ({
   async listForProfile(profileId) {
     if (!Uuid.safeParse(profileId).success) return [];
     return db.review.findMany({
-      where: { targetProfileId: profileId, target: { visibility: { not: "private" } }, contract: { payments: { some: SETTLED_PAYMENT } } },
+      where: { targetProfileId: profileId, target: { visibility: { not: "private" }, ...LISTED_PROFILE }, contract: { payments: { some: SETTLED_PAYMENT } } },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: SELECT,
     });

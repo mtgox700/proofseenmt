@@ -3,6 +3,7 @@ import type { Prisma } from "./generated/client";
 import type { WorkMode } from "./generated/enums";
 import { publicName } from "./public-profiles";
 import { skillKey } from "./skills";
+import { LISTED_MISSION, LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Pages métiers (une par compétence) : les missions ouvertes et les profils publiés qui la portent. Une page n'existe
@@ -58,13 +59,14 @@ const KEY = /^[a-z0-9+#-]{1,60}$/;
 
 const publishedWith = (skillId: string): Prisma.FreelanceProfileWhereInput => ({
   visibility: { not: "private" },
+  ...LISTED_PROFILE,
   slug: { not: null },
   headline: { not: null },
   city: { not: null },
   skills: { some: { skillId } },
 });
 
-const openWith = (skillId: string): Prisma.JobPostWhereInput => ({ status: "open", skills: { some: { skillId } } });
+const openWith = (skillId: string): Prisma.JobPostWhereInput => ({ status: "open", ...LISTED_MISSION, skills: { some: { skillId } } });
 
 /** Une ville par clé normalisée : « Paris » et « paris » ne font qu'une. */
 const distinctCities = (rows: readonly { readonly city: string | null; readonly cityKey: string | null }[]): readonly string[] => {
@@ -127,8 +129,8 @@ export const skillPages = (db: Db): SkillPages => ({
         label: true,
         _count: {
           select: {
-            jobPosts: { where: { jobPost: { status: "open" } } },
-            freelancers: { where: { profile: { visibility: { not: "private" }, slug: { not: null } } } },
+            jobPosts: { where: { jobPost: { status: "open", ...LISTED_MISSION } } },
+            freelancers: { where: { profile: { visibility: { not: "private" }, ...LISTED_PROFILE, slug: { not: null } } } },
           },
         },
       },

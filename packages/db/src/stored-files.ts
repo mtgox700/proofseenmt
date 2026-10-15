@@ -99,6 +99,10 @@ const ORPHAN_BATCH = 500;
 
 const SELECT = { id: true, ownerId: true, kind: true, contentType: true, size: true, sha256: true, width: true, height: true, createdAt: true } as const;
 
+/** Un profil masqué par un opérateur, ou dont le titulaire est suspendu, ne publie plus ses images (C19). */
+const PUBLIC_STATE = { visibility: true, moderatedAt: true, user: { select: { suspendedAt: true } } } as const;
+const listed = (p: { readonly moderatedAt: Date | null; readonly user: { readonly suspendedAt: Date | null } }): boolean => p.moderatedAt === null && p.user.suspendedAt === null;
+
 export const storedFiles = (db: Db): StoredFiles => ({
   async record(actor, raw) {
     const parsed = NewStoredFileSchema.safeParse(raw);
@@ -117,12 +121,12 @@ export const storedFiles = (db: Db): StoredFiles => ({
     if (!Uuid.safeParse(id).success) return null;
     const row = await db.storedFile.findUnique({
       where: { id },
-      select: { ...SELECT, photoOf: { select: { visibility: true } }, portfolioOf: { select: { profile: { select: { visibility: true } } } } },
+      select: { ...SELECT, photoOf: { select: PUBLIC_STATE }, portfolioOf: { select: { profile: { select: PUBLIC_STATE } } } },
     });
     if (row === null) return null;
     const { photoOf, portfolioOf, ...file } = row;
-    if (row.kind === "photo" && photoOf?.visibility === "named") return { file, audience: "public" };
-    if (row.kind === "portfolio_image" && portfolioOf?.profile.visibility === "named") return { file, audience: "public" };
+    if (row.kind === "photo" && photoOf?.visibility === "named" && listed(photoOf)) return { file, audience: "public" };
+    if (row.kind === "portfolio_image" && portfolioOf?.profile.visibility === "named" && listed(portfolioOf.profile)) return { file, audience: "public" };
     if (viewer === null) return null;
     if (row.ownerId === viewer.userId) return { file, audience: "owner" };
     if (row.kind !== "message_attachment") return null;

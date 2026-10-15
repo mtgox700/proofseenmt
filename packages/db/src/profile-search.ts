@@ -5,6 +5,7 @@ import type { ProfileFacts } from "./profiles";
 import { publicName } from "./public-profiles";
 import { skillKey } from "./skills";
 import { sixMonthsBefore } from "./vigilance";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Recherche de freelances par une entreprise : des filtres sur des faits publics, et un ordre que l'entreprise choisit
@@ -120,6 +121,7 @@ export const searchWhere = (f: Filters, now: Date): Prisma.FreelanceProfileWhere
   ];
   return {
     visibility: { not: "private" },
+    ...LISTED_PROFILE,
     slug: { not: null },
     headline: { not: null },
     city: { not: null },

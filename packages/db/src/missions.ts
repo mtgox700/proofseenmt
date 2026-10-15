@@ -7,6 +7,7 @@ import type { Actor } from "./messaging";
 import { fullTextMatches, SearchTextSchema } from "./mission-search";
 import { notifications } from "./notifications";
 import { ensureSkills, skillKey, uniqueSkills } from "./skills";
+import { LISTED_MISSION } from "./public-visibility";
 
 /*
  * Missions publiées par les entreprises.
@@ -139,7 +140,7 @@ const SELECT = {
   publishedAt: true,
   closedAt: true,
   skills: { select: { skill: { select: { label: true } } } },
-  organisation: { select: { name: true, registryStatus: true, registryCheckedAt: true, publicSlug: true, publicSince: true } },
+  organisation: { select: { name: true, registryStatus: true, registryCheckedAt: true, publicSlug: true, publicSince: true, moderatedAt: true } },
 } as const;
 
 type Row = Prisma.JobPostGetPayload<{ select: typeof SELECT }>;
@@ -148,7 +149,7 @@ const toRecord = ({ skills, organisation, ...row }: Row): MissionRecord => ({
   ...row,
   organisationName: organisation.name,
   organisationRegistryActiveCheckedAt: organisation.registryStatus === "active" ? organisation.registryCheckedAt : null,
-  organisationSlug: organisation.publicSince === null ? null : organisation.publicSlug,
+  organisationSlug: organisation.publicSince === null || organisation.moderatedAt !== null ? null : organisation.publicSlug,
   skills: skills.map((s) => s.skill.label),
 });
 
@@ -237,7 +238,7 @@ export const missions = (db: Db): Missions => ({
       // Les personnes qui suivent l'entreprise l'apprennent, tant que sa page publique existe ; jamais ses propres membres.
       const thisMission = { jobPosts: { some: { id: missionId } } };
       const followers = await tx.companyFollow.findMany({
-        where: { organisation: { publicSince: { not: null }, ...thisMission }, user: { memberships: { none: { organisation: thisMission } } } },
+        where: { organisation: { publicSince: { not: null }, moderatedAt: null, ...thisMission }, user: { memberships: { none: { organisation: thisMission } } } },
         select: { userId: true },
         take: MAX_FOLLOWERS_NOTIFIED,
       });
@@ -257,7 +258,7 @@ export const missions = (db: Db): Missions => ({
 
   async findPublic(missionId, now = new Date()) {
     if (!Uuid.safeParse(missionId).success) return null;
-    const row = await db.jobPost.findFirst({ where: { id: missionId, status: "open" }, select: SELECT });
+    const row = await db.jobPost.findFirst({ where: { id: missionId, status: "open", ...LISTED_MISSION }, select: SELECT });
     if (row === null) return null;
     return { ...toRecord(row), organisationResponse: await companyResponse(db, row.organisationId, now) };
   },
@@ -272,7 +273,7 @@ export const missions = (db: Db): Missions => ({
 
   async listOpenForSitemap() {
     const rows = await db.jobPost.findMany({
-      where: { status: "open", publishedAt: { not: null } },
+      where: { status: "open", ...LISTED_MISSION, publishedAt: { not: null } },
       orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
       take: MAX_SITEMAP_MISSIONS,
       select: { id: true, publishedAt: true },
@@ -286,6 +287,7 @@ export const missions = (db: Db): Missions => ({
     const matching = f.q === undefined ? undefined : await fullTextMatches(db, f.q);
     const where: Prisma.JobPostWhereInput = {
       status: "open",
+      ...LISTED_MISSION,
       ...(matching === undefined ? {} : { id: { in: [...matching] } }),
       ...(f.workModes.length === 0 ? {} : { workMode: { in: f.workModes } }),
       ...(f.city === undefined ? {} : { cityKey: skillKey(f.city) }),

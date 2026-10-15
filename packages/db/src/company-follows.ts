@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import type { Actor } from "./messaging";
+import { LISTED_COMPANY } from "./public-visibility";
 
 /*
  * Entreprises suivies. On ne suit qu'une entreprise qui a une page publique, et jamais la sienne ; chaque mission
@@ -36,7 +37,7 @@ export const companyFollows = (db: Db): CompanyFollows => ({
   async follow(actor, slug) {
     if (!SLUG.test(slug)) return "absent";
     const org = await db.organisation.findFirst({
-      where: { publicSlug: slug, publicSince: { not: null }, members: { none: { userId: actor.userId } } },
+      where: { publicSlug: slug, publicSince: { not: null }, moderatedAt: null, members: { none: { userId: actor.userId } } },
       select: { id: true },
     });
     if (org === null) return "absent";
@@ -77,7 +78,7 @@ export const companyFollows = (db: Db): CompanyFollows => ({
 
   async lookup(actor, slug) {
     if (!SLUG.test(slug)) return null;
-    const org = await db.organisation.findFirst({ where: { publicSlug: slug, publicSince: { not: null } }, select: { id: true, publicName: true } });
+    const org = await db.organisation.findFirst({ where: { publicSlug: slug, publicSince: { not: null }, ...LISTED_COMPANY }, select: { id: true, publicName: true } });
     if (org === null || org.publicName === null) return null;
     const [following, member] = await Promise.all([
       db.companyFollow.count({ where: { userId: actor.userId, organisationId: org.id } }),

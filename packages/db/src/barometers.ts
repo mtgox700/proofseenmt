@@ -13,6 +13,7 @@ import {
   type PublishedObservation,
   type RateStat,
 } from "./barometer-stats";
+import { LISTED_MISSION, LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Baromètres publics, calculés dans la base au moment de la demande, à partir de données réelles de la plateforme :
@@ -107,7 +108,7 @@ const missionSeries = (rows: readonly PublishedRated[]): RateSeries => {
   };
 };
 
-const publishedProfiles: Prisma.FreelanceProfileWhereInput = { visibility: { not: "private" }, slug: { not: null }, dailyRateCents: { not: null }, currency: "EUR" };
+const publishedProfiles: Prisma.FreelanceProfileWhereInput = { visibility: { not: "private" }, ...LISTED_PROFILE, slug: { not: null }, dailyRateCents: { not: null }, currency: "EUR" };
 
 export const barometers = (db: Db): Barometers => ({
   async rates(now = new Date()) {
@@ -117,6 +118,7 @@ export const barometers = (db: Db): Barometers => ({
       db.jobPost.findMany({
         where: {
           currency: "EUR",
+          ...LISTED_MISSION,
           OR: [{ status: "open" }, { status: "closed", publishedAt: { gte: missionsSince } }],
           AND: [{ OR: [{ dailyRateMinCents: { not: null } }, { dailyRateMaxCents: { not: null } }] }],
         },
@@ -134,7 +136,7 @@ export const barometers = (db: Db): Barometers => ({
 
   async skills(now = new Date()) {
     const since = new Date(now.getTime() - DEMAND_WINDOW_DAYS * DAY_MS);
-    const window: Prisma.JobPostWhereInput = { status: { in: ["open", "closed"] }, publishedAt: { gte: since, lte: now } };
+    const window: Prisma.JobPostWhereInput = { status: { in: ["open", "closed"] }, ...LISTED_MISSION, publishedAt: { gte: since, lte: now } };
     const [totalMissions, rows] = await Promise.all([
       db.jobPost.count({ where: window }),
       db.jobPostSkill.findMany({

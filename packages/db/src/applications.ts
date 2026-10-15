@@ -6,6 +6,7 @@ import { notifications } from "./notifications";
 import type { Prisma } from "./generated/client";
 import type { ApplicationStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { LISTED_MISSION } from "./public-visibility";
 
 /*
  * Candidatures. Un freelance postule à une mission ouverte avec un mot ; la conversation avec l'entreprise s'ouvre dans
@@ -93,7 +94,7 @@ export const applications = (db: Db): Applications => ({
     const [profile, mission] = await Promise.all([
       db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true, visibility: true } }),
       // Une mission de sa propre entreprise est « absente » : personne ne s'embauche soi-même.
-      db.jobPost.findFirst({ where: { id: missionId, status: "open", organisation: { members: { none: { userId: actor.userId } } } }, select: { organisationId: true, questions: true } }),
+      db.jobPost.findFirst({ where: { id: missionId, status: "open", ...LISTED_MISSION, organisation: { members: { none: { userId: actor.userId } } } }, select: { organisationId: true, questions: true } }),
     ]);
     if (profile === null) return { kind: "no_profile" };
     if (profile.visibility === "private") return { kind: "profile_private" };

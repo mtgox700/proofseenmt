@@ -6,6 +6,7 @@ import { isUniqueViolation } from "./errors";
 import type { WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { companyResponse } from "./missions";
+import { LISTED_COMPANY, LISTED_MISSION } from "./public-visibility";
 
 /*
  * Pages publiques d'entreprise, seulement pour celles qui l'ont choisi. Une entreprise qui n'a rien activé n'a pas de
@@ -166,13 +167,13 @@ export const companyPages = (db: Db): CompanyPages => ({
   async page(slug, now = new Date()) {
     if (!SLUG.test(slug) || slug.length > 80) return null;
     const org = await db.organisation.findFirst({
-      where: { publicSlug: slug, publicSince: { not: null } },
+      where: { publicSlug: slug, publicSince: { not: null }, ...LISTED_COMPANY },
       select: { id: true, publicName: true, publicDescription: true, publicWebsite: true, publicCity: true, createdAt: true, registryStatus: true, registryCheckedAt: true },
     });
     if (org === null || org.publicName === null) return null;
     const [missions, response] = await Promise.all([
       db.jobPost.findMany({
-        where: { organisationId: org.id, status: "open", publishedAt: { not: null } },
+        where: { organisationId: org.id, status: "open", ...LISTED_MISSION, publishedAt: { not: null } },
         orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
         take: MAX_MISSIONS,
         select: { id: true, title: true, workMode: true, city: true, publishedAt: true },
@@ -195,7 +196,7 @@ export const companyPages = (db: Db): CompanyPages => ({
 
   async listForSitemap() {
     const rows = await db.organisation.findMany({
-      where: { publicSince: { not: null }, publicSlug: { not: null }, publicName: { not: null } },
+      where: { publicSince: { not: null }, publicSlug: { not: null }, publicName: { not: null }, ...LISTED_COMPANY },
       orderBy: { publicSlug: "asc" },
       take: MAX_SITEMAP_COMPANIES,
       select: { publicSlug: true, updatedAt: true },

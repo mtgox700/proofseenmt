@@ -6,6 +6,7 @@ import type { Prisma } from "./generated/client";
 import type { AvailabilityStatus, ListReaction, MemberRole, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { publicName } from "./public-profiles";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Listes de freelances d'une entreprise : favoris, présélections, partagées par tous ses membres. Chaque ligne porte une
@@ -220,7 +221,7 @@ export const freelanceLists = (db: Db) => ({
     try {
       return await db.$transaction(async (tx): Promise<AddItemResult> => {
         if ((await tx.freelanceList.count({ where: { id: listId, ...visibleList(actor.userId) } })) === 0) return "absent";
-        if ((await tx.freelanceProfile.count({ where: { id: profileId, visibility: { not: "private" } } })) === 0) return "absent";
+        if ((await tx.freelanceProfile.count({ where: { id: profileId, visibility: { not: "private" }, ...LISTED_PROFILE } })) === 0) return "absent";
         // Sous verrou de la liste : deux ajouts simultanés ne dépassent pas le plafond et ne se doublent pas.
         await tx.$queryRaw`SELECT "id" FROM "FreelanceList" WHERE "id" = ${listId}::uuid FOR UPDATE`;
         if ((await tx.freelanceListItem.count({ where: { listId, profileId } })) > 0) return "already";

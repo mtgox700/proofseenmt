@@ -7,6 +7,7 @@ import type { AvailabilityStatus, ProfileVisibility, WorkMode } from "./generate
 import type { Actor } from "./messaging";
 import { searchProfiles, type ProfileSearch, type ProfileSearchPage } from "./profile-search";
 import { ensureSkills, skillKey } from "./skills";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Profil freelance : un par personne, privé tant qu'elle ne le publie pas.
@@ -183,7 +184,7 @@ export const profiles = (db: Db): Profiles => ({
 
   async findPublic(slug) {
     if (!SLUG.test(slug)) return null;
-    const row = await db.freelanceProfile.findFirst({ where: { slug, visibility: { not: "private" } }, select: SELECT });
+    const row = await db.freelanceProfile.findFirst({ where: { slug, visibility: { not: "private" }, ...LISTED_PROFILE }, select: SELECT });
     return row === null ? null : toFacts(row);
   },
 

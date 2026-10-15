@@ -2,6 +2,7 @@ import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { WorkMode } from "./generated/enums";
 import { skillKey } from "./skills";
+import { LISTED_MISSION } from "./public-visibility";
 
 /*
  * Pages par ville : les missions ouvertes d'une ville. Comme les pages métiers, une page n'existe que remplie de
@@ -59,7 +60,7 @@ export interface CityPages {
   listForSitemap(): Promise<readonly CityIndexEntry[]>;
 }
 
-const openIn = (cityKey: string): Prisma.JobPostWhereInput => ({ status: "open", cityKey, publishedAt: { not: null } });
+const openIn = (cityKey: string): Prisma.JobPostWhereInput => ({ status: "open", ...LISTED_MISSION, cityKey, publishedAt: { not: null } });
 
 const rateRange = (rows: readonly { dailyRateMinCents: number | null; dailyRateMaxCents: number | null; currency: string }[]): CityPage["facts"]["dailyRate"] => {
   const euros = rows.filter((r) => r.currency === "EUR" && (r.dailyRateMinCents !== null || r.dailyRateMaxCents !== null));
@@ -125,7 +126,7 @@ export const cityPages = (db: Db): CityPages => ({
   async listForSitemap() {
     const groups = await db.jobPost.groupBy({
       by: ["cityKey"],
-      where: { status: "open", publishedAt: { not: null }, cityKey: { not: null } },
+      where: { status: "open", ...LISTED_MISSION, publishedAt: { not: null }, cityKey: { not: null } },
       _count: { _all: true },
       having: { cityKey: { _count: { gte: MIN_CITY_MISSIONS } } },
       orderBy: { cityKey: "asc" },
@@ -136,7 +137,7 @@ export const cityPages = (db: Db): CityPages => ({
     const keys = listed.map((g) => g.cityKey);
     if (keys.length === 0) return [];
     const labels = await db.jobPost.findMany({
-      where: { status: "open", cityKey: { in: keys } },
+      where: { status: "open", ...LISTED_MISSION, cityKey: { in: keys } },
       distinct: ["cityKey"],
       orderBy: [{ cityKey: "asc" }, { publishedAt: "desc" }],
       select: { cityKey: true, city: true },

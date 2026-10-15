@@ -3,6 +3,7 @@ import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { LISTED_MISSION } from "./public-visibility";
 import { notifications } from "./notifications";
 
 /*
@@ -73,12 +74,12 @@ export const missionInvitations = (db: Db): MissionInvitations => ({
     const reference = ProfileReferenceSchema.safeParse(rawReference);
     if (!reference.success) return { kind: "unknown_profile" };
     const mission = await db.jobPost.findFirst({
-      where: { id: missionId, status: "open", organisation: { members: { some: { userId: actor.userId } } } },
+      where: { id: missionId, status: "open", moderatedAt: null, organisation: { members: { some: { userId: actor.userId } } } },
       select: { organisationId: true },
     });
     if (mission === null) return { kind: "absent" };
     const profile = await db.freelanceProfile.findFirst({
-      where: { reference: reference.data, visibility: { not: "private" }, user: { memberships: { none: { organisationId: mission.organisationId } } } },
+      where: { reference: reference.data, visibility: { not: "private" }, moderatedAt: null, user: { suspendedAt: null, memberships: { none: { organisationId: mission.organisationId } } } },
       select: { id: true, userId: true },
     });
     if (profile === null) return { kind: "unknown_profile" };
@@ -111,7 +112,7 @@ export const missionInvitations = (db: Db): MissionInvitations => ({
     const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
     if (profile === null) return [];
     const rows = await db.missionInvitation.findMany({
-      where: { profileId: profile.id, dismissedAt: null, jobPost: { status: "open" } },
+      where: { profileId: profile.id, dismissedAt: null, jobPost: { status: "open", ...LISTED_MISSION } },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 100,
       select: {

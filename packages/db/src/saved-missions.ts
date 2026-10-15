@@ -3,6 +3,7 @@ import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { JobPostStatus, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { LISTED_MISSION } from "./public-visibility";
 
 /*
  * Missions enregistrées : une liste privée pour y revenir avant de postuler. Seule une mission ouverte s'enregistre ;
@@ -39,7 +40,7 @@ export interface SavedMissions {
 export const savedMissions = (db: Db): SavedMissions => ({
   async save(actor, missionId) {
     if (!Uuid.safeParse(missionId).success) return "absent";
-    const open = await db.jobPost.count({ where: { id: missionId, status: "open" } });
+    const open = await db.jobPost.count({ where: { id: missionId, status: "open", ...LISTED_MISSION } });
     if (open === 0) return "absent";
     if ((await db.savedMission.count({ where: { userId: actor.userId } })) >= MAX_SAVED_MISSIONS) return "limit";
     try {

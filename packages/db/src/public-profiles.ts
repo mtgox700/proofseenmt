@@ -14,6 +14,7 @@ const vigilanceShown = (v: { readonly issuedOn: Date; readonly verifiedAt: Date 
   return until.getTime() > now.getTime() ? until : null;
 };
 import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Ce qu'une page publique de profil peut montrer, et rien d'autre. C'est la page que les moteurs de recherche et d'IA
@@ -134,6 +135,7 @@ const directoryWhere = (f: z.output<typeof DirectorySearchSchema>): Prisma.Freel
   const city = skillKey(f.city);
   return {
     visibility: { not: "private" },
+    ...LISTED_PROFILE,
     slug: { not: null },
     headline: { not: null },
     city: { not: null },
@@ -146,7 +148,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
   async page(slug, now = new Date()) {
     if (!SLUG.test(slug)) return null;
     const row = await db.freelanceProfile.findFirst({
-      where: { slug, visibility: { not: "private" } },
+      where: { slug, visibility: { not: "private" }, ...LISTED_PROFILE },
       select: {
         reference: true,
         slug: true,
@@ -214,7 +216,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
 
   async listForSitemap() {
     const rows = await db.freelanceProfile.findMany({
-      where: { visibility: { not: "private" }, slug: { not: null } },
+      where: { visibility: { not: "private" }, ...LISTED_PROFILE, slug: { not: null } },
       orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
       take: MAX_SITEMAP_PROFILES,
       select: { slug: true, updatedAt: true },

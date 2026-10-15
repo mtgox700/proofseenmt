@@ -4,6 +4,7 @@ import type { ConversationStatus } from "./generated/enums";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 import { readState } from "./read-state";
+import { LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Ce que les écrans montrent d'un fil : de quel côté est la personne, qui est en face, à propos de quelle mission, et le
@@ -98,7 +99,7 @@ export const inbox = (db: Db) => ({
   /** Un profil publié, par sa référence publique, pour lui écrire ; `null` s'il est privé ou inconnu. */
   async contactTarget(reference: string): Promise<{ readonly profileId: string; readonly reference: string; readonly headline: string | null } | null> {
     if (!/^FR-[A-Z0-9]{5,8}$/.test(reference)) return null;
-    const row = await db.freelanceProfile.findFirst({ where: { reference, visibility: { not: "private" } }, select: { id: true, reference: true, headline: true } });
+    const row = await db.freelanceProfile.findFirst({ where: { reference, visibility: { not: "private" }, ...LISTED_PROFILE }, select: { id: true, reference: true, headline: true } });
     return row === null ? null : { profileId: row.id, reference: row.reference, headline: row.headline };
   },
 
