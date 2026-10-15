@@ -22,6 +22,7 @@ export const profileSectionsFr = {
     active_content: "Ce PDF contient du contenu actif (script, pièce jointe, formulaire) : enregistrez-le de nouveau en PDF simple.",
     unreadable: "Ce fichier n'a pas pu être lu.",
     quota: "Votre espace de stockage est plein : retirez d'anciens fichiers.",
+    storage_full: "Le stockage de Proofseen est momentanément plein : votre fichier n'a pas été enregistré. Réessayez plus tard.",
     unconfigured: "L'import automatique n'est pas disponible sur ce serveur.",
     too_long: "Ce PDF dépasse 10 pages : déposez un CV plus court.",
     no_text: "Ce PDF ne contient pas de texte lisible (un document scanné ?).",

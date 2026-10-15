@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-import { gdpr, getDb, storedFiles } from "@proofseen/db";
+import { gdpr, getDb, storedFiles, users } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
 import { deleteStored } from "@/data/uploads";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
@@ -14,7 +14,10 @@ import { logError } from "@/lib/log";
  * Erasure needs an explicit JSON confirmation: a cross-site form cannot send one. It is refused while a contract is in
  * progress or money is still held, because erasing one party would strand the other. The database goes first, then the
  * sign-in account, then the database once more: a request from another tab in between recreates an empty row from the
- * still-valid session, and the second pass removes it. If the sign-in deletion fails, a new attempt finishes the job.
+ * still-valid session (under a new id, found again by the sign-in id), and the second pass removes it. If the sign-in
+ * deletion fails, a new attempt finishes the job. The uploaded files are read before each pass, so files stored from
+ * that other tab go too; a file written in the instant between a read and its pass loses its row and is removed by the
+ * scheduled sweep of orphan files (upload-sweeper.ts, run by the notifications cron).
  * Export and erasure have separate limits: downloading the file ten times must not lock the person out of erasure.
  */
 
@@ -59,7 +62,14 @@ export async function DELETE(request: Request): Promise<NextResponse> {
     if (erased === "in_progress") return fail("contrat en cours");
     await deleteStored(fileIds);
     await deleteSignInAccount(state.person.id);
-    await gdpr(getDb()).eraseUser(who.actor.userId);
+    // The row recreated from another tab has a new id: it is found by the sign-in id, and its files are read before the
+    // second pass, since that tab may already have stored some.
+    const recreated = await users(getDb()).idOfSignIn(state.person.id);
+    for (const userId of new Set([who.actor.userId, ...(recreated === null ? [] : [recreated])])) {
+      const lateFileIds = await storedFiles(getDb()).idsOfOwner(userId);
+      await gdpr(getDb()).eraseUser(userId);
+      await deleteStored(lateFileIds);
+    }
     return ok({ erased: true });
   } catch (error) {
     logError("gdpr erasure failed", error);

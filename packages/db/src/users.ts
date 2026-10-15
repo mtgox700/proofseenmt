@@ -35,6 +35,8 @@ export interface Users {
    * jetable, créé pour vider une réserve partagée, ne l'est pas.
    */
   isEstablished(actor: Actor, now: Date): Promise<boolean>;
+  /** La ligne d'un identifiant Clerk, sans jamais la créer : l'effacement retrouve ainsi une ligne recréée entre-temps. */
+  idOfSignIn(clerkId: string): Promise<string | null>;
 }
 
 export const users = (db: Db): Users => ({
@@ -69,5 +71,10 @@ export const users = (db: Db): Users => ({
     if (row === null) return false;
     const published = row.freelanceProfile !== null && row.freelanceProfile.visibility !== "private" && row.freelanceProfile.slug !== null;
     return published || row.createdAt.getTime() + ESTABLISHED_ACCOUNT_DAYS * DAY_MS <= now.getTime();
+  },
+
+  async idOfSignIn(clerkId) {
+    if (!ClerkIdentitySchema.shape.clerkId.safeParse(clerkId).success) return null;
+    return (await db.user.findUnique({ where: { clerkId }, select: { id: true } }))?.id ?? null;
   },
 });

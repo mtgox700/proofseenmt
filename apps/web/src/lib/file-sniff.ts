@@ -99,8 +99,11 @@ export const imageDimensions = (bytes: Uint8Array, type: SniffedType): Dimension
 
 /*
  * PDF features that run something when the file is opened: scripts, launch actions, embedded files, rich media, XFA
- * forms. A CV needs none of them. Markers inside compressed object streams escape this check; the file is in any case
- * only ever served to its owner, as an attachment, under a policy that forbids everything.
+ * forms. A CV needs none of them. This check is best effort, on purpose (wave-2 review, L2): markers inside compressed
+ * object streams, or names written with #xx escapes, escape it, and decompressing every stream here would hand the web
+ * process the very parsing cost that pdf-text.ts moves into a capped worker. What actually protects: the file is only
+ * ever served to its owner, as an attachment, under a policy that forbids everything, and the server reads its text in
+ * PDF.js without scripting, XFA or font loading.
  */
 const ACTIVE_PDF = /\/(?:JavaScript|JS|Launch|EmbeddedFiles?|RichMedia|XFA)(?![A-Za-z])/;
 

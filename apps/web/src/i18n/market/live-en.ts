@@ -20,6 +20,7 @@ export const liveEn: LiveDictionary = {
       unreadable: "An attachment could not be read. Try another file.",
       quota: "Your file space is full (30 files or 40 MB): remove a file from your profile first.",
       busy: "PDF checking is very busy right now: send the attachment again in a minute.",
+      storage_full: "The platform storage is full for now: send the message without attachments or try again later.",
       state: "Attachments can be sent once the contact is accepted.",
       contact: "This message or one of its attachments contains contact details. They are exchanged once the mission is paid on Proofseen.",
     },

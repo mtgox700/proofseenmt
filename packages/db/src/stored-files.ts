@@ -86,6 +86,10 @@ export interface StoredFiles {
    * identifiants, pour effacer les fichiers du disque.
    */
   purgeOrphanAttachments(before: Date): Promise<readonly string[]>;
+  /** La place occupée par tous les fichiers enregistrés, en octets : le plafond du volume se compare à ce total. */
+  totalBytes(): Promise<number>;
+  /** Parmi ces identifiants, ceux qui ont une ligne : un fichier sur disque sans ligne est orphelin. */
+  existing(ids: readonly string[]): Promise<ReadonlySet<string>>;
 }
 
 const Uuid = z.uuid();
@@ -184,5 +188,15 @@ export const storedFiles = (db: Db): StoredFiles => ({
       ) AND "messageId" IS NULL
       RETURNING "id"::text AS "id"`;
     return rows.map((raw) => IdRow.parse(raw).id);
+  },
+
+  async totalBytes() {
+    return (await db.storedFile.aggregate({ _sum: { size: true } }))._sum.size ?? 0;
+  },
+
+  async existing(ids) {
+    const valid = ids.filter((id) => Uuid.safeParse(id).success);
+    if (valid.length === 0) return new Set<string>();
+    return new Set((await db.storedFile.findMany({ where: { id: { in: valid } }, select: { id: true } })).map((r) => r.id));
   },
 });

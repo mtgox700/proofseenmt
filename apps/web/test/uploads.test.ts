@@ -4,10 +4,10 @@ import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "../../../packages/db/test/support/database";
 import { reencodeImage } from "../src/data/image-processing";
-import { deleteStored, readStored, saveUpload, storedPath, writeStored } from "../src/data/uploads";
+import { deleteStored, readStored, saveUpload, storedPath, uploadsCapBytes, writeStored } from "../src/data/uploads";
 
 /*
  * File storage on disk and in the database, against a real Postgres (PGlite) and a temporary folder: what is stored is
@@ -105,6 +105,50 @@ describe("saving an upload", () => {
     expect(await saveUpload(t.db, actor, "photo", asFile(broken, "x.jpg", "image/jpeg"), root)).toEqual({ kind: "unreadable" });
     expect(await filesOnDisk()).toBe(before);
     expect(await t.db.storedFile.count({ where: { ownerId: actor.userId } })).toBe(0);
+  });
+
+  it("refuses any new upload once the volume holds more than PROOFSEEN_UPLOADS_MAX_GB, before writing anything", async () => {
+    const actor = await freelancer();
+    // About 1 KB: the rows already recorded by this file's tests are above it.
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", "0.000001");
+    try {
+      const before = await filesOnDisk();
+      expect(await saveUpload(t.db, actor, "photo", asFile(await photoWithExif(), "p.jpg", "image/jpeg"), root)).toEqual({ kind: "storage_full" });
+      expect(await filesOnDisk()).toBe(before);
+      expect(await t.db.storedFile.count({ where: { ownerId: actor.userId } })).toBe(0);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("warns in the server log past 80 % of the volume cap, and still stores", async () => {
+    const actor = await freelancer();
+    // Someone else's 4 MB CV: the volume is then large enough for a 90 % fill to leave room for one more photo.
+    const other = await freelancer();
+    await t.db.storedFile.create({ data: { ownerId: other.userId, kind: "cv", contentType: "application/pdf", size: 4_000_000, sha256: "d".repeat(64) } });
+    const used = Number((await t.db.storedFile.aggregate({ _sum: { size: true } }))._sum.size ?? 0);
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", String(used / 0.9 / 1024 ** 3));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      const saved = await saveUpload(t.db, actor, "photo", asFile(await photoWithExif(), "p.jpg", "image/jpeg"), root, new Date("2040-01-01T00:00:00Z"));
+      expect(saved.kind).toBe("stored");
+      expect(warn.mock.calls.flat().join(" ")).toContain("uploads: volume above 80 %");
+    } finally {
+      vi.unstubAllEnvs();
+      warn.mockRestore();
+    }
+  });
+
+  it("reads the volume cap from the environment, 5 GB when absent or invalid", () => {
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", "");
+    expect(uploadsCapBytes()).toBe(5 * 1024 ** 3);
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", "-3");
+    expect(uploadsCapBytes()).toBe(5 * 1024 ** 3);
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", "abc");
+    expect(uploadsCapBytes()).toBe(5 * 1024 ** 3);
+    vi.stubEnv("PROOFSEEN_UPLOADS_MAX_GB", "20");
+    expect(uploadsCapBytes()).toBe(20 * 1024 ** 3);
+    vi.unstubAllEnvs();
   });
 
   it("removes the file from disk again when the quota refuses its row", async () => {

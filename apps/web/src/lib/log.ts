@@ -18,3 +18,8 @@ export const logError = (event: string, error?: unknown, now: Date = new Date(),
   };
   console.error(JSON.stringify(entry));
 };
+
+/** A condition worth watching before it becomes an error (a volume filling up): same line, level "warn". */
+export const logWarning = (event: string, now: Date = new Date()): void => {
+  console.warn(JSON.stringify({ level: "warn", event: event.replace(/[\r\n]+/g, " ").slice(0, MAX_EVENT), at: now.toISOString() }));
+};

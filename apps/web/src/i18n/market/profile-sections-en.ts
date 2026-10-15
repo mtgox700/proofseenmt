@@ -24,6 +24,7 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     active_content: "This PDF contains active content (script, attachment, form): save it again as a plain PDF.",
     unreadable: "This file could not be read.",
     quota: "Your storage is full: remove older files.",
+    storage_full: "Proofseen's storage is full for now: your file was not saved. Try again later.",
     unconfigured: "Automatic import is not available on this server.",
     too_long: "This PDF has more than 10 pages: upload a shorter CV.",
     no_text: "This PDF holds no readable text (a scanned document?).",

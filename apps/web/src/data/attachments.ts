@@ -18,7 +18,7 @@ import { deleteStored, saveBytes, uploadsRoot } from "./uploads";
 /** Pages read to look for contact details; a longer document is stored without that check. */
 const MAX_PDF_PAGES_CHECKED = 50;
 
-export type AttachmentProblem = "count" | "too_large" | "type" | "dimensions" | "active_content" | "unreadable" | "quota" | "busy";
+export type AttachmentProblem = "count" | "too_large" | "type" | "dimensions" | "active_content" | "unreadable" | "quota" | "busy" | "storage_full";
 
 export type SavedAttachments = { readonly kind: "saved"; readonly ids: readonly string[]; readonly containContact: boolean } | { readonly kind: "refused"; readonly problem: AttachmentProblem };
 

@@ -20,6 +20,20 @@ afterAll(async () => {
 
 const DAY_MS = 86_400_000;
 
+describe("ligne d'un compte de connexion", () => {
+  it("retrouve la ligne d'un identifiant Clerk, recréée ou non, sans en créer", async () => {
+    const { userId } = await users(t.db).ensure({ clerkId: "clerk_retrouve", email: "retrouve@test.fr", displayName: "Retrouvé" });
+    expect(await users(t.db).idOfSignIn("clerk_retrouve")).toBe(userId);
+    await t.db.user.delete({ where: { id: userId } });
+    expect(await users(t.db).idOfSignIn("clerk_retrouve")).toBeNull();
+    // Une requête d'un autre onglet recrée la ligne, sous un nouvel identifiant : c'est celle-là que l'effacement doit trouver.
+    const { userId: recreated } = await users(t.db).ensure({ clerkId: "clerk_retrouve", email: "retrouve@test.fr", displayName: "Retrouvé" });
+    expect(recreated).not.toBe(userId);
+    expect(await users(t.db).idOfSignIn("clerk_retrouve")).toBe(recreated);
+    expect(await users(t.db).idOfSignIn("")).toBeNull();
+  });
+});
+
 describe("ancienneté d'un compte", () => {
   it("un compte neuf sans profil publié n'est pas établi ; il l'est passé sept jours", async () => {
     const userId = await createUser(t.db);

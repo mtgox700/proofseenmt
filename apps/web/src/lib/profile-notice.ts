@@ -24,6 +24,7 @@ export const NOTICE_CODES = [
   "active_content",
   "unreadable",
   "quota",
+  "storage_full",
   "unconfigured",
   "too_long",
   "no_text",
