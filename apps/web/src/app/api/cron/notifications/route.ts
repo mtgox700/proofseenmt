@@ -1,8 +1,10 @@
-import { confirmationMail, getDb, missionAlerts, notifications, payments, retention, validationReminders, vigilance } from "@proofseen/db";
+import { confirmationMail, getDb, messageDigests, missionAlerts, notifications, payments, retention, storedFiles, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { sendConfirmationEmails } from "@/data/confirmation-mail";
+import { sendDigests } from "@/data/digest-mail";
+import { deleteStored } from "@/data/uploads";
 import { checkDueRegistry } from "@/data/registry-lookup";
 import { hasDatabase } from "@/data/intake-sink";
 import { confirmationSecret } from "@/lib/confirmation-secret";
@@ -24,6 +26,8 @@ export const runtime = "nodejs";
 
 const BATCH = 50;
 const MAX_BATCHES = 4;
+/** A message attachment still without its message after a day was never sent (C15): its row and file go. */
+const ORPHAN_ATTACHMENT_MS = 24 * 60 * 60 * 1000;
 
 const json = (body: unknown, status = 200): Response => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 
@@ -38,6 +42,16 @@ export async function GET(request: Request): Promise<Response> {
       .purge(now())
       .catch((error: unknown) => {
         logError("cron: retention purge failed", error);
+        return null;
+      });
+    const orphanAttachments = await storedFiles(db)
+      .purgeOrphanAttachments(new Date(now().getTime() - ORPHAN_ATTACHMENT_MS))
+      .then(async (ids) => {
+        await deleteStored(ids);
+        return ids.length;
+      })
+      .catch((error: unknown) => {
+        logError("cron: orphan attachments purge failed", error);
         return null;
       });
     const queued = await missionAlerts(db).scan(now());
@@ -63,7 +77,7 @@ export async function GET(request: Request): Promise<Response> {
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent: 0, failed: 0, confirmationMails: null, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, queued, overdue, vigilanceReminders, registryChecks, releases, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -85,7 +99,12 @@ export async function GET(request: Request): Promise<Response> {
             logError("cron: confirmation e-mails failed", error);
             return null;
           });
-    return json({ ok: true, data: { purged, queued, overdue, vigilanceReminders, registryChecks, releases, sent, failed, confirmationMails, transport: "resend" } });
+    // Daily summaries of unread messages, for those who asked (C15): one a day at most, from the morning on.
+    const digests = await sendDigests({ digests: messageDigests(db), transport, baseUrl: publicBaseUrl(request), now }).catch((error: unknown) => {
+      logError("cron: message digests failed", error);
+      return null;
+    });
+    return json({ ok: true, data: { purged, orphanAttachments, queued, overdue, vigilanceReminders, registryChecks, releases, sent, failed, confirmationMails, digests, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);

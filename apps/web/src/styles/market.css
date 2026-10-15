@@ -68,3 +68,20 @@
 .board-col > h3 { display: flex; align-items: center; gap: var(--space-2); font: inherit; }
 .board-card { display: grid; gap: var(--space-2); padding: var(--space-3) 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .board-card .row-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* ---------- Live messaging (C15) ---------- */
+.live-count { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
+.app-bell { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--muted); text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .app-bell:hover { color: var(--ink); } }
+.thread-unread { margin-left: var(--space-2); color: var(--proof); background: var(--proof-wash); vertical-align: middle; }
+.thread-row[data-unread] { border-color: color-mix(in srgb, var(--proof) 45%, var(--line)); }
+.thread-row[data-unread] .thread-last { color: var(--ink); }
+.bubble-files { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.bubble-file { display: inline-grid; gap: var(--space-1); max-width: 12rem; padding: var(--space-2); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); color: var(--ink); overflow-wrap: anywhere; }
+.bubble-file img { display: block; width: 100%; max-height: 9rem; object-fit: cover; border-radius: var(--radius); }
+.bubble-read { justify-self: end; }
+.notifications { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.notifications > li { display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.notifications > li[data-unread] { border-color: color-mix(in srgb, var(--proof) 45%, var(--line)); }
+.notifications .row-actions form { display: contents; }
+.notification-text { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
