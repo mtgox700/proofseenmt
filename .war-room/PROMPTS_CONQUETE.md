@@ -601,8 +601,8 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 
 | Sprint | Nom | Statut | Preuve de clôture |
 |---|---|---|---|
-| C13 | Moteur de référencement, visible et prouvé | 🟡 | Lots A (adresses prouvées), C (mesure depuis l application, plafonds) et D (public sans démo, annuaire, métiers, llms.txt) en production le 2026-10-14 ; restent écran de visibilité complet, liste de contrôle du profil, missions vérifiées, relecture sécurité, parcours joué en production |
-| C14 | Profils riches et recherche de freelances réelle | ⬜ | |
+| C13 | Moteur de référencement, visible et prouvé | 🟡 | Tout le code en production le 2026-10-15 : adresses prouvées (A), écran de visibilité et liste de contrôle (B), mesure plafonnée (C), public sans démo, annuaire, métiers, llms.txt (D), missions vérifiées (E), relecture sécurité fermée (3 hautes, 5 moyennes, 3 basses corrigées, PR #32) ; `marketplace-verify` vert ; reste le parcours joué en production avec les comptes de test du founder |
+| C14 | Profils riches et recherche de freelances réelle | 🟡 | Recherche réelle, brief → filtres, listes partagées en production (PR #30) ; profils riches, stockage, import de CV en cours |
 | C15 | Messagerie vivante | ⬜ | |
 | C16 | Espace missions vivant | ⬜ | |
 | C17 | Tableaux de bord freelance et entreprise, réglages du compte | ⬜ | |
