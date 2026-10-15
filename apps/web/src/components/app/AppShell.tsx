@@ -24,7 +24,7 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person, counts: LiveCounts 
   const home = { href: base, label: t.app.nav.home };
   const messages: NavItem = { href: `${base}/messages`, label: t.app.nav.messages, live: { which: "messages", initial: counts?.messages ?? 0, label: marketDictionary(lang).live.unreadLabel } };
   const m = marketDictionary(lang).missions.nav;
-  if (person.role === "operator") return [home, messages, { href: `${base}/articles`, label: marketDictionary(lang).articles.nav }, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
+  if (person.role === "operator") return [home, { href: `${base}/operateur`, label: marketDictionary(lang).operator.nav }, messages, { href: `${base}/articles`, label: marketDictionary(lang).articles.nav }, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
   const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
   const deals = marketDictionary(lang).deals;
   const alertsItem = { href: `${base}/alertes`, label: marketDictionary(lang).account.alerts.nav };

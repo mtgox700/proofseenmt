@@ -9,10 +9,12 @@ import { liveEn } from "./live-en";
 import { insightsEn } from "./insights-en";
 import { missionsEn } from "./missions-en";
 import { missionsSpaceEn } from "./missions-space-en";
+import { operatorEn } from "./operator-en";
 import { profileEn } from "./profile-en";
 import { proofsEn } from "./proofs-en";
 import { searchEn } from "./search-en";
 import { settingsEn } from "./settings-en";
+import { standingEn } from "./standing-en";
 import { teamEn } from "./team-en";
 import { visibilityEn } from "./visibility-en";
 
@@ -26,10 +28,12 @@ export const marketEn: MarketDictionary = {
   insights: insightsEn,
   missions: missionsEn,
   missionsSpace: missionsSpaceEn,
+  operator: operatorEn,
   profile: profileEn,
   proofs: proofsEn,
   search: searchEn,
   settings: settingsEn,
+  standing: standingEn,
   team: teamEn,
   visibility: visibilityEn,
   nav: {

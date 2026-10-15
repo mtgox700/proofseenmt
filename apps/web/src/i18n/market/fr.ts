@@ -7,10 +7,12 @@ import { liveFr } from "./live-fr";
 import { insightsFr } from "./insights-fr";
 import { missionsFr } from "./missions-fr";
 import { missionsSpaceFr } from "./missions-space-fr";
+import { operatorFr } from "./operator-fr";
 import { profileFr } from "./profile-fr";
 import { proofsFr } from "./proofs-fr";
 import { searchFr } from "./search-fr";
 import { settingsFr } from "./settings-fr";
+import { standingFr } from "./standing-fr";
 import { teamFr } from "./team-fr";
 import { visibilityFr } from "./visibility-fr";
 
@@ -42,10 +44,12 @@ export const marketFr = {
   insights: insightsFr,
   missions: missionsFr,
   missionsSpace: missionsSpaceFr,
+  operator: operatorFr,
   profile: profileFr,
   proofs: proofsFr,
   search: searchFr,
   settings: settingsFr,
+  standing: standingFr,
   team: teamFr,
   visibility: visibilityFr,
   nav: {
