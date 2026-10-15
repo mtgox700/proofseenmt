@@ -30,6 +30,7 @@ export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
               <a className="hide-narrow" href={`/${lang}/missions`}>{t.nav.missions}</a>
               <a className="hide-narrow" href={`/${lang}/freelances`}>{t.nav.freelancers}</a>
               <a className="hide-narrow" href={`/${lang}/metiers`}>{t.nav.skills}</a>
+              <a className="hide-narrow" href={`/${lang}/blog`}>{t.nav.blog}</a>
               <Link className="hide-narrow" href={`/${lang}/connexion`}>{t.nav.signIn}</Link>
               <Link className="nav-cta" href={`/${lang}/creer-un-compte`}>{t.nav.signUp}</Link>
             </>
