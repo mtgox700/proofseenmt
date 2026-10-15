@@ -4,11 +4,13 @@ import { billingFr } from "./billing-fr";
 import { confirmationsFr } from "./confirmations-fr";
 import { dealsFr } from "./deals-fr";
 import { liveFr } from "./live-fr";
+import { insightsFr } from "./insights-fr";
 import { missionsFr } from "./missions-fr";
 import { missionsSpaceFr } from "./missions-space-fr";
 import { profileFr } from "./profile-fr";
 import { proofsFr } from "./proofs-fr";
 import { searchFr } from "./search-fr";
+import { settingsFr } from "./settings-fr";
 import { teamFr } from "./team-fr";
 import { visibilityFr } from "./visibility-fr";
 
@@ -37,11 +39,13 @@ export const marketFr = {
   confirmations: confirmationsFr,
   deals: dealsFr,
   live: liveFr,
+  insights: insightsFr,
   missions: missionsFr,
   missionsSpace: missionsSpaceFr,
   profile: profileFr,
   proofs: proofsFr,
   search: searchFr,
+  settings: settingsFr,
   team: teamFr,
   visibility: visibilityFr,
   nav: {

@@ -10,13 +10,10 @@ import { dictionary, isLang, type Dictionary, type Lang } from "@/i18n";
 import { date } from "@/lib/format";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
-import { StatusTag } from "@/components/market/StatusTag";
-import { dashboards, missionInvitations, profiles, savedMissions } from "@proofseen/db";
-import { CompanyTiles, FreelanceTiles } from "@/components/market/DashboardTiles";
-import { MissionCounts } from "@/components/market/MissionCounts";
-import { HomeVisibility } from "@/components/visibility/HomeVisibility";
+import { CompanyHomeBoard } from "@/components/insights/CompanyHomeBoard";
+import { FreelanceHomeBoard } from "@/components/insights/FreelanceHomeBoard";
 import { marketDictionary } from "@/i18n/market";
-import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
+import { currentOrganisation, pageMarket } from "@/lib/market";
 import { createOrganisation } from "./actions";
 
 /** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
@@ -140,46 +137,6 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
   );
 }
 
-/** The marketplace side of a freelancer's home: the profile's state, and the way to missions. */
-async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
-  const dict = marketDictionary(lang);
-  const p = dict.profile;
-  const market = await pageMarket(lang, ["freelance"]);
-  if (market === "unconfigured") return null;
-  const [profile, board, invitations, saved] = await Promise.all([
-    profiles(market.db).findMine(market.actor),
-    dashboards(market.db).freelance(market.actor),
-    missionInvitations(market.db).countPending(market.actor),
-    savedMissions(market.db).countOpen(market.actor),
-  ]);
-  return (
-    <>
-    <section className="panel" aria-labelledby="market-title">
-      <h2 id="market-title">{p.homeTitle}</h2>
-      {profile === null ? (
-        <p className="measure">{p.homeNoProfile}</p>
-      ) : (
-        <p className="thread-meta">
-          <StatusTag status={profile.visibility === "private" ? "draft" : "accepted"} label={profile.reference} />
-          <span className="muted">{p.visibility[profile.visibility]}</span>
-        </p>
-      )}
-      <div className="empty-actions">
-        <Link className={profile === null ? "btn btn-primary" : "btn"} href={`/${lang}/app/profil`}>
-          {profile === null ? p.homeCreate : p.homeEdit}
-        </Link>
-        <Link className={profile === null ? "btn" : "btn btn-primary"} href={`/${lang}/missions`}>
-          {p.homeBrowse}
-        </Link>
-      </div>
-    </section>
-    <MissionCounts lang={lang} s={dict.missionsSpace} invitations={invitations} saved={saved} />
-    <HomeVisibility lang={lang} market={market} profile={profile} />
-    {profile === null ? null : <FreelanceTiles lang={lang} b={dict.account.dashboard} board={board} />}
-    </>
-  );
-}
-
 async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
   const f = t.app.freelance;
   const reference = await referenceForEmail(person.email);
@@ -209,7 +166,7 @@ async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonl
           </dl>
         )}
       </header>
-      <FreelanceMarket lang={lang} />
+      <FreelanceHomeBoard lang={lang} />
       {view === null ? (
         <p className="muted small">
           <Link href={`/${lang}/inscription`}>{marketDictionary(lang).profile.homeAudit}</Link>
@@ -267,12 +224,6 @@ function CreateOrganisation({ lang, error }: { readonly lang: Lang; readonly err
   );
 }
 
-/** The company's figures, for its members. */
-async function CompanyBoard({ lang, market, organisationId }: { readonly lang: Lang; readonly market: Market; readonly organisationId: string }) {
-  const board = await dashboards(market.db).company(market.actor, organisationId);
-  return board === null ? null : <CompanyTiles lang={lang} b={marketDictionary(lang).account.dashboard} board={board} />;
-}
-
 async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person; readonly error: string | undefined }) {
   const c = t.app.company;
   const m = marketDictionary(lang);
@@ -292,7 +243,7 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
         )}
         <p className="muted measure">{c.lead}</p>
       </header>
-      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : <CompanyBoard lang={lang} market={market} organisationId={organisation.id} />}
+      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : <CompanyHomeBoard lang={lang} market={market} organisationId={organisation.id} />}
       <form className="filters" method="get" action={`/${lang}/app/recherche`} role="search" aria-label={c.search}>
         <div className="field">
           <label htmlFor="skill">{t.directory.form.skill}</label>

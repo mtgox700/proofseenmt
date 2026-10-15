@@ -7,8 +7,16 @@ import { latestCitations } from "@/lib/visibility-view";
 import { ChecklistSummary } from "./ProfileChecklist";
 import { VisibilityTile } from "./VisibilityTile";
 
+interface HomeVisibilityProps {
+  readonly lang: Lang;
+  readonly market: Market;
+  readonly profile: ProfileFacts | null;
+  /** Shown under the tiles (the dashboard's citations table). */
+  readonly children?: React.ReactNode;
+}
+
 /** The freelancer's home block: what the engines cited at the latest measurement, and how many profile facts are missing. */
-export async function HomeVisibility({ lang, market, profile }: { readonly lang: Lang; readonly market: Market; readonly profile: ProfileFacts | null }) {
+export async function HomeVisibility({ lang, market, profile, children }: HomeVisibilityProps) {
   const v = marketDictionary(lang).visibility;
   const [waves, checklist] = await Promise.all([visibility(market.db).mine(market.actor, 1), checklistFor(market, lang, profile, new Date())]);
   return (
@@ -18,6 +26,7 @@ export async function HomeVisibility({ lang, market, profile }: { readonly lang:
         <VisibilityTile lang={lang} v={v} latest={latestCitations(waves)} />
         <ChecklistSummary lang={lang} c={v.checklist} checklist={checklist} />
       </div>
+      {children}
     </section>
   );
 }

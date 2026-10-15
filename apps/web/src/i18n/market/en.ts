@@ -6,11 +6,13 @@ import { billingEn } from "./billing-en";
 import { confirmationsEn } from "./confirmations-en";
 import { dealsEn } from "./deals-en";
 import { liveEn } from "./live-en";
+import { insightsEn } from "./insights-en";
 import { missionsEn } from "./missions-en";
 import { missionsSpaceEn } from "./missions-space-en";
 import { profileEn } from "./profile-en";
 import { proofsEn } from "./proofs-en";
 import { searchEn } from "./search-en";
+import { settingsEn } from "./settings-en";
 import { teamEn } from "./team-en";
 import { visibilityEn } from "./visibility-en";
 
@@ -21,11 +23,13 @@ export const marketEn: MarketDictionary = {
   confirmations: confirmationsEn,
   deals: dealsEn,
   live: liveEn,
+  insights: insightsEn,
   missions: missionsEn,
   missionsSpace: missionsSpaceEn,
   profile: profileEn,
   proofs: proofsEn,
   search: searchEn,
+  settings: settingsEn,
   team: teamEn,
   visibility: visibilityEn,
   nav: {
