@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { countListAdd } from "./audience-stats";
 import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
@@ -225,6 +226,8 @@ export const freelanceLists = (db: Db) => ({
         if ((await tx.freelanceListItem.count({ where: { listId, profileId } })) > 0) return "already";
         if ((await tx.freelanceListItem.count({ where: { listId } })) >= MAX_ITEMS_PER_LIST) return "limit";
         await tx.freelanceListItem.create({ data: { listId, profileId, addedByUserId: actor.userId } });
+        // L'audience du profil compte l'ajout, jamais l'entreprise qui l'a fait.
+        await countListAdd(tx, profileId, new Date());
         return "added";
       });
     } catch (error) {

@@ -1,6 +1,8 @@
+import { purgeAudience } from "./audience-stats";
 import type { Db } from "./client";
 import { MEASUREMENT_SPEND_RETENTION_DAYS } from "./measurement-ledger";
 import { MAX_ATTEMPTS } from "./notifications";
+import { STATS_RETENTION_MONTHS } from "./stat-days";
 
 /*
  * Durées de conservation appliquées par la tâche planifiée, pas seulement écrites dans un registre.
@@ -48,6 +50,11 @@ export const RETENTION = {
   /** Notifications de l'application (C15) : lues, 90 jours ; jamais lues, un an, comme un e-mail jamais parti. */
   readAppNotificationsDays: 90,
   unreadAppNotificationsDays: 365,
+  /**
+   * Compteurs d'audience des profils et d'activité des équipes : treize mois, pour comparer un mois à celui de l'année
+   * passée. Les empreintes de visiteurs, elles, ne passent pas la journée.
+   */
+  audienceStatsMonths: STATS_RETENTION_MONTHS,
 } as const;
 
 export interface PurgeReport {
@@ -62,6 +69,8 @@ export interface PurgeReport {
   readonly missionConfirmations: number;
   readonly measurementSpend: number;
   readonly appNotifications: number;
+  readonly audienceStats: number;
+  readonly audienceSightings: number;
 }
 
 export interface Retention {
@@ -107,6 +116,7 @@ export const retention = (db: Db): Retention => ({
         ],
       },
     });
+    const audience = await purgeAudience(db, now);
     return {
       notifications: notifications.count,
       stripeEvents: stripeEvents.count,
@@ -119,6 +129,8 @@ export const retention = (db: Db): Retention => ({
       missionConfirmations: confirmationRows.count,
       measurementSpend: spendRows.count,
       appNotifications: appNotificationRows.count,
+      audienceStats: audience.stats,
+      audienceSightings: audience.sightings,
     };
   },
 });

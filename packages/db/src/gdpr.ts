@@ -111,7 +111,7 @@ export const gdpr = (db: Db): Gdpr => ({
     if (!Uuid.safeParse(userId).success) return null;
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, clerkId: true, email: true, displayName: true, createdAt: true, updatedAt: true },
+      select: { id: true, clerkId: true, email: true, displayName: true, lang: true, createdAt: true, updatedAt: true },
     });
     if (user === null) return null;
 
@@ -149,6 +149,10 @@ export const gdpr = (db: Db): Gdpr => ({
           languages: true,
           portfolio: true,
           importDraft: true,
+          // Audience du profil (C17) : des totaux par jour, sans rien sur les visiteurs ; les empreintes du jour ne sont
+          // pas des données de la personne et ne sont pas rendues.
+          statDays: { select: { day: true, views: true, searchAppearances: true, directoryAppearances: true, listAdds: true }, orderBy: { day: "asc" } },
+          statKeywords: { select: { day: true, kind: true, keyword: true, appearances: true }, orderBy: [{ day: "asc" }, { keyword: "asc" }] },
         },
       }),
       db.message.findMany({ where: { senderUserId: userId }, select: { id: true, conversationId: true, body: true, createdAt: true }, orderBy: { createdAt: "asc" } }),

@@ -240,6 +240,7 @@ model Organisation {
   missionsConfirmed    VerifiedMission[]
   missionTemplates     MissionTemplate[]
   followers            CompanyFollow[]
+  statDays             OrganisationStatDay[]
 }
 
 model Membership {
@@ -307,6 +308,9 @@ model FreelanceProfile {
   portfolio      PortfolioItem[]
   importDraft    ProfileImportDraft?
   missionInvitations   MissionInvitation[]
+  statDays       ProfileStatDay[]
+  statKeywords   ProfileStatKeyword[]
+  statSeen       ProfileStatSeen[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -1469,4 +1473,72 @@ model MessageDigest {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([lastRunAt])
+}
+
+// ─── Audience des profils et activité des équipes (C17) ─────────────────────────────────────────────────────────────
+// Des totaux par jour (calendrier de Paris), jamais une personne : ni adresse IP, ni identifiant de visiteur, ni nom de
+// l'entreprise qui a cherché. Gardés 13 mois, puis purgés par la tâche planifiée.
+
+/// Audience d'un profil, un jour donné : vues de la page publique, apparitions dans la recherche des entreprises et dans
+/// l'annuaire public, ajouts à une liste d'entreprise. Un visiteur ne compte qu'une fois par jour et par compteur.
+model ProfileStatDay {
+  profileId            String   @db.Uuid
+  day                  DateTime @db.Date
+  views                Int      @default(0)
+  searchAppearances    Int      @default(0)
+  directoryAppearances Int      @default(0)
+  listAdds             Int      @default(0)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, day])
+  @@index([day])
+}
+
+enum StatKeywordKind {
+  skill
+  city
+}
+
+/// Les filtres (compétence, ville) d'une recherche d'entreprise qui a fait apparaître le profil, comptés par jour sous
+/// leur forme normalisée. Vingt au plus par profil et par jour, les plus fréquents. Jamais l'entreprise qui a cherché.
+model ProfileStatKeyword {
+  profileId   String          @db.Uuid
+  day         DateTime        @db.Date
+  kind        StatKeywordKind
+  keyword     String
+  appearances Int             @default(0)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, day, kind, keyword])
+  @@index([day])
+}
+
+/// Empreintes du jour, pour ne compter un visiteur qu'une fois : HMAC de l'adresse et du navigateur sous une clé qui
+/// change chaque jour. Ni l'adresse ni le navigateur ne sont écrits ; les lignes partent dès le lendemain.
+model ProfileStatSeen {
+  day        DateTime @db.Date
+  profileId  String   @db.Uuid
+  /// `view`, `search`, `directory`, ou `keyword:<sorte>:<mot>` pour un filtre de recherche.
+  scope      String
+  viewerHash String
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([day, profileId, scope, viewerHash])
+  @@index([profileId])
+}
+
+/// Activité d'une entreprise, un jour donné : recherches de freelances lancées par ses membres. Le total de l'équipe,
+/// jamais par membre.
+model OrganisationStatDay {
+  organisationId String   @db.Uuid
+  day            DateTime @db.Date
+  searches       Int      @default(0)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@id([organisationId, day])
+  @@index([day])
 }
