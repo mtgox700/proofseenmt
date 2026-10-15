@@ -12,6 +12,8 @@ export interface PublicMission {
   readonly organisationName: string;
   /** Fait vérifié : entreprise active au répertoire officiel, à cette date. */
   readonly organisationRegistryActiveCheckedAt?: Date | null;
+  /** Adresse de la page publique de l'entreprise, si elle en a une. */
+  readonly organisationSlug?: string | null;
   /** Fait sur l'entreprise : délai médian de décision sur ses candidatures récentes. */
   readonly organisationResponse?: { readonly medianDays: number; readonly decided: number } | null;
   readonly title: string;

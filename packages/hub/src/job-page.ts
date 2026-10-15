@@ -2,6 +2,7 @@ import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketHeader, MENU_STYLES } from "./market-shell";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
+import { cityUrl } from "./city-page";
 
 /*
  * Page publique d'une mission de la marketplace : un document HTML complet, lisible sans JavaScript, avec ses données
@@ -124,7 +125,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     '<main class="wrap">',
     `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
     `<h1 class="title">${e(m.title)}</h1>`,
-    `<p class="byline">${e(m.organisationName)} · ${l.published} ${e(published)}</p>`,
+    `<p class="byline">${m.organisationSlug == null ? e(m.organisationName) : `<a href="${e(`/${o.lang}/entreprises/${encodeURIComponent(m.organisationSlug)}`)}">${e(m.organisationName)}</a>`} · ${l.published} ${e(published)}</p>`,
     registry,
     response,
     `<dl class="context">${context}</dl>`,
@@ -139,7 +140,12 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
 };
 
 /** Sitemap des missions ouvertes, dans les deux langues. */
-export const jobSitemap = (baseUrl: string, items: readonly { readonly id: string; readonly publishedAt: Date }[]): string =>
+export const jobSitemap = (
+  baseUrl: string,
+  items: readonly { readonly id: string; readonly publishedAt: Date }[],
+  /** Les pages par ville qui existent (assez de missions ouvertes). */
+  cities: readonly { readonly key: string }[] = [],
+): string =>
   [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
@@ -148,6 +154,7 @@ export const jobSitemap = (baseUrl: string, items: readonly { readonly id: strin
         (lang) => `<url><loc>${e(missionUrl(baseUrl, lang, item.id))}</loc><lastmod>${item.publishedAt.toISOString().slice(0, 10)}</lastmod></url>`,
       ),
     ),
+    ...cities.flatMap((city) => (["fr", "en"] as const).map((lang) => `<url><loc>${e(cityUrl(baseUrl, lang, city.key))}</loc></url>`)),
     "</urlset>",
     "",
   ].join("\n");
