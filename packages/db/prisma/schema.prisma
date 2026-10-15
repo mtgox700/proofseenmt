@@ -191,6 +191,11 @@ model User {
   freelanceListReactions  FreelanceListReaction[]
   missionConfirmationsDecided MissionConfirmationRequest[] @relation("MissionConfirmationDecider")
   storedFiles             StoredFile[]
+  applicationsRead        Application[]            @relation("ApplicationReader")
+  savedMissions           SavedMission[]
+  companyFollows          CompanyFollow[]
+  missionInvitationsSent  MissionInvitation[]
+  missionTemplatesCreated MissionTemplate[]
 }
 
 model Organisation {
@@ -211,6 +216,14 @@ model Organisation {
   registryAttemptedAt DateTime?       @db.Timestamptz(3)
   /// Nombre de validations distinctes exigées avant de valider une prestation (et donc de déclencher le versement) : 1 ou 2.
   approvalLevels Int        @default(1)
+  /// Page publique de l'entreprise (C16), seulement si elle l'a activée : `publicSince` nul = aucune page. L'adresse
+  /// reste la même si l'entreprise la désactive puis la réactive.
+  publicSlug        String?   @unique
+  publicName        String?
+  publicDescription String?
+  publicWebsite     String?
+  publicCity        String?
+  publicSince       DateTime? @db.Timestamptz(3)
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -222,6 +235,8 @@ model Organisation {
   freelanceLists FreelanceList[]
   missionConfirmations MissionConfirmationRequest[]
   missionsConfirmed    VerifiedMission[]
+  missionTemplates     MissionTemplate[]
+  followers            CompanyFollow[]
 }
 
 model Membership {
@@ -288,6 +303,7 @@ model FreelanceProfile {
   languages      ProfileLanguage[]
   portfolio      PortfolioItem[]
   importDraft    ProfileImportDraft?
+  missionInvitations   MissionInvitation[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -488,6 +504,10 @@ model JobPost {
   /// Forme normalisée de la ville : le filtre compare des clés, jamais un motif où « % » serait un joker.
   cityKey           String?
   workMode          WorkMode
+  /// Trois questions au plus, posées à chaque candidat ; ses réponses accompagnent sa candidature.
+  questions         String[]      @default([])
+  /// Les libellés des compétences, à la suite : la recherche plein texte les lit avec l'intitulé et la description.
+  skillsText        String        @default("")
   status            JobPostStatus @default(draft)
   publishedAt       DateTime?     @db.Timestamptz(3)
   closedAt          DateTime?     @db.Timestamptz(3)
@@ -499,6 +519,8 @@ model JobPost {
   author       User?          @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
   skills       JobPostSkill[]
   applications Application[]
+  savedBy      SavedMission[]
+  invitations  MissionInvitation[]
 
   /// Les missions ouvertes, des plus récentes aux plus anciennes, avec l'identifiant pour paginer sans ex aequo.
   @@index([publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'open'"), map: "JobPost_open_recent_idx")
@@ -524,18 +546,26 @@ model Application {
   jobPostId String            @db.Uuid
   profileId String            @db.Uuid
   coverNote String
+  /// Réponses aux questions de la mission, dans leur ordre.
+  answers   String[]          @default([])
   status    ApplicationStatus @default(submitted)
+  /// Première ouverture de la candidature par un membre de l'entreprise : le freelance voit la date, jamais le nom.
+  readAt       DateTime?      @db.Timestamptz(3)
+  readByUserId String?        @db.Uuid
   createdAt DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(3)
 
   jobPost      JobPost          @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
   profile      FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   conversation Conversation?
+  /// Privé : sert à l'entreprise seule. Le lecteur peut quitter l'entreprise ou effacer son compte.
+  readBy       User?            @relation("ApplicationReader", fields: [readByUserId], references: [id], onDelete: SetNull)
 
   /// Une seule candidature par freelance et par mission.
   @@unique([jobPostId, profileId])
   @@index([jobPostId, status, createdAt(sort: Desc)])
   @@index([profileId, createdAt(sort: Desc)])
+  @@index([readByUserId], where: raw("\"readByUserId\" IS NOT NULL"), map: "Application_readByUserId_idx")
 }
 
 // ─── Messagerie ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -959,6 +989,9 @@ enum NotificationKind {
   contract_update      // contrat à signer, actif, prestation validée
   vigilance_expiring   // l'attestation de vigilance URSSAF expire bientôt (freelance)
   mission_confirmation // demande de confirmation reçue (entreprise), confirmée ou refusée (freelance)
+  application_read     // la candidature a été ouverte par l'entreprise (freelance)
+  mission_invitation   // une entreprise invite à postuler (freelance)
+  company_mission      // une entreprise suivie publie une mission (freelance)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
@@ -1297,4 +1330,73 @@ model ProfileImportDraft {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// ─── Espace missions (C16) ──────────────────────────────────────────────────────────────────────────────────────────
+
+/// Mission enregistrée par une personne pour y revenir. Privée : ni l'entreprise ni personne d'autre ne la voit.
+model SavedMission {
+  userId    String   @db.Uuid
+  jobPostId String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPost JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+
+  @@id([userId, jobPostId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([jobPostId])
+}
+
+/// Invitation à postuler, envoyée par un membre de l'entreprise à un freelance publié. Une seule par mission et par
+/// freelance ; le freelance peut l'écarter. Ce n'est pas une candidature : il décide s'il postule.
+model MissionInvitation {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  jobPostId       String    @db.Uuid
+  profileId       String    @db.Uuid
+  invitedByUserId String?   @db.Uuid
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
+  dismissedAt     DateTime? @db.Timestamptz(3)
+
+  jobPost   JobPost          @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  profile   FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  /// L'auteur peut quitter l'entreprise ou effacer son compte : l'invitation reste celle de l'entreprise.
+  invitedBy User?            @relation(fields: [invitedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([jobPostId, profileId])
+  @@index([profileId, createdAt(sort: Desc)])
+  @@index([jobPostId, createdAt(sort: Desc)])
+  @@index([invitedByUserId], where: raw("\"invitedByUserId\" IS NOT NULL"), map: "MissionInvitation_invitedByUserId_idx")
+}
+
+/// Entreprise suivie par une personne : une notification à chaque mission qu'elle publie. Seule une entreprise qui a
+/// une page publique peut être suivie.
+model CompanyFollow {
+  userId         String   @db.Uuid
+  organisationId String   @db.Uuid
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organisationId])
+  @@index([organisationId])
+}
+
+/// Modèle de mission d'une entreprise : les champs d'une mission, réutilisables pour en créer une nouvelle. Jamais public.
+model MissionTemplate {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  organisationId  String   @db.Uuid
+  createdByUserId String?  @db.Uuid
+  name            String
+  /// Les champs d'une mission, relus avec le schéma de saisie des missions à chaque usage.
+  data            Json
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, createdAt(sort: Desc)])
+  @@index([createdByUserId], where: raw("\"createdByUserId\" IS NOT NULL"), map: "MissionTemplate_createdByUserId_idx")
 }
