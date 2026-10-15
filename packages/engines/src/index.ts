@@ -7,3 +7,4 @@ export * from "./anthropic";
 export * from "./perplexity";
 export * from "./completion";
 export * from "./brief";
+export * from "./cv-reader";
