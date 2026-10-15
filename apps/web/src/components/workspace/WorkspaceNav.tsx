@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LiveCount } from "@/components/live/LiveCount";
 
 export interface NavItem {
   readonly href: string;
   readonly label: string;
+  /** A live counter after the label (unread messages, C15). */
+  readonly live?: { readonly which: "messages" | "notifications"; readonly initial: number; readonly label: string };
 }
 
 interface WorkspaceNavProps {
@@ -24,6 +27,7 @@ export function WorkspaceNav({ items, label }: WorkspaceNavProps) {
           <li key={item.href}>
             <Link href={item.href} aria-current={item.href === deepest?.href ? "page" : undefined}>
               {item.label}
+              {item.live === undefined ? null : <LiveCount which={item.live.which} initial={item.live.initial} label={item.live.label} />}
             </Link>
           </li>
         ))}

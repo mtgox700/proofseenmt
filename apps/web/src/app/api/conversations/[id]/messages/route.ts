@@ -55,6 +55,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("conversation fermée");
       case "contact_details":
         return fail("coordonnées refusées");
+      case "attachments":
+        return fail("requête invalide");
     }
   } catch {
     return fail("erreur serveur");

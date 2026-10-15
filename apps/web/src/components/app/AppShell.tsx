@@ -1,5 +1,7 @@
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import type { LiveCounts } from "@proofseen/db";
+import { LiveCount } from "@/components/live/LiveCount";
 import { LangSwitch } from "@/components/LangSwitch";
 import { Logo } from "@/components/Logo";
 import { WorkspaceNav, type NavItem } from "@/components/workspace/WorkspaceNav";
@@ -11,14 +13,16 @@ interface AppShellProps {
   readonly lang: Lang;
   readonly t: Dictionary;
   readonly person: Person;
+  /** Unread messages and notifications at render time; `null` when they could not be read (C15). */
+  readonly counts?: LiveCounts | null;
   readonly children: React.ReactNode;
 }
 
 /** Navigation by role: what someone sees in the menu is exactly what the server will let them open. */
-const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
+const itemsFor = (lang: Lang, t: Dictionary, person: Person, counts: LiveCounts | null): NavItem[] => {
   const base = `/${lang}/app`;
   const home = { href: base, label: t.app.nav.home };
-  const messages = { href: `${base}/messages`, label: t.app.nav.messages };
+  const messages: NavItem = { href: `${base}/messages`, label: t.app.nav.messages, live: { which: "messages", initial: counts?.messages ?? 0, label: marketDictionary(lang).live.unreadLabel } };
   const m = marketDictionary(lang).missions.nav;
   if (person.role === "operator") return [home, messages, { href: `${base}/articles`, label: marketDictionary(lang).articles.nav }, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
   const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
@@ -32,8 +36,9 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, visibilityItem, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, alertsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
-export function AppShell({ lang, t, person, children }: AppShellProps) {
+export function AppShell({ lang, t, person, counts = null, children }: AppShellProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
+  const live = marketDictionary(lang).live;
   return (
     <div className="app">
       <header className="app-top">
@@ -43,6 +48,12 @@ export function AppShell({ lang, t, person, children }: AppShellProps) {
         </Link>
         <div className="app-top-right">
           {person.role === null ? null : <span className="tag tag-quiet">{t.app.roles[person.role]}</span>}
+          {person.role === null ? null : (
+            <Link className="app-bell" href={`/${lang}/app/notifications`}>
+              {live.bell}
+              <LiveCount which="notifications" initial={counts?.notifications ?? 0} label={live.unreadLabel} />
+            </Link>
+          )}
           <nav className="nav" aria-label={t.nav.otherLangLabel}>
             <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
           </nav>
@@ -51,7 +62,7 @@ export function AppShell({ lang, t, person, children }: AppShellProps) {
       </header>
       <div className="app-body">
         <aside className="app-side">
-          <WorkspaceNav items={itemsFor(lang, t, person)} label={t.app.nav.label} />
+          <WorkspaceNav items={itemsFor(lang, t, person, counts)} label={t.app.nav.label} />
         </aside>
         <main id="contenu" tabIndex={-1} className="app-main">
           {children}

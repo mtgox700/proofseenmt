@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { AuthUnavailable } from "@/components/app/AuthUnavailable";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { headerCounts } from "@/data/live-counts";
 import { dictionary, isLang } from "@/i18n";
 import { session } from "@/lib/session";
 
@@ -37,7 +38,7 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   }
 
   return (
-    <AppShell lang={lang} t={t} person={state.person}>
+    <AppShell lang={lang} t={t} person={state.person} counts={await headerCounts(state.person)}>
       {children}
     </AppShell>
   );
