@@ -1,6 +1,6 @@
 # C19 — Back-office opérateur · passation
 
-Branche `sprint/c19-back-office` (non poussée, pas de PR). Migration `20261016110000_back_office`.
+Branche `sprint/c19-back-office` (non poussée, pas de PR). Migration `20261016120000_back_office` (datée après `20261016100000_dashboards` de main).
 
 ## Ce qui est livré
 
@@ -36,5 +36,6 @@ Branche `sprint/c19-back-office` (non poussée, pas de PR). Migration `202610161
    - les lectures (résumé de compte, premier message relu) ne sont pas journalisées, seul l'export l'est ;
    - une clé d'API d'entreprise reste valable si tous ses administrateurs sont suspendus ;
    - la recherche d'entreprise du back-office passe par l'URL (nom ou SIRET).
-6. Pas d'exécution réelle dans un navigateur ni sur la vraie base dans ce lot (pas de `next build`, consigne) : à faire avec le founder — vérifier une attestation et masquer un profil depuis l'écran, puis relire le journal (DoD C19).
-7. À faire relire par le juriste (non bloquant) : conservation 5 ans du journal (motifs pouvant contenir des données personnelles), information des personnes sur la modération et la suspension, procédure de contestation.
+6. Rebasé sur main après C15, C17 et la vague 2 : un compte suspendu garde ses droits RGPD (`/api/me` export et effacement, lien sur la page de suspension) et ses propres fichiers ; il perd le flux temps réel (`/api/messages/stream`, 403), les compteurs d'en-tête et les pièces jointes de ses fils. Les photos et images de portfolio publiques exigent toujours un profil nominatif (vague 2) et, en plus, non masqué et non suspendu ; les baromètres gardent la règle des entreprises distinctes et excluent les contenus masqués.
+7. Pas d'exécution réelle dans un navigateur ni sur la vraie base dans ce lot (pas de `next build`, consigne) : à faire avec le founder — vérifier une attestation et masquer un profil depuis l'écran, puis relire le journal (DoD C19).
+8. À faire relire par le juriste (non bloquant) : conservation 5 ans du journal (motifs pouvant contenir des données personnelles), information des personnes sur la modération et la suspension, procédure de contestation.
