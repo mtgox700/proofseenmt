@@ -1,6 +1,7 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketHeader, MENU_STYLES } from "./market-shell";
+import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -43,6 +44,12 @@ export interface PublicProfile {
   }[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
   readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly payingClients: number; readonly vigilanceValidUntil: Date | null };
+  /** Photo publiée : profil nominatif seulement (le dépôt ne la fournit jamais pour un profil pseudonyme). */
+  readonly photoFileId?: string | null;
+  /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
+  readonly availabilityConfirmedAt?: Date | null;
+  /** Expériences, formations, certifications, langues et réalisations déclarées. */
+  readonly sections?: PublicSectionsView;
   readonly updatedAt: Date;
 }
 
@@ -74,6 +81,8 @@ const LABELS = {
     verifiedOn: (kind: string, d: string, contact: boolean) =>
       kind === "client_confirmation" ? (contact ? `Confirmée par un contact chez le client le ${d}` : `Confirmée par le client le ${d}`) : kind === "paid_on_platform" ? `Payée sur Proofseen, vérifiée le ${d}` : `Vérifiée le ${d}`,
     pseudonym: (ref: string) => `Freelance ${ref}`,
+    confirmed: "Disponibilité confirmée le",
+    photo: (name: string) => `Photo de ${name}`,
   },
   en: {
     modes: { remote: "Remote", hybrid: "Hybrid", onsite: "On site" },
@@ -102,6 +111,8 @@ const LABELS = {
     verifiedOn: (kind: string, d: string, contact: boolean) =>
       kind === "client_confirmation" ? (contact ? `Confirmed by a contact at the client on ${d}` : `Confirmed by the client on ${d}`) : kind === "paid_on_platform" ? `Paid on Proofseen, verified on ${d}` : `Verified on ${d}`,
     pseudonym: (ref: string) => `Freelancer ${ref}`,
+    confirmed: "Availability confirmed on",
+    photo: (name: string) => `Photo of ${name}`,
   },
 } as const;
 
@@ -144,6 +155,7 @@ export const profileJsonLd = (p: PublicProfile, o: { readonly baseUrl: string; r
     address: { "@type": "PostalAddress", addressLocality: p.city, addressCountry: "FR" },
     ...(p.skills.length === 0 ? {} : { knowsAbout: [...p.skills] }),
     ...(p.provenUrls.length === 0 ? {} : { sameAs: [...p.provenUrls] }),
+    ...sectionsJsonLd(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, photoFileId: p.visibility === "named" ? (p.photoFileId ?? null) : null }),
   },
 });
 
@@ -157,6 +169,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     [l.rate, p.dailyRateCents === null ? l.notGiven : `${money(p.dailyRateCents, p.currency, o.lang)} ${l.perDay}`],
     [o.lang === "fr" ? "Lieu" : "Location", `${p.city} · ${l.modes[p.workMode]}`],
     [o.lang === "fr" ? "Disponibilité" : "Availability", availability],
+    ...(p.availabilityConfirmedAt === undefined || p.availabilityConfirmedAt === null ? [] : [[l.confirmed, date(p.availabilityConfirmedAt, o.lang)]]),
   ]
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");
@@ -171,6 +184,8 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     ...(p.facts.vigilanceValidUntil === null ? [] : [l.vigilance(date(p.facts.vigilanceValidUntil, o.lang))]),
     ...(p.facts.payingClients === 0 ? [] : [l.payingClients(p.facts.payingClients)]),
   ];
+  const photoId = p.visibility === "named" ? (p.photoFileId ?? null) : null;
+  const photo = photoId === null ? "" : `<img class="avatar" src="${e(fileUrl(o.baseUrl, photoId))}" alt="${e(l.photo(name))}" width="120" height="120">`;
   const facts = factLines.length === 0 ? "" : `<h2>${l.facts}</h2><ul class="links">${factLines.map((f) => `<li>${e(f)}</li>`).join("")}</ul>`;
   const reviews =
     p.reviews.length === 0
@@ -193,12 +208,13 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}${MENU_STYLES}${SECTION_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
     '<main class="wrap">',
+    photo,
     `<h1 class="title">${e(name)}</h1>`,
     `<p class="headline">${e(p.headline)}</p>`,
     `<dl class="context">${context}</dl>`,
@@ -206,6 +222,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     facts,
     p.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${p.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
     missions,
+    renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl }),
     proofs,
     reviews,
     `<p><a class="cta" href="${e(o.contactHref)}">${l.contact}</a></p>`,

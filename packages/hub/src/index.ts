@@ -6,6 +6,7 @@ export { jobPosting, missionUrl, VALIDITY_DAYS, type PublicMission } from "./job
 export { jobSitemap, rateText, renderJobPage, type JobPageOptions } from "./job-page";
 export { renderJobIndex, type JobIndexFilters } from "./job-index";
 export { profileJsonLd, profileName, profileSitemap, profileUrl, renderProfilePage, type PublicProfile } from "./profile-page";
+export { fileUrl, languageName, type PublicSectionsView, type SectionLanguageLevel } from "./profile-sections";
 export { renderSkillPage, skillSitemap, skillUrl, type SkillPageFactsView, type SkillPageView } from "./skill-page";
 export { renderSkillIndex, skillIndexUrl, type SkillIndexItem } from "./skill-index";
 export { directoryUrl, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "./profile-directory";
