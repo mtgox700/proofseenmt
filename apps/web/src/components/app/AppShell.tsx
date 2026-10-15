@@ -28,12 +28,13 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person, counts: LiveCounts 
   const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
   const deals = marketDictionary(lang).deals;
   const alertsItem = { href: `${base}/alertes`, label: marketDictionary(lang).account.alerts.nav };
+  const settingsItem = { href: `${base}/reglages`, label: marketDictionary(lang).settings.nav };
   const contractsItem = { href: `${base}/contrats`, label: deals.contracts.nav };
   const invoicesItem = { href: `${base}/factures`, label: deals.invoices.nav };
   const search = marketDictionary(lang).search;
-  if (person.role === "company") return [home, { href: `${base}/recherche`, label: search.nav }, { href: `${base}/listes`, label: search.lists.nav }, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, { href: `${base}/confirmations`, label: marketDictionary(lang).confirmations.nav }, alertsItem];
+  if (person.role === "company") return [home, { href: `${base}/recherche`, label: search.nav }, { href: `${base}/listes`, label: search.lists.nav }, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, { href: `${base}/confirmations`, label: marketDictionary(lang).confirmations.nav }, alertsItem, settingsItem];
   const visibilityItem = { href: `${base}/visibilite`, label: marketDictionary(lang).visibility.nav };
-  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, visibilityItem, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, alertsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
+  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, visibilityItem, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, alertsItem, settingsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
 export function AppShell({ lang, t, person, counts = null, children }: AppShellProps) {

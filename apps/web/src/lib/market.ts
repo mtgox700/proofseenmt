@@ -1,9 +1,11 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb, organisations, users, type Actor, type Db, type OrganisationRecord } from "@proofseen/db";
 import { hasDatabase } from "@/data/intake-sink";
 import type { Lang } from "@/i18n";
 import type { Role } from "@/lib/roles";
 import { requirePerson, session, type Person } from "@/lib/session";
+import { ORGANISATION_COOKIE, pickOrganisation } from "./settings";
 
 /*
  * The marketplace screens and their server actions reach the database through here. The person comes from the session
@@ -40,12 +42,12 @@ export const actionMarket = async (lang: Lang): Promise<Market> => {
 };
 
 /**
- * The company the person acts for: the first one they own, else the first one they belong to, else `null`. Several
- * companies per person are rare at this stage; a switcher comes when a real user needs one.
+ * The company the person acts for: the one chosen in the settings (a cookie, honoured only while they are still a
+ * member: the list comes from their memberships), else the first one they own, else the first one they belong to.
  */
 export const currentOrganisation = async (market: Market): Promise<OrganisationRecord | null> => {
   const mine = await organisations(market.db).listMine(market.actor);
-  return mine.find((org) => org.role === "owner") ?? mine[0] ?? null;
+  return pickOrganisation(mine, (await cookies()).get(ORGANISATION_COOKIE)?.value);
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
