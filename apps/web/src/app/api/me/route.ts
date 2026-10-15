@@ -1,7 +1,8 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-import { gdpr, getDb } from "@proofseen/db";
+import { gdpr, getDb, storedFiles } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
+import { deleteStored } from "@/data/uploads";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
 import { deleteSignInAccount, session } from "@/lib/session";
 import { logError } from "@/lib/log";
@@ -52,8 +53,11 @@ export async function DELETE(request: Request): Promise<NextResponse> {
   const state = await session();
   if (state.kind !== "signed-in") return fail("non-connecté");
   try {
+    // The uploaded files' rows leave with the account (cascade): their ids are read first, so their bytes go too.
+    const fileIds = await storedFiles(getDb()).idsOfOwner(who.actor.userId);
     const erased = await gdpr(getDb()).eraseUser(who.actor.userId);
     if (erased === "in_progress") return fail("contrat en cours");
+    await deleteStored(fileIds);
     await deleteSignInAccount(state.person.id);
     await gdpr(getDb()).eraseUser(who.actor.userId);
     return ok({ erased: true });

@@ -1,0 +1,68 @@
+import { getDb, storedFiles, users, type ReadableFile } from "@proofseen/db";
+import { hasDatabase } from "@/data/intake-sink";
+import { readStored } from "@/data/uploads";
+import { logError } from "@/lib/log";
+import { session } from "@/lib/session";
+
+/*
+ * Serves a stored file to whoever may read it: a public photo or portfolio image to anyone, anything else to its owner
+ * only. A file the caller may not read answers 404 exactly like a file that does not exist, so ids cannot be probed.
+ *
+ * The answer can never run in the browser: the type is the one recognised and re-encoded at upload, the browser may
+ * not guess another (nosniff), and the document policy forbids every resource and script (sandbox). A CV is always a
+ * download, never shown inline. Public images are cached briefly, so a profile withdrawn from publication stops
+ * showing them within minutes; a private file is never cached.
+ */
+
+export const runtime = "nodejs";
+
+interface Context {
+  readonly params: Promise<{ readonly id: string }>;
+}
+
+const NOT_FOUND = (): Response => new Response("Not found", { status: 404, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
+
+const EXTENSIONS: Readonly<Record<string, string>> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "application/pdf": "pdf" };
+
+/** The caller's own files: only looked up when the file is not public, so a public image costs no session lookup. */
+const readableBy = async (id: string): Promise<ReadableFile | null> => {
+  const db = getDb();
+  const open = await storedFiles(db).readable(id, null);
+  if (open !== null) return open;
+  const state = await session();
+  if (state.kind !== "signed-in" || state.person.email === "") return null;
+  const { userId } = await users(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  return storedFiles(db).readable(id, { userId });
+};
+
+const headersFor = ({ file, audience }: ReadableFile): Record<string, string> => {
+  const name = `${file.kind === "cv" ? "cv" : file.id}.${EXTENSIONS[file.contentType] ?? "bin"}`;
+  return {
+    "content-type": file.contentType,
+    "content-length": String(file.size),
+    "content-disposition": `${file.kind === "cv" ? "attachment" : "inline"}; filename="${name}"`,
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "default-src 'none'; sandbox",
+    "cross-origin-resource-policy": "same-site",
+    "referrer-policy": "no-referrer",
+    "cache-control": audience === "public" ? "public, max-age=300" : "private, no-store",
+    etag: `"${file.sha256}"`,
+  };
+};
+
+export async function GET(request: Request, context: Context): Promise<Response> {
+  const { id } = await context.params;
+  if (!hasDatabase()) return NOT_FOUND();
+  try {
+    const readable = await readableBy(id);
+    if (readable === null) return NOT_FOUND();
+    const headers = headersFor(readable);
+    if (readable.audience === "public" && request.headers.get("if-none-match") === headers.etag) return new Response(null, { status: 304, headers });
+    const bytes = await readStored(readable.file.id);
+    if (bytes === null) return NOT_FOUND();
+    return new Response(new Uint8Array(bytes), { status: 200, headers });
+  } catch (error) {
+    logError("files: not served", error);
+    return new Response("Unavailable", { status: 500, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
+  }
+}

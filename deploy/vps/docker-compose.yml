@@ -9,8 +9,17 @@ services:
     image: proofseen-web
     container_name: proofseen-web
     env_file: ../../.env.production
+    environment:
+      PROOFSEEN_UPLOADS_DIR: /data/uploads
+    # Uploaded files (profile photos, portfolio images, CVs) live in a named volume: they survive a rebuild of the
+    # image and a restart of the container. Back it up with the database.
+    volumes:
+      - proofseen-uploads:/data/uploads
     restart: unless-stopped
     networks: [demoema_web]
+
+volumes:
+  proofseen-uploads:
 
 networks:
   demoema_web:
