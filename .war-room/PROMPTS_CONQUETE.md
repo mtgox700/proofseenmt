@@ -602,11 +602,11 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | Sprint | Nom | Statut | Preuve de clôture |
 |---|---|---|---|
 | C13 | Moteur de référencement, visible et prouvé | 🟡 | Tout le code en production le 2026-10-15 : adresses prouvées (A), écran de visibilité et liste de contrôle (B), mesure plafonnée (C), public sans démo, annuaire, métiers, llms.txt (D), missions vérifiées (E), relecture sécurité fermée (3 hautes, 5 moyennes, 3 basses corrigées, PR #32) ; `marketplace-verify` vert ; reste le parcours joué en production avec les comptes de test du founder |
-| C14 | Profils riches et recherche de freelances réelle | 🟡 | Recherche réelle, brief → filtres, listes partagées en production (PR #30) ; profils riches, stockage, import de CV en cours |
+| C14 | Profils riches et recherche de freelances réelle | 🟡 | En production le 2026-10-15 : recherche réelle, brief → filtres, listes partagées (PR #30), profil riche (photo, expériences, formations, certifications, langues, portfolio, disponibilité datée), stockage sur le VPS, import de CV en brouillon (PR #35) ; restent parcours joué en production et red team du téléversement |
 | C15 | Messagerie vivante | ⬜ | |
-| C16 | Espace missions vivant | ⬜ | |
+| C16 | Espace missions vivant | 🟡 | En production le 2026-10-15 (PR #36) : recherche plein texte, filtres TJM, durée, date, pages par ville, candidature lue, questions, missions enregistrées, invitations, pages entreprises publiques sur option et suivi, tableau des candidatures, modèles ; reste le parcours publier → trouver → postuler → lu → retenu joué en production |
 | C17 | Tableaux de bord freelance et entreprise, réglages du compte | ⬜ | |
-| C18 | Blog, guides et baromètres citables | ⬜ | |
+| C18 | Blog, guides et baromètres citables | 🟡 | En production le 2026-10-15 (PR #34) : blog et guides en base, bureau de l'opérateur, règle « aucun chiffre sans source », RSS, sitemap, baromètres TJM et compétences (n ≥ 10, jeux de données CSV/JSON) ; 3 guides en brouillon sourcés sur des pages officielles, à relire et publier ; reste un simulateur de revenu net |
 | C19 | Back-office opérateur | ⬜ | |
 | C20 | Paiement de bout en bout et application mobile | ⬜ | attend Stripe (fin de projet, founder) |
 
