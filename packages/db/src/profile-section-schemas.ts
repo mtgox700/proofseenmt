@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { containsContact, NO_CONTACT } from "./contact-detection";
+import { urlCarriesContact } from "./contact-urls";
 import { uniqueSkills } from "./skills";
 
 /*
@@ -50,7 +51,9 @@ const HttpsUrl = z
   .refine(isHttpsUrl, { message: "adresse https attendue" })
   .transform((raw) => new URL(raw).toString())
   // La forme normalisée peut s'allonger (caractères encodés) : la borne de la base est revérifiée après.
-  .refine((url) => url.length <= 500, { message: "adresse trop longue" });
+  .refine((url) => url.length <= 500, { message: "adresse trop longue" })
+  // Ni messagerie, ni prise de rendez-vous, ni raccourcisseur, ni e-mail ou téléphone glissé dans l'adresse.
+  .refine((url) => !urlCarriesContact(url), { message: NO_CONTACT });
 
 const Year = z.number().int().min(MIN_YEAR).max(MAX_YEAR);
 

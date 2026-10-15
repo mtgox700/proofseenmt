@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { containsDirectContact, NO_CONTACT } from "./contact-detection";
+import { urlCarriesContact } from "./contact-urls";
 import { isUniqueViolation } from "./errors";
 import type { WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
@@ -32,6 +33,11 @@ const WebsiteSchema = z
     try {
       const url = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `https://${raw}`);
       if (url.protocol !== "https:" || url.username !== "" || url.password !== "" || !url.hostname.includes(".")) throw new TypeError("adresse refusée");
+      // Lue en entier, requête comprise : un site ne doit pas être un lien de messagerie, d'agenda ou un raccourci.
+      if (urlCarriesContact(url.href)) {
+        ctx.addIssue({ code: "custom", message: NO_CONTACT });
+        return z.NEVER;
+      }
       return `${url.origin}${url.pathname === "/" ? "" : url.pathname}`;
     } catch {
       ctx.addIssue({ code: "custom", message: "adresse https attendue" });

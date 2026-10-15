@@ -69,15 +69,25 @@ const asciiDigits = (text: string): string => {
 
 const normalise = (raw: string): string => asciiDigits(raw.normalize("NFKC").replace(INVISIBLE, "").replace(KEYCAP, ""));
 
-/** Adresse e-mail, téléphone ou pseudonyme de messagerie : un moyen de joindre directement une personne. */
-const directContact = (text: string): boolean => {
-  if (EMAIL.test(text) || EMAIL_SPELLED.test(text) || HANDLE.test(text)) return true;
-  // Une adresse écrite lettre par lettre (« j o h n @ p r o t o n . m e ») se lit une fois les espaces retirés.
-  if (text.includes("@") && EMAIL.test(text.replace(/\s+/g, ""))) return true;
-  if (HANDLE.test(text.replace(/[013457@]/g, (c) => LEET[c] ?? c)) || HANDLE.test(text.replace(SPACED_LETTERS, ""))) return true;
+/** Un numéro de téléphone, même déguisé. */
+const phoneNumber = (text: string): boolean => {
   const digits = text.replace(DIGIT_LOOKALIKE, (c) => LOOKALIKE_DIGIT[c] ?? c);
   return LONG_NUMBER.test(digits.replace(DATE, " ").replace(YEAR, " ").replace(DIGIT_SEPARATOR, "$1"));
 };
+
+// Une adresse écrite lettre par lettre (« j o h n @ p r o t o n . m e ») se lit une fois les espaces retirés.
+const spacedEmail = (text: string): boolean => text.includes("@") && EMAIL.test(text.replace(/\s+/g, ""));
+
+/** Adresse e-mail, téléphone ou pseudonyme de messagerie : un moyen de joindre directement une personne. */
+const directContact = (text: string): boolean => {
+  if (EMAIL.test(text) || EMAIL_SPELLED.test(text) || HANDLE.test(text)) return true;
+  if (spacedEmail(text)) return true;
+  if (HANDLE.test(text.replace(/[013457@]/g, (c) => LEET[c] ?? c)) || HANDLE.test(text.replace(SPACED_LETTERS, ""))) return true;
+  return phoneNumber(text);
+};
+
+/** Adresse e-mail ou numéro de téléphone : de quoi écrire ou appeler la personne, sans autre service. */
+const reachable = (text: string): boolean => EMAIL.test(text) || EMAIL_SPELLED.test(text) || spacedEmail(text) || phoneNumber(text);
 
 /** Vrai si le texte contient une adresse, un lien, un numéro de téléphone ou un pseudonyme de messagerie externe. */
 export const containsContact = (raw: string): boolean => {
@@ -90,3 +100,9 @@ export const containsContact = (raw: string): boolean => {
  * joindre une personne ne l'est pas.
  */
 export const containsDirectContact = (raw: string): boolean => directContact(normalise(raw));
+
+/**
+ * Pour le chemin d'une adresse web : seulement un e-mail ou un téléphone. Un nom de messagerie y désigne le plus souvent
+ * un projet (« discord-bot » sur GitHub), pas un moyen de joindre la personne ; l'hôte, lui, est lu en entier.
+ */
+export const containsReachableContact = (raw: string): boolean => reachable(normalise(raw));
