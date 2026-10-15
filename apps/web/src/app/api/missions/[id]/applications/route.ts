@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-import { applications, CoverNoteSchema, getDb } from "@proofseen/db";
+import { AnswerSchema, applications, CoverNoteSchema, getDb } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
 
@@ -15,7 +15,7 @@ interface Context {
   readonly params: Promise<{ readonly id: string }>;
 }
 
-const ApplySchema = z.object({ coverNote: CoverNoteSchema });
+const ApplySchema = z.object({ coverNote: CoverNoteSchema, answers: z.array(AnswerSchema).max(3).default([]) });
 // Per day: thirty considered applications a day is a lot; a hundred is a script.
 const APPLY_RULE = { windowMs: 24 * 60 * 60_000, max: 30 };
 
@@ -41,7 +41,7 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   if (!parsed.success) return fail("requête invalide");
   const { id } = await context.params;
   try {
-    const result = await applications(getDb()).apply(who.actor, id, parsed.data.coverNote, new Date());
+    const result = await applications(getDb()).apply(who.actor, id, parsed.data.coverNote, new Date(), parsed.data.answers);
     switch (result.kind) {
       case "applied":
         return ok(result, 201);
@@ -55,6 +55,8 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("introuvable");
       case "contact_details":
         return fail("coordonnées refusées");
+      case "answers_required":
+        return fail("requête invalide");
     }
   } catch {
     return fail("erreur serveur");

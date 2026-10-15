@@ -1,17 +1,22 @@
-import { getDb, missions } from "@proofseen/db";
+import { cityPages, getDb, missions } from "@proofseen/db";
 import { jobSitemap } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
 
-/** Sitemap of the open missions, in both languages. Engines read it to find what to crawl; IndexNow says when. */
+/**
+ * Sitemap of the open missions and of the city pages (cities with enough open missions), in both languages. Engines
+ * read it to find what to crawl; IndexNow says when.
+ */
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request): Promise<Response> {
   if (!hasDatabase()) return new Response("base non configurée", { status: 503 });
   try {
-    const xml = jobSitemap(publicBaseUrl(request), await missions(getDb()).listOpenForSitemap());
+    const db = getDb();
+    const [open, cities] = await Promise.all([missions(db).listOpenForSitemap(), cityPages(db).listForSitemap()]);
+    const xml = jobSitemap(publicBaseUrl(request), open, cities);
     return new Response(xml, {
       headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=900" },
     });

@@ -1,5 +1,5 @@
-import { getDb, missions, publicProfiles, skillPages } from "@proofseen/db";
-import { directoryUrl, missionUrl, profileName, profileUrl, skillIndexUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
+import { cityPages, companyPages, getDb, missions, publicProfiles, skillPages } from "@proofseen/db";
+import { cityUrl, companyUrl, directoryUrl, missionUrl, profileName, profileUrl, skillIndexUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
 import { CliError } from "./files";
 
 /*
@@ -34,6 +34,16 @@ const expectations = async (baseUrl: string, limit: number): Promise<PageExpecta
     const s = await skillPages(db).page(key);
     if (s === null) continue;
     pages.push({ url: skillUrl(baseUrl, "fr", key), texts: [s.label, ...s.missions.map((m) => m.title), ...s.profiles.map((p) => p.headline)], sitemap: `${baseUrl}/sitemap-skills.xml` });
+  }
+  for (const { key } of (await cityPages(db).listForSitemap()).slice(0, limit)) {
+    const c = await cityPages(db).page(key);
+    if (c === null) continue;
+    pages.push({ url: cityUrl(baseUrl, "fr", key), texts: [c.label, ...c.missions.map((m) => m.title)], sitemap: `${baseUrl}/sitemap-missions.xml` });
+  }
+  for (const { slug } of (await companyPages(db).listForSitemap()).slice(0, limit)) {
+    const c = await companyPages(db).page(slug);
+    if (c === null) continue;
+    pages.push({ url: companyUrl(baseUrl, "fr", slug), texts: [c.name, ...c.missions.map((m) => m.title)], sitemap: `${baseUrl}/sitemap-companies.xml` });
   }
   // L'annuaire et l'index des métiers : leur première page porte les profils et les métiers que la base liste.
   const directory = (await publicProfiles(db).directory({})).items.slice(0, limit);

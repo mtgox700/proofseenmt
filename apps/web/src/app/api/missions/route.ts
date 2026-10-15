@@ -24,7 +24,10 @@ const filtersFrom = (params: URLSearchParams) => {
     return raw === null || raw.trim() === "" ? undefined : Number(raw);
   };
   const minRate = number("tjmMin");
+  const maxRate = number("tjmMax");
   return MissionSearchSchema.safeParse({
+    q: params.get("q")?.trim() || undefined,
+    maxDailyRateCents: maxRate === undefined ? undefined : Math.round(maxRate * 100),
     workModes: params.getAll("mode"),
     city: params.get("ville")?.trim() || undefined,
     skills: params.getAll("competence"),
