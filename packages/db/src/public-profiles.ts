@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import type { Prisma } from "./generated/client";
+import { PUBLIC_SECTIONS_SELECT, publicPhoto, publicSections, type PublicProfileSections } from "./public-profile-sections";
 import { SETTLED_PAYMENT } from "./reviews";
 import { skillKey } from "./skills";
 import { vigilanceExpiresOn } from "./vigilance";
@@ -75,6 +76,12 @@ export interface PublicProfilePage {
     /** Attestation de vigilance URSSAF vérifiée par un opérateur et en cours de validité : sa date d'échéance. */
     readonly vigilanceValidUntil: Date | null;
   };
+  /** Photo publiée (profil nominatif seulement) : identifiant du fichier, servi par la route des fichiers. */
+  readonly photoFileId: string | null;
+  /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
+  readonly availabilityConfirmedAt: Date;
+  /** Expériences, formations, certifications, langues et portfolio déclarés. */
+  readonly sections: PublicProfileSections;
   readonly updatedAt: Date;
 }
 
@@ -162,6 +169,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         vigilance: { select: { issuedOn: true, verifiedAt: true } },
         // Des entreprises distinctes, pas des contrats : dix micro-contrats avec la même entreprise ne font pas dix clients.
         contracts: { where: { payments: { some: SETTLED_PAYMENT }, organisationId: { not: null } }, select: { organisationId: true }, distinct: ["organisationId"] },
+        ...PUBLIC_SECTIONS_SELECT,
       },
     });
     // Une page sans contenu réel n'est jamais servie : un profil publié a toujours titre, résumé et ville (la base
@@ -197,6 +205,9 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         payingClients: row.contracts.length,
         vigilanceValidUntil: vigilanceShown(row.vigilance, now),
       },
+      photoFileId: publicPhoto(row, named),
+      availabilityConfirmedAt: row.availabilityAt,
+      sections: publicSections(row, named),
       updatedAt: row.updatedAt,
     };
   },

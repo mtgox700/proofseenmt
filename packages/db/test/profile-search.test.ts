@@ -83,6 +83,17 @@ describe("recherche de freelances : filtres", () => {
     expect(await ids({ skills: ["erlang"] })).toContain(never);
   });
 
+  it("une disponibilité confirmée il y a plus de 30 jours ne compte plus dans les filtres de disponibilité", async () => {
+    const fresh = await make({ skills: ["OCaml"], availability: "available" });
+    const stale = await make({ skills: ["OCaml"], availability: "available" });
+    await t.db.freelanceProfile.update({ where: { id: stale }, data: { availabilityAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) } });
+
+    expect(await ids({ skills: ["ocaml"], availableOnly: true })).toEqual([fresh]);
+    expect(await ids({ skills: ["ocaml"], availableBy: new Date("2030-01-01") })).toEqual([fresh]);
+    // Sans filtre de disponibilité, le profil reste trouvable.
+    expect((await ids({ skills: ["ocaml"] })).sort()).toEqual([fresh, stale].sort());
+  });
+
   it("filtre sur les faits vérifiés : adresse prouvée, SIRET actif, attestation URSSAF en cours", async () => {
     const proven = await make({ skills: ["Zig"] });
     const registered = await make({ skills: ["Zig"] });

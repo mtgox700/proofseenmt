@@ -190,6 +190,7 @@ model User {
   freelanceListItemsAdded FreelanceListItem[]      @relation("FreelanceListItemAdder")
   freelanceListReactions  FreelanceListReaction[]
   missionConfirmationsDecided MissionConfirmationRequest[] @relation("MissionConfirmationDecider")
+  storedFiles             StoredFile[]
 }
 
 model Organisation {
@@ -258,7 +259,11 @@ model FreelanceProfile {
   currency       String             @default("EUR") @db.Char(3)
   availability   AvailabilityStatus @default(available)
   availableFrom  DateTime?          @db.Date
+  /// Dernière déclaration ou confirmation de la disponibilité par le freelance : affichée sur la page publique ; au-delà
+  /// de 30 jours, les filtres de disponibilité de la recherche ne retiennent plus le profil.
   availabilityAt DateTime           @default(now()) @db.Timestamptz(3)
+  /// Photo du profil : publique seulement sur un profil nominatif.
+  photoFileId    String?            @unique @db.Uuid
   createdAt      DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime           @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -276,6 +281,13 @@ model FreelanceProfile {
   vigilance      VigilanceAttestation?
   listedIn       FreelanceListItem[]
   missionConfirmations MissionConfirmationRequest[]
+  photo          StoredFile?       @relation("ProfilePhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
+  experiences    ProfileExperience[]
+  educations     ProfileEducation[]
+  certifications ProfileCertification[]
+  languages      ProfileLanguage[]
+  portfolio      PortfolioItem[]
+  importDraft    ProfileImportDraft?
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -1153,4 +1165,136 @@ model Article {
   @@unique([lang, slug])
   /// Les articles publiés d'une langue, des plus récents aux plus anciens.
   @@index([lang, publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'published'"), map: "Article_published_recent_idx")
+}
+
+// ─── Profil enrichi et fichiers déposés (C14) ───────────────────────────────────────────────────────────────────────
+
+/// L'usage d'un fichier déposé : chaque usage a ses types et sa taille maximale, vérifiés sur le contenu lui-même.
+enum StoredFileKind {
+  photo
+  cv
+  portfolio_image
+}
+
+/// Niveau dans une langue : échelle du Cadre européen commun de référence (CECRL), ou langue maternelle.
+enum LanguageLevel {
+  a1
+  a2
+  b1
+  b2
+  c1
+  c2
+  native
+}
+
+/// Un fichier déposé par une personne, rangé sur le disque du serveur sous son identifiant (tiré au hasard, jamais le
+/// nom donné par la personne). Le type est celui reconnu dans le contenu, jamais celui annoncé par le navigateur. La
+/// ligne part avec le compte ; le fichier sur disque est effacé par l'application au même moment.
+model StoredFile {
+  id          String         @id @default(uuid(4)) @db.Uuid
+  ownerId     String         @db.Uuid
+  kind        StoredFileKind
+  contentType String
+  size        Int
+  /// Empreinte SHA-256 du contenu enregistré, en hexadécimal.
+  sha256      String         @db.Char(64)
+  width       Int?
+  height      Int?
+  createdAt   DateTime       @default(now()) @db.Timestamptz(3)
+
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoOf     FreelanceProfile? @relation("ProfilePhoto")
+  portfolioOf PortfolioItem?
+
+  @@index([ownerId, kind, createdAt(sort: Desc)])
+}
+
+/// Une expérience déclarée par le freelance. Déclarée, pas vérifiée : la page publique la sépare des missions vérifiées.
+model ProfileExperience {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  profileId     String    @db.Uuid
+  title         String
+  company       String?
+  /// Le nom de l'entreprise reste privé : la page publique ne l'affiche pas.
+  companyHidden Boolean   @default(false)
+  /// Premier jour du mois de début.
+  startMonth    DateTime  @db.Date
+  /// Premier jour du mois de fin ; nul pour une expérience en cours.
+  endMonth      DateTime? @db.Date
+  description   String?
+  skills        String[]
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, startMonth(sort: Desc)])
+}
+
+model ProfileEducation {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  profileId String   @db.Uuid
+  school    String
+  degree    String?
+  startYear Int?
+  endYear   Int?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+/// Une certification déclarée, rattachée à des compétences. L'adresse de vérification n'est publiée que sur un profil
+/// nominatif, comme toute adresse web.
+model ProfileCertification {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  profileId     String   @db.Uuid
+  name          String
+  issuer        String?
+  year          Int?
+  credentialUrl String?
+  skills        String[]
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+/// Une langue du freelance (code ISO 639-1) et son niveau déclaré : une ligne par langue.
+model ProfileLanguage {
+  profileId String        @db.Uuid
+  code      String        @db.Char(2)
+  level     LanguageLevel
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, code])
+}
+
+/// Une réalisation du portfolio : un titre, une adresse https (publiée sur un profil nominatif seulement) et une image
+/// facultative déposée sur Proofseen.
+model PortfolioItem {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  profileId   String   @db.Uuid
+  title       String
+  url         String
+  description String?
+  imageFileId String?  @unique @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  image   StoredFile?      @relation(fields: [imageFileId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+}
+
+/// Champs proposés par un modèle à partir d'un CV déposé par le freelance. Un brouillon privé : rien n'est publié tant
+/// que le freelance n'a pas accepté chaque élément, un par un, et chaque élément est revalidé au moment de l'accepter.
+model ProfileImportDraft {
+  profileId String   @id @db.Uuid
+  proposal  Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }

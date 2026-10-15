@@ -18,6 +18,15 @@ import { sixMonthsBefore } from "./vigilance";
 
 const MAX_RATE_CENTS = 10_000_000;
 
+/**
+ * Une disponibilité déclarée ou confirmée il y a plus de 30 jours n'est plus tenue pour vraie : les filtres de
+ * disponibilité ne retiennent pas le profil (l'écran de recherche le dit). Le profil reste trouvable sans ces filtres.
+ */
+export const AVAILABILITY_FRESH_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const availabilityFreshSince = (now: Date): Date => new Date(now.getTime() - AVAILABILITY_FRESH_DAYS * DAY_MS);
+
 export const PROFILE_SORTS = ["recent", "rate_asc", "rate_desc", "availability"] as const;
 export type ProfileSort = (typeof PROFILE_SORTS)[number];
 
@@ -118,6 +127,7 @@ export const searchWhere = (f: Filters, now: Date): Prisma.FreelanceProfileWhere
     ...(f.city === undefined ? {} : { cityKey: skillKey(f.city) }),
     ...rateFilter(f),
     ...(f.availableOnly ? { availability: { not: "unavailable" } } : {}),
+    ...(f.availableOnly || f.availableBy !== undefined ? { availabilityAt: { gte: availabilityFreshSince(now) } } : {}),
     ...(f.provenOnly ? { ownedUrls: { some: { verifiedAt: { not: null } } } } : {}),
     ...(f.registryActiveOnly ? { billing: { registryStatus: "active" } } : {}),
     ...(f.vigilanceValidOnly ? { vigilance: vigilanceValid(sixMonthsBefore(now)) } : {}),

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { storedFiles } from "./stored-files";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -48,6 +49,8 @@ export interface UserExport {
   readonly freelanceLists: unknown;
   /** Demandes de confirmation de mission décidées au nom d'une entreprise, ou adressées à l'adresse du compte. */
   readonly missionConfirmations: unknown;
+  /** Fichiers déposés (photo, CV, images du portfolio) : type, taille, empreinte et date ; le contenu se télécharge depuis l'application. */
+  readonly files: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -131,6 +134,13 @@ export const gdpr = (db: Db): Gdpr => ({
           measurements: { select: { status: true, engines: true, createdAt: true, finishedAt: true, errorCode: true, costCents: true } },
           // Demandes de confirmation de missions : tout sauf l'empreinte du jeton, qui ne dit rien de la personne.
           missionConfirmations: { select: CONFIRMATION_EXPORT },
+          // Profil enrichi (C14) : sections déclarées et brouillon d'import d'un CV.
+          experiences: true,
+          educations: true,
+          certifications: true,
+          languages: true,
+          portfolio: true,
+          importDraft: true,
         },
       }),
       db.message.findMany({ where: { senderUserId: userId }, select: { id: true, conversationId: true, body: true, createdAt: true }, orderBy: { createdAt: "asc" } }),
@@ -155,6 +165,7 @@ export const gdpr = (db: Db): Gdpr => ({
     ]);
     const contracts = { asFreelance, asCompany };
     const freelanceLists = await exportLists(db, userId);
+    const files = await storedFiles(db).listForExport(userId);
 
     return {
       exportedAt: now.toISOString(),
@@ -172,6 +183,7 @@ export const gdpr = (db: Db): Gdpr => ({
       feedback: feedbackRows,
       freelanceLists,
       missionConfirmations: { decided: confirmationsDecided, addressedToMe: confirmationsAddressed },
+      files,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
