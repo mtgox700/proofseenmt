@@ -6,7 +6,7 @@
  * SVG, HTML and anything else that a browser could run is never accepted: only JPEG, PNG, WebP and PDF.
  */
 
-export type UploadKind = "photo" | "cv" | "portfolio_image";
+export type UploadKind = "photo" | "cv" | "portfolio_image" | "message_attachment";
 
 export type SniffedType = "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
 
@@ -26,6 +26,8 @@ export const UPLOAD_RULES: Readonly<Record<UploadKind, UploadRule>> = {
   photo: { types: IMAGE_TYPES, maxBytes: 2 * MB, minSide: 64, maxSide: 8000 },
   portfolio_image: { types: IMAGE_TYPES, maxBytes: 2 * MB, minSide: 64, maxSide: 8000 },
   cv: { types: ["application/pdf"], maxBytes: 5 * MB, minSide: 0, maxSide: 0 },
+  // A message attachment (C15): a document or a picture, screenshots included, re-encoded like any image.
+  message_attachment: { types: [...IMAGE_TYPES, "application/pdf"], maxBytes: 5 * MB, minSide: 16, maxSide: 10000 },
 };
 
 const startsWith = (bytes: Uint8Array, signature: readonly number[], offset = 0): boolean => signature.every((byte, i) => bytes[offset + i] === byte);

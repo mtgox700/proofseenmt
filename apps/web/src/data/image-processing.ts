@@ -15,7 +15,7 @@ export interface ProcessedImage {
 }
 
 /** Longest side kept, per use: a profile photo is shown small, a portfolio image at page width. */
-export const MAX_OUTPUT_SIDE = { photo: 800, portfolio_image: 1600 } as const;
+export const MAX_OUTPUT_SIDE = { photo: 800, portfolio_image: 1600, message_attachment: 2400 } as const;
 
 const MAX_INPUT_PIXELS = 40_000_000;
 const QUALITY = 82;

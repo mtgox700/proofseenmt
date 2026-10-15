@@ -10,12 +10,12 @@ export const MAX_CV_PAGES = 10;
 
 export type PdfText = { readonly kind: "ok"; readonly text: string } | { readonly kind: "too_long" | "unreadable" };
 
-export const pdfText = async (bytes: Uint8Array): Promise<PdfText> => {
+export const pdfText = async (bytes: Uint8Array, maxPages: number = MAX_CV_PAGES): Promise<PdfText> => {
   try {
     // PDF.js may take ownership of the buffer it is given: it gets a copy, the caller keeps its bytes.
     const pdf = await getDocumentProxy(new Uint8Array(bytes), { useSystemFonts: false, disableFontFace: true, stopAtErrors: true, enableXfa: false });
     try {
-      if (pdf.numPages > MAX_CV_PAGES) return { kind: "too_long" };
+      if (pdf.numPages > maxPages) return { kind: "too_long" };
       const { text } = await extractText(pdf, { mergePages: true });
       return { kind: "ok", text: text.replace(/[ \t]+/g, " ").trim() };
     } finally {

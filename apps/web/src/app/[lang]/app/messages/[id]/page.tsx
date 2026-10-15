@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { contracts, inbox, InvalidCursorError, messaging, organisations, quotes } from "@proofseen/db";
+import { contracts, inbox, InvalidCursorError, messaging, organisations, quotes, readState, type MessageRecord } from "@proofseen/db";
+import { messageTime } from "@/components/live/message-time";
+import { ThreadMessages, type ThreadMessageView } from "@/components/live/ThreadMessages";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { QuotesSection } from "@/components/market/QuotesSection";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
-import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 import { closeConversation, decideConversation, postMessage } from "../actions";
 
@@ -19,6 +20,23 @@ interface PageProps {
 }
 
 const MAX_BODY = 10_000;
+const ACCEPTED_FILES = "application/pdf,image/png,image/jpeg,image/webp";
+
+/** Attachment refusals travel as `pj-<problem>`; any other code keeps its meaning below. */
+const attachmentError = (code: string, m: MarketDictionary): string | null => {
+  const errors: Readonly<Record<string, string>> = m.live.attachments.errors;
+  return code.startsWith("pj-") ? (errors[code.slice(3)] ?? errors.unreadable ?? null) : null;
+};
+
+const toView = (message: MessageRecord, selfId: string, lang: "fr" | "en"): ThreadMessageView => ({
+  id: message.id,
+  mine: message.senderUserId === selfId,
+  body: message.body,
+  createdAt: message.createdAt.toISOString(),
+  at: messageTime(message.createdAt, lang),
+  flagged: message.containsContact,
+  attachments: message.attachments.map((a) => ({ id: a.id, image: a.contentType !== "application/pdf" })),
+});
 
 const errorText = (code: string | undefined, m: MarketDictionary): string | null => {
   switch (code) {
@@ -33,7 +51,7 @@ const errorText = (code: string | undefined, m: MarketDictionary): string | null
     case "existant":
       return m.contact.existing;
     default:
-      return m.thread.notAllowed;
+      return attachmentError(code, m) ?? m.thread.notAllowed;
   }
 };
 
@@ -50,6 +68,10 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
   const { erreur, avant, devis } = await searchParams;
   const head = await inbox(market.db).thread(market.actor, id);
   if (head === null) notFound();
+  // Opening the latest page reads the thread up to its last message; an older page of the history reads nothing new.
+  const latest = avant === undefined;
+  if (latest) await readState(market.db).markRead(market.actor, id);
+  const otherReadAt = await readState(market.db).otherSideReadAt(market.actor, id);
   const page = await messaging(market.db)
     .listMessages(market.actor, id, { cursor: avant })
     .catch((error: unknown) => {
@@ -58,7 +80,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
     });
   if (page === null) notFound();
   const counterpart = head.counterpart.kind === "organisation" ? head.counterpart.name : head.counterpart.reference;
-  const messages = [...page.items].reverse();
+  const messages = [...page.items].reverse().map((message) => toView(message, market.actor.userId, lang));
   const error = errorText(erreur, m);
   const q = m.deals.quotes.errors;
   const quoteErrors: Readonly<Record<string, string>> = { ...q, invalide: q.invalid, etat: q.notAllowed, deja: q.alreadyAccepted, dates: q.dates, trop: q.tooMany };
@@ -93,21 +115,15 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
         </p>
       )}
 
-      <ol className="bubbles">
-        {messages.map((message) => {
-          const mine = message.senderUserId === market.actor.userId;
-          return (
-            <li key={message.id} data-from={mine ? "mine" : "other"} data-mine={mine || undefined}>
-              <span className="bubble-who small">{mine ? m.inbox.you : counterpart}</span>
-              <p className="bubble-body">{message.body}</p>
-              {message.containsContact ? <span className="tag tag-quiet small">{m.thread.flagged}</span> : null}
-              <time className="bubble-at small muted" dateTime={message.createdAt.toISOString()}>
-                {day(message.createdAt, lang)}
-              </time>
-            </li>
-          );
-        })}
-      </ol>
+      <ThreadMessages
+        conversationId={id}
+        selfId={market.actor.userId}
+        lang={lang}
+        live={latest}
+        initial={messages}
+        otherReadAt={otherReadAt?.toISOString() ?? null}
+        labels={{ you: m.inbox.you, counterpart, flagged: m.thread.flagged, read: m.live.readReceipt, pdf: m.live.attachments.pdf, image: m.live.attachments.image }}
+      />
 
       {error === null ? null : (
         <p className="form-error" role="alert">
@@ -141,6 +157,13 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
               <textarea id="body" name="body" required maxLength={MAX_BODY} rows={4} aria-describedby="body-hint" />
               <p id="body-hint" className="field-hint">
                 {m.thread.replyHint}
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="attachments">{m.live.attachments.label}</label>
+              <input id="attachments" name="attachments" type="file" multiple accept={ACCEPTED_FILES} aria-describedby="attachments-hint" />
+              <p id="attachments-hint" className="field-hint">
+                {m.live.attachments.hint}
               </p>
             </div>
             <button type="submit" className="btn btn-primary">

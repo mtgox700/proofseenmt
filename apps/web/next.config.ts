@@ -10,9 +10,10 @@ const config: NextConfig = {
   // The dev badge would end up in the product screenshots shown on the landing.
   devIndicators: false,
   reactStrictMode: true,
-  // Profile uploads (photo, portfolio image, CV of 5 MB at most) arrive through server actions, whose default body cap
-  // is 1 MB. Each file is checked again, by size and content, before anything is stored.
-  experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  // Profile uploads (photo, portfolio image, CV of 5 MB at most) and message attachments (three of 5 MB at most, C15)
+  // arrive through server actions, whose default body cap is 1 MB. Each file is checked again, by size and content,
+  // before anything is stored.
+  experimental: { serverActions: { bodySizeLimit: "16mb" } },
   // PDF text extraction (CV import) runs the PDF.js build shipped by unpdf as is, outside the server bundle.
   serverExternalPackages: ["unpdf"],
   // Les paquets du monorepo sont publiés en TypeScript source : Next les compile avec l'application.

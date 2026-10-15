@@ -71,7 +71,7 @@ const sha256 = (bytes: Uint8Array): string => createHash("sha256").update(bytes)
 const prepare = async (kind: UploadKind, bytes: Uint8Array): Promise<{ readonly bytes: Uint8Array; readonly contentType: "image/webp" | "application/pdf"; readonly width: number | null; readonly height: number | null } | UploadProblem | "unreadable"> => {
   const inspection = inspectUpload(kind, bytes);
   if (!inspection.ok) return inspection.problem;
-  if (kind === "cv") return { bytes, contentType: "application/pdf", width: null, height: null };
+  if (inspection.contentType === "application/pdf" || kind === "cv") return { bytes, contentType: "application/pdf", width: null, height: null };
   try {
     const image = await reencodeImage(bytes, kind);
     return { bytes: image.bytes, contentType: image.contentType, width: image.width, height: image.height };
@@ -86,7 +86,13 @@ export const saveUpload = async (db: Db, actor: Actor, kind: UploadKind, upload:
   if (upload === null || typeof upload === "string" || upload.size === 0) return { kind: "missing" };
   // The declared size is checked before reading anything: an oversized body is not buffered for nothing.
   if (upload.size > UPLOAD_RULES[kind].maxBytes) return { kind: "too_large" };
-  const prepared = await prepare(kind, new Uint8Array(await upload.arrayBuffer()));
+  return saveBytes(db, actor, kind, new Uint8Array(await upload.arrayBuffer()), root);
+};
+
+/** Same as `saveUpload`, for bytes the caller has already read (and inspected for its own needs). */
+export const saveBytes = async (db: Db, actor: Actor, kind: UploadKind, bytes: Uint8Array, root: string = uploadsRoot()): Promise<SaveResult> => {
+  if (bytes.length === 0) return { kind: "missing" };
+  const prepared = await prepare(kind, bytes);
   if (typeof prepared === "string") return { kind: prepared };
   const id = randomUUID();
   await writeStored(id, prepared.bytes, root);

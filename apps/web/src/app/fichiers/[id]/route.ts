@@ -5,8 +5,8 @@ import { logError } from "@/lib/log";
 import { session } from "@/lib/session";
 
 /*
- * Serves a stored file to whoever may read it: a public photo or portfolio image to anyone, anything else to its owner
- * only. A file the caller may not read answers 404 exactly like a file that does not exist, so ids cannot be probed.
+ * Serves a stored file to whoever may read it: a public photo or portfolio image to anyone, a message attachment to the
+ * parties of its conversation (C15), anything else to its owner only. A file the caller may not read answers 404 exactly like a file that does not exist, so ids cannot be probed.
  *
  * The answer can never run in the browser: the type is the one recognised and re-encoded at upload, the browser may
  * not guess another (nosniff), and the document policy forbids every resource and script (sandbox). A CV is always a
@@ -35,11 +35,17 @@ const readableBy = async (id: string): Promise<ReadableFile | null> => {
   return storedFiles(db).readable(id, { userId });
 };
 
+/*
+ * A PDF is always a download, never shown inline (a CV, a message attachment). A message attachment gets a generic
+ * name: the name it was uploaded under was never kept, so it cannot carry contact details either.
+ */
 const headersFor = ({ file, audience }: ReadableFile): Record<string, string> => {
-  const name = `${file.kind === "cv" ? "cv" : file.id}.${EXTENSIONS[file.contentType] ?? "bin"}`;
+  const stem = file.kind === "cv" ? "cv" : file.kind === "message_attachment" ? "piece-jointe" : file.id;
+  const name = `${stem}.${EXTENSIONS[file.contentType] ?? "bin"}`;
+  const download = file.kind === "cv" || file.contentType === "application/pdf";
   return {
     "content-type": file.contentType,
-    "content-disposition": `${file.kind === "cv" ? "attachment" : "inline"}; filename="${name}"`,
+    "content-disposition": `${download ? "attachment" : "inline"}; filename="${name}"`,
     "x-content-type-options": "nosniff",
     "content-security-policy": "default-src 'none'; sandbox",
     "cross-origin-resource-policy": "same-site",

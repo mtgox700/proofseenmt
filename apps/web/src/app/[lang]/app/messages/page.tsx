@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { inbox, type Counterpart } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
+import { LiveRefresh } from "@/components/live/LiveRefresh";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
@@ -34,6 +35,7 @@ export default async function MessagesPage({ params }: PageProps) {
         <h1>{m.inbox.title}</h1>
         <p className="muted measure">{m.inbox.lead}</p>
       </header>
+      <LiveRefresh />
       {threads.length === 0 ? (
         <EmptyState title={m.inbox.empty} headingLevel={2}>
           <p>{company ? m.inbox.emptyCompany : m.inbox.emptyFreelance}</p>
@@ -47,9 +49,11 @@ export default async function MessagesPage({ params }: PageProps) {
         <ul className="threads">
           {threads.map((thread) => (
             <li key={thread.id}>
-              <Link href={`/${lang}/app/messages/${thread.id}`} className="thread-row">
+              {/* No prefetch: opening a thread marks it read, a hover must not. */}
+              <Link href={`/${lang}/app/messages/${thread.id}`} className="thread-row" prefetch={false} data-unread={thread.unread > 0 || undefined}>
                 <span className="thread-who">
                   <strong>{who(thread.counterpart)}</strong>
+                  {thread.unread > 0 ? <span className="tag thread-unread small">{m.live.unreadThread(thread.unread)}</span> : null}
                   <span className="muted small"> · {thread.missionTitle === null ? m.inbox.direct : `${m.inbox.about} : ${thread.missionTitle}`}</span>
                 </span>
                 <StatusTag status={thread.status} label={m.inbox.status[thread.status]} />

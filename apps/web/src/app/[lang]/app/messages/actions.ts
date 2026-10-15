@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { inbox, messaging, MessageBodySchema } from "@proofseen/db";
+import { inbox, messaging, MessageBodySchema, type PostResult } from "@proofseen/db";
+import { chosenFiles, discardAttachments, saveAttachments, type SavedAttachments } from "@/data/attachments";
 import { throttled } from "@/data/throttle";
 import { logError } from "@/lib/log";
 import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
@@ -14,6 +15,8 @@ import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market"
 
 const SEND_RULE = { windowMs: 60_000, max: 20 };
 const CONTACT_RULE = { windowMs: 60 * 60_000, max: 30 };
+/** Messages carrying files, per person and per hour: each one costs disk, decoding and a PDF read. */
+const ATTACHMENT_RULE = { windowMs: 60 * 60_000, max: 30 };
 
 const thread = (lang: string, id: string | null, error?: string): string => (id === null ? `/${lang}/app/messages` : `/${lang}/app/messages/${id}${error === undefined ? "" : `?erreur=${error}`}`);
 const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string" ? raw : "");
@@ -26,14 +29,28 @@ export async function postMessage(formData: FormData): Promise<void> {
   if (await throttled("message-post", market.actor.userId, SEND_RULE, new Date())) redirect(thread(lang, id, "trop"));
   const body = MessageBodySchema.safeParse(text(formData.get("body")));
   if (!body.success) redirect(thread(lang, id, "invalide"));
+  const files = chosenFiles(formData.getAll("attachments"));
+  if (files.length > 0 && (await throttled("message-attachment", market.actor.userId, ATTACHMENT_RULE, new Date()))) redirect(thread(lang, id, "trop"));
+  const attached: SavedAttachments =
+    files.length === 0
+      ? { kind: "saved", ids: [], containContact: false }
+      : await saveAttachments(market.db, market.actor, files).catch((error: unknown): SavedAttachments => {
+          logError("message attachments not saved", error);
+          return { kind: "refused", problem: "unreadable" };
+        });
+  if (attached.kind === "refused") redirect(thread(lang, id, `pj-${attached.problem}`));
+  const withFiles = attached.ids.length > 0;
   const result = await messaging(market.db)
-    .post(market.actor, id, body.data)
-    .catch((error: unknown) => {
+    .post(market.actor, id, body.data, withFiles ? { ids: attached.ids, containContact: attached.containContact } : undefined)
+    .catch((error: unknown): PostResult | { readonly kind: "error" } => {
       logError("message post failed", error);
-      return { kind: "error" as const };
+      return { kind: "error" };
     });
+  // Files of a message that was not sent are removed at once; the scheduled job catches anything left behind.
+  if (withFiles && result.kind !== "sent") await discardAttachments(market.db, market.actor, attached.ids).catch((error: unknown) => logError("message attachments not discarded", error));
   if (result.kind === "absent") redirect(`/${lang}/app/messages`);
-  if (result.kind === "contact_details") redirect(thread(lang, id, "coordonnees"));
+  if (result.kind === "attachments") redirect(thread(lang, id, "pj-state"));
+  if (result.kind === "contact_details") redirect(thread(lang, id, withFiles ? "pj-contact" : "coordonnees"));
   if (result.kind === "waiting" || result.kind === "closed") redirect(thread(lang, id, "etat"));
   if (result.kind === "error") redirect(thread(lang, id, "serveur"));
   redirect(thread(lang, id));
