@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { getDb, publicProfiles } from "@proofseen/db";
 import { renderProfilePage } from "@proofseen/hub";
+import { countProfileView } from "@/data/audience";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
@@ -7,6 +9,7 @@ import { logError } from "@/lib/log";
 /*
  * Public page of a freelancer profile: a complete HTML document readable without JavaScript, with ProfilePage data.
  * A private, withdrawn or unknown profile answers 404, so engines drop it. Contact always goes through the platform.
+ * The view is counted after the response is sent (`after`): the page is the same for everyone, bots included.
  */
 
 export const runtime = "nodejs";
@@ -29,6 +32,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const profile = await publicProfiles(getDb()).page(slug);
     if (profile === null) return html(NOT_FOUND, 404, "public, max-age=60");
     const page = renderProfilePage(profile, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/app/contact/${profile.reference}` });
+    after(() => countProfileView(request.headers, profile.reference));
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
     logError("profile page: not rendered", error);

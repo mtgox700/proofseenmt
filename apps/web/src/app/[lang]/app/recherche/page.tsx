@@ -1,9 +1,12 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { freelanceLists, profiles, type ListSummary, type ProfileCard } from "@proofseen/db";
+import { after } from "next/server";
+import { freelanceLists, profiles, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
 import { FreelancerCard } from "@/components/market/FreelancerCard";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { SearchFilters } from "@/components/market/SearchFilters";
+import { countedHeaders, countSearch } from "@/data/audience";
 import { briefConfigured } from "@/data/brief";
 import { throttled } from "@/data/throttle";
 import { isLang, type Lang } from "@/i18n";
@@ -162,6 +165,20 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
   const page = results?.[0] ?? null;
   const lists = results?.[1] ?? [];
   const back = searchParamsOf(query).toString();
+  if (page !== null) {
+    // Counted once the page is sent: the profiles shown, the filters that led to them, never who searched.
+    const filters = searchFilters(query);
+    const counted = {
+      headers: countedHeaders(await headers()),
+      actor: market.actor,
+      clerkId: market.person.id,
+      organisationId: organisation.id,
+      references: page.items.map((card) => card.reference),
+      keywords: statKeywords({ skills: filters.skills ?? [], city: filters.city ?? null }),
+      firstPage: query.page === 1,
+    };
+    after(() => countSearch(counted));
+  }
 
   return (
     <>
