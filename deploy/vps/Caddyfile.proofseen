@@ -1,7 +1,9 @@
 
 # --- Proofseen (added 2026-10-14) ---
 proofseen.com, www.proofseen.com {
-	encode zstd gzip
+	# The live messaging stream must not be compressed: compression buffers server-sent events.
+	@compress not path /api/messages/stream
+	encode @compress zstd gzip
 	reverse_proxy proofseen-web:3100 {
 		header_up X-Real-IP {remote_host}
 	}
