@@ -84,14 +84,17 @@ export const sameOrigin = (request: Request): boolean => {
 export type Caller = { readonly kind: "actor"; readonly actor: Actor } | { readonly kind: "refused"; readonly response: NextResponse };
 
 /** The signed-in person as a database actor, their row created on first use; or the response to send instead. */
-export const caller = async (): Promise<Caller> => {
+/**
+ * `allowSuspended`: only for the person's own GDPR rights (export, erasure), which a suspension never takes away.
+ */
+export const caller = async (options: { readonly allowSuspended?: boolean } = {}): Promise<Caller> => {
   if (!hasDatabase()) return { kind: "refused", response: fail("non-configuré") };
   const state = await session();
   if (state.kind === "unconfigured") return { kind: "refused", response: fail("non-configuré") };
   if (state.kind === "signed-out" || state.person.email === "") return { kind: "refused", response: fail("non-connecté") };
   const { userId, suspension } = await users(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
   // A suspended account (C19) keeps no access to the connected API either.
-  if (suspension !== null) return { kind: "refused", response: fail("compte suspendu") };
+  if (suspension !== null && options.allowSuspended !== true) return { kind: "refused", response: fail("compte suspendu") };
   return { kind: "actor", actor: { userId } };
 };
 

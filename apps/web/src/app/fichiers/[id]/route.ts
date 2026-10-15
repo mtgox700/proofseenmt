@@ -31,8 +31,10 @@ const readableBy = async (id: string): Promise<ReadableFile | null> => {
   if (open !== null) return open;
   const state = await session();
   if (state.kind !== "signed-in" || state.person.email === "") return null;
-  const { userId } = await users(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
-  return storedFiles(db).readable(id, { userId });
+  const { userId, suspension } = await users(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  const readable = await storedFiles(db).readable(id, { userId });
+  // A suspended account (C19) keeps its own files (they are its data) but no longer reads its conversations' attachments.
+  return suspension !== null && readable?.audience === "participant" ? null : readable;
 };
 
 /*

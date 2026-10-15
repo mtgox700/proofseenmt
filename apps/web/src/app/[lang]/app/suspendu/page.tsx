@@ -40,6 +40,12 @@ export default async function SuspendedPage({ params }: PageProps) {
         <p className="muted small">{s.since(day(suspension.at, lang))}</p>
         <AppealForm s={s} id="suspension-appeal" />
       </section>
+      <p>
+        {/* A suspension never takes away the person's GDPR rights: their own export stays one click away. */}
+        <a href="/api/me" download>
+          {s.exportData}
+        </a>
+      </p>
     </>
   );
 }

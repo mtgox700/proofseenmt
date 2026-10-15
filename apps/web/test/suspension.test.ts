@@ -37,8 +37,11 @@ describe("suspension", () => {
     expect(market.match(/await actorOf\(db, (person|state\.person), lang\)/g)).toHaveLength(2);
   });
 
-  it("is applied by the connected API", () => {
-    expect(read("lib/api.ts")).toMatch(/if \(suspension !== null\) return \{ kind: "refused", response: fail\("compte suspendu"\) \}/);
+  it("is applied by the connected API, except to the person's own GDPR export and erasure", () => {
+    expect(read("lib/api.ts")).toMatch(/if \(suspension !== null && options\.allowSuspended !== true\) return \{ kind: "refused", response: fail\("compte suspendu"\) \}/);
+    const allowed = [...read("app/api/me/route.ts").matchAll(/caller\(\{ allowSuspended: true \}\)/g)];
+    expect(allowed).toHaveLength(2);
+    expect(read("app/api/messages/stream/route.ts")).toMatch(/await caller\(\)/);
   });
 
   it("the suspension page never goes through the market context, which would send it back to itself", () => {

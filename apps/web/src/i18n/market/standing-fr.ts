@@ -13,6 +13,7 @@ export const standingFr = {
   appealError: "Message trop court ou trop long (5 à 2 000 caractères).",
   appealTooMany: "Trop de messages en peu de temps : réessayez plus tard.",
   suspendedTitle: "Votre compte est suspendu",
+  exportData: "Télécharger mes données (RGPD)",
   suspendedLead: "Un opérateur de Proofseen a suspendu votre compte : votre espace n'est plus accessible et vos contenus publics sont masqués.",
 };
 

@@ -14,5 +14,6 @@ export const standingEn: StandingDictionary = {
   appealError: "Message too short or too long (5 to 2,000 characters).",
   appealTooMany: "Too many messages in a short time: try again later.",
   suspendedTitle: "Your account is suspended",
+  exportData: "Download my data (GDPR)",
   suspendedLead: "A Proofseen operator suspended your account: your space is no longer available and your public content is hidden.",
 };

@@ -28,7 +28,8 @@ const RULE = { windowMs: 60 * 60_000, max: 10 };
 const ConfirmSchema = z.object({ confirm: z.literal(true) });
 
 export async function GET(): Promise<Response> {
-  const who = await caller();
+  // A suspended account (C19) keeps its GDPR rights: export and erasure stay open to it.
+  const who = await caller({ allowSuspended: true });
   if (who.kind === "refused") return who.response;
   if (await throttled("gdpr-export", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   try {
@@ -49,7 +50,8 @@ export async function GET(): Promise<Response> {
 
 export async function DELETE(request: Request): Promise<NextResponse> {
   if (!sameOrigin(request)) return fail("origine refusée");
-  const who = await caller();
+  // A suspended account (C19) keeps its GDPR rights: export and erasure stay open to it.
+  const who = await caller({ allowSuspended: true });
   if (who.kind === "refused") return who.response;
   if (await throttled("gdpr-erase", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
   if (!ConfirmSchema.safeParse(await jsonBody(request)).success) return fail("requête invalide");
