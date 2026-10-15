@@ -2,6 +2,7 @@ import { cityPages, getDb } from "@proofseen/db";
 import { renderCityPage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
+import { safeDecode } from "@/lib/safe-decode";
 import { logError } from "@/lib/log";
 
 /*
@@ -23,9 +24,12 @@ const NOT_FOUND = '<!doctype html><html lang="fr"><meta charset="utf-8"><title>V
 export async function GET(request: Request, context: Context): Promise<Response> {
   const { lang, city } = await context.params;
   if (lang !== "fr" && lang !== "en") return html(NOT_FOUND, 404, "no-store");
+  // A malformed escape is an address that does not exist, not a server error.
+  const decoded = safeDecode(city);
+  if (decoded === null) return html(NOT_FOUND, 404, "public, max-age=300");
   if (!hasDatabase()) return html(NOT_FOUND, 503, "no-store");
   try {
-    const page = await cityPages(getDb()).page(decodeURIComponent(city));
+    const page = await cityPages(getDb()).page(decoded);
     if (page === null) return html(NOT_FOUND, 404, "public, max-age=300");
     return html(renderCityPage(page, { baseUrl: publicBaseUrl(request), lang }), 200, "public, max-age=0, s-maxage=600, stale-while-revalidate=3600");
   } catch (error) {

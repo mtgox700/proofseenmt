@@ -1,6 +1,7 @@
 import { articles, getDb } from "@proofseen/db";
 import { renderArticlePage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
+import { ARTICLE_CACHE_CONTROL } from "@/lib/article-cache";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
 
@@ -30,7 +31,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const article = await repo.bySlug(lang, /^[a-z0-9-]{1,120}$/.test(slug) ? slug : "");
     if (article === null) return html(NOT_FOUND, 404, "public, max-age=60");
     const related = await repo.related(article);
-    return html(renderArticlePage(article, related, { baseUrl: publicBaseUrl(request) }), 200, "public, max-age=0, s-maxage=600, stale-while-revalidate=3600");
+    return html(renderArticlePage(article, related, { baseUrl: publicBaseUrl(request) }), 200, ARTICLE_CACHE_CONTROL);
   } catch (error) {
     logError("blog article: not rendered", error);
     return html(NOT_FOUND, 500, "no-store");

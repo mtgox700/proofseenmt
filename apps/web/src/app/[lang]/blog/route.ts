@@ -2,6 +2,7 @@ import { articles, getDb } from "@proofseen/db";
 import { renderBlogIndex } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { clientAddress, throttled } from "@/data/throttle";
+import { ARTICLE_CACHE_CONTROL } from "@/lib/article-cache";
 import { blogQuery } from "@/lib/blog-query";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
@@ -33,7 +34,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
   const filters = blogQuery(new URL(request.url).searchParams);
   try {
     const { items, hasMore } = await articles(getDb()).page({ lang, ...filters });
-    return html(renderBlogIndex(items, { baseUrl: publicBaseUrl(request), lang, filters, hasMore }), 200, "public, max-age=0, s-maxage=600, stale-while-revalidate=3600");
+    return html(renderBlogIndex(items, { baseUrl: publicBaseUrl(request), lang, filters, hasMore }), 200, ARTICLE_CACHE_CONTROL);
   } catch (error) {
     logError("blog index: not rendered", error);
     return html(UNAVAILABLE, 500, "no-store");
