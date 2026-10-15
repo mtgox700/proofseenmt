@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
+import { flagFirstContact } from "./contact-review";
+import { LISTED_PROFILE } from "./public-visibility";
 import { isUniqueViolation } from "./errors";
 import { notifications } from "./notifications";
 import type { Prisma } from "./generated/client";
@@ -195,7 +197,7 @@ export const messaging = (db: Db): Messaging => ({
     const text = MessageBodySchema.parse(body);
     const [member, profile] = await Promise.all([
       db.membership.findUnique({ where: { organisationId_userId: { organisationId, userId: actor.userId } }, select: { userId: true } }),
-      db.freelanceProfile.findUnique({ where: { id: profileId }, select: { visibility: true, userId: true } }),
+      db.freelanceProfile.findFirst({ where: { id: profileId, ...LISTED_PROFILE }, select: { visibility: true, userId: true } }),
     ]);
     // Une entreprise ne contacte pas un profil privé : il n'est pas censé exister pour elle. Et personne ne se contacte
     // soi-même au nom de son entreprise.
@@ -217,6 +219,8 @@ export const messaging = (db: Db): Messaging => ({
         const created = await tx.conversation.create({ data: { organisationId, profileId, direct: true }, select: SUMMARY });
         await tx.message.create({ data: { conversationId: created.id, senderUserId: actor.userId, body: text, containsContact: false } });
         await notifications(db).enqueue(tx, [profile.userId], "contact_received", { conversationId: created.id });
+        // Premier contact d'une entreprise récente : signalé aux opérateurs, jamais retenu (C19).
+        await flagFirstContact(tx, created.id, actor.userId, new Date());
         return created;
       });
       return { kind: "opened", conversation };

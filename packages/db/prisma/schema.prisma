@@ -170,6 +170,10 @@ model User {
   displayName String
   /// Langue des e-mails envoyés à la personne.
   lang        String   @default("fr") @db.Char(2)
+  /// Suspendu par un opérateur (C19) : plus d'accès aux espaces de l'application, contenus publics masqués. Le motif est
+  /// montré à la personne ; qui a suspendu, et quand, est au journal des opérateurs.
+  suspendedAt      DateTime? @db.Timestamptz(3)
+  suspensionReason String?
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -227,6 +231,9 @@ model Organisation {
   publicWebsite     String?
   publicCity        String?
   publicSince       DateTime? @db.Timestamptz(3)
+  /// Page publique masquée par un opérateur (C19), avec son motif, montré aux membres de l'entreprise.
+  moderatedAt       DateTime? @db.Timestamptz(3)
+  moderationReason  String?
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -283,6 +290,9 @@ model FreelanceProfile {
   availabilityAt DateTime           @default(now()) @db.Timestamptz(3)
   /// Photo du profil : publique seulement sur un profil nominatif.
   photoFileId    String?            @unique @db.Uuid
+  /// Profil masqué par un opérateur (C19) : absent de toute page publique, avec son motif, montré au freelance.
+  moderatedAt      DateTime?        @db.Timestamptz(3)
+  moderationReason String?
   createdAt      DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime           @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -358,6 +368,9 @@ model VigilanceAttestation {
   verifiedAt   DateTime? @db.Timestamptz(3)
   /// Rappel d'échéance envoyé : une seule fois par attestation.
   remindedAt   DateTime? @db.Timestamptz(3)
+  /// Refusée par un opérateur (C19), avec son motif : le freelance doit en déclarer une autre.
+  rejectedAt      DateTime? @db.Timestamptz(3)
+  rejectionReason String?
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -518,6 +531,9 @@ model JobPost {
   status            JobPostStatus @default(draft)
   publishedAt       DateTime?     @db.Timestamptz(3)
   closedAt          DateTime?     @db.Timestamptz(3)
+  /// Mission masquée par un opérateur (C19) : absente de toute page publique, avec son motif, montré à l'entreprise.
+  moderatedAt       DateTime?     @db.Timestamptz(3)
+  moderationReason  String?
   createdAt         DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -599,6 +615,7 @@ model Conversation {
   messages     Message[]
   quotes       Quote[]
   reads        ConversationRead[]
+  review       ContactReview?
 
   @@index([profileId, lastMessageAt(sort: Desc), id(sort: Desc)])
   @@index([organisationId, lastMessageAt(sort: Desc), id(sort: Desc)])
@@ -1001,6 +1018,7 @@ enum NotificationKind {
   application_read     // la candidature a été ouverte par l'entreprise (freelance)
   mission_invitation   // une entreprise invite à postuler (freelance)
   company_mission      // une entreprise suivie publie une mission (freelance)
+  account_notice       // décision d'un opérateur sur le compte ou ses contenus, avec son motif (C19)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
@@ -1078,6 +1096,14 @@ enum FeedbackSide {
   visitor
 }
 
+/// Où en est un retour, une fois lu par l'opérateur (C19).
+enum FeedbackStatus {
+  new     // pas encore classé
+  planned // retenu, à faire
+  done    // fait
+  wontfix // écarté
+}
+
 /// Un retour laissé pendant la bêta. Classé par nature et par côté, jamais par personne ; l'auteur, s'il est connecté,
 /// est rattaché pour pouvoir lui répondre. Son texte peut parler de lui : il part avec son compte, et au bout d'un an.
 model Feedback {
@@ -1088,6 +1114,10 @@ model Feedback {
   /// Page d'où vient le retour (chemin seul, sans paramètres).
   page      String?
   body      String
+  status     FeedbackStatus @default(new)
+  /// Note de l'opérateur sur la suite donnée ; interne.
+  triageNote String?
+  triagedAt  DateTime?      @db.Timestamptz(3)
   createdAt DateTime     @default(now()) @db.Timestamptz(3)
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1541,4 +1571,79 @@ model OrganisationStatDay {
 
   @@id([organisationId, day])
   @@index([day])
+}
+
+// ─── Back-office opérateur (C19) ────────────────────────────────────────────────────────────────────────────────────
+
+/// Ce qu'un opérateur a fait. Vocabulaire fermé : une action nouvelle s'ajoute ici, jamais en texte libre.
+enum OperatorActionKind {
+  profile_hidden
+  profile_restored
+  mission_hidden
+  mission_restored
+  company_page_hidden
+  company_page_restored
+  contact_cleared
+  contact_closed
+  vigilance_verified
+  vigilance_rejected
+  proof_revoked
+  registry_rechecked
+  user_suspended
+  user_restored
+  user_exported
+  feedback_triaged
+}
+
+/// Sur quoi porte l'action.
+enum OperatorTargetType {
+  profile
+  mission
+  organisation
+  conversation
+  vigilance
+  owned_url
+  user
+  feedback
+}
+
+/// Journal des actions d'opérateur, écrit dans la même transaction que l'action elle-même : une action sans trace ne
+/// peut pas exister. Ajout seul : un déclencheur refuse toute modification, et toute suppression avant cinq ans.
+/// Volontairement SANS clé étrangère : effacer le compte de l'opérateur ou de la personne visée ne doit pas effacer la
+/// preuve de ce qui a été décidé. Le motif est obligatoire pour toute décision qui touche quelqu'un (contrainte en base).
+model OperatorAction {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  operatorUserId String             @db.Uuid
+  action         OperatorActionKind
+  targetType     OperatorTargetType
+  targetId       String             @db.Uuid
+  reason         String?
+  /// Contexte figé au moment de l'action (référence, adresse, code contrôlé…) ; jamais le texte d'un message.
+  metadata       Json               @default("{}")
+  createdAt      DateTime           @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([targetType, targetId, createdAt(sort: Desc)])
+  @@index([operatorUserId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+}
+
+/// Décision de l'opérateur sur un premier contact signalé.
+enum ContactReviewOutcome {
+  ok     // rien à redire
+  closed // fil fermé par l'opérateur
+}
+
+/// Premier contact d'une entreprise récente, signalé pour relecture. Le message est livré quand même : le signalement ne
+/// bloque rien tant que la plateforme n'a pas choisi de retenir ces messages (voir `FIRST_CONTACT_REVIEW`).
+model ContactReview {
+  id             String                @id @default(uuid(7)) @db.Uuid
+  conversationId String                @unique @db.Uuid
+  flaggedAt      DateTime              @default(now()) @db.Timestamptz(3)
+  reviewedAt     DateTime?             @db.Timestamptz(3)
+  outcome        ContactReviewOutcome?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([flaggedAt, id], where: raw("\"reviewedAt\" IS NULL"), map: "ContactReview_pending_idx")
 }

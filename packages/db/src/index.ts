@@ -390,3 +390,16 @@ export { APPEARANCE_SCOPES, audienceStats, MAX_KEYWORDS_PER_DAY, statKeywords, t
 export { dayOf, daysEnding, isDay, monthOf, monthsEnding, parisDay, retentionStart, STATS_RETENTION_MONTHS, STATS_WINDOW_DAYS } from "./stat-days";
 export { freelanceInsights, REVENUE_MONTHS, TOP_KEYWORDS, type DailyAudience, type FreelanceInsights, type FreelanceInsightsRepository, type KeywordCount, type MonthlyRevenue } from "./freelance-insights";
 export { COMPANY_MONTHS, companyInsights, medianDays, type CompanyInsights, type CompanyInsightsRepository, type CostCentreSpend, type MonthlySpend } from "./company-insights";
+export { ACCOUNT_NOTICES, ReasonSchema, type AccountNotice, type Operator, type OperatorResult } from "./back-office";
+export { LISTED_COMPANY, LISTED_MISSION, LISTED_PROFILE } from "./public-visibility";
+export { moderation, ProfileReferenceInputSchema, type HiddenItem, type Moderation, type ModerationTarget } from "./moderation";
+export { OPERATOR_LOG_PAGE_SIZE, operatorLog, OperatorLogFilterSchema, type OperatorLog, type OperatorLogEntry, type OperatorLogFilter } from "./operator-log";
+export { contactReviews, FIRST_CONTACT_REVIEW, isRecentSender, type ContactReviews, type FirstContactMode, type PendingContact } from "./contact-review";
+export { vigilanceDesk, type PendingAttestation, type VigilanceDesk } from "./vigilance-desk";
+export { proofDisputes, type ProofDispute, type ProofDisputes } from "./proof-disputes";
+export { registryDesk, type CompanyCheck, type RegistryDesk } from "./registry-desk";
+export { userDesk, type SuspendResult, type UserDesk, type UserHit, type UserSummary } from "./user-desk";
+export { APPEAL_PAGE, feedbackTriage, TRIAGE_PAGE_SIZE, TriageFilterSchema, TriageInputSchema, type FeedbackTriage, type TriageEntry, type TriageFilter } from "./feedback-triage";
+export { operatorStats, type MeasurementOversight, type OperatorStats } from "./operator-stats";
+export { accountNotices, type AccountNotices, type AccountStanding, type ModerationNotice } from "./account-notices";
+export { type EnsuredUser } from "./users";

@@ -60,7 +60,7 @@ export const vigilance = (db: Db) => ({
     if (expiresOn.getTime() <= now.getTime()) return { kind: "expired" };
     const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
     if (profile === null) return { kind: "no_profile" };
-    const data = { issuedOn, securityCode: input.securityCode, verifiedAt: null, remindedAt: null };
+    const data = { issuedOn, securityCode: input.securityCode, verifiedAt: null, remindedAt: null, rejectedAt: null, rejectionReason: null };
     await db.vigilanceAttestation.upsert({ where: { profileId: profile.id }, create: { profileId: profile.id, ...data }, update: data });
     return { kind: "saved", expiresOn };
   },
@@ -85,7 +85,7 @@ export const vigilance = (db: Db) => ({
   /** Un opérateur a vérifié le code sur le site de l'URSSAF ; rend `false` si le profil n'a pas d'attestation. */
   async markVerified(reference: string, securityCode: string, now: Date): Promise<boolean> {
     // Le code contrôlé fait partie de la condition : une attestation redéclarée entre-temps n'est pas marquée à sa place.
-    const { count } = await db.vigilanceAttestation.updateMany({ where: { profile: { reference }, securityCode: securityCode.replace(/[\s-]/g, "").toUpperCase() }, data: { verifiedAt: now } });
+    const { count } = await db.vigilanceAttestation.updateMany({ where: { profile: { reference }, rejectedAt: null, securityCode: securityCode.replace(/[\s-]/g, "").toUpperCase() }, data: { verifiedAt: now } });
     return count === 1;
   },
 

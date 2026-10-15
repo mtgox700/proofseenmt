@@ -33,6 +33,7 @@ export const RETAINED_AFTER_ERASURE = [
   "présence d'un freelance dans les listes des entreprises : supprimée avec son profil",
   "invitations envoyées, modèles de mission et lectures de candidatures faits au nom d'une entreprise : conservés pour elle, sans auteur",
   "pièces jointes envoyées : effacées avec le compte, le message qui les portait reste sans elles",
+  "décisions d'un opérateur sur le compte ou ses contenus (journal du back-office) : conservées cinq ans, rattachées au seul identifiant interne du compte (ni nom ni adresse), comme preuve de ce qui a été décidé",
 ] as const;
 
 export interface UserExport {
@@ -59,6 +60,8 @@ export interface UserExport {
   readonly missionsSpace: unknown;
   /** Repères de lecture des fils, notifications de l'application, résumé quotidien par e-mail (C15). */
   readonly liveMessaging: unknown;
+  /** Décisions d'un opérateur sur le compte ou ses contenus (C19) : l'action, son motif et sa date, jamais l'opérateur. */
+  readonly operatorDecisions: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -111,7 +114,7 @@ export const gdpr = (db: Db): Gdpr => ({
     if (!Uuid.safeParse(userId).success) return null;
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, clerkId: true, email: true, displayName: true, lang: true, createdAt: true, updatedAt: true },
+      select: { id: true, clerkId: true, email: true, displayName: true, lang: true, createdAt: true, updatedAt: true, suspendedAt: true, suspensionReason: true },
     });
     if (user === null) return null;
 
@@ -180,6 +183,11 @@ export const gdpr = (db: Db): Gdpr => ({
     const files = await storedFiles(db).listForExport(userId);
     const missionsSpace = await exportMissionsSpace(db, userId);
     const liveMessaging = await exportLiveMessaging(db, userId);
+    const operatorDecisions = await db.operatorAction.findMany({
+      where: { targetId: { in: [userId, ...(freelanceProfile === null ? [] : [freelanceProfile.id])] } },
+      orderBy: { createdAt: "asc" },
+      select: { action: true, reason: true, createdAt: true },
+    });
 
     return {
       exportedAt: now.toISOString(),
@@ -200,6 +208,7 @@ export const gdpr = (db: Db): Gdpr => ({
       files,
       missionsSpace,
       liveMessaging,
+      operatorDecisions,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },

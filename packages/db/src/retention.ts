@@ -55,6 +55,11 @@ export const RETENTION = {
    * passée. Les empreintes de visiteurs, elles, ne passent pas la journée.
    */
   audienceStatsMonths: STATS_RETENTION_MONTHS,
+  /**
+   * Journal des opérateurs (C19) : cinq ans, la preuve de ce qui a été décidé sur un compte ou un contenu, le temps d'un
+   * recours. Le déclencheur de la table refuse toute suppression plus tôt : la purge ne peut pas aller plus vite que lui.
+   */
+  operatorActionsYears: 5,
 } as const;
 
 export interface PurgeReport {
@@ -71,6 +76,7 @@ export interface PurgeReport {
   readonly appNotifications: number;
   readonly audienceStats: number;
   readonly audienceSightings: number;
+  readonly operatorActions: number;
 }
 
 export interface Retention {
@@ -117,6 +123,11 @@ export const retention = (db: Db): Retention => ({
       },
     });
     const audience = await purgeAudience(db, now);
+    // La plus prudente des deux bornes : jamais en deçà de cinq ans à l'horloge de la base, que refuserait le déclencheur.
+    const operatorCutoff = new Date(now);
+    operatorCutoff.setUTCFullYear(operatorCutoff.getUTCFullYear() - RETENTION.operatorActionsYears);
+    const operatorActions = await db.$executeRaw`
+      DELETE FROM "OperatorAction" WHERE "createdAt" < LEAST(${operatorCutoff}::timestamptz, now() - make_interval(years => ${RETENTION.operatorActionsYears}::int))`;
     return {
       notifications: notifications.count,
       stripeEvents: stripeEvents.count,
@@ -131,6 +142,7 @@ export const retention = (db: Db): Retention => ({
       appNotifications: appNotificationRows.count,
       audienceStats: audience.stats,
       audienceSightings: audience.sightings,
+      operatorActions,
     };
   },
 });
