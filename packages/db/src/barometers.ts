@@ -139,6 +139,8 @@ export const barometers = (db: Db): Barometers => ({
       db.jobPost.count({ where: window }),
       db.jobPostSkill.findMany({
         where: { jobPost: window },
+        // Au-delà de MAX_ROWS lignes, les plus récentes : un baromètre borné reste celui de la fin de la fenêtre.
+        orderBy: { jobPost: { publishedAt: "desc" } },
         take: MAX_ROWS,
         select: { skill: { select: { key: true, label: true } }, jobPost: { select: { organisationId: true, publishedAt: true } } },
       }),
