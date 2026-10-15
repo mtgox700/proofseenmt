@@ -1107,3 +1107,50 @@ model FreelanceListReaction {
   @@id([itemId, userId])
   @@index([userId])
 }
+
+// ─── Blog, guides et études (C18) ───────────────────────────────────────────────────────────────────────────────────
+
+enum ArticleCategory {
+  guide
+  actualite
+  etude
+}
+
+enum ArticleAudience {
+  freelance
+  entreprise
+  tous
+}
+
+enum ArticleStatus {
+  draft
+  published
+}
+
+/// Un article du blog, écrit par l'opérateur en Markdown (sans HTML brut). Public seulement une fois publié. Ses sources
+/// (liste de { title, url }) sont obligatoires dès qu'il contient un chiffre : aucun chiffre sans source.
+model Article {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  /// Unique dans sa langue : la même adresse peut exister en français et en anglais.
+  slug        String
+  lang        String          @db.Char(2)
+  title       String
+  description String
+  /// Markdown. Le HTML brut est refusé à l'écriture et échappé au rendu.
+  body        String
+  category    ArticleCategory
+  audience    ArticleAudience
+  /// Nom affiché de l'auteur, tel qu'il signe l'article.
+  authorName  String
+  status      ArticleStatus   @default(draft)
+  /// Date de première publication ; gardée si l'article est retiré puis republié.
+  publishedAt DateTime?       @db.Timestamptz(3)
+  /// Liste de { title, url } : les pages officielles d'où viennent les faits de l'article.
+  sources     Json            @default("[]")
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
+
+  @@unique([lang, slug])
+  /// Les articles publiés d'une langue, des plus récents aux plus anciens.
+  @@index([lang, publishedAt(sort: Desc), id(sort: Desc)], where: raw("\"status\" = 'published'"), map: "Article_published_recent_idx")
+}
