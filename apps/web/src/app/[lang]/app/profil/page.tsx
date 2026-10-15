@@ -113,6 +113,7 @@ function Publication({ lang, p, profile }: { readonly lang: Lang; readonly p: Pr
         <span className="muted">{p.visibility[profile.visibility]}</span>
       </p>
       <p className="muted small">{p.facts(profile.verifiedUrls, profile.verifiedMissions)}</p>
+      {profile.visibility === "named" ? null : <p className="muted small">{p.pseudonymousShows}</p>}
       <div className="empty-actions">
         {profile.visibility === "pseudonymous" ? null : button("pseudonymous", p.publish, profile.visibility === "private")}
         {profile.visibility === "named" ? null : button("named", p.publishNamed, false)}

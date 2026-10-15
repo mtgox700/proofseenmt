@@ -35,6 +35,8 @@ export const profileEn: ProfileDictionary = {
     pseudonymous: "Published under your reference: companies, search engines and AI read your facts, not your name.",
     named: "Published under your name.",
   },
+  pseudonymousShows:
+    "Under your reference, the public page shows your roles, their dates, your degrees, your skills and your descriptions. It never shows your name, your photo, the names of your companies and schools, the images of your work or your links: they appear only if you publish under your name.",
   publish: "Publish under my reference",
   publishNamed: "Publish under my name",
   unpublish: "Unpublish",

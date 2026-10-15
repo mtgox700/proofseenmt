@@ -108,34 +108,41 @@ describe("page publique enrichie", () => {
     await profileSections(t.db).addExperience(actor, { title: "Data engineer", company: "Beta", startMonth: month("2019-01"), endMonth: month("2023-02") });
     await profileSections(t.db).addCertification(actor, { name: "AWS SAA", issuer: "AWS", year: 2024, credentialUrl: "https://aws.example.com/v/1", skills: ["AWS"] });
     await profileSections(t.db).setLanguage(actor, { code: "en", level: "c1" });
-    await profileSections(t.db).addPortfolioItem(actor, { title: "Démo", url: "https://demo.example.com" });
+    await profileSections(t.db).addEducation(actor, { school: "INSA Lyon", degree: "Ingénieur", startYear: 2014, endYear: 2019 });
+    const image = await t.db.storedFile.create({ data: { ownerId: userId, kind: "portfolio_image", contentType: "image/webp", size: 10, sha256: "c".repeat(64) }, select: { id: true } });
+    await profileSections(t.db).addPortfolioItem(actor, { title: "Démo", url: "https://demo.example.com" }, image.id);
     const photo = await t.db.storedFile.create({ data: { ownerId: userId, kind: "photo", contentType: "image/webp", size: 10, sha256: "a".repeat(64) }, select: { id: true } });
     await profileSections(t.db).setPhoto(actor, photo.id);
     const { slug } = await t.db.freelanceProfile.findUniqueOrThrow({ where: { id: profileId }, select: { slug: true } });
-    return { slug: slug ?? "", photoId: photo.id };
+    return { slug: slug ?? "", photoId: photo.id, imageId: image.id };
   };
 
-  it("profil pseudonyme : sections publiées, sans photo, sans adresse web, sans entreprise masquée", async () => {
+  it("profil pseudonyme : sections publiées, sans photo, sans image, sans adresse web, sans entreprise ni école", async () => {
     const { userId, profileId } = await freelancer();
     const { slug } = await fill(userId, profileId);
     const page = await publicProfiles(t.db).page(slug);
     expect(page?.photoFileId).toBeNull();
+    // Une entreprise ou une école, croisée avec des dates, désigne la personne : un profil pseudonyme n'en montre aucune.
     expect(page?.sections.experiences.map((e) => [e.title, e.company])).toEqual([
       ["Lead data engineer", null],
-      ["Data engineer", "Beta"],
+      ["Data engineer", null],
     ]);
+    expect(page?.sections.educations).toEqual([{ school: null, degree: "Ingénieur", startYear: 2014, endYear: 2019 }]);
     expect(page?.sections.certifications[0]).toMatchObject({ name: "AWS SAA", credentialUrl: null });
-    expect(page?.sections.portfolio[0]).toMatchObject({ title: "Démo", url: null });
+    expect(page?.sections.portfolio[0]).toMatchObject({ title: "Démo", url: null, imageFileId: null });
     expect(page?.sections.languages).toEqual([{ code: "en", level: "c1" }]);
     expect(page?.availabilityConfirmedAt).toBeInstanceOf(Date);
   });
 
   it("profil nominatif : photo et adresses publiées", async () => {
     const { userId, profileId } = await freelancer();
-    const { slug, photoId } = await fill(userId, profileId);
+    const { slug, photoId, imageId } = await fill(userId, profileId);
     await t.db.freelanceProfile.update({ where: { id: profileId }, data: { visibility: "named" } });
     const page = await publicProfiles(t.db).page(slug);
     expect(page?.photoFileId).toBe(photoId);
+    expect(page?.sections.portfolio[0]?.imageFileId).toBe(imageId);
+    expect(page?.sections.educations[0]?.school).toBe("INSA Lyon");
+    expect(page?.sections.experiences[1]?.company).toBe("Beta");
     expect(page?.sections.certifications[0]?.credentialUrl).toBe("https://aws.example.com/v/1");
     expect(page?.sections.portfolio[0]?.url).toBe("https://demo.example.com/");
     expect(page?.sections.experiences[0]?.company).toBeNull();
@@ -146,7 +153,8 @@ describe("page publique enrichie", () => {
     await fill(userId, profileId);
     const exported = await gdpr(t.db).exportUser(userId, new Date());
     expect(JSON.stringify(exported?.freelanceProfile)).toContain("Lead data engineer");
-    expect(exported?.files).toHaveLength(1);
+    // La photo et l'image de la réalisation.
+    expect(exported?.files).toHaveLength(2);
     expect(await gdpr(t.db).eraseUser(userId)).toBe("erased");
     expect(await t.db.storedFile.count({ where: { ownerId: userId } })).toBe(0);
     expect(await t.db.profileExperience.count({ where: { profileId } })).toBe(0);

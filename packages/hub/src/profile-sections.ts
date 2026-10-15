@@ -5,9 +5,11 @@ import { escapeHtml as e } from "./html";
  * simple, lisible sans JavaScript, et leurs données structurées. Ce sont des déclarations du freelance, présentées comme
  * telles et séparées des missions vérifiées : aucun niveau calculé, aucune ancienneté déduite, aucune note.
  *
- * Les adresses web (portfolio, vérification d'une certification) et la photo n'arrivent ici que pour un profil
- * nominatif : le dépôt les retire d'un profil pseudonyme. Un lien déposé par le freelance ne transmet aucune autorité de
- * la page (`nofollow ugc`).
+ * Les adresses web (portfolio, vérification d'une certification), la photo, les images de réalisations, les entreprises
+ * et les écoles n'arrivent ici que pour un profil nominatif : le dépôt les retire d'un profil pseudonyme, et le rendu
+ * les ignore de nouveau (`named: false`) si elles arrivaient quand même. Un profil pseudonyme montre le rôle, les dates,
+ * le diplôme et les compétences, jamais ce qui désignerait la personne. Un lien déposé par le freelance ne transmet
+ * aucune autorité de la page (`nofollow ugc`).
  */
 
 type Lang = "fr" | "en";
@@ -23,7 +25,7 @@ export interface PublicSectionsView {
     readonly description: string | null;
     readonly skills: readonly string[];
   }[];
-  readonly educations: readonly { readonly school: string; readonly degree: string | null; readonly startYear: number | null; readonly endYear: number | null }[];
+  readonly educations: readonly { readonly school: string | null; readonly degree: string | null; readonly startYear: number | null; readonly endYear: number | null }[];
   readonly certifications: readonly {
     readonly name: string;
     readonly issuer: string | null;
@@ -42,6 +44,7 @@ const LABELS = {
     experiences: "Expériences déclarées",
     current: "aujourd'hui",
     educations: "Formation",
+    education: "Formation déclarée",
     certifications: "Certifications",
     verify: "Vérifier la certification",
     languages: "Langues",
@@ -52,6 +55,7 @@ const LABELS = {
     experiences: "Declared experience",
     current: "present",
     educations: "Education",
+    education: "Declared education",
     certifications: "Certifications",
     verify: "Verify the certification",
     languages: "Languages",
@@ -82,6 +86,18 @@ const tags = (skills: readonly string[]): string => (skills.length === 0 ? "" : 
 
 const paragraph = (text: string | null): string => (text === null || text.trim() === "" ? "" : `<p>${e(text)}</p>`);
 
+/** Ce qu'un profil pseudonyme ne montre jamais, même si le dépôt l'avait laissé passer. */
+const forPublication = (s: PublicSectionsView, named: boolean): PublicSectionsView =>
+  named
+    ? s
+    : {
+        experiences: s.experiences.map((x) => ({ ...x, company: null })),
+        educations: s.educations.map((x) => ({ ...x, school: null })),
+        certifications: s.certifications.map((x) => ({ ...x, credentialUrl: null })),
+        languages: s.languages,
+        portfolio: s.portfolio.map((x) => ({ ...x, url: null, imageFileId: null })),
+      };
+
 const experiences = (s: PublicSectionsView, lang: Lang): string =>
   s.experiences.length === 0
     ? ""
@@ -98,8 +114,11 @@ const educations = (s: PublicSectionsView, lang: Lang): string =>
     ? ""
     : `<h2>${LABELS[lang].educations}</h2><ul class="missions">${s.educations
         .map((x) => {
-          const when = [x.degree, years(x.startYear, x.endYear)].filter((part): part is string => part !== null && part !== "").join(" · ");
-          return `<li class="card"><h3>${e(x.school)}</h3>${when === "" ? "" : `<p class="when">${e(when)}</p>`}</li>`;
+          // Sans école (profil pseudonyme), le diplôme devient le titre ; sans diplôme non plus, un libellé neutre.
+          const heading = x.school ?? x.degree ?? LABELS[lang].education;
+          const details = x.school === null ? [years(x.startYear, x.endYear)] : [x.degree, years(x.startYear, x.endYear)];
+          const when = details.filter((part): part is string => part !== null && part !== "").join(" · ");
+          return `<li class="card"><h3>${e(heading)}</h3>${when === "" ? "" : `<p class="when">${e(when)}</p>`}</li>`;
         })
         .join("")}</ul>`;
 
@@ -131,8 +150,10 @@ const portfolio = (s: PublicSectionsView, lang: Lang, baseUrl: string): string =
         .join("")}</ul>`;
 
 /** Les sections, dans l'ordre de la page : expériences, certifications, formation, langues, réalisations. */
-export const renderSections = (s: PublicSectionsView, o: { readonly lang: Lang; readonly baseUrl: string }): string =>
-  [experiences(s, o.lang), certifications(s, o.lang), educations(s, o.lang), languages(s, o.lang), portfolio(s, o.lang, o.baseUrl)].join("");
+export const renderSections = (sections: PublicSectionsView, o: { readonly lang: Lang; readonly baseUrl: string; readonly named: boolean }): string => {
+  const s = forPublication(sections, o.named);
+  return [experiences(s, o.lang), certifications(s, o.lang), educations(s, o.lang), languages(s, o.lang), portfolio(s, o.lang, o.baseUrl)].join("");
+};
 
 /** Styles des éléments propres aux sections : une photo et des aperçus d'images, rien de masqué. */
 export const SECTION_STYLES = ".avatar{width:7.5rem;height:7.5rem;border-radius:50%;object-fit:cover;border:1px solid var(--line);margin-bottom:1.4rem}.shot{width:100%;max-height:16rem;object-fit:cover;border-radius:10px;border:1px solid var(--line)}";
@@ -140,11 +161,15 @@ export const SECTION_STYLES = ".avatar{width:7.5rem;height:7.5rem;border-radius:
 const unique = (values: readonly string[]): string[] => [...new Set(values)];
 
 /** Ce que les sections ajoutent à la personne dans les données structurées (schema.org). */
-export const sectionsJsonLd = (s: PublicSectionsView, o: { readonly lang: Lang; readonly baseUrl: string; readonly photoFileId: string | null }): Record<string, unknown> => {
-  const current = unique(s.experiences.filter((x) => x.endMonth === null && x.company !== null).map((x) => x.company ?? ""));
-  const schools = unique(s.educations.map((x) => x.school));
+export const sectionsJsonLd = (
+  sections: PublicSectionsView,
+  o: { readonly lang: Lang; readonly baseUrl: string; readonly photoFileId: string | null; readonly named: boolean },
+): Record<string, unknown> => {
+  const s = forPublication(sections, o.named);
+  const current = unique(s.experiences.flatMap((x) => (x.endMonth === null && x.company !== null ? [x.company] : [])));
+  const schools = unique(s.educations.flatMap((x) => (x.school === null ? [] : [x.school])));
   return {
-    ...(o.photoFileId === null ? {} : { image: fileUrl(o.baseUrl, o.photoFileId) }),
+    ...(o.photoFileId === null || !o.named ? {} : { image: fileUrl(o.baseUrl, o.photoFileId) }),
     ...(s.languages.length === 0 ? {} : { knowsLanguage: s.languages.map((l) => ({ "@type": "Language", name: languageName(l.code, o.lang), alternateName: l.code })) }),
     ...(schools.length === 0 ? {} : { alumniOf: schools.map((name) => ({ "@type": "EducationalOrganization", name })) }),
     ...(s.certifications.length === 0

@@ -13,7 +13,8 @@ import type { Actor } from "./messaging";
  * - le propriétaire lit tous ses fichiers ;
  * - une photo est publique seulement quand elle est la photo d'un profil publié sous le nom de la personne (un profil
  *   pseudonyme ne montre jamais de visage) ;
- * - l'image d'une réalisation du portfolio est publique dès que le profil est publié ;
+ * - l'image d'une réalisation du portfolio est publique seulement sur un profil publié sous le nom de la personne : une
+ *   capture d'écran peut porter un nom, un logo client, un visage, et lèverait le pseudonyme ;
  * - un CV n'est lu que par son propriétaire ;
  * - une pièce jointe (C15) est lue par les parties du fil de son message, et par son auteur seul tant qu'elle n'est
  *   rattachée à aucun message.
@@ -117,7 +118,7 @@ export const storedFiles = (db: Db): StoredFiles => ({
     if (row === null) return null;
     const { photoOf, portfolioOf, ...file } = row;
     if (row.kind === "photo" && photoOf?.visibility === "named") return { file, audience: "public" };
-    if (row.kind === "portfolio_image" && portfolioOf !== null && portfolioOf.profile.visibility !== "private") return { file, audience: "public" };
+    if (row.kind === "portfolio_image" && portfolioOf?.profile.visibility === "named") return { file, audience: "public" };
     if (viewer === null) return null;
     if (row.ownerId === viewer.userId) return { file, audience: "owner" };
     if (row.kind !== "message_attachment") return null;

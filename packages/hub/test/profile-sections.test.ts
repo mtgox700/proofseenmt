@@ -110,6 +110,21 @@ describe("sections déclarées de la page publique", () => {
     expect(jsonLdOf(html).mainEntity).not.toHaveProperty("image");
   });
 
+  it("profil pseudonyme : ni entreprise, ni école, ni image, ni adresse, même si elles arrivaient jusqu'ici", () => {
+    const html = renderProfilePage({ ...NAMED, visibility: "pseudonymous", displayName: null }, OPTIONS);
+    for (const identifying of ["Acme Énergie", "INSA Lyon", "0d6f5b3e-8f4a-4c55-9a76-2b9c1f0e7a11", "https://demo.example.com", "https://aws.example.com/verify/123", 'class="shot"']) {
+      expect(html).not.toContain(identifying);
+    }
+    // Restent le rôle, les dates, le diplôme, les compétences, l'organisme de certification.
+    for (const fact of ["Lead data engineer", "mars 2023 – aujourd&#39;hui", "<h3>Diplôme d&#39;ingénieur</h3><p class=\"when\">2014 – 2019</p>", "Spark", "Amazon Web Services · 2024", "Tableau de bord énergie"]) {
+      expect(html).toContain(fact);
+    }
+    const person = jsonLdOf(html).mainEntity;
+    expect(person).not.toHaveProperty("alumniOf");
+    expect(person).not.toHaveProperty("worksFor");
+    expect(JSON.stringify(person.hasCredential)).not.toContain("https://");
+  });
+
   it("n'affiche pas d'entreprise masquée et n'en fait pas un employeur", () => {
     const hidden: PublicSectionsView = { ...SECTIONS, experiences: [{ ...SECTIONS.experiences[0]!, company: null }] };
     const html = renderProfilePage({ ...NAMED, sections: hidden }, OPTIONS);

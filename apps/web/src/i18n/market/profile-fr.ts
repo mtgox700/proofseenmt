@@ -35,6 +35,8 @@ export const profileFr = {
     pseudonymous: "Publié sous votre référence : les entreprises, les moteurs et les IA lisent vos faits, pas votre nom.",
     named: "Publié sous votre nom.",
   },
+  pseudonymousShows:
+    "Sous votre référence, la page publique montre vos rôles, leurs dates, vos diplômes, vos compétences et vos descriptions. Elle ne montre jamais votre nom, votre photo, les noms de vos entreprises et de vos écoles, les images de vos réalisations ni vos liens : ils n'apparaissent que si vous publiez sous votre nom.",
   publish: "Publier sous ma référence",
   publishNamed: "Publier sous mon nom",
   unpublish: "Retirer de la publication",

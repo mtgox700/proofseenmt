@@ -7,8 +7,8 @@ import { FILE_QUOTA, storedFiles, type NewStoredFile } from "../src/stored-files
 import { createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
 
 /*
- * Fichiers déposés : quota par compte, lecture réservée selon l'usage (photo publique sur un profil nominatif, image de
- * portfolio publique sur un profil publié, CV au seul propriétaire). Brouillon d'import d'un CV : rien n'entre au
+ * Fichiers déposés : quota par compte, lecture réservée selon l'usage (photo et image de portfolio publiques sur un
+ * profil nominatif seulement, CV au seul propriétaire). Brouillon d'import d'un CV : rien n'entre au
  * profil sans acceptation, élément par élément.
  */
 
@@ -82,13 +82,17 @@ describe("fichiers déposés : qui lit quoi", () => {
     expect(await storedFiles(t.db).readable(randomUUID(), actor)).toBeNull();
   });
 
-  it("l'image d'une réalisation est publique quand le profil est publié, et suit son retrait", async () => {
+  it("l'image d'une réalisation n'est publique que sur un profil nominatif, et suit son retrait", async () => {
     const { actor, profileId } = await freelancer();
     const image = file("portfolio_image");
     await storedFiles(t.db).record(actor, image);
     expect(await storedFiles(t.db).readable(image.id, null)).toBeNull();
     const added = await profileSections(t.db).addPortfolioItem(actor, { title: "Démo", url: "https://demo.example.com" }, image.id);
     if (added.kind !== "added") throw new Error("non ajoutée");
+    // Profil pseudonyme : une capture d'écran peut porter un nom, un logo, un visage. Seul le propriétaire la lit.
+    expect(await storedFiles(t.db).readable(image.id, null)).toBeNull();
+    expect((await storedFiles(t.db).readable(image.id, actor))?.audience).toBe("owner");
+    await t.db.freelanceProfile.update({ where: { id: profileId }, data: { visibility: "named" } });
     expect((await storedFiles(t.db).readable(image.id, null))?.audience).toBe("public");
     await t.db.freelanceProfile.update({ where: { id: profileId }, data: { visibility: "private", slug: null } });
     expect(await storedFiles(t.db).readable(image.id, null)).toBeNull();

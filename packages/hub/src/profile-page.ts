@@ -155,7 +155,7 @@ export const profileJsonLd = (p: PublicProfile, o: { readonly baseUrl: string; r
     address: { "@type": "PostalAddress", addressLocality: p.city, addressCountry: "FR" },
     ...(p.skills.length === 0 ? {} : { knowsAbout: [...p.skills] }),
     ...(p.provenUrls.length === 0 ? {} : { sameAs: [...p.provenUrls] }),
-    ...sectionsJsonLd(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, photoFileId: p.visibility === "named" ? (p.photoFileId ?? null) : null }),
+    ...sectionsJsonLd(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, photoFileId: p.visibility === "named" ? (p.photoFileId ?? null) : null, named: p.visibility === "named" }),
   },
 });
 
@@ -222,7 +222,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     facts,
     p.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${p.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
     missions,
-    renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl }),
+    renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, named: p.visibility === "named" }),
     proofs,
     reviews,
     `<p><a class="cta" href="${e(o.contactHref)}">${l.contact}</a></p>`,
