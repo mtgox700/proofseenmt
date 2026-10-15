@@ -9,8 +9,8 @@ import { escapeHtml as e } from "./html";
 export type Lang = "fr" | "en";
 
 const MENU = {
-  fr: { label: "Menu principal", missions: "Missions", freelancers: "Freelances", skills: "Métiers", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
-  en: { label: "Main menu", missions: "Missions", freelancers: "Freelancers", skills: "Skills", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
+  fr: { label: "Menu principal", missions: "Missions", freelancers: "Freelances", skills: "Métiers", blog: "Blog", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
+  en: { label: "Main menu", missions: "Missions", freelancers: "Freelancers", skills: "Skills", blog: "Blog", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
 } as const;
 
 export const MENU_STYLES =
@@ -19,7 +19,7 @@ export const MENU_STYLES =
   ".top nav a{color:var(--muted);text-decoration:none}.top nav a:hover{color:var(--ink)}" +
   ".top nav a[aria-current]{color:var(--ink)}";
 
-export type MenuItem = "missions" | "freelancers" | "skills";
+export type MenuItem = "missions" | "freelancers" | "skills" | "blog";
 
 /** L'en-tête public : la marque, le menu, et le lien vers la même page dans l'autre langue. */
 export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem): string => {
@@ -28,7 +28,7 @@ export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem):
   const item = (key: MenuItem, path: string): string => `<a href="/${lang}/${path}"${current === key ? ' aria-current="page"' : ""}>${l[key]}</a>`;
   return (
     `<header class="top"><div class="wrap"><a class="me" href="/${lang}">Proofseen</a>` +
-    `<nav aria-label="${l.label}">${item("missions", "missions")}${item("freelancers", "freelances")}${item("skills", "metiers")}` +
+    `<nav aria-label="${l.label}">${item("missions", "missions")}${item("freelancers", "freelances")}${item("skills", "metiers")}${item("blog", "blog")}` +
     `<a href="/${lang}/connexion">${l.signIn}</a><a href="/${lang}/creer-un-compte">${l.signUp}</a>` +
     `<a class="lang" href="${e(otherHref)}" hreflang="${other}" lang="${other}">${MENU[lang].otherLang}</a></nav></div></header>`
   );

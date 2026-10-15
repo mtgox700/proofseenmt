@@ -27,6 +27,7 @@ export const marketplaceRobots = (baseUrl: string): string => {
     `Sitemap: ${base}/sitemap-profiles.xml`,
     `Sitemap: ${base}/sitemap-missions.xml`,
     `Sitemap: ${base}/sitemap-skills.xml`,
+    `Sitemap: ${base}/sitemap-blog.xml`,
     "",
   ].join("\n");
 };
