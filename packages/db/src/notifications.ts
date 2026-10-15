@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appKindOfEmail, recordAppNotifications } from "./app-notifications";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { NotificationKind } from "./generated/enums";
@@ -63,6 +64,9 @@ export const notifications = (db: Db): Notifications => ({
   async enqueue(tx, userIds, kind, payload) {
     const unique = [...new Set(userIds)];
     if (unique.length === 0) return 0;
+    // La notification de l'application ne dépend pas du choix des e-mails : elle est écrite pour tous (C15).
+    const appKind = appKindOfEmail(kind);
+    if (appKind !== null) await recordAppNotifications(tx, unique, appKind, payload);
     const muted = await tx.notificationPreference.findMany({ where: { userId: { in: unique }, kind, email: false }, select: { userId: true } });
     const off = new Set(muted.map((m) => m.userId));
     const recipients = unique.filter((id) => !off.has(id));

@@ -371,3 +371,18 @@ export {
   type SavePublicResult,
 } from "./company-pages";
 export { companyFollows, MAX_FOLLOWED_COMPANIES, type CompanyFollows, type FollowedCompany, type FollowResult } from "./company-follows";
+// Messagerie vivante (C15). L'écouteur Postgres est à part (`@proofseen/db/live-listener`) : il ouvre une connexion
+// dédiée et n'a rien à faire dans les modules qui n'en ont pas besoin.
+export { MAX_ATTACHMENTS_PER_MESSAGE, type MessageAttachment, type PostAttachments } from "./messaging";
+export { readState, UNREAD_CAP, type ReadState } from "./read-state";
+export {
+  APP_NOTIFICATION_KINDS,
+  APP_NOTIFICATIONS_PAGE,
+  appNotifications,
+  recordAppNotifications,
+  type AppNotificationPayload,
+  type AppNotifications,
+  type AppNotificationView,
+} from "./app-notifications";
+export { LIVE_CHANNEL, liveAudience, LiveSignalSchema, parseLiveSignal, type ConversationParties, type LiveAudience, type LiveCounts, type LiveSignal } from "./live";
+export { DIGEST_HOUR_PARIS, messageDigests, parisDayStart, type DigestThread, type DueDigest, type MessageDigests } from "./message-digest";

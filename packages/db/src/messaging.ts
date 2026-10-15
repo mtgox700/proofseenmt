@@ -36,6 +36,12 @@ export interface ConversationSummary {
   readonly lastMessageAt: Date;
 }
 
+/** Une pièce jointe telle que les écrans la montrent : son identifiant et son type, jamais le nom du fichier envoyé. */
+export interface MessageAttachment {
+  readonly id: string;
+  readonly contentType: string;
+}
+
 export interface MessageRecord {
   readonly id: string;
   readonly conversationId: string;
@@ -43,7 +49,17 @@ export interface MessageRecord {
   readonly body: string;
   readonly containsContact: boolean;
   readonly createdAt: Date;
+  readonly attachments: readonly MessageAttachment[];
 }
+
+/** Pièces jointes déjà déposées par l'acteur, à rattacher au message ; et si leur contenu porte des coordonnées. */
+export interface PostAttachments {
+  readonly ids: readonly string[];
+  readonly containContact: boolean;
+}
+
+/** Trois pièces jointes au plus par message (C15) ; la base le vérifie aussi. */
+export const MAX_ATTACHMENTS_PER_MESSAGE = 3;
 
 export interface Page<T> {
   readonly items: readonly T[];
@@ -72,7 +88,9 @@ export type PostResult =
   /** Décliné par le freelance, ou fermé par l'une des parties : plus personne n'écrit. */
   | { readonly kind: "closed" }
   /** Des coordonnées avant qu'un contrat soit signé : le contact resterait hors plateforme. */
-  | { readonly kind: "contact_details" };
+  | { readonly kind: "contact_details" }
+  /** Pièces jointes refusées : trop nombreuses, pas à l'acteur, déjà envoyées, ou fil pas encore accepté. */
+  | { readonly kind: "attachments" };
 
 /** Prises de contact par entreprise et par jour : au-delà, ce n'est plus du recrutement, c'est de la prospection en masse. */
 export const MAX_CONTACTS_PER_ORGANISATION_PER_DAY = 50;
@@ -96,7 +114,7 @@ export interface Messaging {
   listConversations(actor: Actor, page?: PageRequest): Promise<Page<ConversationSummary>>;
   /** Les messages d'un fil, du plus récent au plus ancien. `null` si le fil n'existe pas ou n'est pas le sien. */
   listMessages(actor: Actor, conversationId: string, page?: PageRequest): Promise<Page<MessageRecord> | null>;
-  post(actor: Actor, conversationId: string, body: string): Promise<PostResult>;
+  post(actor: Actor, conversationId: string, body: string, attachments?: PostAttachments): Promise<PostResult>;
 }
 
 const DEFAULT_PAGE = 30;
@@ -111,7 +129,23 @@ const participant = (userId: string): Prisma.ConversationWhereInput => ({
 });
 
 const SUMMARY = { id: true, organisationId: true, profileId: true, applicationId: true, direct: true, status: true, lastMessageAt: true } as const;
-const MESSAGE = { id: true, conversationId: true, senderUserId: true, body: true, containsContact: true, createdAt: true } as const;
+const MESSAGE = {
+  id: true,
+  conversationId: true,
+  senderUserId: true,
+  body: true,
+  containsContact: true,
+  createdAt: true,
+  attachments: { orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { id: true, contentType: true } },
+} satisfies Prisma.MessageSelect;
+
+/** Levée dans la transaction d'envoi : une pièce jointe ne se rattache pas, le message n'est pas écrit. */
+class AttachmentRefused extends Error {
+  constructor() {
+    super("pièces jointes refusées");
+    this.name = "AttachmentRefused";
+  }
+}
 
 /*
  * Curseur opaque : la date et l'identifiant du dernier élément rendu. Les deux, parce que deux fils peuvent avoir la même
@@ -249,9 +283,11 @@ export const messaging = (db: Db): Messaging => ({
     return pageOf(rows, limit, (row) => ({ at: row.createdAt, id: row.id }));
   },
 
-  async post(actor, conversationId, body) {
+  async post(actor, conversationId, body, attachments) {
     if (!Uuid.safeParse(conversationId).success) return { kind: "absent" };
     const text = MessageBodySchema.parse(body);
+    const fileIds = [...new Set(attachments?.ids ?? [])];
+    if (fileIds.length > MAX_ATTACHMENTS_PER_MESSAGE || fileIds.some((id) => !Uuid.safeParse(id).success)) return { kind: "attachments" };
     const conversation = await db.conversation.findFirst({
       where: { id: conversationId, ...participant(actor.userId) },
       select: { status: true, organisationId: true, profileId: true, profile: { select: { userId: true } }, organisation: { select: { members: { select: { userId: true } } } } },
@@ -260,10 +296,12 @@ export const messaging = (db: Db): Messaging => ({
     const fromFreelance = conversation.profile.userId === actor.userId;
     const blocked = postBlock(conversation.status, fromFreelance);
     if (blocked !== null) return blocked;
+    // Des fichiers seulement entre parties qui ont accepté l'échange : pas de document joint à une prise de contact.
+    if (fileIds.length > 0 && conversation.status !== "accepted") return { kind: "attachments" };
     // Comme sur Malt, les coordonnées s'échangent une fois la mission payée sur la plateforme, pas avant : un contrat
     // signé ne coûte rien, deux comptes complices en signeraient un pour s'échanger leurs numéros. Une fois l'argent
     // engagé, elles passent et restent signalées.
-    const flagged = containsContact(text);
+    const flagged = containsContact(text) || (fileIds.length > 0 && attachments?.containContact === true);
     if (flagged) {
       const signed = await db.contract.count({
         where: {
@@ -279,8 +317,16 @@ export const messaging = (db: Db): Messaging => ({
       const message = await db.$transaction(async (tx) => {
         const created = await tx.message.create({
           data: { conversationId, senderUserId: actor.userId, body: text, containsContact: flagged },
-          select: MESSAGE,
+          select: { id: true },
         });
+        if (fileIds.length > 0) {
+          // Seulement des pièces jointes de l'acteur, encore libres : celles d'un autre ou déjà envoyées font échouer l'envoi.
+          const { count } = await tx.storedFile.updateMany({
+            where: { id: { in: fileIds }, ownerId: actor.userId, kind: "message_attachment", messageId: null },
+            data: { messageId: created.id },
+          });
+          if (count !== fileIds.length) throw new AttachmentRefused();
+        }
         // Un seul « nouveau message » en attente par fil et par destinataire : dix messages d'affilée font un e-mail.
         const waiting = await tx.notification.findMany({
           where: { userId: { in: recipients }, kind: "message_received", sentAt: null, payload: { path: ["conversationId"], equals: conversationId } },
@@ -288,10 +334,11 @@ export const messaging = (db: Db): Messaging => ({
         });
         const already = new Set(waiting.map((w) => w.userId));
         await notifications(db).enqueue(tx, recipients.filter((id) => id !== actor.userId && !already.has(id)), "message_received", { conversationId });
-        return created;
+        return tx.message.findUniqueOrThrow({ where: { id: created.id }, select: MESSAGE });
       });
       return { kind: "sent", message };
     } catch (error) {
+      if (error instanceof AttachmentRefused) return { kind: "attachments" };
       // Le fil a été décliné ou fermé entre la lecture et l'écriture : la base a refusé, on dit pourquoi.
       const now = await db.conversation.findUnique({ where: { id: conversationId }, select: { status: true } });
       const reason = now === null ? null : postBlock(now.status, conversation.profile.userId === actor.userId);

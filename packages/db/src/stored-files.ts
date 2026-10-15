@@ -14,7 +14,9 @@ import type { Actor } from "./messaging";
  * - une photo est publique seulement quand elle est la photo d'un profil publié sous le nom de la personne (un profil
  *   pseudonyme ne montre jamais de visage) ;
  * - l'image d'une réalisation du portfolio est publique dès que le profil est publié ;
- * - un CV n'est lu que par son propriétaire.
+ * - un CV n'est lu que par son propriétaire ;
+ * - une pièce jointe (C15) est lue par les parties du fil de son message, et par son auteur seul tant qu'elle n'est
+ *   rattachée à aucun message.
  *
  * Quotas par compte, comptés sous verrou du compte : deux dépôts simultanés ne passent pas tous deux sous la limite.
  */
@@ -22,14 +24,14 @@ import type { Actor } from "./messaging";
 export const FILE_QUOTA = { maxFiles: 30, maxBytes: 40 * 1024 * 1024 } as const;
 
 /** Taille maximale enregistrée par usage (après réencodage pour les images). */
-export const MAX_FILE_BYTES: Readonly<Record<StoredFileKind, number>> = { photo: 2 * 1024 * 1024, portfolio_image: 2 * 1024 * 1024, cv: 5 * 1024 * 1024 };
+export const MAX_FILE_BYTES: Readonly<Record<StoredFileKind, number>> = { photo: 2 * 1024 * 1024, portfolio_image: 2 * 1024 * 1024, cv: 5 * 1024 * 1024, message_attachment: 5 * 1024 * 1024 };
 
 export const STORED_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
 
 export const NewStoredFileSchema = z
   .object({
     id: z.uuid(),
-    kind: z.enum(["photo", "cv", "portfolio_image"]),
+    kind: z.enum(["photo", "cv", "portfolio_image", "message_attachment"]),
     contentType: z.enum(STORED_CONTENT_TYPES),
     size: z.number().int().min(1),
     sha256: z.string().regex(/^[0-9a-f]{64}$/),
@@ -37,7 +39,7 @@ export const NewStoredFileSchema = z
     height: z.number().int().min(1).nullable().default(null),
   })
   .refine((f) => f.size <= MAX_FILE_BYTES[f.kind], { message: "fichier trop lourd" })
-  .refine((f) => (f.kind === "cv") === (f.contentType === "application/pdf"), { message: "type inattendu pour cet usage" });
+  .refine((f) => f.kind === "message_attachment" || (f.kind === "cv") === (f.contentType === "application/pdf"), { message: "type inattendu pour cet usage" });
 
 export type NewStoredFile = z.input<typeof NewStoredFileSchema>;
 
@@ -53,10 +55,10 @@ export interface StoredFileRecord {
   readonly createdAt: Date;
 }
 
-/** Un fichier lisible, et pour qui : `public` peut être mis en cache partagé, `owner` jamais. */
+/** Un fichier lisible, et pour qui : `public` peut être mis en cache partagé, `owner` et `participant` jamais. */
 export interface ReadableFile {
   readonly file: StoredFileRecord;
-  readonly audience: "public" | "owner";
+  readonly audience: "public" | "owner" | "participant";
 }
 
 export type RecordResult = "recorded" | "quota" | "invalid";
@@ -78,9 +80,17 @@ export interface StoredFiles {
   idsOfOwner(userId: string): Promise<readonly string[]>;
   /** Ce qui est dit d'un fichier dans l'export RGPD : jamais le contenu, qui se télécharge depuis l'application. */
   listForExport(userId: string): Promise<readonly Omit<StoredFileRecord, "ownerId">[]>;
+  /**
+   * Supprime les pièces jointes restées sans message depuis `before` (envoi interrompu, message disparu) ; rend leurs
+   * identifiants, pour effacer les fichiers du disque.
+   */
+  purgeOrphanAttachments(before: Date): Promise<readonly string[]>;
 }
 
 const Uuid = z.uuid();
+const IdRow = z.object({ id: z.string() });
+/** Pièces jointes orphelines supprimées par passage de la tâche planifiée. */
+const ORPHAN_BATCH = 500;
 
 const SELECT = { id: true, ownerId: true, kind: true, contentType: true, size: true, sha256: true, width: true, height: true, createdAt: true } as const;
 
@@ -108,7 +118,18 @@ export const storedFiles = (db: Db): StoredFiles => ({
     const { photoOf, portfolioOf, ...file } = row;
     if (row.kind === "photo" && photoOf?.visibility === "named") return { file, audience: "public" };
     if (row.kind === "portfolio_image" && portfolioOf !== null && portfolioOf.profile.visibility !== "private") return { file, audience: "public" };
-    return viewer !== null && row.ownerId === viewer.userId ? { file, audience: "owner" } : null;
+    if (viewer === null) return null;
+    if (row.ownerId === viewer.userId) return { file, audience: "owner" };
+    if (row.kind !== "message_attachment") return null;
+    // Partie au fil du message qui porte la pièce jointe : vérifié dans la requête, comme pour lire le fil lui-même.
+    const shared = await db.storedFile.count({
+      where: {
+        id,
+        kind: "message_attachment",
+        message: { conversation: { OR: [{ profile: { userId: viewer.userId } }, { organisation: { members: { some: { userId: viewer.userId } } } }] } },
+      },
+    });
+    return shared === 1 ? { file, audience: "participant" } : null;
   },
 
   async mine(actor, id, kind) {
@@ -147,5 +168,20 @@ export const storedFiles = (db: Db): StoredFiles => ({
       orderBy: { createdAt: "asc" },
       select: { id: true, kind: true, contentType: true, size: true, sha256: true, width: true, height: true, createdAt: true },
     });
+  },
+
+  async purgeOrphanAttachments(before) {
+    // Une seule instruction, qui rend ce qu'elle a vraiment supprimé : une pièce jointe rattachée entre-temps à son
+    // message reste, et son fichier avec elle.
+    const rows = await db.$queryRaw<unknown[]>`
+      DELETE FROM "StoredFile"
+      WHERE "id" IN (
+        SELECT "id" FROM "StoredFile"
+        WHERE "kind"::text = 'message_attachment' AND "messageId" IS NULL AND "createdAt" < ${before}
+        LIMIT ${ORPHAN_BATCH}
+        FOR UPDATE SKIP LOCKED
+      ) AND "messageId" IS NULL
+      RETURNING "id"::text AS "id"`;
+    return rows.map((raw) => IdRow.parse(raw).id);
   },
 });

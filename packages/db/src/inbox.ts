@@ -3,6 +3,7 @@ import type { Db } from "./client";
 import type { ConversationStatus } from "./generated/enums";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
+import { readState } from "./read-state";
 
 /*
  * Ce que les écrans montrent d'un fil : de quel côté est la personne, qui est en face, à propos de quelle mission, et le
@@ -28,9 +29,11 @@ export interface InboxThread {
   readonly missionTitle: string | null;
   readonly lastMessageAt: Date;
   readonly lastMessage: { readonly preview: string; readonly mine: boolean } | null;
+  /** Messages de l'autre côté que l'acteur n'a pas encore lus dans ce fil (C15). */
+  readonly unread: number;
 }
 
-export interface ThreadHeader extends Omit<InboxThread, "lastMessage"> {
+export interface ThreadHeader extends Omit<InboxThread, "lastMessage" | "unread"> {
   readonly organisationId: string;
   readonly profileId: string;
   /** Le freelance décide d'un contact en attente. */
@@ -58,7 +61,7 @@ type Row = Prisma.ConversationGetPayload<{ select: typeof SELECT }>;
 
 const preview = (body: string): string => (body.length > PREVIEW_LENGTH ? `${body.slice(0, PREVIEW_LENGTH - 1)}…` : body);
 
-const describe = (row: Row, userId: string): Omit<InboxThread, "lastMessage"> => {
+const describe = (row: Row, userId: string): Omit<InboxThread, "lastMessage" | "unread"> => {
   const side: Side = row.profile.userId === userId ? "freelance" : "company";
   return {
     id: row.id,
@@ -73,15 +76,22 @@ const describe = (row: Row, userId: string): Omit<InboxThread, "lastMessage"> =>
 export const inbox = (db: Db) => ({
   /** Les fils de l'acteur, le plus récemment actif d'abord. */
   async threads(actor: Actor): Promise<readonly InboxThread[]> {
-    const rows = await db.conversation.findMany({
-      where: participant(actor.userId),
-      orderBy: [{ lastMessageAt: "desc" }, { id: "desc" }],
-      take: INBOX_LIMIT,
-      select: { ...SELECT, messages: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1, select: { body: true, senderUserId: true } } },
-    });
+    const [rows, unread] = await Promise.all([
+      db.conversation.findMany({
+        where: participant(actor.userId),
+        orderBy: [{ lastMessageAt: "desc" }, { id: "desc" }],
+        take: INBOX_LIMIT,
+        select: { ...SELECT, messages: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1, select: { body: true, senderUserId: true } } },
+      }),
+      readState(db).unreadByConversation(actor),
+    ]);
     return rows.map((row) => {
       const last = row.messages[0];
-      return { ...describe(row, actor.userId), lastMessage: last === undefined ? null : { preview: preview(last.body), mine: last.senderUserId === actor.userId } };
+      return {
+        ...describe(row, actor.userId),
+        lastMessage: last === undefined ? null : { preview: preview(last.body), mine: last.senderUserId === actor.userId },
+        unread: unread.get(row.id) ?? 0,
+      };
     });
   },
 

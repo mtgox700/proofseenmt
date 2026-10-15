@@ -45,6 +45,9 @@ export const RETENTION = {
    * jours. Au-delà, ses empreintes d'adresses ne servent plus à rien et ne sont pas gardées.
    */
   measurementSpendDays: MEASUREMENT_SPEND_RETENTION_DAYS,
+  /** Notifications de l'application (C15) : lues, 90 jours ; jamais lues, un an, comme un e-mail jamais parti. */
+  readAppNotificationsDays: 90,
+  unreadAppNotificationsDays: 365,
 } as const;
 
 export interface PurgeReport {
@@ -58,6 +61,7 @@ export interface PurgeReport {
   readonly measurementRequests: number;
   readonly missionConfirmations: number;
   readonly measurementSpend: number;
+  readonly appNotifications: number;
 }
 
 export interface Retention {
@@ -94,6 +98,15 @@ export const retention = (db: Db): Retention => ({
       }),
       db.measurementSpend.deleteMany({ where: { startedAt: { lt: before(now, RETENTION.measurementSpendDays) } } }),
     ]);
+    // Après le reste, sans le ralentir : une ligne par notification, la plus grosse table à purger.
+    const appNotificationRows = await db.appNotification.deleteMany({
+      where: {
+        OR: [
+          { readAt: { lt: before(now, RETENTION.readAppNotificationsDays) } },
+          { readAt: null, createdAt: { lt: before(now, RETENTION.unreadAppNotificationsDays) } },
+        ],
+      },
+    });
     return {
       notifications: notifications.count,
       stripeEvents: stripeEvents.count,
@@ -105,6 +118,7 @@ export const retention = (db: Db): Retention => ({
       measurementRequests: measurementRows.count,
       missionConfirmations: confirmationRows.count,
       measurementSpend: spendRows.count,
+      appNotifications: appNotificationRows.count,
     };
   },
 });

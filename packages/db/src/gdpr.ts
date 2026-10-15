@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { storedFiles } from "./stored-files";
 import { exportMissionsSpace } from "./gdpr-missions";
+import { exportLiveMessaging } from "./gdpr-messaging";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -31,6 +32,7 @@ export const RETAINED_AFTER_ERASURE = [
   "listes de freelances créées au nom d'une entreprise : conservées pour elle, sans créateur ; les pouces de la personne sont supprimés",
   "présence d'un freelance dans les listes des entreprises : supprimée avec son profil",
   "invitations envoyées, modèles de mission et lectures de candidatures faits au nom d'une entreprise : conservés pour elle, sans auteur",
+  "pièces jointes envoyées : effacées avec le compte, le message qui les portait reste sans elles",
 ] as const;
 
 export interface UserExport {
@@ -55,6 +57,8 @@ export interface UserExport {
   readonly files: unknown;
   /** Missions enregistrées, entreprises suivies, invitations, modèles de mission, candidatures ouvertes (C16). */
   readonly missionsSpace: unknown;
+  /** Repères de lecture des fils, notifications de l'application, résumé quotidien par e-mail (C15). */
+  readonly liveMessaging: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -171,6 +175,7 @@ export const gdpr = (db: Db): Gdpr => ({
     const freelanceLists = await exportLists(db, userId);
     const files = await storedFiles(db).listForExport(userId);
     const missionsSpace = await exportMissionsSpace(db, userId);
+    const liveMessaging = await exportLiveMessaging(db, userId);
 
     return {
       exportedAt: now.toISOString(),
@@ -190,6 +195,7 @@ export const gdpr = (db: Db): Gdpr => ({
       missionConfirmations: { decided: confirmationsDecided, addressedToMe: confirmationsAddressed },
       files,
       missionsSpace,
+      liveMessaging,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },

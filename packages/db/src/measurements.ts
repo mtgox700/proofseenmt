@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { recordAppNotifications } from "./app-notifications";
 import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { MeasurementStatus } from "./generated/enums";
@@ -142,7 +143,7 @@ export const measurements = (db: Db): Measurements => ({
     const completion = CompletionSchema.parse(raw);
     // Au registre d'abord : la dépense réelle y est inscrite même si la demande est partie avec son compte.
     await settleSpend(db, run, completion.costCents, now);
-    const row = await db.measurementRequest.findFirst({ where: current(run), select: { costCents: true, profile: { select: { reference: true } } } });
+    const row = await db.measurementRequest.findFirst({ where: current(run), select: { costCents: true, profile: { select: { reference: true, userId: true } } } });
     if (row === null) return "not_running";
     const costCents = (row.costCents ?? 0) + completion.costCents;
     const waveId = measurementWaveId(run.id);
@@ -168,7 +169,10 @@ export const measurements = (db: Db): Measurements => ({
         errorCode: completion.stoppedEarly ? "budget_stopped" : null,
       },
     });
-    return count === 1 ? "done" : "not_running";
+    if (count !== 1) return "not_running";
+    // Signalée dans l'application seulement : une mesure terminée n'envoie pas d'e-mail.
+    await recordAppNotifications(db, [row.profile.userId], "measurement_done", { requestId: run.id });
+    return "done";
   },
 
   async fail(run, failure, now) {

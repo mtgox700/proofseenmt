@@ -196,6 +196,9 @@ model User {
   companyFollows          CompanyFollow[]
   missionInvitationsSent  MissionInvitation[]
   missionTemplatesCreated MissionTemplate[]
+  conversationReads       ConversationRead[]
+  appNotifications        AppNotification[]
+  messageDigest           MessageDigest?
 }
 
 model Organisation {
@@ -591,6 +594,7 @@ model Conversation {
   application  Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   messages     Message[]
   quotes       Quote[]
+  reads        ConversationRead[]
 
   @@index([profileId, lastMessageAt(sort: Desc), id(sort: Desc)])
   @@index([organisationId, lastMessageAt(sort: Desc), id(sort: Desc)])
@@ -610,6 +614,7 @@ model Message {
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User?        @relation(fields: [senderUserId], references: [id], onDelete: SetNull)
+  attachments  StoredFile[]
 
   @@index([conversationId, createdAt, id])
   /// Sans lui, supprimer un compte parcourrait toute la table des messages pour effacer son nom d'expéditeur.
@@ -1207,6 +1212,7 @@ enum StoredFileKind {
   photo
   cv
   portfolio_image
+  message_attachment
 }
 
 /// Niveau dans une langue : échelle du Cadre européen commun de référence (CECRL), ou langue maternelle.
@@ -1233,13 +1239,18 @@ model StoredFile {
   sha256      String         @db.Char(64)
   width       Int?
   height      Int?
+  /// Pièce jointe (C15) : le message qui la porte. Nul le temps de l'envoi, ou si le message a disparu ; une pièce
+  /// jointe sans message n'est lisible que par son auteur, puis purgée.
+  messageId   String?        @db.Uuid
   createdAt   DateTime       @default(now()) @db.Timestamptz(3)
 
   owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   photoOf     FreelanceProfile? @relation("ProfilePhoto")
   portfolioOf PortfolioItem?
+  message     Message?          @relation(fields: [messageId], references: [id], onDelete: SetNull)
 
   @@index([ownerId, kind, createdAt(sort: Desc)])
+  @@index([messageId], where: raw("\"messageId\" IS NOT NULL"), map: "StoredFile_messageId_idx")
 }
 
 /// Une expérience déclarée par le freelance. Déclarée, pas vérifiée : la page publique la sépare des missions vérifiées.
@@ -1399,4 +1410,63 @@ model MissionTemplate {
 
   @@index([organisationId, createdAt(sort: Desc)])
   @@index([createdByUserId], where: raw("\"createdByUserId\" IS NOT NULL"), map: "MissionTemplate_createdByUserId_idx")
+}
+
+// ─── Messagerie vivante (C15) ───────────────────────────────────────────────────────────────────────────────────────
+
+/// Jusqu'où une personne a lu un fil : un repère par participant (chaque membre d'une entreprise a le sien). Un message
+/// est non lu s'il vient de quelqu'un d'autre et qu'il est postérieur au repère. Le repère ne recule jamais.
+model ConversationRead {
+  conversationId String   @db.Uuid
+  userId         String   @db.Uuid
+  readAt         DateTime @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+/// Ce que montre le centre de notifications de l'application. Distinct du vocabulaire des e-mails : une mesure terminée
+/// se signale dans l'application sans envoyer d'e-mail.
+enum AppNotificationKind {
+  contact_received
+  message_received
+  application_received
+  application_read
+  application_status
+  mission_invitation
+  mission_confirmation
+  contract_update
+  measurement_done
+}
+
+/// Notification dans l'application, écrite avec l'e-mail correspondant (même transaction), qu'il parte ou non. Comme
+/// l'e-mail, elle ne porte que des références : jamais le texte d'un message.
+model AppNotification {
+  id        String              @id @default(uuid(7)) @db.Uuid
+  userId    String              @db.Uuid
+  kind      AppNotificationKind
+  payload   Json
+  readAt    DateTime?           @db.Timestamptz(3)
+  createdAt DateTime            @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId], where: raw("\"readAt\" IS NULL"), map: "AppNotification_unread_idx")
+  @@index([readAt], where: raw("\"readAt\" IS NOT NULL"), map: "AppNotification_read_idx")
+}
+
+/// Résumé quotidien des messages non lus, par e-mail. Désactivé par défaut : la ligne n'existe que si la personne l'a
+/// demandé. `lastRunAt` dit quand le résumé du jour a été traité (envoyé, ou rien à dire) : un seul par jour.
+model MessageDigest {
+  userId    String    @id @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  lastRunAt DateTime? @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([lastRunAt])
 }
