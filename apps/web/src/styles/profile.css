@@ -1,0 +1,21 @@
+/* Rich profile sections on /app/profil: photo, declared items, portfolio previews, the CV draft. Built on the market
+   primitives (.panel, .field, .proof-item, .row-actions, .tag): only what those do not cover lives here. No client
+   script: the add forms open with <details>. */
+
+.profile-photo { width: 6rem; height: 6rem; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); background: var(--bg); }
+.profile-photo-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.section-items { list-style: none; margin: 0; padding: 0; display: grid; }
+.section-item { display: grid; gap: var(--space-2); padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.section-item:first-child { padding-top: 0; }
+.section-item-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.section-item-head strong { font-weight: 600; }
+.section-item p { margin: 0; }
+.section-item form { display: contents; }
+.section-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); list-style: none; margin: 0; padding: 0; }
+.portfolio-shot { width: min(100%, 16rem); aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--line); }
+.add-item { border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.add-item > summary { cursor: pointer; font-weight: 600; width: fit-content; }
+.add-item[open] > summary { margin-bottom: var(--space-3); }
+.add-item > form { display: grid; gap: var(--space-4); }
+.draft-group { display: grid; gap: var(--space-2); }
+.draft-group h3 { font: 500 var(--step-0) / 1.3 var(--serif); }

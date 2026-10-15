@@ -1,3 +1,5 @@
+import { profileSectionsFr } from "./profile-sections-fr";
+
 /** Le profil du freelance : ce qu'il écrit, ce qu'il publie, et sous quel nom. */
 export const profileFr = {
   nav: "Profil",
@@ -45,6 +47,7 @@ export const profileFr = {
     invalid: "Vérifiez les champs : titre et résumé de 2 caractères au moins, une date seulement avec « disponible à partir du », et aucune coordonnée.",
     tooMany: "Trop d'enregistrements en peu de temps : réessayez dans une minute.",
   },
+  sections: profileSectionsFr,
 };
 
 export type ProfileDictionary = typeof profileFr;

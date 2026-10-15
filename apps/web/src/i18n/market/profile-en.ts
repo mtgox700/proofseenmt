@@ -1,4 +1,5 @@
 import type { ProfileDictionary } from "./profile-fr";
+import { profileSectionsEn } from "./profile-sections-en";
 
 export const profileEn: ProfileDictionary = {
   nav: "Profile",
@@ -46,4 +47,5 @@ export const profileEn: ProfileDictionary = {
     invalid: "Check the fields: headline and summary of at least 2 characters, a date only with “available from”, and no contact details.",
     tooMany: "Too many saves in a short time: try again in a minute.",
   },
+  sections: profileSectionsEn,
 };

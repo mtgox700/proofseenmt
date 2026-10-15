@@ -1,15 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { profiles, REQUIRED_TO_PUBLISH, type ProfileFacts } from "@proofseen/db";
+import { importDrafts, profiles, profileSections, REQUIRED_TO_PUBLISH, storedFiles, type ProfileFacts } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
+import { CertificationSection, LanguageSection } from "@/components/profile/CredentialSections";
+import { CvSection } from "@/components/profile/CvSection";
+import { EducationSection, ExperienceSection } from "@/components/profile/ExperienceSection";
+import { AvailabilitySection, PhotoSection } from "@/components/profile/PhotoAndAvailability";
+import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { ProfileChecklist } from "@/components/visibility/ProfileChecklist";
+import { importConfigured } from "@/data/cv-import";
 import { checklistFor } from "@/data/profile-checklist";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { ProfileDictionary } from "@/i18n/market/profile-fr";
 import { centsToField } from "@/lib/mission-form";
-import { pageMarket } from "@/lib/market";
+import { pageMarket, type Market } from "@/lib/market";
+import { readNotice, type SectionNotice } from "@/lib/profile-notice";
 import { saveProfile, setProfileVisibility } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -17,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; manque?: string; enregistre?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; manque?: string; enregistre?: string; section?: string; avis?: string }>;
 }
 
 const MODES = ["remote", "hybrid", "onsite"] as const;
@@ -125,6 +132,25 @@ function Publication({ lang, p, profile }: { readonly lang: Lang; readonly p: Pr
   );
 }
 
+/** The rich sections of an existing profile: photo, availability, declared items, CV and its import draft. */
+async function RichSections({ lang, market, notice, s }: { readonly lang: Lang; readonly market: Market; readonly notice: SectionNotice | null; readonly s: ProfileDictionary["sections"] }) {
+  const [sections, cv, draft] = await Promise.all([profileSections(market.db).mine(market.actor), storedFiles(market.db).latest(market.actor, "cv"), importDrafts(market.db).get(market.actor)]);
+  if (sections === null) return null;
+  const common = { lang, s, notice };
+  return (
+    <>
+      <AvailabilitySection {...common} confirmedAt={sections.availabilityAt} now={new Date()} />
+      <PhotoSection {...common} photoFileId={sections.photoFileId} />
+      <ExperienceSection {...common} items={sections.experiences} />
+      <CertificationSection {...common} items={sections.certifications} />
+      <EducationSection {...common} items={sections.educations} />
+      <LanguageSection {...common} items={sections.languages} />
+      <PortfolioSection {...common} items={sections.portfolio} />
+      <CvSection {...common} cv={cv} draft={draft} importAvailable={importConfigured()} />
+    </>
+  );
+}
+
 /** The freelancer's own profile: edited here, published or withdrawn here. */
 export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { lang } = await params;
@@ -135,7 +161,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const p = dict.profile;
   const profile = await profiles(market.db).findMine(market.actor);
   const checklist = await checklistFor(market, lang, profile, new Date());
-  const { erreur, manque, enregistre } = await searchParams;
+  const { erreur, manque, enregistre, section, avis } = await searchParams;
+  const notice = readNotice(section, avis);
   const missing = (manque ?? "")
     .split(",")
     .filter((field): field is (typeof REQUIRED_TO_PUBLISH)[number] => (REQUIRED_TO_PUBLISH as readonly string[]).includes(field))
@@ -161,6 +188,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       <ProfileChecklist c={dict.visibility.checklist} checklist={checklist} headingId="profile-checklist" />
       {profile === null ? null : <Publication lang={lang} p={p} profile={profile} />}
       <ProfileForm lang={lang} p={p} modes={dict.missions.workModes} profile={profile} />
+      {profile === null ? null : <RichSections lang={lang} market={market} notice={notice} s={p.sections} />}
     </>
   );
 }
