@@ -1,8 +1,10 @@
 "use server";
 
-import { DRAFT_SECTIONS, importDrafts, storedFiles, type DraftSection } from "@proofseen/db";
+import { headers } from "next/headers";
+import { DRAFT_SECTIONS, importDrafts, storedFiles, users, type DraftSection } from "@proofseen/db";
 import { importCv } from "@/data/cv-import";
 import { announceProfile, backTo, freelanceAction, SECTION_RULE, UPLOAD_RULE } from "@/data/profile-action";
+import { addressFromHeaders } from "@/data/throttle";
 import { readStored } from "@/data/uploads";
 
 /*
@@ -25,7 +27,10 @@ export async function importFromCv(formData: FormData): Promise<void> {
   const cv = await storedFiles(market.db).latest(market.actor, "cv");
   const bytes = cv === null ? null : await readStored(cv.id);
   if (bytes === null) backTo(lang, "cv", "no_cv");
-  const outcome = await importCv(market.actor.userId, new Uint8Array(bytes));
+  // The address and the account's standing decide which share of the platform's daily pool this reading draws on.
+  const address = addressFromHeaders(await headers());
+  const established = await users(market.db).isEstablished(market.actor, new Date());
+  const outcome = await importCv({ userId: market.actor.userId, address, established }, new Uint8Array(bytes));
   if (outcome.kind !== "ok") backTo(lang, "cv", outcome.kind);
   const saved = await importDrafts(market.db).save(market.actor, outcome.draft);
   backTo(lang, "cv", saved ? "imported" : "absent");

@@ -19,6 +19,7 @@ export const liveEn: LiveDictionary = {
       active_content: "This PDF contains active content (script, embedded file): it is refused.",
       unreadable: "An attachment could not be read. Try another file.",
       quota: "Your file space is full (30 files or 40 MB): remove a file from your profile first.",
+      busy: "PDF checking is very busy right now: send the attachment again in a minute.",
       state: "Attachments can be sent once the contact is accepted.",
       contact: "This message or one of its attachments contains contact details. They are exchanged once the mission is paid on Proofseen.",
     },

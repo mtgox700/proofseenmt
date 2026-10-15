@@ -18,16 +18,24 @@ import { deleteStored, saveBytes, uploadsRoot } from "./uploads";
 /** Pages read to look for contact details; a longer document is stored without that check. */
 const MAX_PDF_PAGES_CHECKED = 50;
 
-export type AttachmentProblem = "count" | "too_large" | "type" | "dimensions" | "active_content" | "unreadable" | "quota";
+export type AttachmentProblem = "count" | "too_large" | "type" | "dimensions" | "active_content" | "unreadable" | "quota" | "busy";
 
 export type SavedAttachments = { readonly kind: "saved"; readonly ids: readonly string[]; readonly containContact: boolean } | { readonly kind: "refused"; readonly problem: AttachmentProblem };
 
 /** The files of a form field, without the empty entry a browser sends when nothing was chosen. */
 export const chosenFiles = (entries: readonly FormDataEntryValue[]): readonly File[] => entries.flatMap((entry) => (typeof entry !== "string" && entry.size > 0 ? [entry] : []));
 
-const pdfHasContact = async (bytes: Uint8Array): Promise<boolean> => {
-  const text = await pdfText(bytes, MAX_PDF_PAGES_CHECKED);
-  return text.kind === "ok" && containsContact(text.text);
+/** Fifty dense pages: the whole text is read, so a number on the last page is still found. */
+const MAX_PDF_CHARS_CHECKED = 400_000;
+
+/**
+ * Whether a PDF carries contact details. "busy" when every reader thread is taken: the attachment is then refused
+ * rather than stored unchecked, or a burst of uploads would be a way around the rule.
+ */
+const pdfContact = async (bytes: Uint8Array): Promise<"contact" | "clean" | "busy"> => {
+  const text = await pdfText(bytes, { maxPages: MAX_PDF_PAGES_CHECKED, maxChars: MAX_PDF_CHARS_CHECKED });
+  if (text.kind === "busy") return "busy";
+  return text.kind === "ok" && containsContact(text.text) ? "contact" : "clean";
 };
 
 /** Removes attachments of `actor` that could not be sent: rows first, then files. */
@@ -48,7 +56,14 @@ export const saveAttachments = async (db: Db, actor: Actor, files: readonly File
   let containContact = false;
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    if (sniff(bytes) === "application/pdf" && (await pdfHasContact(bytes))) containContact = true;
+    if (sniff(bytes) === "application/pdf") {
+      const found = await pdfContact(bytes);
+      if (found === "busy") {
+        await discardAttachments(db, actor, ids, root);
+        return { kind: "refused", problem: "busy" };
+      }
+      if (found === "contact") containContact = true;
+    }
     const saved = await saveBytes(db, actor, "message_attachment", bytes, root);
     if (saved.kind !== "stored") {
       await discardAttachments(db, actor, ids, root);

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CvReader } from "@proofseen/engines";
-import { importCv } from "../src/data/cv-import";
+import { importCv, type ImportCaller } from "../src/data/cv-import";
 import { pdfText, type PdfText } from "../src/data/pdf-text";
 
 /*
@@ -13,6 +13,9 @@ const nextUser = (): string => {
   user += 1;
   return `cv-import-test-user-${user}-${Date.now()}`;
 };
+
+/** A distinct person from a distinct address, established unless said otherwise. */
+const person = (overrides: Partial<ImportCaller> = {}): ImportCaller => ({ userId: nextUser(), address: `198.51.100.${user % 250}-${Date.now()}`, established: true, ...overrides });
 
 const CV_TEXT = `Camille Martin — Data engineer. ${"Expérience : plateforme Spark et dbt chez Acme de 2021 à aujourd'hui. ".repeat(6)}`;
 const extracted = (text: string = CV_TEXT): ((bytes: Uint8Array) => Promise<PdfText>) => async () => ({ kind: "ok", text });
@@ -31,7 +34,7 @@ afterEach(() => {
 
 describe("CV import", () => {
   it("returns a revalidated draft and nothing else: no grade, no seniority, no contact details", async () => {
-    const outcome = await importCv(nextUser(), PDF, {
+    const outcome = await importCv(person(), PDF, {
       extract: extracted(),
       read: reading({
         experiences: [{ title: "Data engineer", company: "Acme", start: "2021-04", end: null, description: "Spark. Écrire à camille@exemple.fr", skills: ["Spark"] }],
@@ -49,28 +52,28 @@ describe("CV import", () => {
   });
 
   it("is unavailable without a configured model", async () => {
-    expect(await importCv(nextUser(), PDF, { extract: extracted() })).toEqual({ kind: "unconfigured" });
+    expect(await importCv(person(), PDF, { extract: extracted() })).toEqual({ kind: "unconfigured" });
   });
 
   it("does not pay for a PDF that is too long, unreadable or without text", async () => {
     const read = vi.fn(reading({ skills: ["Go"] }));
-    expect(await importCv(nextUser(), PDF, { read, extract: async () => ({ kind: "too_long" }) })).toEqual({ kind: "too_long" });
-    expect(await importCv(nextUser(), PDF, { read, extract: async () => ({ kind: "unreadable" }) })).toEqual({ kind: "unreadable" });
-    expect(await importCv(nextUser(), PDF, { read, extract: extracted("Scan") })).toEqual({ kind: "no_text" });
+    expect(await importCv(person(), PDF, { read, extract: async () => ({ kind: "too_long" }) })).toEqual({ kind: "too_long" });
+    expect(await importCv(person(), PDF, { read, extract: async () => ({ kind: "unreadable" }) })).toEqual({ kind: "unreadable" });
+    expect(await importCv(person(), PDF, { read, extract: extracted("Scan") })).toEqual({ kind: "no_text" });
     expect(read).not.toHaveBeenCalled();
   });
 
   it("says when nothing usable came back, and when the model fails", async () => {
-    expect(await importCv(nextUser(), PDF, { extract: extracted(), read: reading("pas un objet") })).toEqual({ kind: "not_understood" });
+    expect(await importCv(person(), PDF, { extract: extracted(), read: reading("pas un objet") })).toEqual({ kind: "not_understood" });
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const failing: CvReader = async () => {
       throw new TypeError("fetch failed");
     };
-    expect(await importCv(nextUser(), PDF, { extract: extracted(), read: failing })).toEqual({ kind: "failed" });
+    expect(await importCv(person(), PDF, { extract: extracted(), read: failing })).toEqual({ kind: "failed" });
   });
 
   it("limits each person to five readings a day", async () => {
-    const who = nextUser();
+    const who = person();
     const read = vi.fn(reading({ skills: ["Go"] }));
     for (let i = 0; i < 5; i += 1) expect((await importCv(who, PDF, { read, extract: extracted() })).kind).toBe("ok");
     expect(await importCv(who, PDF, { read, extract: extracted() })).toEqual({ kind: "throttled" });
@@ -82,8 +85,37 @@ describe("CV import", () => {
     const read = vi.fn(reading({ skills: ["Go"] }));
     const now = new Date("2031-01-01T10:00:00Z");
     const outcomes = [];
-    for (let i = 0; i < 3; i += 1) outcomes.push((await importCv(nextUser(), PDF, { read, extract: extracted(), now })).kind);
+    for (let i = 0; i < 3; i += 1) outcomes.push((await importCv(person(), PDF, { read, extract: extracted(), now })).kind);
     expect(outcomes).toEqual(["ok", "ok", "throttled"]);
+  });
+
+  it("limits each network address, whatever the number of accounts behind it", async () => {
+    const address = `203.0.113.7-${Date.now()}`;
+    const read = vi.fn(reading({ skills: ["Go"] }));
+    const now = new Date("2032-01-01T10:00:00Z");
+    const outcomes = [];
+    for (let i = 0; i < 11; i += 1) outcomes.push((await importCv(person({ address }), PDF, { read, extract: extracted(), now })).kind);
+    expect(outcomes.filter((kind) => kind === "ok")).toHaveLength(10);
+    expect(outcomes.at(-1)).toBe("throttled");
+    expect(read).toHaveBeenCalledTimes(10);
+  });
+
+  it("keeps most of the platform pool for established accounts: new accounts share a small part of it", async () => {
+    vi.stubEnv("PROOFSEEN_IMPORT_DAILY_CAP", "4");
+    const read = vi.fn(reading({ skills: ["Go"] }));
+    const now = new Date("2033-01-01T10:00:00Z");
+    const fresh = async () => (await importCv(person({ established: false }), PDF, { read, extract: extracted(), now })).kind;
+    const known = async () => (await importCv(person(), PDF, { read, extract: extracted(), now })).kind;
+    // A quarter of the pool (one reading here) for new accounts, all of them together.
+    expect([await fresh(), await fresh(), await fresh()]).toEqual(["ok", "throttled", "throttled"]);
+    // The rest stays for established accounts, up to the platform cap.
+    expect([await known(), await known(), await known(), await known()]).toEqual(["ok", "ok", "ok", "throttled"]);
+  });
+
+  it("does not pay when the PDF reader is busy, and says to try later", async () => {
+    const read = vi.fn(reading({ skills: ["Go"] }));
+    expect(await importCv(person(), PDF, { read, extract: async () => ({ kind: "busy" }) })).toEqual({ kind: "throttled" });
+    expect(read).not.toHaveBeenCalled();
   });
 });
 

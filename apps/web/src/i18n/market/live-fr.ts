@@ -17,6 +17,7 @@ export const liveFr = {
       active_content: "Ce PDF contient du contenu actif (script, fichier intégré) : il est refusé.",
       unreadable: "Une pièce jointe n'a pas pu être lue. Essayez un autre fichier.",
       quota: "Votre espace de fichiers est plein (30 fichiers ou 40 Mo) : retirez un fichier de votre profil d'abord.",
+      busy: "La vérification des PDF est très demandée en ce moment : renvoyez la pièce jointe dans une minute.",
       state: "Les pièces jointes s'envoient une fois le contact accepté.",
       contact: "Ce message ou l'une de ses pièces jointes contient des coordonnées. Elles s'échangent une fois la mission payée sur Proofseen.",
     },

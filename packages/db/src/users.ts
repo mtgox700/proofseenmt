@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import type { Actor } from "./messaging";
 
 /*
  * Le pont entre l'identité Clerk et la base. Clerk authentifie ; la base ne connaît la personne que par son identifiant
@@ -17,6 +18,10 @@ export type ClerkIdentity = z.input<typeof ClerkIdentitySchema>;
 /** Les langues des e-mails envoyés à la personne. */
 export const USER_LANGS = ["fr", "en"] as const;
 export type UserLang = (typeof USER_LANGS)[number];
+/** Au-delà, un compte n'est plus « neuf » : il puise dans toute la réserve des services payants (import de CV). */
+export const ESTABLISHED_ACCOUNT_DAYS = 7;
+const DAY_MS = 86_400_000;
+const Uuid = z.uuid();
 
 export interface Users {
   /** L'identifiant interne de la personne, sa ligne créée ou mise à jour depuis Clerk. */
@@ -25,6 +30,11 @@ export interface Users {
   lang(userId: string): Promise<UserLang>;
   /** Change la langue des e-mails. `false` si la langue n'est pas proposée ou si la personne n'existe pas. */
   setLang(userId: string, lang: string): Promise<boolean>;
+  /**
+   * Vrai pour un compte établi : profil publié, ou compte créé depuis plus de ESTABLISHED_ACCOUNT_DAYS jours. Un compte
+   * jetable, créé pour vider une réserve partagée, ne l'est pas.
+   */
+  isEstablished(actor: Actor, now: Date): Promise<boolean>;
 }
 
 export const users = (db: Db): Users => ({
@@ -51,5 +61,13 @@ export const users = (db: Db): Users => ({
     if (!parsed.success || !z.uuid().safeParse(userId).success) return false;
     const { count } = await db.user.updateMany({ where: { id: userId }, data: { lang: parsed.data } });
     return count === 1;
+  },
+
+  async isEstablished(actor, now) {
+    if (!Uuid.safeParse(actor.userId).success) return false;
+    const row = await db.user.findUnique({ where: { id: actor.userId }, select: { createdAt: true, freelanceProfile: { select: { visibility: true, slug: true } } } });
+    if (row === null) return false;
+    const published = row.freelanceProfile !== null && row.freelanceProfile.visibility !== "private" && row.freelanceProfile.slug !== null;
+    return published || row.createdAt.getTime() + ESTABLISHED_ACCOUNT_DAYS * DAY_MS <= now.getTime();
   },
 });

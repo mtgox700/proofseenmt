@@ -19,7 +19,7 @@ export {
 export { rateLimiter, type RateLimitDecision, type RateLimiter, type RateLimitRule } from "./rate-limit";
 export { gdpr, RETAINED_AFTER_ERASURE, type EraseResult, type Gdpr, type UserExport } from "./gdpr";
 export { RETENTION, retention, type PurgeReport, type Retention } from "./retention";
-export { ClerkIdentitySchema, USER_LANGS, users, type ClerkIdentity, type UserLang, type Users } from "./users";
+export { ClerkIdentitySchema, ESTABLISHED_ACCOUNT_DAYS, USER_LANGS, users, type ClerkIdentity, type UserLang, type Users } from "./users";
 export {
   missions,
   MissionInputSchema,
