@@ -4,7 +4,9 @@ import { containsContact, NO_CONTACT } from "./contact-detection";
 import type { Prisma } from "./generated/client";
 import type { JobPostStatus, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
-import { ensureSkills, skillKey } from "./skills";
+import { fullTextMatches, SearchTextSchema } from "./mission-search";
+import { notifications } from "./notifications";
+import { ensureSkills, skillKey, uniqueSkills } from "./skills";
 
 /*
  * Missions publiées par les entreprises.
@@ -19,6 +21,9 @@ import { ensureSkills, skillKey } from "./skills";
 const Uuid = z.uuid();
 const CURRENCIES = ["EUR", "GBP", "CHF", "USD"] as const;
 const MAX_RATE_CENTS = 10_000_000;
+/** Questions posées à chaque candidat : trois au plus, courtes. */
+export const MAX_QUESTIONS = 3;
+export const QuestionSchema = z.string().trim().min(1).max(300);
 /** Un fichier de sitemap contient 50 000 adresses au plus ; chaque mission en compte deux (français, anglais). */
 export const MAX_SITEMAP_MISSIONS = 25_000;
 
@@ -33,13 +38,14 @@ export const MissionInputSchema = z
     currency: z.enum(CURRENCIES).default("EUR"),
     city: z.string().trim().min(1).max(120).nullable().default(null),
     workMode: z.enum(["onsite", "hybrid", "remote"]),
+    questions: z.array(QuestionSchema).max(MAX_QUESTIONS).default([]),
   })
   .refine((m) => m.dailyRateMinCents === null || m.dailyRateMaxCents === null || m.dailyRateMinCents <= m.dailyRateMaxCents, {
     message: "le TJM minimum dépasse le maximum",
   })
   .refine((m) => m.workMode === "remote" || m.city !== null, { message: "une mission sur site ou hybride a une ville" })
   // Une mission est publique et lue par les moteurs : des coordonnées y ouvriraient un canal de candidature hors plateforme.
-  .refine((m) => ![m.title, m.description, m.city, ...m.skills].some((field) => field !== null && containsContact(field)), { message: NO_CONTACT });
+  .refine((m) => ![m.title, m.description, m.city, ...m.skills, ...m.questions].some((field) => field !== null && containsContact(field)), { message: NO_CONTACT });
 
 export type MissionInput = z.input<typeof MissionInputSchema>;
 
@@ -50,10 +56,14 @@ export const MissionSearchSchema = z.object({
   workModes: z.array(z.enum(["onsite", "hybrid", "remote"])).max(3).default([]),
   city: z.string().trim().min(1).max(120).optional(),
   skills: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
+  /** Texte cherché dans l'intitulé, la description et les compétences (plein texte, français et anglais). Un filtre. */
+  q: SearchTextSchema.optional(),
   /** Missions dont le TJM maximum atteint au moins ce montant. */
   minDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
+  /** Missions dont le TJM minimum ne dépasse pas ce montant. */
+  maxDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
   maxDurationMonths: z.number().int().min(1).max(600).optional(),
-  /** Usage interne (alertes) : seulement les missions publiées après cette date. */
+  /** Seulement les missions publiées après cette date (alertes, filtre « publiée depuis »). */
   publishedAfter: z.date().optional(),
   sort: z.enum(SEARCH_SORTS).default("recent"),
   page: z.number().int().min(1).max(50).default(1),
@@ -68,6 +78,8 @@ export interface MissionRecord {
   readonly organisationName: string;
   /** L'entreprise est active au répertoire officiel, à cette date ; `null` si ce n'est pas établi. */
   readonly organisationRegistryActiveCheckedAt: Date | null;
+  /** Adresse de la page publique de l'entreprise, si elle en a activé une ; `null` sinon. */
+  readonly organisationSlug: string | null;
   /**
    * Délai médian, en jours, entre une candidature et la décision de l'entreprise, sur les six derniers mois ; `null`
    * sous RESPONSE_MIN_DECIDED décisions. Un fait sur une entreprise, pas une note de personne. Rempli par la page publique
@@ -83,6 +95,7 @@ export interface MissionRecord {
   readonly currency: string;
   readonly city: string | null;
   readonly workMode: WorkMode;
+  readonly questions: readonly string[];
   readonly status: JobPostStatus;
   readonly publishedAt: Date | null;
   readonly closedAt: Date | null;
@@ -121,11 +134,12 @@ const SELECT = {
   currency: true,
   city: true,
   workMode: true,
+  questions: true,
   status: true,
   publishedAt: true,
   closedAt: true,
   skills: { select: { skill: { select: { label: true } } } },
-  organisation: { select: { name: true, registryStatus: true, registryCheckedAt: true } },
+  organisation: { select: { name: true, registryStatus: true, registryCheckedAt: true, publicSlug: true, publicSince: true } },
 } as const;
 
 type Row = Prisma.JobPostGetPayload<{ select: typeof SELECT }>;
@@ -134,6 +148,7 @@ const toRecord = ({ skills, organisation, ...row }: Row): MissionRecord => ({
   ...row,
   organisationName: organisation.name,
   organisationRegistryActiveCheckedAt: organisation.registryStatus === "active" ? organisation.registryCheckedAt : null,
+  organisationSlug: organisation.publicSince === null ? null : organisation.publicSlug,
   skills: skills.map((s) => s.skill.label),
 });
 
@@ -142,9 +157,11 @@ const memberOf = (userId: string): Prisma.JobPostWhereInput => ({ organisation: 
 export const RESPONSE_MIN_DECIDED = 3;
 const RESPONSE_WINDOW_MS = 183 * 86_400_000;
 const DAY_MS = 86_400_000;
+/** Personnes prévenues au plus d'une même publication : au-delà, une entreprise suivie deviendrait une liste d'envoi. */
+const MAX_FOLLOWERS_NOTIFIED = 5000;
 
 /** Délai médian de décision d'une entreprise sur ses candidatures récentes (décisions de l'entreprise seulement). */
-const responseOf = async (db: Db, organisationId: string, now: Date): Promise<{ readonly medianDays: number; readonly decided: number } | null> => {
+export const companyResponse = async (db: Db, organisationId: string, now: Date): Promise<{ readonly medianDays: number; readonly decided: number } | null> => {
   const rows = await db.application.findMany({
     where: { jobPost: { organisationId }, status: { in: ["shortlisted", "declined", "hired"] }, createdAt: { gte: new Date(now.getTime() - RESPONSE_WINDOW_MS) } },
     select: { createdAt: true, updatedAt: true },
@@ -174,6 +191,8 @@ const fields = (input: z.output<typeof MissionInputSchema>) => ({
   city: input.city,
   cityKey: input.city === null ? null : skillKey(input.city),
   workMode: input.workMode,
+  questions: input.questions,
+  skillsText: uniqueSkills(input.skills).map((s) => s.label).join(" "),
 });
 
 export const missions = (db: Db): Missions => ({
@@ -209,11 +228,22 @@ export const missions = (db: Db): Missions => ({
 
   async publish(actor, missionId, now) {
     if (!Uuid.safeParse(missionId).success) return false;
-    const { count } = await db.jobPost.updateMany({
-      where: { id: missionId, status: "draft", ...memberOf(actor.userId) },
-      data: { status: "open", publishedAt: now },
+    return db.$transaction(async (tx) => {
+      const { count } = await tx.jobPost.updateMany({
+        where: { id: missionId, status: "draft", ...memberOf(actor.userId) },
+        data: { status: "open", publishedAt: now },
+      });
+      if (count !== 1) return false;
+      // Les personnes qui suivent l'entreprise l'apprennent, tant que sa page publique existe ; jamais ses propres membres.
+      const thisMission = { jobPosts: { some: { id: missionId } } };
+      const followers = await tx.companyFollow.findMany({
+        where: { organisation: { publicSince: { not: null }, ...thisMission }, user: { memberships: { none: { organisation: thisMission } } } },
+        select: { userId: true },
+        take: MAX_FOLLOWERS_NOTIFIED,
+      });
+      await notifications(db).enqueue(tx, followers.map((f) => f.userId), "company_mission", { missionId });
+      return true;
     });
-    return count === 1;
   },
 
   async close(actor, missionId, now) {
@@ -229,7 +259,7 @@ export const missions = (db: Db): Missions => ({
     if (!Uuid.safeParse(missionId).success) return null;
     const row = await db.jobPost.findFirst({ where: { id: missionId, status: "open" }, select: SELECT });
     if (row === null) return null;
-    return { ...toRecord(row), organisationResponse: await responseOf(db, row.organisationId, now) };
+    return { ...toRecord(row), organisationResponse: await companyResponse(db, row.organisationId, now) };
   },
 
   async listForOrganisation(actor, organisationId) {
@@ -253,11 +283,14 @@ export const missions = (db: Db): Missions => ({
   async search(raw) {
     const f = MissionSearchSchema.parse(raw);
     const skillKeys = [...new Set(f.skills.map(skillKey).filter((key) => key !== ""))];
+    const matching = f.q === undefined ? undefined : await fullTextMatches(db, f.q);
     const where: Prisma.JobPostWhereInput = {
       status: "open",
+      ...(matching === undefined ? {} : { id: { in: [...matching] } }),
       ...(f.workModes.length === 0 ? {} : { workMode: { in: f.workModes } }),
       ...(f.city === undefined ? {} : { cityKey: skillKey(f.city) }),
       ...(f.minDailyRateCents === undefined ? {} : { dailyRateMaxCents: { gte: f.minDailyRateCents } }),
+      ...(f.maxDailyRateCents === undefined ? {} : { dailyRateMinCents: { lte: f.maxDailyRateCents } }),
       ...(f.maxDurationMonths === undefined ? {} : { durationMonths: { lte: f.maxDurationMonths } }),
       ...(f.publishedAfter === undefined ? {} : { publishedAt: { gt: f.publishedAfter } }),
       // Toutes les compétences demandées, pas l'une d'elles : un filtre se resserre, il ne s'élargit pas en douce.

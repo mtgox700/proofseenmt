@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import { storedFiles } from "./stored-files";
+import { exportMissionsSpace } from "./gdpr-missions";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -29,6 +30,7 @@ export const RETAINED_AFTER_ERASURE = [
   "conversations d'un freelance : supprimées avec son profil",
   "listes de freelances créées au nom d'une entreprise : conservées pour elle, sans créateur ; les pouces de la personne sont supprimés",
   "présence d'un freelance dans les listes des entreprises : supprimée avec son profil",
+  "invitations envoyées, modèles de mission et lectures de candidatures faits au nom d'une entreprise : conservés pour elle, sans auteur",
 ] as const;
 
 export interface UserExport {
@@ -51,6 +53,8 @@ export interface UserExport {
   readonly missionConfirmations: unknown;
   /** Fichiers déposés (photo, CV, images du portfolio) : type, taille, empreinte et date ; le contenu se télécharge depuis l'application. */
   readonly files: unknown;
+  /** Missions enregistrées, entreprises suivies, invitations, modèles de mission, candidatures ouvertes (C16). */
+  readonly missionsSpace: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -117,7 +121,7 @@ export const gdpr = (db: Db): Gdpr => ({
           skills: { select: { skill: { select: { key: true, label: true } } } },
           ownedUrls: true,
           missions: true,
-          applications: { select: { id: true, jobPostId: true, coverNote: true, status: true, createdAt: true } },
+          applications: { select: { id: true, jobPostId: true, coverNote: true, answers: true, status: true, createdAt: true, readAt: true } },
           reviews: { select: { rating: true, body: true, createdAt: true } },
           // Mesures de visibilité : les chiffres de l'entonnoir et l'historique des demandes. Aucune réponse brute de
           // moteur n'est en base, il n'y a donc rien d'autre à rendre.
@@ -166,6 +170,7 @@ export const gdpr = (db: Db): Gdpr => ({
     const contracts = { asFreelance, asCompany };
     const freelanceLists = await exportLists(db, userId);
     const files = await storedFiles(db).listForExport(userId);
+    const missionsSpace = await exportMissionsSpace(db, userId);
 
     return {
       exportedAt: now.toISOString(),
@@ -184,6 +189,7 @@ export const gdpr = (db: Db): Gdpr => ({
       freelanceLists,
       missionConfirmations: { decided: confirmationsDecided, addressedToMe: confirmationsAddressed },
       files,
+      missionsSpace,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },

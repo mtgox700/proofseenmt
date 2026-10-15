@@ -18,11 +18,15 @@ import type { Actor } from "./messaging";
 
 const Uuid = z.uuid();
 export const CoverNoteSchema = z.string().trim().min(1).max(5000);
+/** Réponse à une question de la mission. */
+export const AnswerSchema = z.string().trim().min(1).max(2000);
 
 export type ApplyResult =
   | { readonly kind: "applied"; readonly applicationId: string; readonly conversationId: string }
   /** La note de candidature est un premier message que l'entreprise n'a pas sollicité : pas de coordonnées. */
   | { readonly kind: "contact_details" }
+  /** Une réponse par question de la mission, ni plus ni moins, chacune remplie. */
+  | { readonly kind: "answers_required" }
   /** L'acteur n'a pas de profil freelance : il doit en créer un avant de postuler. */
   | { readonly kind: "no_profile" }
   /** Le profil est privé : le publier d'abord, plutôt que de l'exposer par la candidature. */
@@ -36,6 +40,8 @@ export interface ApplicantView {
   readonly conversationId: string | null;
   readonly status: ApplicationStatus;
   readonly createdAt: Date;
+  /** Première ouverture par un membre de l'entreprise ; `null` tant que personne ne l'a ouverte. */
+  readonly readAt: Date | null;
   readonly profile: {
     readonly id: string;
     readonly reference: string;
@@ -52,6 +58,8 @@ export interface MyApplicationView {
   readonly status: ApplicationStatus;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  /** Date de première lecture par l'entreprise. Qui l'a lue reste privé. */
+  readonly readAt: Date | null;
   readonly mission: { readonly id: string; readonly title: string; readonly status: string };
 }
 
@@ -63,7 +71,8 @@ const ORGANISATION_MOVES: Record<"shortlisted" | "declined" | "hired", readonly 
 };
 
 export interface Applications {
-  apply(actor: Actor, missionId: string, coverNote: string, now: Date): Promise<ApplyResult>;
+  /** `answers` : une réponse par question de la mission, dans leur ordre ; aucune si elle n'en pose pas. */
+  apply(actor: Actor, missionId: string, coverNote: string, now: Date, answers?: readonly string[]): Promise<ApplyResult>;
   /** Les candidatures d'une mission, pour les membres de son entreprise ; `null` pour les autres. */
   listForMission(actor: Actor, missionId: string, order?: "oldest" | "newest"): Promise<readonly ApplicantView[] | null>;
   /** Les candidatures du freelance, les plus récentes d'abord. */
@@ -73,21 +82,26 @@ export interface Applications {
 }
 
 export const applications = (db: Db): Applications => ({
-  async apply(actor, missionId, rawNote, now) {
+  async apply(actor, missionId, rawNote, now, rawAnswers = []) {
     if (!Uuid.safeParse(missionId).success) return { kind: "absent" };
     const note = CoverNoteSchema.parse(rawNote);
     if (containsContact(note)) return { kind: "contact_details" };
+    const parsedAnswers = z.array(AnswerSchema).max(3).safeParse(rawAnswers);
+    if (!parsedAnswers.success) return { kind: "answers_required" };
+    const answers = parsedAnswers.data;
+    if (answers.some(containsContact)) return { kind: "contact_details" };
     const [profile, mission] = await Promise.all([
       db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true, visibility: true } }),
       // Une mission de sa propre entreprise est « absente » : personne ne s'embauche soi-même.
-      db.jobPost.findFirst({ where: { id: missionId, status: "open", organisation: { members: { none: { userId: actor.userId } } } }, select: { organisationId: true } }),
+      db.jobPost.findFirst({ where: { id: missionId, status: "open", organisation: { members: { none: { userId: actor.userId } } } }, select: { organisationId: true, questions: true } }),
     ]);
     if (profile === null) return { kind: "no_profile" };
     if (profile.visibility === "private") return { kind: "profile_private" };
     if (mission === null) return { kind: "absent" };
+    if (answers.length !== mission.questions.length) return { kind: "answers_required" };
     try {
       return await db.$transaction(async (tx) => {
-        const application = await tx.application.create({ data: { jobPostId: missionId, profileId: profile.id, coverNote: note }, select: { id: true } });
+        const application = await tx.application.create({ data: { jobPostId: missionId, profileId: profile.id, coverNote: note, answers }, select: { id: true } });
         const conversation = await tx.conversation.create({
           data: { organisationId: mission.organisationId, profileId: profile.id, applicationId: application.id, status: "accepted", decidedAt: now },
           select: { id: true },
@@ -116,6 +130,7 @@ export const applications = (db: Db): Applications => ({
         id: true,
         status: true,
         createdAt: true,
+        readAt: true,
         conversation: { select: { id: true } },
         profile: {
           select: {
@@ -132,6 +147,7 @@ export const applications = (db: Db): Applications => ({
       conversationId: row.conversation?.id ?? null,
       status: row.status,
       createdAt: row.createdAt,
+      readAt: row.readAt,
       profile: {
         id: row.profile.id,
         reference: row.profile.reference,
@@ -151,6 +167,7 @@ export const applications = (db: Db): Applications => ({
         status: true,
         createdAt: true,
         updatedAt: true,
+        readAt: true,
         conversation: { select: { id: true } },
         jobPost: { select: { id: true, title: true, status: true } },
       },
@@ -161,6 +178,7 @@ export const applications = (db: Db): Applications => ({
       status: row.status,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      readAt: row.readAt,
       mission: row.jobPost,
     }));
   },
