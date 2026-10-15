@@ -2,3 +2,4 @@ export { renderEmail, type Email, type Lang, type NotificationInput, type Notifi
 export { renderConfirmationRequest, type ConfirmationRequestInput } from "./confirmation-request";
 export { deliver, type Claimed, type DeliveryReport, type Outbox, type SendResult, type Transport } from "./deliver";
 export { resendTransport, transportFromEnv } from "./resend";
+export { renderDigest, type DigestInput } from "./digest";
