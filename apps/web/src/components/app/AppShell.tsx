@@ -20,7 +20,7 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person): NavItem[] => {
   const home = { href: base, label: t.app.nav.home };
   const messages = { href: `${base}/messages`, label: t.app.nav.messages };
   const m = marketDictionary(lang).missions.nav;
-  if (person.role === "operator") return [home, messages, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
+  if (person.role === "operator") return [home, messages, { href: `${base}/articles`, label: marketDictionary(lang).articles.nav }, { href: `/${lang}/freelances`, label: t.app.nav.directory }];
   const billing = { href: `${base}/facturation`, label: marketDictionary(lang).billing.nav };
   const deals = marketDictionary(lang).deals;
   const alertsItem = { href: `${base}/alertes`, label: marketDictionary(lang).account.alerts.nav };
