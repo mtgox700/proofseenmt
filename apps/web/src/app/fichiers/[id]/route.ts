@@ -39,7 +39,6 @@ const headersFor = ({ file, audience }: ReadableFile): Record<string, string> =>
   const name = `${file.kind === "cv" ? "cv" : file.id}.${EXTENSIONS[file.contentType] ?? "bin"}`;
   return {
     "content-type": file.contentType,
-    "content-length": String(file.size),
     "content-disposition": `${file.kind === "cv" ? "attachment" : "inline"}; filename="${name}"`,
     "x-content-type-options": "nosniff",
     "content-security-policy": "default-src 'none'; sandbox",
@@ -60,7 +59,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     if (readable.audience === "public" && request.headers.get("if-none-match") === headers.etag) return new Response(null, { status: 304, headers });
     const bytes = await readStored(readable.file.id);
     if (bytes === null) return NOT_FOUND();
-    return new Response(new Uint8Array(bytes), { status: 200, headers });
+    return new Response(new Uint8Array(bytes), { status: 200, headers: { ...headers, "content-length": String(bytes.length) } });
   } catch (error) {
     logError("files: not served", error);
     return new Response("Unavailable", { status: 500, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
