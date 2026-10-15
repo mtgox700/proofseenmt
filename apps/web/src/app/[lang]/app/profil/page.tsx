@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { importDrafts, profiles, profileSections, REQUIRED_TO_PUBLISH, storedFiles, type ProfileFacts } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StandingNotice } from "@/components/market/StandingNotice";
 import { StatusTag } from "@/components/market/StatusTag";
 import { CertificationSection, LanguageSection } from "@/components/profile/CredentialSections";
 import { CvSection } from "@/components/profile/CvSection";
@@ -176,6 +177,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
         <h1>{p.title}</h1>
         <p className="muted measure">{p.lead}</p>
       </header>
+      <StandingNotice lang={lang} market={market} topics={["profile"]} />
       {error === null ? null : (
         <p className="form-error" role="alert">
           {error}

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { billingView, profiles, vigilance, type RegistryView } from "@proofseen/db";
 import { BillingForm } from "@/components/market/BillingForm";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StandingNotice } from "@/components/market/StandingNotice";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { BillingDictionary } from "@/i18n/market/billing-fr";
@@ -118,6 +119,7 @@ export default async function BillingPage({ params, searchParams }: PageProps) {
         <h1>{b.title}</h1>
         <p className="muted measure">{b.leadFreelance}</p>
       </header>
+      <StandingNotice lang={lang} market={market} topics={["vigilance"]} />
       <Feedback error={error} ok={ok} />
       {identity === null ? null : (
         <>

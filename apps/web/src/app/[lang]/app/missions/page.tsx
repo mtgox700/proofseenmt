@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { applications, missionInvitations, missions } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StandingNotice } from "@/components/market/StandingNotice";
 import { MyInvitations } from "@/components/market/MyInvitations";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang, type Lang } from "@/i18n";
@@ -46,6 +47,7 @@ async function CompanyMissions({ lang, market }: { readonly lang: Lang; readonly
           </Link>
         </p>
       </header>
+      <StandingNotice lang={lang} market={market} topics={["mission"]} />
       {list.length === 0 ? (
         <EmptyState title={m.company.empty} headingLevel={2}>
           <p>{m.company.emptyText}</p>

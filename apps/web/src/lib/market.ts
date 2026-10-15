@@ -6,6 +6,7 @@ import type { Lang } from "@/i18n";
 import type { Role } from "@/lib/roles";
 import { requirePerson, session, type Person } from "@/lib/session";
 import { ORGANISATION_COOKIE, pickOrganisation } from "./settings";
+import { stopIfSuspended } from "@/lib/suspension";
 
 /*
  * The marketplace screens and their server actions reach the database through here. The person comes from the session
@@ -19,8 +20,10 @@ export interface Market {
   readonly db: Db;
 }
 
-const actorOf = async (db: Db, person: Person): Promise<Actor> => {
-  const { userId } = await users(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+/** The person as a database actor; a suspended account (C19) is sent to the page that says so, never further. */
+const actorOf = async (db: Db, person: Person, lang: Lang): Promise<Actor> => {
+  const { userId, suspension } = await users(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+  stopIfSuspended(lang, suspension);
   return { userId };
 };
 
@@ -29,7 +32,7 @@ export const pageMarket = async (lang: Lang, allowed?: readonly Role[]): Promise
   const person = await requirePerson(lang, allowed);
   if (person === null || !hasDatabase() || person.email === "") return "unconfigured";
   const db = getDb();
-  return { person, actor: await actorOf(db, person), db };
+  return { person, actor: await actorOf(db, person, lang), db };
 };
 
 /** For server actions: the same context, re-read from the session; anyone else is sent to sign in. */
@@ -38,7 +41,7 @@ export const actionMarket = async (lang: Lang): Promise<Market> => {
   if (state.kind !== "signed-in" || !hasDatabase() || state.person.email === "") redirect(`/${lang}/connexion`);
   if (state.person.role === null) redirect(`/${lang}/app/bienvenue`);
   const db = getDb();
-  return { person: state.person, actor: await actorOf(db, state.person), db };
+  return { person: state.person, actor: await actorOf(db, state.person, lang), db };
 };
 
 /**

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { companyPages } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { StandingNotice } from "@/components/market/StandingNotice";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket } from "@/lib/market";
@@ -46,6 +47,7 @@ export default async function CompanyPublicPageSettings({ params, searchParams }
           ) : null}
         </p>
       </header>
+      <StandingNotice lang={lang} market={market} topics={["company"]} />
       {error === null ? null : (
         <p className="form-error" role="alert">
           {error}
