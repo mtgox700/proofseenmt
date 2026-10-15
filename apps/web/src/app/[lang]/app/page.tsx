@@ -11,8 +11,9 @@ import { date } from "@/lib/format";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
-import { dashboards, profiles } from "@proofseen/db";
+import { dashboards, missionInvitations, profiles, savedMissions } from "@proofseen/db";
 import { CompanyTiles, FreelanceTiles } from "@/components/market/DashboardTiles";
+import { MissionCounts } from "@/components/market/MissionCounts";
 import { HomeVisibility } from "@/components/visibility/HomeVisibility";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
@@ -145,7 +146,12 @@ async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
   const p = dict.profile;
   const market = await pageMarket(lang, ["freelance"]);
   if (market === "unconfigured") return null;
-  const [profile, board] = await Promise.all([profiles(market.db).findMine(market.actor), dashboards(market.db).freelance(market.actor)]);
+  const [profile, board, invitations, saved] = await Promise.all([
+    profiles(market.db).findMine(market.actor),
+    dashboards(market.db).freelance(market.actor),
+    missionInvitations(market.db).countPending(market.actor),
+    savedMissions(market.db).countOpen(market.actor),
+  ]);
   return (
     <>
     <section className="panel" aria-labelledby="market-title">
@@ -167,6 +173,7 @@ async function FreelanceMarket({ lang }: { readonly lang: Lang }) {
         </Link>
       </div>
     </section>
+    <MissionCounts lang={lang} s={dict.missionsSpace} invitations={invitations} saved={saved} />
     <HomeVisibility lang={lang} market={market} profile={profile} />
     {profile === null ? null : <FreelanceTiles lang={lang} b={dict.account.dashboard} board={board} />}
     </>

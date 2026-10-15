@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { applications, missions } from "@proofseen/db";
+import { applications, missionInvitations, missions } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { MyInvitations } from "@/components/market/MyInvitations";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { withdrawApplication } from "./actions";
+import { dismissInvitation } from "./space-actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -76,13 +78,19 @@ async function CompanyMissions({ lang, market }: { readonly lang: Lang; readonly
 
 async function MyApplications({ lang, market }: { readonly lang: Lang; readonly market: Market }) {
   const m = marketDictionary(lang).missions;
-  const mine = await applications(market.db).listMine(market.actor);
+  const s = marketDictionary(lang).missionsSpace;
+  const [mine, invitations] = await Promise.all([applications(market.db).listMine(market.actor), missionInvitations(market.db).listMine(market.actor)]);
   return (
     <>
       <header className="app-head">
         <h1>{m.mine.title}</h1>
         <p className="muted measure">{m.mine.lead}</p>
+        <p className="small">
+          {s.mine.links} <Link href={`/${lang}/app/missions/enregistrees`}>{s.mine.savedLink}</Link> ·{" "}
+          <Link href={`/${lang}/app/entreprises-suivies`}>{s.mine.followsLink}</Link>
+        </p>
       </header>
+      <MyInvitations lang={lang} m={m} s={s} invitations={invitations} dismiss={dismissInvitation} />
       {mine.length === 0 ? (
         <EmptyState title={m.mine.empty} headingLevel={2}>
           <p>{m.mine.emptyText}</p>
@@ -104,6 +112,7 @@ async function MyApplications({ lang, market }: { readonly lang: Lang; readonly 
               <span className="thread-last muted small">
                 {m.mine.sentOn} {day(item.createdAt, lang)}
                 {item.updatedAt.getTime() === item.createdAt.getTime() ? null : ` · ${m.mine.updatedOn} ${day(item.updatedAt, lang)}`}
+                {item.status === "withdrawn" ? null : ` · ${item.readAt === null ? s.mine.unread : s.mine.read(day(item.readAt, lang))}`}
               </span>
               <span className="row-actions">
                 {item.conversationId === null ? null : (
