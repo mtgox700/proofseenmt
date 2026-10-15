@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import type { Actor } from "./messaging";
-import { LISTED_COMPANY } from "./public-visibility";
+import { LISTED_COMPANY, LISTED_MISSION } from "./public-visibility";
 
 /*
  * Entreprises suivies. On ne suit qu'une entreprise qui a une page publique, et jamais la sienne ; chaque mission
@@ -63,7 +63,7 @@ export const companyFollows = (db: Db): CompanyFollows => ({
       select: {
         createdAt: true,
         organisation: {
-          select: { id: true, name: true, publicName: true, publicSlug: true, publicSince: true, _count: { select: { jobPosts: { where: { status: "open" } } } } },
+          select: { id: true, name: true, publicName: true, publicSlug: true, publicSince: true, _count: { select: { jobPosts: { where: { status: "open", ...LISTED_MISSION } } } } },
         },
       },
     });

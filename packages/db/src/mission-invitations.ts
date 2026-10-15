@@ -135,7 +135,7 @@ export const missionInvitations = (db: Db): MissionInvitations => ({
       where: {
         dismissedAt: null,
         profile: { userId: actor.userId },
-        jobPost: { status: "open", applications: { none: { profile: { userId: actor.userId } } } },
+        jobPost: { status: "open", ...LISTED_MISSION, applications: { none: { profile: { userId: actor.userId } } } },
       },
     });
   },

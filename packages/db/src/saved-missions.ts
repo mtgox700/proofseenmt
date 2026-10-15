@@ -85,6 +85,6 @@ export const savedMissions = (db: Db): SavedMissions => ({
   },
 
   async countOpen(actor) {
-    return db.savedMission.count({ where: { userId: actor.userId, jobPost: { status: "open" } } });
+    return db.savedMission.count({ where: { userId: actor.userId, jobPost: { status: "open", ...LISTED_MISSION } } });
   },
 });
