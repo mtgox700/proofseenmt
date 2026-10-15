@@ -34,7 +34,6 @@ export interface LlmsArticle {
   readonly description: string;
 }
 
-const MAX_SKILLS = 200;
 const MAX_ARTICLES = 200;
 
 
