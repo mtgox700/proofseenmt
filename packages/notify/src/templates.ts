@@ -8,7 +8,7 @@
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -155,6 +155,36 @@ const body = (n: NotificationInput, base: string): Body => {
         links: [{ label: COPY[lang].open, href: `${app}/preuves` }],
       };
     }
+    case "application_read":
+      // Le freelance apprend que sa candidature a été ouverte, et quand : jamais par qui.
+      return {
+        subject: fr ? "Votre candidature a été lue" : "Your application was read",
+        lines: [
+          fr
+            ? "L'entreprise a ouvert votre candidature. Vous verrez sa décision dans vos candidatures dès qu'elle la prendra."
+            : "The company opened your application. You will see its decision in your applications as soon as it makes it.",
+        ],
+        links: [{ label: COPY[lang].open, href: `${app}/missions` }],
+      };
+    case "mission_invitation":
+      return {
+        subject: fr ? "Une entreprise vous invite à postuler" : "A company invites you to apply",
+        lines: [
+          fr
+            ? "Une entreprise a vu votre profil et vous invite à postuler à l'une de ses missions. Vous décidez : postuler, ou écarter l'invitation."
+            : "A company saw your profile and invites you to apply to one of its missions. You decide: apply, or set the invitation aside.",
+        ],
+        links: [
+          { label: fr ? "Voir la mission" : "See the mission", href: `${base}/${lang}/missions/${text(n.payload.missionId)}` },
+          { label: COPY[lang].open, href: `${app}/missions` },
+        ],
+      };
+    case "company_mission":
+      return {
+        subject: fr ? "Une entreprise que vous suivez publie une mission" : "A company you follow posted a mission",
+        lines: [fr ? "Une entreprise que vous suivez vient de publier une mission." : "A company you follow just posted a mission."],
+        links: [{ label: fr ? "Voir la mission" : "See the mission", href: `${base}/${lang}/missions/${text(n.payload.missionId)}` }],
+      };
     case "mission_match": {
       const ids = list(n.payload.missionIds);
       return {
