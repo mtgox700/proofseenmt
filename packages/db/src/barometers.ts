@@ -1,6 +1,18 @@
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
-import { groupStats, MIN_BAROMETER_SAMPLE, missionRate, rateStat, type Observation, type RateStat } from "./barometer-stats";
+import {
+  cappedByPublisher,
+  groupStats,
+  MIN_BAROMETER_SAMPLE,
+  missionRate,
+  publisherGroupStats,
+  publisherRateStat,
+  rateStat,
+  type Observation,
+  type Published,
+  type PublishedObservation,
+  type RateStat,
+} from "./barometer-stats";
 
 /*
  * Baromètres publics, calculés dans la base au moment de la demande, à partir de données réelles de la plateforme :
@@ -11,7 +23,9 @@ import { groupStats, MIN_BAROMETER_SAMPLE, missionRate, rateStat, type Observati
  * - Compétences : combien de missions publiées depuis moins de DEMAND_WINDOW_DAYS jours demandent chaque compétence.
  *
  * Aucun groupe ne sort sous son seuil d'effectif (MIN_BAROMETER_SAMPLE pour un TJM, MIN_SKILL_DEMAND pour une
- * compétence). Les totaux, eux, sont des comptes et sortent toujours : ils disent combien de données existent.
+ * compétence). Un groupe tiré des missions suit en plus la règle des entreprises distinctes (barometer-stats.ts) : au
+ * moins MIN_DISTINCT_PUBLISHERS entreprises, au plus MAX_VALUES_PER_PUBLISHER missions de chacune, ses plus récentes.
+ * Les totaux, eux, sont des comptes et sortent toujours : ils disent combien de données existent.
  */
 
 export const RECENT_MISSION_DAYS = 90;
@@ -69,6 +83,8 @@ interface Rated {
 
 const SKILLS = { select: { skill: { select: { key: true, label: true } } } } as const;
 
+interface PublishedRated extends Rated, Published {}
+
 const series = (rows: readonly Rated[]): RateSeries => {
   const bySkill: Observation[] = rows.flatMap((r) => r.skills.map(({ skill }) => ({ key: skill.key, label: skill.label, value: r.value })));
   const byCity: Observation[] = rows.flatMap((r) => (r.city === null || r.cityKey === null ? [] : [{ key: r.cityKey, label: r.city, value: r.value }]));
@@ -77,6 +93,17 @@ const series = (rows: readonly Rated[]): RateSeries => {
     overall: rateStat("all", "all", rows.map((r) => r.value)),
     bySkill: groupStats(bySkill),
     byCity: groupStats(byCity),
+  };
+};
+
+/** Les TJM proposés par les missions : chaque groupe, et l'ensemble, passent la règle des entreprises distinctes. */
+const missionSeries = (rows: readonly PublishedRated[]): RateSeries => {
+  const observe = (r: PublishedRated, key: string, label: string): PublishedObservation => ({ key, label, value: r.value, publisher: r.publisher, at: r.at });
+  return {
+    total: rows.length,
+    overall: publisherRateStat("all", "all", rows),
+    bySkill: publisherGroupStats(rows.flatMap((r) => r.skills.map(({ skill }) => observe(r, skill.key, skill.label)))),
+    byCity: publisherGroupStats(rows.flatMap((r) => (r.city === null || r.cityKey === null ? [] : [observe(r, r.cityKey, r.city)]))),
   };
 };
 
@@ -94,15 +121,15 @@ export const barometers = (db: Db): Barometers => ({
           AND: [{ OR: [{ dailyRateMinCents: { not: null } }, { dailyRateMaxCents: { not: null } }] }],
         },
         take: MAX_ROWS,
-        select: { dailyRateMinCents: true, dailyRateMaxCents: true, city: true, cityKey: true, skills: SKILLS },
+        select: { organisationId: true, publishedAt: true, createdAt: true, dailyRateMinCents: true, dailyRateMaxCents: true, city: true, cityKey: true, skills: SKILLS },
       }),
     ]);
     const profiles = profileRows.flatMap((p) => (p.dailyRateCents === null ? [] : [{ value: p.dailyRateCents, city: p.city, cityKey: p.cityKey, skills: p.skills }]));
     const missions = missionRows.flatMap((m) => {
       const value = missionRate(m.dailyRateMinCents, m.dailyRateMaxCents);
-      return value === null ? [] : [{ value, city: m.city, cityKey: m.cityKey, skills: m.skills }];
+      return value === null ? [] : [{ value, city: m.city, cityKey: m.cityKey, skills: m.skills, publisher: m.organisationId, at: m.publishedAt ?? m.createdAt }];
     });
-    return { computedAt: now, currency: "EUR", minSample: MIN_BAROMETER_SAMPLE, missionsSince, profiles: series(profiles), missions: series(missions) };
+    return { computedAt: now, currency: "EUR", minSample: MIN_BAROMETER_SAMPLE, missionsSince, profiles: series(profiles), missions: missionSeries(missions) };
   },
 
   async skills(now = new Date()) {
@@ -110,15 +137,24 @@ export const barometers = (db: Db): Barometers => ({
     const window: Prisma.JobPostWhereInput = { status: { in: ["open", "closed"] }, publishedAt: { gte: since, lte: now } };
     const [totalMissions, rows] = await Promise.all([
       db.jobPost.count({ where: window }),
-      db.jobPostSkill.groupBy({ by: ["skillId"], where: { jobPost: window }, _count: { _all: true } }),
+      db.jobPostSkill.findMany({
+        where: { jobPost: window },
+        take: MAX_ROWS,
+        select: { skill: { select: { key: true, label: true } }, jobPost: { select: { organisationId: true, publishedAt: true } } },
+      }),
     ]);
-    const kept = rows.filter((r) => r._count._all >= MIN_SKILL_DEMAND);
-    const labels = kept.length === 0 ? [] : await db.skill.findMany({ where: { id: { in: kept.map((r) => r.skillId) } }, select: { id: true, key: true, label: true } });
-    const byId = new Map(labels.map((s) => [s.id, s]));
-    const skills = kept
-      .flatMap((r) => {
-        const skill = byId.get(r.skillId);
-        return skill === undefined ? [] : [{ key: skill.key, label: skill.label, missions: r._count._all }];
+    // Une ligne par mission et compétence ; chaque compétence passe la règle des entreprises distinctes, puis le seuil.
+    const bySkill = new Map<string, { readonly label: string; readonly missions: Published[] }>();
+    for (const { skill, jobPost } of rows) {
+      const mission = { publisher: jobPost.organisationId, at: jobPost.publishedAt ?? since };
+      const group = bySkill.get(skill.key);
+      if (group === undefined) bySkill.set(skill.key, { label: skill.label, missions: [mission] });
+      else group.missions.push(mission);
+    }
+    const skills = [...bySkill.entries()]
+      .flatMap(([key, group]) => {
+        const counted = cappedByPublisher(group.missions)?.length ?? 0;
+        return counted >= MIN_SKILL_DEMAND ? [{ key, label: group.label, missions: counted }] : [];
       })
       .sort((a, b) => b.missions - a.missions || a.label.localeCompare(b.label, "fr"));
     return { computedAt: now, since, minCount: MIN_SKILL_DEMAND, totalMissions, skills };

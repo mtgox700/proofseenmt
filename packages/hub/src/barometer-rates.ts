@@ -1,7 +1,7 @@
 import { escapeHtml as e } from "./html";
 import { isoDay, longDate, money, type Lang } from "./market-shell";
 import { renderFrame } from "./page-frame";
-import { datasetJsonLd, DATA_LICENSE, RATE_METHOD, rateDataUrl, type RateBarometerView, type RateSeriesView, type RateStatView } from "./barometer-data";
+import { datasetJsonLd, DATA_LICENSE, PUBLISHER_RULE, RATE_METHOD, rateDataUrl, type RateBarometerView, type RateSeriesView, type RateStatView } from "./barometer-data";
 
 /*
  * Baromètre des TJM : médiane et quartiles des TJM affichés par les profils publiés et proposés par les missions, par
@@ -29,6 +29,7 @@ const LABELS = {
     methodText: (min: number, since: string) =>
       `Les profils comptés sont les profils publiés qui affichent un TJM en euros. Les missions comptées sont celles qui sont ouvertes, ou qui ont été publiées depuis le ${since} : leur TJM est le milieu de la fourchette proposée, ou la seule borne donnée. ` +
       `Les deux séries restent séparées : un TJM demandé et un TJM proposé ne mesurent pas la même chose. Un groupe n'est publié qu'à partir de ${min} valeurs. ` +
+      `Côté missions, un groupe doit aussi réunir au moins ${PUBLISHER_RULE.minPublishers} entreprises distinctes, et chacune n'y compte que pour ${PUBLISHER_RULE.maxPerPublisher} missions au plus, ses plus récentes : une seule entreprise ne fait pas le marché. ` +
       "Les quartiles sont calculés par interpolation linéaire entre les rangs (méthode des tableurs, PERCENTILE.INC), puis arrondis à l'euro. Ce baromètre décrit les données de Proofseen, pas tout le marché.",
     data: "Données",
     dataText: "Le même baromètre, en jeu de données réutilisable sous licence CC BY 4.0 (citez Proofseen) :",
@@ -54,6 +55,7 @@ const LABELS = {
     methodText: (min: number, since: string) =>
       `Profiles counted are published profiles showing a day rate in euros. Missions counted are open, or were published since ${since}: their rate is the middle of the offered range, or the single bound given. ` +
       `The two series stay separate: a rate asked and a rate offered do not measure the same thing. A group is published only from ${min} values. ` +
+      `On the mission side, a group also needs at least ${PUBLISHER_RULE.minPublishers} distinct companies, each counting for ${PUBLISHER_RULE.maxPerPublisher} missions at most, its most recent: a single company does not make the market. ` +
       "Quartiles use linear interpolation between ranks (the spreadsheet PERCENTILE.INC method), rounded to the euro. This barometer describes Proofseen's data, not the whole market.",
     data: "Data",
     dataText: "The same barometer as a reusable dataset under the CC BY 4.0 licence (credit Proofseen):",

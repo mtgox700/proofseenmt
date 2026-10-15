@@ -60,6 +60,53 @@ export const groupStats = (observations: readonly Observation[], minSample = MIN
     .sort((a, b) => a.label.localeCompare(b.label, "fr") || a.key.localeCompare(b.key));
 };
 
+/*
+ * Règle des entreprises distinctes, pour tout groupe tiré des missions : au moins MIN_DISTINCT_PUBLISHERS entreprises
+ * dans le groupe, et chacune y pèse au plus MAX_VALUES_PER_PUBLISHER valeurs, ses plus récentes. Une entreprise qui
+ * publie douze missions ne fixe pas seule la « médiane du marché » et ne rend pas seule une compétence « demandée ».
+ */
+export const MIN_DISTINCT_PUBLISHERS = 3;
+export const MAX_VALUES_PER_PUBLISHER = 3;
+
+export interface Published {
+  /** L'entreprise qui a publié la mission. */
+  readonly publisher: string;
+  readonly at: Date;
+}
+
+export interface PublishedObservation extends Observation, Published {}
+
+/** Les éléments retenus d'un groupe (au plus trois par entreprise, les plus récents), ou `null` sous trois entreprises. */
+export const cappedByPublisher = <T extends Published>(items: readonly T[]): readonly T[] | null => {
+  const byPublisher = new Map<string, T[]>();
+  for (const item of items) {
+    const own = byPublisher.get(item.publisher);
+    if (own === undefined) byPublisher.set(item.publisher, [item]);
+    else own.push(item);
+  }
+  if (byPublisher.size < MIN_DISTINCT_PUBLISHERS) return null;
+  return [...byPublisher.values()].flatMap((own) => [...own].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, MAX_VALUES_PER_PUBLISHER));
+};
+
+/** Les statistiques d'un groupe de missions, ou `null` sous la règle des entreprises distinctes ou sous le seuil d'effectif. */
+export const publisherRateStat = (key: string, label: string, observations: readonly (Published & { readonly value: number })[], minSample = MIN_BAROMETER_SAMPLE): RateStat | null => {
+  const kept = cappedByPublisher(observations);
+  return kept === null ? null : rateStat(key, label, kept.map((o) => o.value), minSample);
+};
+
+/** Comme `groupStats`, pour des missions : chaque groupe passe d'abord la règle des entreprises distinctes. */
+export const publisherGroupStats = (observations: readonly PublishedObservation[], minSample = MIN_BAROMETER_SAMPLE): readonly RateStat[] => {
+  const groups = new Map<string, PublishedObservation[]>();
+  for (const observation of observations) {
+    const group = groups.get(observation.key);
+    if (group === undefined) groups.set(observation.key, [observation]);
+    else group.push(observation);
+  }
+  return [...groups.entries()]
+    .flatMap(([key, group]) => publisherRateStat(key, group[0]?.label ?? key, group, minSample) ?? [])
+    .sort((a, b) => a.label.localeCompare(b.label, "fr") || a.key.localeCompare(b.key));
+};
+
 /** Le TJM d'une mission : le milieu de sa fourchette, ou la seule borne donnée ; `null` sans aucune. */
 export const missionRate = (minCents: number | null, maxCents: number | null): number | null => {
   if (minCents !== null && maxCents !== null) return Math.round((minCents + maxCents) / 2);

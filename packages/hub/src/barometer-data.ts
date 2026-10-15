@@ -80,9 +80,18 @@ export const rateCsv = (b: RateBarometerView): string =>
     rateRows(b).map((r) => [r.source, r.dimension, r.key, r.label, r.n, euros(r.p25Cents), euros(r.medianCents), euros(r.p75Cents), b.currency, b.computedAt.toISOString()]),
   );
 
+/**
+ * Règle des entreprises distinctes des groupes tirés des missions, telle que l'applique @proofseen/db
+ * (barometer-stats.ts, MIN_DISTINCT_PUBLISHERS et MAX_VALUES_PER_PUBLISHER) ; un test de db vérifie que les deux
+ * valeurs restent égales.
+ */
+export const PUBLISHER_RULE = { minPublishers: 3, maxPerPublisher: 3 } as const;
+
+const PUBLISHER_RULE_EN = `Mission groups also need at least ${PUBLISHER_RULE.minPublishers} distinct companies, each counting for ${PUBLISHER_RULE.maxPerPublisher} missions at most (its most recent).`;
+
 export const RATE_METHOD =
   "Daily rates shown by published profiles, and offered by missions that are open or were published in the recent window (middle of the range, or the single bound given), in euros. " +
-  "Grouped by skill and by city; a group is published only from the minimum sample size. Quartiles by linear interpolation between ranks (Hyndman-Fan type 7), rounded to the euro.";
+  `Grouped by skill and by city; a group is published only from the minimum sample size. ${PUBLISHER_RULE_EN} Quartiles by linear interpolation between ranks (Hyndman-Fan type 7), rounded to the euro.`;
 
 export const rateJson = (b: RateBarometerView, baseUrl: string): string =>
   JSON.stringify(
@@ -103,7 +112,7 @@ export const rateJson = (b: RateBarometerView, baseUrl: string): string =>
     2,
   ) + "\n";
 
-export const SKILL_METHOD = "Number of missions published on Proofseen in the window (open, or closed since) that request each skill. A skill is listed only from the minimum count.";
+export const SKILL_METHOD = `Number of missions published on Proofseen in the window (open, or closed since) that request each skill. A skill is listed only from the minimum count. ${PUBLISHER_RULE_EN}`;
 
 export const skillCsv = (b: SkillBarometerView): string =>
   csv(

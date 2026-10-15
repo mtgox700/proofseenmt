@@ -1,7 +1,7 @@
 import { escapeHtml as e } from "./html";
 import { isoDay, longDate, type Lang } from "./market-shell";
 import { renderFrame } from "./page-frame";
-import { datasetJsonLd, DATA_LICENSE, SKILL_METHOD, skillDataUrl, type SkillBarometerView } from "./barometer-data";
+import { datasetJsonLd, DATA_LICENSE, PUBLISHER_RULE, SKILL_METHOD, skillDataUrl, type SkillBarometerView } from "./barometer-data";
 
 /*
  * Baromètre des compétences demandées : combien de missions publiées sur la fenêtre demandent chaque compétence. Une
@@ -21,7 +21,7 @@ const LABELS = {
     cols: { skill: "Compétence", missions: "Missions (n)" },
     method: "Méthode",
     methodText: (min: number) =>
-      `Sont comptées les missions publiées sur Proofseen pendant les 90 derniers jours, qu'elles soient encore ouvertes ou clôturées depuis. Une mission qui demande plusieurs compétences compte pour chacune. Une compétence n'est publiée qu'à partir de ${min} missions. Ce baromètre décrit les missions de Proofseen, pas tout le marché.`,
+      `Sont comptées les missions publiées sur Proofseen pendant les 90 derniers jours, qu'elles soient encore ouvertes ou clôturées depuis. Une mission qui demande plusieurs compétences compte pour chacune. Une compétence n'est publiée qu'à partir de ${min} missions, demandées par au moins ${PUBLISHER_RULE.minPublishers} entreprises distinctes ; chaque entreprise n'y compte que pour ${PUBLISHER_RULE.maxPerPublisher} missions au plus, ses plus récentes. Ce baromètre décrit les missions de Proofseen, pas tout le marché.`,
     data: "Données",
     dataText: "Le même baromètre, en jeu de données réutilisable sous licence CC BY 4.0 (citez Proofseen) :",
     license: "Licence CC BY 4.0",
@@ -38,7 +38,7 @@ const LABELS = {
     cols: { skill: "Skill", missions: "Missions (n)" },
     method: "Method",
     methodText: (min: number) =>
-      `Counted are the missions published on Proofseen over the last 90 days, whether still open or closed since. A mission requesting several skills counts for each. A skill is published only from ${min} missions. This barometer describes Proofseen's missions, not the whole market.`,
+      `Counted are the missions published on Proofseen over the last 90 days, whether still open or closed since. A mission requesting several skills counts for each. A skill is published only from ${min} missions, requested by at least ${PUBLISHER_RULE.minPublishers} distinct companies; each company counts for ${PUBLISHER_RULE.maxPerPublisher} missions at most, its most recent. This barometer describes Proofseen's missions, not the whole market.`,
     data: "Data",
     dataText: "The same barometer as a reusable dataset under the CC BY 4.0 licence (credit Proofseen):",
     license: "CC BY 4.0 licence",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rateCsv, rateJson, skillCsv, skillJson, type RateBarometerView, type SkillBarometerView } from "../src/barometer-data";
+import { PUBLISHER_RULE, RATE_METHOD, rateCsv, rateJson, SKILL_METHOD, skillCsv, skillJson, type RateBarometerView, type SkillBarometerView } from "../src/barometer-data";
 import { renderRateBarometer } from "../src/barometer-rates";
 import { renderSkillBarometer } from "../src/barometer-skills";
 
@@ -93,5 +93,26 @@ describe("baromètre des compétences", () => {
     expect(jsonLdOf(html)).toMatchObject({ "@type": "Dataset", distribution: [{ contentUrl: "https://proofseen.com/barometre/competences.csv" }, { contentUrl: "https://proofseen.com/barometre/competences.json" }] });
     expect(skillCsv(filled)).toContain("go,Go,7,2026-07-17,");
     expect((JSON.parse(skillJson(filled, BASE)) as { rows: unknown[] }).rows).toEqual([{ key: "go", label: "Go", missions: 7 }, { key: "c#", label: "C#", missions: 5 }]);
+  });
+});
+
+describe("règle des entreprises distinctes, dite dans la méthode", () => {
+  const skills: SkillBarometerView = { computedAt: NOW, since: new Date("2026-07-17T12:00:00Z"), minCount: 5, totalMissions: 3, skills: [] };
+
+  it("la dit en français et en anglais, sur les deux baromètres", () => {
+    expect(PUBLISHER_RULE).toEqual({ minPublishers: 3, maxPerPublisher: 3 });
+    for (const html of [renderRateBarometer(EMPTY, { baseUrl: BASE, lang: "fr" }), renderSkillBarometer(skills, { baseUrl: BASE, lang: "fr" })]) {
+      expect(html).toContain("au moins 3 entreprises distinctes");
+      expect(html).toContain("3 missions au plus");
+    }
+    for (const html of [renderRateBarometer(EMPTY, { baseUrl: BASE, lang: "en" }), renderSkillBarometer(skills, { baseUrl: BASE, lang: "en" })]) {
+      expect(html).toContain("at least 3 distinct companies");
+      expect(html).toContain("3 missions at most");
+    }
+  });
+
+  it("la dit aussi dans la description du jeu de données", () => {
+    expect(RATE_METHOD).toContain("at least 3 distinct companies");
+    expect(SKILL_METHOD).toContain("at least 3 distinct companies");
   });
 });
