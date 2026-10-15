@@ -32,7 +32,7 @@ export default async function EditMissionPage({ params, searchParams }: PageProp
       <header className="app-head">
         <h1>{m.form.editTitle}</h1>
       </header>
-      <MissionForm lang={lang} m={m} action={updateMission} mission={mission} error={error} cancelHref={`/${lang}/app/missions/${mission.id}`} />
+      <MissionForm lang={lang} m={m} space={marketDictionary(lang).missionsSpace} action={updateMission} mission={mission} error={error} cancelHref={`/${lang}/app/missions/${mission.id}`} />
     </>
   );
 }

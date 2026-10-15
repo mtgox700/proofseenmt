@@ -5,7 +5,8 @@ import { applications, CoverNoteSchema, missions } from "@proofseen/db";
 import { notifyMissionChanged } from "@/data/indexnow";
 import { throttled } from "@/data/throttle";
 import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
-import { missionFromForm } from "@/lib/mission-form";
+import { answersOf, missionFromForm } from "@/lib/mission-form";
+import { MAX_DRAFTS } from "@/lib/mission-limits";
 
 /*
  * Server actions of missions and applications. The session decides who acts; the repositories decide, inside their
@@ -16,8 +17,6 @@ import { missionFromForm } from "@/lib/mission-form";
 const SAVE_RULE = { windowMs: 60_000, max: 20 };
 const APPLY_RULE = { windowMs: 60 * 60_000, max: 30 };
 const DECIDE_RULE = { windowMs: 60_000, max: 60 };
-/** Drafts are never public, but they are rows: a company keeps a reasonable number of them. */
-const MAX_DRAFTS = 50;
 
 const text = (raw: FormDataEntryValue | null): string => (typeof raw === "string" ? raw : "");
 const missionPath = (lang: string, id: string, error?: string): string => `/${lang}/app/missions/${id}${error === undefined ? "" : `?erreur=${error}`}`;
@@ -93,7 +92,7 @@ export async function applyToMission(formData: FormData): Promise<void> {
   if (await throttled("application-apply", market.actor.userId, APPLY_RULE, new Date())) redirect(back("trop"));
   const note = CoverNoteSchema.safeParse(text(formData.get("coverNote")));
   if (!note.success) redirect(back("invalide"));
-  const result = await applications(market.db).apply(market.actor, missionId, note.data, new Date());
+  const result = await applications(market.db).apply(market.actor, missionId, note.data, new Date(), answersOf(formData));
   redirect(result.kind === "applied" ? `/${lang}/app/messages/${result.conversationId}` : back(result.kind));
 }
 

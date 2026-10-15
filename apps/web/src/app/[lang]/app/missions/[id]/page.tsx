@@ -1,86 +1,51 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { applications, missions, type ApplicantView } from "@proofseen/db";
+import { applications, missionInvitations, missions } from "@proofseen/db";
+import { ApplicantsBoard } from "@/components/market/ApplicantsBoard";
+import { InvitePanel, MissionTools } from "@/components/market/MissionCompanyTools";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
-import { isLang, type Lang } from "@/i18n";
+import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
-import type { MissionsDictionary } from "@/i18n/market/missions-fr";
 import { day, money } from "@/lib/format";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { closeMission, decideApplication, publishMission } from "../actions";
+import { duplicateMission, inviteFreelancer, saveTemplate } from "../company-actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string; ordre?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; ordre?: string; invitation?: string; modele?: string }>;
 }
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
 
-function Applicant({ lang, m, missionId, applicant }: { readonly lang: Lang; readonly m: MissionsDictionary; readonly missionId: string; readonly applicant: ApplicantView }) {
-  const d = m.detail;
-  const open = applicant.status === "submitted" || applicant.status === "shortlisted";
-  return (
-    <li className="thread-row">
-      <span className="thread-who">
-        <strong>{applicant.profile.reference}</strong>
-        {applicant.profile.headline === null ? null : <span className="muted small"> · {applicant.profile.headline}</span>}
-      </span>
-      <StatusTag status={applicant.status} label={m.applicationStatus[applicant.status]} />
-      <span className="thread-last muted small">
-        {d.facts(applicant.profile.verifiedUrls, applicant.profile.verifiedMissions)} · {d.receivedOn} {day(applicant.createdAt, lang)}
-      </span>
-      <span className="row-actions">
-        {applicant.conversationId === null ? null : (
-          <Link className="btn" href={`/${lang}/app/messages/${applicant.conversationId}`}>
-            {d.conversation}
-          </Link>
-        )}
-        {open ? (
-          <form action={decideApplication} className="row-actions">
-            <Hidden name="lang" value={lang} />
-            <Hidden name="missionId" value={missionId} />
-            <Hidden name="applicationId" value={applicant.applicationId} />
-            {applicant.status === "submitted" ? (
-              <button type="submit" name="decision" value="shortlisted" className="btn">
-                {d.shortlist}
-              </button>
-            ) : null}
-            <button type="submit" name="decision" value="hired" className="btn btn-primary" aria-describedby="hire-hint">
-              {d.hire}
-            </button>
-            <button type="submit" name="decision" value="declined" className="btn btn-quiet">
-              {d.decline}
-            </button>
-          </form>
-        ) : null}
-      </span>
-    </li>
-  );
-}
-
-/** One mission of the company, with its applications. Members only: anyone else gets 404. */
+/** One mission of the company, with its applications by status, invitations and tools. Members only: anyone else gets 404. */
 export default async function MissionPage({ params, searchParams }: PageProps) {
   const { lang, id } = await params;
   if (!isLang(lang)) notFound();
-  const m = marketDictionary(lang).missions;
+  const dict = marketDictionary(lang);
+  const m = dict.missions;
+  const s = dict.missionsSpace;
   const market = await pageMarket(lang, ["company"]);
-  if (market === "unconfigured") return <MarketUnavailable text={marketDictionary(lang).notConfigured} />;
+  if (market === "unconfigured") return <MarketUnavailable text={dict.notConfigured} />;
   const organisation = await currentOrganisation(market);
   const mission = organisation === null ? undefined : (await missions(market.db).listForOrganisation(market.actor, organisation.id))?.find((item) => item.id === id);
   if (mission === undefined) notFound();
-  const { erreur, ordre } = await searchParams;
+  const { erreur, ordre, invitation, modele } = await searchParams;
   const newest = ordre === "recentes";
-  const applicants = (await applications(market.db).listForMission(market.actor, id, newest ? "newest" : "oldest")) ?? [];
+  const [applicants, sent] = await Promise.all([
+    applications(market.db).listForMission(market.actor, id, newest ? "newest" : "oldest"),
+    missionInvitations(market.db).listForMission(market.actor, id),
+  ]);
   const d = m.detail;
   const rate = m.apply.rate(
     mission.dailyRateMinCents === null ? null : money(mission.dailyRateMinCents, mission.currency, lang),
     mission.dailyRateMaxCents === null ? null : money(mission.dailyRateMaxCents, mission.currency, lang),
   );
-  const error = erreur === "verrouillee" ? m.form.errors.locked : erreur === "trop" ? m.form.errors.tooMany : null;
+  const error = erreur === "verrouillee" ? m.form.errors.locked : erreur === "trop" ? m.form.errors.tooMany : erreur === "brouillons" ? m.form.errors.drafts : null;
 
   return (
     <>
@@ -162,30 +127,37 @@ export default async function MissionPage({ params, searchParams }: PageProps) {
             ))}
           </p>
         )}
+        {mission.questions.length === 0 ? null : (
+          <>
+            <h3>{s.form.questions}</h3>
+            <ol>
+              {mission.questions.map((question) => (
+                <li key={question}>{question}</li>
+              ))}
+            </ol>
+          </>
+        )}
       </section>
 
       {mission.status === "draft" ? null : (
         <section className="ws-block" aria-labelledby="applicants-title">
-          <h2 id="applicants-title">{d.applicantsTitle}</h2>
-          {applicants.length === 0 ? (
+          <h2 id="applicants-title">{s.board.title}</h2>
+          {applicants === null || applicants.length === 0 ? (
             <p className="muted">{d.applicantsEmpty}</p>
           ) : (
             <>
+              <p className="muted small">{s.board.lead}</p>
               <p className="small">
                 <Link href={`/${lang}/app/missions/${mission.id}${newest ? "" : "?ordre=recentes"}`}>{newest ? d.oldestFirst : d.newestFirst}</Link>
               </p>
-              <ul className="threads">
-                {applicants.map((applicant) => (
-                  <Applicant key={applicant.applicationId} lang={lang} m={m} missionId={mission.id} applicant={applicant} />
-                ))}
-              </ul>
-              <p id="hire-hint" className="muted small">
-                {d.hireHint}
-              </p>
+              <ApplicantsBoard lang={lang} m={m} s={s} missionId={mission.id} applicants={applicants} decide={decideApplication} />
             </>
           )}
         </section>
       )}
+
+      {mission.status === "open" ? <InvitePanel lang={lang} s={s} missionId={mission.id} sent={sent ?? []} notice={invitation} action={inviteFreelancer} /> : null}
+      <MissionTools lang={lang} s={s} missionId={mission.id} title={mission.title} notice={modele} duplicate={duplicateMission} saveTemplate={saveTemplate} />
     </>
   );
 }

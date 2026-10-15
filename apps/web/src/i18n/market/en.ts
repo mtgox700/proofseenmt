@@ -6,6 +6,7 @@ import { billingEn } from "./billing-en";
 import { confirmationsEn } from "./confirmations-en";
 import { dealsEn } from "./deals-en";
 import { missionsEn } from "./missions-en";
+import { missionsSpaceEn } from "./missions-space-en";
 import { profileEn } from "./profile-en";
 import { proofsEn } from "./proofs-en";
 import { searchEn } from "./search-en";
@@ -19,6 +20,7 @@ export const marketEn: MarketDictionary = {
   confirmations: confirmationsEn,
   deals: dealsEn,
   missions: missionsEn,
+  missionsSpace: missionsSpaceEn,
   profile: profileEn,
   proofs: proofsEn,
   search: searchEn,

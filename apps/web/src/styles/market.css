@@ -61,3 +61,10 @@
 .profiles .row-actions { margin-top: var(--space-2); }
 .profiles .row-actions select { min-height: 2.75rem; padding: 0.4rem 0.6rem; font: inherit; background: var(--bg); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--radius); max-width: 100%; }
 .thumb[aria-pressed="true"] { border-color: var(--proof); background: var(--proof-wash); color: var(--ink); }
+
+/* ---------- Applications board: one plain section per status ---------- */
+.board { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); align-items: start; }
+.board-col { display: grid; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.board-col > h3 { display: flex; align-items: center; gap: var(--space-2); font: inherit; }
+.board-card { display: grid; gap: var(--space-2); padding: var(--space-3) 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.board-card .row-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }

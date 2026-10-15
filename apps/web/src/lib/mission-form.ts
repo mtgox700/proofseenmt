@@ -26,6 +26,20 @@ const wholeOrNull = (raw: string): number | null => (raw === "" ? null : /^\d+$/
 export const skillsOf = (raw: string): string[] =>
   [...new Set(raw.split(",").map((skill) => skill.trim()).filter((skill) => skill !== ""))].slice(0, MAX_SKILLS);
 
+/** The form's question fields (`question1` to `question3`); empty ones are dropped, the order is kept. */
+export const QUESTION_FIELDS = ["question1", "question2", "question3"] as const;
+
+export const questionsOf = (form: FormData): string[] => QUESTION_FIELDS.map((name) => field(form, name)).filter((question) => question !== "");
+
+/** The application form's answers (`answer1` to `answer3`), one per question the form showed, in order. */
+export const ANSWER_FIELDS = ["answer1", "answer2", "answer3"] as const;
+
+export const answersOf = (form: FormData): string[] =>
+  ANSWER_FIELDS.flatMap((name) => {
+    const value = form.get(name);
+    return typeof value === "string" ? [value.trim()] : [];
+  });
+
 export const missionFromForm = (form: FormData): ReturnType<typeof MissionInputSchema.safeParse> => {
   const input: MissionInput = {
     title: field(form, "title"),
@@ -36,6 +50,7 @@ export const missionFromForm = (form: FormData): ReturnType<typeof MissionInputS
     dailyRateMaxCents: eurosToCents(field(form, "rateMax")),
     city: field(form, "city") === "" ? null : field(form, "city"),
     workMode: field(form, "workMode") as MissionInput["workMode"],
+    questions: questionsOf(form),
   };
   return MissionInputSchema.safeParse(input);
 };

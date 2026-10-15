@@ -195,6 +195,9 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
       <header className="app-head">
         <h1>{m.team.title}</h1>
         <p className="muted measure">{m.team.lead}</p>
+        <p>
+          <Link href={`/${lang}/app/equipe/page-publique`}>{m.missionsSpace.companyPage.link}</Link>
+        </p>
       </header>
       {error !== null ? (
         <p className="form-error" role="alert">
