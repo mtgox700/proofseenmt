@@ -6,9 +6,11 @@
  * plateforme ; et un e-mail transféré ne fait pas fuir une correspondance privée.
  */
 
+import { accountNoticeBody } from "./account-notice";
+
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -185,6 +187,8 @@ const body = (n: NotificationInput, base: string): Body => {
         lines: [fr ? "Une entreprise que vous suivez vient de publier une mission." : "A company you follow just posted a mission."],
         links: [{ label: fr ? "Voir la mission" : "See the mission", href: `${base}/${lang}/missions/${text(n.payload.missionId)}` }],
       };
+    case "account_notice":
+      return accountNoticeBody(lang, { notice: text(n.payload.notice), reason: text(n.payload.reason), subject: text(n.payload.subject) }, app, COPY[lang].open);
     case "mission_match": {
       const ids = list(n.payload.missionIds);
       return {
