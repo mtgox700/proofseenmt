@@ -8,6 +8,7 @@ export const checklistFr = {
   groups: { page: "Sur votre page", proof: "Ce qui le prouve" },
   done: "Fait",
   todo: "Manquant",
+  recommended: "Recommandé",
   fix: "Compléter",
   items: {
     published: {
@@ -41,6 +42,18 @@ export const checklistFr = {
     availability: {
       label: "Disponibilité à jour",
       why: "Une date dépassée dit une chose fausse aux moteurs ; à jour, elle répond à « disponible quand ? ».",
+    },
+    experience: {
+      label: "Au moins une expérience",
+      why: "Vos expériences datées disent aux moteurs ce que vous avez fait, où et quand.",
+    },
+    languages: {
+      label: "Langues",
+      why: "Beaucoup de demandes précisent une langue de travail : sans elle, la page ne peut pas y répondre.",
+    },
+    photo: {
+      label: "Photo (recommandée)",
+      why: "Facultative : visible seulement sur un profil publié sous votre nom, elle rend la page plus parlante.",
     },
     provenAddress: {
       label: "Au moins une adresse prouvée",

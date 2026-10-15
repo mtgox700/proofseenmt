@@ -7,7 +7,10 @@ import { MIN_SKILLS, MIN_SUMMARY_CHARS } from "@proofseen/profiles";
  * ones the public pages already apply to decide a profile is not thin content (`@proofseen/profiles`).
  */
 
-export const CHECKLIST_KEYS = ["published", "headline", "summary", "skills", "city", "workMode", "dailyRate", "availability", "provenAddress", "siret", "vigilance"] as const;
+export const CHECKLIST_KEYS = ["published", "headline", "summary", "skills", "city", "workMode", "dailyRate", "availability", "experience", "languages", "photo", "provenAddress", "siret", "vigilance"] as const;
+
+/** Recommended, not required: shown as such, and never counted as missing. */
+export const OPTIONAL_KEYS: readonly ChecklistKey[] = ["photo"];
 
 export type ChecklistKey = (typeof CHECKLIST_KEYS)[number];
 
@@ -24,11 +27,13 @@ export interface ChecklistItem {
   readonly note: ChecklistNote | null;
   /** The exact page, and field when there is one, where the person fixes it. */
   readonly href: string;
+  /** Recommended only: not done is not counted as missing. */
+  readonly optional: boolean;
 }
 
 export interface Checklist {
   readonly items: readonly ChecklistItem[];
-  /** How many items are not done: a count of facts, not a quality measure. */
+  /** How many required items are not done: a count of facts, not a quality measure. */
   readonly missing: number;
 }
 
@@ -45,7 +50,15 @@ export interface ChecklistInput {
   readonly billing: { readonly siret: string | null; readonly registry: RegistryView } | null;
   /** The URSSAF certificate, `null` without a profile. */
   readonly vigilance: Pick<VigilanceStatus, "state" | "verified"> | null;
+  /** The declared sections, `null` without a profile. */
+  readonly sections: ChecklistSections | null;
   readonly now: Date;
+}
+
+export interface ChecklistSections {
+  readonly hasPhoto: boolean;
+  readonly languages: number;
+  readonly experiences: number;
 }
 
 export { MIN_SKILLS, MIN_SUMMARY_CHARS };
@@ -68,6 +81,9 @@ const GROUPS: Readonly<Record<ChecklistKey, ChecklistGroup>> = {
   workMode: "page",
   dailyRate: "page",
   availability: "page",
+  experience: "page",
+  languages: "page",
+  photo: "page",
   provenAddress: "proof",
   siret: "proof",
   vigilance: "proof",
@@ -83,12 +99,23 @@ const TARGETS: Readonly<Record<ChecklistKey, string>> = {
   workMode: "profil#workMode",
   dailyRate: "profil#rate",
   availability: "profil#availability",
+  experience: "profil#experiences",
+  languages: "profil#langues",
+  photo: "profil#photo",
   provenAddress: "preuves",
   siret: "facturation#siret",
   vigilance: "facturation#vigilance-title",
 };
 
-const profileChecks = (p: ChecklistProfile, now: Date): Record<Exclude<ChecklistKey, "siret" | "vigilance">, Check> => ({
+type ProfileKey = Exclude<ChecklistKey, "siret" | "vigilance" | "experience" | "languages" | "photo">;
+
+const sectionChecks = (sections: ChecklistSections | null): Record<"experience" | "languages" | "photo", Check> => ({
+  experience: check((sections?.experiences ?? 0) >= 1),
+  languages: check((sections?.languages ?? 0) >= 1),
+  photo: check(sections?.hasPhoto === true),
+});
+
+const profileChecks = (p: ChecklistProfile, now: Date): Record<ProfileKey, Check> => ({
   published: check(p.visibility !== "private"),
   headline: check(p.headline !== null && p.headline.trim() !== ""),
   summary: check(p.summary !== null && p.summary.trim().length >= MIN_SUMMARY_CHARS, p.summary === null || p.summary.trim() === "" ? null : "too_short"),
@@ -119,7 +146,7 @@ export const profileChecklist = (input: ChecklistInput): Checklist => {
   const checks: Record<ChecklistKey, Check> =
     input.profile === null
       ? (Object.fromEntries(CHECKLIST_KEYS.map((key) => [key, MISSING])) as Record<ChecklistKey, Check>)
-      : { ...profileChecks(input.profile, input.now), siret: siretCheck(input.billing), vigilance: vigilanceCheck(input.vigilance) };
-  const items = CHECKLIST_KEYS.map((key) => ({ key, group: GROUPS[key], ...checks[key], href: `/${input.lang}/app/${TARGETS[key]}` }));
-  return { items, missing: items.filter((item) => !item.done).length };
+      : { ...profileChecks(input.profile, input.now), ...sectionChecks(input.sections), siret: siretCheck(input.billing), vigilance: vigilanceCheck(input.vigilance) };
+  const items = CHECKLIST_KEYS.map((key) => ({ key, group: GROUPS[key], ...checks[key], href: `/${input.lang}/app/${TARGETS[key]}`, optional: OPTIONAL_KEYS.includes(key) }));
+  return { items, missing: items.filter((item) => !item.done && !item.optional).length };
 };

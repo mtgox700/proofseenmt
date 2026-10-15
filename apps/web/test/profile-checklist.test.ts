@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHECKLIST_KEYS, MIN_SKILLS, MIN_SUMMARY_CHARS, profileChecklist, type ChecklistInput, type ChecklistKey, type ChecklistProfile } from "../src/lib/profile-checklist";
+import { CHECKLIST_KEYS, MIN_SKILLS, MIN_SUMMARY_CHARS, OPTIONAL_KEYS, profileChecklist, type ChecklistInput, type ChecklistKey, type ChecklistProfile } from "../src/lib/profile-checklist";
 
 const NOW = new Date("2026-10-14T10:00:00Z");
 
@@ -21,6 +21,7 @@ const ALL_DONE: ChecklistInput = {
   profile: COMPLETE,
   billing: { siret: "73282932000074", registry: { status: "active", checkedAt: NOW } },
   vigilance: { state: "valid", verified: true },
+  sections: { hasPhoto: true, languages: 2, experiences: 3 },
   now: NOW,
 };
 
@@ -52,7 +53,7 @@ describe("profile checklist", () => {
 
   it("marks everything missing without a profile", () => {
     const list = profileChecklist({ ...ALL_DONE, profile: null });
-    expect(list.missing).toBe(CHECKLIST_KEYS.length);
+    expect(list.missing).toBe(CHECKLIST_KEYS.length - OPTIONAL_KEYS.length);
     expect(list.items.every((i) => !i.done && i.note === null)).toBe(true);
   });
 
@@ -110,6 +111,16 @@ describe("profile checklist", () => {
     expect(item({ ...ALL_DONE, vigilance: { state: "missing", verified: false } }, "vigilance")).toMatchObject({ done: false, note: null });
     expect(item({ ...ALL_DONE, vigilance: { state: "expired", verified: true } }, "vigilance")).toMatchObject({ done: false, note: "expired" });
     expect(item({ ...ALL_DONE, vigilance: { state: "valid", verified: false } }, "vigilance")).toMatchObject({ done: false, note: "awaiting_operator" });
+  });
+
+  it("needs at least one experience and one language; the photo is only recommended", () => {
+    const bare = { ...ALL_DONE, sections: { hasPhoto: false, languages: 0, experiences: 0 } };
+    expect(item(bare, "experience")).toMatchObject({ done: false, optional: false, href: "/fr/app/profil#experiences" });
+    expect(item(bare, "languages")).toMatchObject({ done: false, optional: false, href: "/fr/app/profil#langues" });
+    expect(item(bare, "photo")).toMatchObject({ done: false, optional: true, href: "/fr/app/profil#photo" });
+    // The missing photo is shown, never counted.
+    expect(profileChecklist(bare).missing).toBe(2);
+    expect(profileChecklist({ ...ALL_DONE, sections: null }).missing).toBe(2);
   });
 
   it("counts the missing facts, nothing more", () => {

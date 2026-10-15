@@ -9,6 +9,7 @@ export const checklistEn: ChecklistDictionary = {
   groups: { page: "On your page", proof: "What proves it" },
   done: "Done",
   todo: "Missing",
+  recommended: "Recommended",
   fix: "Add it",
   items: {
     published: {
@@ -42,6 +43,18 @@ export const checklistEn: ChecklistDictionary = {
     availability: {
       label: "Availability up to date",
       why: "A date in the past tells engines something false; up to date, it answers \"available when?\".",
+    },
+    experience: {
+      label: "At least one experience",
+      why: "Dated experience tells engines what you did, where and when.",
+    },
+    languages: {
+      label: "Languages",
+      why: "Many requests name a working language: without it, the page cannot answer them.",
+    },
+    photo: {
+      label: "Photo (recommended)",
+      why: "Optional: shown only on a profile published under your name, it makes the page more telling.",
     },
     provenAddress: {
       label: "At least one proven address",

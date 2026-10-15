@@ -15,7 +15,7 @@ const labelOf = (key: ChecklistKey, c: ChecklistDictionary): string => {
 function Item({ c, item }: { readonly c: ChecklistDictionary; readonly item: ChecklistItem }) {
   return (
     <li data-done={item.done ? "" : undefined}>
-      <span className={item.done ? "tag tag-proof" : "tag tag-signal"}>{item.done ? c.done : c.todo}</span>
+      <span className={item.done ? "tag tag-proof" : item.optional ? "tag tag-quiet" : "tag tag-signal"}>{item.done ? c.done : item.optional ? c.recommended : c.todo}</span>
       <div className="vis-todo-body">
         <strong>{labelOf(item.key, c)}</strong>
         {item.note === null ? null : <span>{c.notes[item.note]}</span>}
