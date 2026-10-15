@@ -28,6 +28,7 @@ export const searchFr = {
     rateHint: "Un profil qui n'affiche pas de TJM sort dès qu'une borne est posée.",
     availableBy: "Disponible au plus tard le",
     availableOnly: "Exclure les profils indisponibles",
+    availabilityFresh: (days: number) => `Ces deux filtres ne retiennent que les disponibilités confirmées par le freelance il y a ${days} jours au plus.`,
     facts: "Faits vérifiés",
     proven: "Adresse web dont la possession est prouvée",
     registry: "SIRET actif au répertoire officiel",

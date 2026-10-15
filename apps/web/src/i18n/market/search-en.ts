@@ -28,6 +28,7 @@ export const searchEn: SearchDictionary = {
     maxRate: "Maximum daily rate (€)",
     rateHint: "A profile that shows no daily rate is left out as soon as a bound is set.",
     availableBy: "Available on or before",
+    availabilityFresh: (days: number) => `These two filters only keep availability the freelancer confirmed within the last ${days} days.`,
     availableOnly: "Leave out unavailable profiles",
     facts: "Verified facts",
     proven: "Web address with proven ownership",

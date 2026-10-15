@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AVAILABILITY_FRESH_DAYS } from "@proofseen/db";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
 import { centsToField } from "@/lib/mission-form";
@@ -54,6 +55,7 @@ export function SearchFilters({ lang, m, query }: SearchFiltersProps) {
           <input id="search-available-only" name="disponible" value="1" type="checkbox" defaultChecked={query.availableOnly} />
           <label htmlFor="search-available-only">{f.availableOnly}</label>
         </div>
+        <p className="field-hint">{f.availabilityFresh(AVAILABILITY_FRESH_DAYS)}</p>
       </div>
       <fieldset className="fieldset">
         <legend>{f.facts}</legend>
