@@ -48,6 +48,19 @@ describe("vues de profil", () => {
     ]);
   });
 
+  it("n'écrit plus d'empreinte au-delà du plafond du jour pour un profil (revue vague 3, M4)", async () => {
+    const p = await published();
+    const stats = audienceStats(t.db, { maxSightingsPerProfileDay: 3 });
+    const hashes = ["CCCCCCCCCCCCCCCCCCCCCC", "DDDDDDDDDDDDDDDDDDDDDD", "EEEEEEEEEEEEEEEEEEEEEE", "FFFFFFFFFFFFFFFFFFFFFF", "GGGGGGGGGGGGGGGGGGGGGG"];
+    const counted = [];
+    for (const hash of hashes) counted.push(await stats.recordView(p.reference, visitor(hash)));
+    expect(counted).toEqual([true, true, true, false, false]);
+    expect(await t.db.profileStatSeen.count({ where: { profileId: p.profileId } })).toBe(3);
+    expect(await statsOf(p.profileId)).toEqual([{ views: 3, searchAppearances: 0, directoryAppearances: 0, listAdds: 0 }]);
+    // Le lendemain, le compte repart.
+    expect(await stats.recordView(p.reference, visitor(HASH_A, "2026-10-16"))).toBe(true);
+  });
+
   it("ne compte ni le propriétaire connecté, ni un profil privé, ni une référence inconnue", async () => {
     const p = await published();
     const stats = audienceStats(t.db);

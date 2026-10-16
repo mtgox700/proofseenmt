@@ -4,15 +4,18 @@ import { AI_SEARCH_BOTS } from "@proofseen/hub";
 /*
  * Who counts as a visitor, and how a visitor is recognised for one day without being identified.
  *
- * The fingerprint is an HMAC of the address and the browser string under a key derived from the server secret and the
- * date: tomorrow's key is unrelated to today's, so a fingerprint links nothing across days, and the address itself is
- * never written anywhere. Crawlers (the AI and search bots that marketplace-verify checks, and generic automation) are
+ * The fingerprint is an HMAC of the address under a key derived from the server secret and the date: tomorrow's key is
+ * unrelated to today's, so a fingerprint links nothing across days, and the address itself is never written anywhere.
+ * The browser string only splits one address into MAX_AGENTS_PER_ADDRESS buckets (a household or an office behind one
+ * address counts as a few people): rotating it does not inflate the count past that (wave-3 review, M4). Crawlers (the AI and search bots that marketplace-verify checks, and generic automation) are
  * not visitors: a profile's audience is people.
  */
 
 const MIN_SECRET_LENGTH = 32;
 const HASH_LENGTH = 22;
 const MAX_AGENT_LENGTH = 512;
+/** Distinct visitors one address can make in a day, whatever browser strings it sends. */
+export const MAX_AGENTS_PER_ADDRESS = 3;
 
 /** Agents named on top of the bots every public page must stay open to. */
 const NAMED_AGENTS = [
@@ -63,9 +66,12 @@ export const audienceSecret = (env: Readonly<Record<string, string | undefined>>
 /** The key of one day (`AAAA-MM-JJ`), derived from the secret under its own label. */
 const dailyKey = (secret: string, day: string): Buffer => createHmac("sha256", `proofseen:audience:v1:${secret}`).update(day).digest();
 
+/** Which of the MAX_AGENTS_PER_ADDRESS buckets a browser string falls in, under the key of the day. */
+const agentBucket = (key: Buffer, userAgent: string): number =>
+  createHmac("sha256", key).update(`agent:${userAgent.slice(0, MAX_AGENT_LENGTH)}`).digest().readUInt32BE(0) % MAX_AGENTS_PER_ADDRESS;
+
 /** The visitor's fingerprint for that day: 22 base64url characters, never the address. */
-export const viewerHash = (secret: string, day: string, address: string, userAgent: string): string =>
-  createHmac("sha256", dailyKey(secret, day))
-    .update(`${address}\n${userAgent.slice(0, MAX_AGENT_LENGTH)}`)
-    .digest("base64url")
-    .slice(0, HASH_LENGTH);
+export const viewerHash = (secret: string, day: string, address: string, userAgent: string): string => {
+  const key = dailyKey(secret, day);
+  return createHmac("sha256", key).update(`visitor:${address}:${agentBucket(key, userAgent)}`).digest("base64url").slice(0, HASH_LENGTH);
+};

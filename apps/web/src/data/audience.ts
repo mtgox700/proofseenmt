@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { audienceStats, getDb, parisDay, type Actor, type AppearanceScope, type Sighting, type StatKeyword } from "@proofseen/db";
+import { audienceWriteAllowed } from "./audience-rate";
 import { hasDatabase } from "./intake-sink";
 import { addressFromHeaders } from "./throttle";
 import { audienceSecret, isAutomatedAgent, isSpeculative, viewerHash } from "../lib/audience";
@@ -9,7 +10,8 @@ import { logError } from "../lib/log";
 /*
  * Counting profile views and appearances. Always called from `after()`: the page is already sent when this runs, it
  * never changes a byte of what was served, and a failure is logged, never shown. The database receives totals and a
- * one-day fingerprint, never the address or the browser string.
+ * one-day fingerprint, never the address or the browser string. Each address writes at most AUDIENCE_RATE times a
+ * minute (audience-rate.ts), and the database stops taking fingerprints for a profile past its daily cap.
  */
 
 const PURGE_PROBABILITY = 0.01;
@@ -65,7 +67,7 @@ const maybePurge = async (day: string): Promise<void> => {
 export const countProfileView = async (headers: Headers, reference: string, now: Date = new Date()): Promise<void> => {
   try {
     const sighting = sightingOf(headers, await signedInClerkId(), now);
-    if (sighting === null) return;
+    if (sighting === null || !(await audienceWriteAllowed(headers, now))) return;
     await audienceStats(getDb()).recordView(reference, sighting);
     await maybePurge(sighting.day);
   } catch (error) {
@@ -78,7 +80,7 @@ export const countDirectoryAppearances = async (headers: Headers, references: re
   if (references.length === 0) return;
   try {
     const sighting = sightingOf(headers, await signedInClerkId(), now);
-    if (sighting === null) return;
+    if (sighting === null || !(await audienceWriteAllowed(headers, now))) return;
     await audienceStats(getDb()).recordAppearances("directory", references, sighting);
   } catch (error) {
     logError("audience: directory appearances not counted", error);
@@ -102,7 +104,7 @@ export const countSearch = async (search: SearchCount, now: Date = new Date()): 
     const stats = audienceStats(getDb());
     if (search.firstPage) await stats.recordSearch(search.actor, search.organisationId, parisDay(now));
     const sighting = sightingOf(search.headers, search.clerkId, now);
-    if (sighting === null || search.references.length === 0) return;
+    if (sighting === null || search.references.length === 0 || !(await audienceWriteAllowed(search.headers, now))) return;
     const scope: AppearanceScope = "search";
     await stats.recordAppearances(scope, search.references, sighting, search.keywords);
   } catch (error) {

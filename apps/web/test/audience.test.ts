@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { audienceSecret, isAutomatedAgent, isSpeculative, viewerHash } from "../src/lib/audience";
+import { audienceSecret, isAutomatedAgent, isSpeculative, MAX_AGENTS_PER_ADDRESS, viewerHash } from "../src/lib/audience";
 
 /*
  * Who counts as a visitor, and what is kept of them: a one-day fingerprint that never contains the address and links
@@ -55,6 +55,13 @@ describe("viewerHash", () => {
     expect(viewerHash(SECRET, "2026-10-15", "203.0.113.8", CHROME)).not.toBe(today);
     expect(viewerHash(SECRET, "2026-10-15", "203.0.113.7", SAFARI)).not.toBe(today);
     expect(viewerHash(`${SECRET}x`, "2026-10-15", "203.0.113.7", CHROME)).not.toBe(today);
+  });
+
+  it("rotating the browser string from one address makes at most a few visitors, never one per request (wave-3 review, M4)", () => {
+    const hashes = new Set(Array.from({ length: 200 }, (_, i) => viewerHash(SECRET, "2026-10-15", "203.0.113.7", `${CHROME} rotated/${i}`)));
+    expect(hashes.size).toBeGreaterThan(1);
+    expect(hashes.size).toBeLessThanOrEqual(MAX_AGENTS_PER_ADDRESS);
+    expect(MAX_AGENTS_PER_ADDRESS).toBe(3);
   });
 
   it("has the shape the database accepts, and never contains the address", () => {

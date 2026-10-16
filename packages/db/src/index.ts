@@ -388,7 +388,7 @@ export {
 } from "./app-notifications";
 export { LIVE_CHANNEL, liveAudience, LiveSignalSchema, parseLiveSignal, type ConversationParties, type LiveAudience, type LiveCounts, type LiveSignal } from "./live";
 export { DIGEST_HOUR_PARIS, messageDigests, parisDayStart, type DigestThread, type DueDigest, type MessageDigests } from "./message-digest";
-export { APPEARANCE_SCOPES, audienceStats, MAX_KEYWORDS_PER_DAY, statKeywords, type AppearanceScope, type AudienceStats, type Sighting, type StatKeyword } from "./audience-stats";
+export { APPEARANCE_SCOPES, audienceStats, MAX_KEYWORDS_PER_DAY, MAX_SIGHTINGS_PER_PROFILE_DAY, statKeywords, type AppearanceScope, type AudienceStats, type AudienceStatsOptions, type Sighting, type StatKeyword } from "./audience-stats";
 export { dayOf, daysEnding, isDay, monthOf, monthsEnding, parisDay, retentionStart, STATS_RETENTION_MONTHS, STATS_WINDOW_DAYS } from "./stat-days";
 export { freelanceInsights, REVENUE_MONTHS, TOP_KEYWORDS, type DailyAudience, type FreelanceInsights, type FreelanceInsightsRepository, type KeywordCount, type MonthlyRevenue } from "./freelance-insights";
 export { COMPANY_MONTHS, companyInsights, medianDays, type CompanyInsights, type CompanyInsightsRepository, type CostCentreSpend, type MonthlySpend } from "./company-insights";
