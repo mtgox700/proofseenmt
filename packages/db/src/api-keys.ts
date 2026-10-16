@@ -1,12 +1,17 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import type { Db } from "./client";
+import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
 
 /*
  * Les clés d'API d'une entreprise : créées et révoquées par ses propriétaires et administrateurs, en lecture seule, et
  * limitées aux données de cette entreprise. La clé n'est montrée qu'une fois ; la base n'en garde que l'empreinte
  * SHA-256 (une clé de 256 bits tirée au hasard n'a pas besoin d'un hachage lent) et un préfixe pour la reconnaître.
+ *
+ * Une clé ne sert que tant que quelqu'un répond de l'entreprise (revue de sécurité vague 3, M6) : au moins un
+ * propriétaire ou administrateur non suspendu, et l'entreprise pas masquée par un opérateur. La suspension d'un compte
+ * révoque en plus les clés qu'il a créées (`user-desk.ts`).
  */
 
 const Uuid = z.uuid();
@@ -46,6 +51,9 @@ const SUMMARY = { id: true, name: true, prefix: true, createdAt: true, lastUsedA
 
 const adminOf = (actor: Actor) => ({ members: { some: { userId: actor.userId, role: { in: [...ADMIN_ROLES] } } } });
 
+/** Une entreprise dont quelqu'un répond encore : pas masquée, et un propriétaire ou administrateur actif. */
+const ANSWERABLE = { suspendedAt: null, members: { some: { role: { in: [...ADMIN_ROLES] }, user: { suspendedAt: null } } } } satisfies Prisma.OrganisationWhereInput;
+
 export const apiKeys = (db: Db) => ({
   /** Crée une clé pour l'entreprise ; la clé en clair n'est rendue qu'ici. */
   async create(actor: Actor, organisationId: string, rawName: string, now: Date): Promise<CreateKeyResult> {
@@ -82,10 +90,16 @@ export const apiKeys = (db: Db) => ({
     return count === 1;
   },
 
-  /** L'entreprise derrière une clé, ou `null` si la clé est mal formée, inconnue ou révoquée. */
+  /**
+   * L'entreprise derrière une clé, ou `null` si la clé est mal formée, inconnue ou révoquée, ou si plus personne ne
+   * répond de l'entreprise (masquée, ou tous ses responsables suspendus).
+   */
   async authenticate(key: string, now: Date): Promise<ApiCaller | null> {
     if (!KEY_FORMAT.test(key)) return null;
-    const row = await db.apiKey.findUnique({ where: { hash: hashOf(key) }, select: { id: true, organisationId: true, revokedAt: true, lastUsedAt: true } });
+    const row = await db.apiKey.findFirst({
+      where: { hash: hashOf(key), organisation: ANSWERABLE },
+      select: { id: true, organisationId: true, revokedAt: true, lastUsedAt: true },
+    });
     if (row === null || row.revokedAt !== null) return null;
     if (row.lastUsedAt === null || now.getTime() - row.lastUsedAt.getTime() >= LAST_USED_GRANULARITY_MS) {
       await db.apiKey.updateMany({ where: { id: row.id, revokedAt: null }, data: { lastUsedAt: now } });

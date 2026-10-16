@@ -9,6 +9,7 @@ import { largeAccounts } from "../src/large-accounts";
 import { messaging } from "../src/messaging";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
+import { userDesk } from "../src/user-desk";
 import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, nextSiret, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance } from "./support/database";
 
 let t: TestDatabase;
@@ -190,6 +191,36 @@ describe("clés d'API", () => {
     const states = await Promise.all(keys.map((k) => apiKeys(t.db).authenticate(k.key, NOW)));
     expect(states.map((s) => s !== null)).toEqual([false, false, false, true]);
     expect(await t.db.apiKey.findUniqueOrThrow({ where: { id: keys[0]?.summary.id ?? "" }, select: { createdByUserId: true } })).toEqual({ createdByUserId: null });
+  });
+});
+
+describe("clés d'API d'une entreprise sans responsable actif (revue vague 3, M6)", () => {
+  it("la suspension d'un administrateur révoque ses clés, et le journal le dit", async () => {
+    const org = await company(1);
+    const admin = org.admins[0] ?? "";
+    const operator = { role: "operator" as const, userId: await createUser(t.db) };
+    const created = await apiKeys(t.db).create({ userId: admin }, org.id, "ERP", NOW);
+    const kept = await apiKeys(t.db).create({ userId: org.owner }, org.id, "Compta", NOW);
+    if (created.kind !== "created" || kept.kind !== "created") throw new Error("clé non créée");
+    expect(await userDesk(t.db, operator).suspend(admin, "Fraude avérée", NOW)).toBe("done");
+    expect(await apiKeys(t.db).authenticate(created.key, NOW)).toBeNull();
+    expect(await apiKeys(t.db).authenticate(kept.key, NOW)).not.toBeNull();
+    expect((await t.db.operatorAction.findFirstOrThrow({ where: { targetId: admin, action: "user_suspended" } })).metadata).toMatchObject({ apiKeysRevoked: 1 });
+  });
+
+  it("une clé est refusée quand tous les propriétaires et administrateurs sont suspendus, ou l'entreprise masquée", async () => {
+    const org = await company(0);
+    const created = await apiKeys(t.db).create({ userId: org.owner }, org.id, "ERP", NOW);
+    if (created.kind !== "created") throw new Error(created.kind);
+    const member = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId: org.id, userId: member, role: "member" } });
+    // Écriture directe : la suspension par le back-office aurait aussi révoqué la clé.
+    await t.db.user.update({ where: { id: org.owner }, data: { suspendedAt: NOW, suspensionReason: "Fraude avérée" } });
+    expect(await apiKeys(t.db).authenticate(created.key, NOW)).toBeNull();
+    await t.db.user.update({ where: { id: org.owner }, data: { suspendedAt: null, suspensionReason: null } });
+    expect(await apiKeys(t.db).authenticate(created.key, NOW)).not.toBeNull();
+    await t.db.organisation.update({ where: { id: org.id }, data: { suspendedAt: NOW, suspensionReason: "Fraude avérée" } });
+    expect(await apiKeys(t.db).authenticate(created.key, NOW)).toBeNull();
   });
 });
 

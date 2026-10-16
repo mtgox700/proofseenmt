@@ -80,7 +80,11 @@ export const userDesk = (db: Db, operator: Operator): UserDesk => {
         data: suspend ? { suspendedAt: now, suspensionReason: reason } : { suspendedAt: null, suspensionReason: null },
       });
       if (count === 0) return "unchanged";
-      await recordAction(tx, operator, { action: suspend ? "user_suspended" : "user_restored", targetType: "user", targetId: userId, reason }, now);
+      // Les clés d'API créées par un compte suspendu sont révoquées pour toujours, et le journal en garde le nombre
+      // (revue de sécurité vague 3, M6). Rétablir le compte ne les rend pas.
+      const revoked = suspend ? (await tx.apiKey.updateMany({ where: { createdByUserId: userId, revokedAt: null }, data: { revokedAt: now } })).count : 0;
+      const metadata = suspend ? { apiKeysRevoked: revoked } : {};
+      await recordAction(tx, operator, { action: suspend ? "user_suspended" : "user_restored", targetType: "user", targetId: userId, reason, metadata }, now);
       await notifyAccount(tx, [userId], suspend ? "account_suspended" : "account_restored", reason);
       return "done";
     });
