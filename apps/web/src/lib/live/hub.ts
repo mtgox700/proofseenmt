@@ -10,6 +10,10 @@ import type { ConversationParties, LiveCounts, LiveSignal } from "@proofseen/db"
  * access-controlled routes.
  *
  * The listener starts with the first subscriber. Streams are capped per person (tabs) and per container.
+ *
+ * After the listener reconnects, every screen re-reads, each after its own random delay below `resyncJitterMs`, so a
+ * database restart is not followed by every open tab querying at the same instant (wave-3 review, L7). A suspended
+ * account loses its open streams at once (L12): the browser reconnects, and the stream route refuses it.
  */
 
 export type LiveOut =
@@ -20,6 +24,8 @@ export type LiveOut =
 
 export interface LiveSink {
   send(event: LiveOut): void;
+  /** Ends the stream from the server side (account suspended). */
+  close?(): void;
 }
 
 export interface LiveSource {
@@ -36,6 +42,10 @@ export interface HubOptions {
   readonly maxTotal: number;
   /** Counter refreshes for one person are grouped over this delay: ten messages in a burst cost one query. */
   readonly countsDelayMs: number;
+  /** Re-reads after a reconnection are spread over this delay. */
+  readonly resyncJitterMs: number;
+  /** Injected in tests; `Math.random` by default. */
+  readonly random?: () => number;
   readonly log: (message: string, error?: unknown) => void;
 }
 
@@ -77,9 +87,26 @@ export const createLiveHub = (source: LiveSource, audience: LiveAudienceLike, op
     }, options.countsDelayMs);
   };
 
+  const random = options.random ?? Math.random;
+
+  /** Closes every open stream of one person; each stream unsubscribes itself as it closes. */
+  const drop = (userId: string): void => {
+    for (const sink of [...(sinks.get(userId) ?? [])]) {
+      try {
+        sink.close?.();
+      } catch (error) {
+        options.log("live hub: close failed", error);
+      }
+    }
+  };
+
   const dispatch = async (signal: LiveSignal): Promise<void> => {
     if (signal.kind === "notification") {
       refreshCounts(signal.userId);
+      return;
+    }
+    if (signal.kind === "suspended") {
+      drop(signal.userId);
       return;
     }
     const parties = await audience.parties(signal.conversationId);
@@ -109,10 +136,13 @@ export const createLiveHub = (source: LiveSource, audience: LiveAudienceLike, op
         dispatch(signal).catch((error: unknown) => options.log("live hub: dispatch failed", error));
       },
       onReconnect: () => {
-        // Signals may have been lost while the connection was down: every screen re-reads.
-        for (const userId of sinks.keys()) {
-          sendTo(userId, { type: "resync" });
-          refreshCounts(userId);
+        // Signals may have been lost while the connection was down: every screen re-reads, not all at once.
+        for (const userId of [...sinks.keys()]) {
+          const timer = setTimeout(() => {
+            sendTo(userId, { type: "resync" });
+            refreshCounts(userId);
+          }, Math.floor(random() * options.resyncJitterMs));
+          timer.unref?.();
         }
       },
     });

@@ -3,6 +3,7 @@ import { assertOperator, notifyAccount, ReasonSchema, recordAction, type Operato
 import type { Db } from "./client";
 import type { MemberRole, OperatorActionKind, ProfileVisibility } from "./generated/enums";
 import { gdpr, type UserExport } from "./gdpr";
+import { LIVE_CHANNEL } from "./live";
 
 /*
  * Les comptes vus par l'opérateur (C19) : recherche par adresse ou par référence, résumé du compte, suspension, export
@@ -86,6 +87,8 @@ export const userDesk = (db: Db, operator: Operator): UserDesk => {
       const metadata = suspend ? { apiKeysRevoked: revoked } : {};
       await recordAction(tx, operator, { action: suspend ? "user_suspended" : "user_restored", targetType: "user", targetId: userId, reason, metadata }, now);
       await notifyAccount(tx, [userId], suspend ? "account_suspended" : "account_restored", reason);
+      // Les flux en direct ouverts par la personne sont coupés à la validation de la transaction (revue vague 3, L12).
+      if (suspend) await tx.$executeRaw`SELECT pg_notify(${LIVE_CHANNEL}, ${JSON.stringify({ kind: "suspended", userId })})`;
       return "done";
     });
   };

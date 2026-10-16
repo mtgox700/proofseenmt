@@ -18,6 +18,8 @@ export const LiveSignalSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("message"), conversationId: z.uuid(), senderUserId: z.uuid().nullable() }),
   z.object({ kind: z.literal("read"), conversationId: z.uuid(), userId: z.uuid(), readAt: z.iso.datetime({ offset: true }) }),
   z.object({ kind: z.literal("notification"), userId: z.uuid() }),
+  // Compte suspendu par un opérateur (revue vague 3, L12) : ses flux ouverts sont coupés.
+  z.object({ kind: z.literal("suspended"), userId: z.uuid() }),
 ]);
 
 export type LiveSignal = z.infer<typeof LiveSignalSchema>;

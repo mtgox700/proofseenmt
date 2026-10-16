@@ -5,8 +5,9 @@ import { z } from "zod";
  * counters, the open thread, the inbox). Opened with the first listener, closed shortly after the last one leaves.
  *
  * The browser reconnects by itself after a drop (the server sets the delay). When the server refuses the stream
- * (signed out, too many tabs, throttled), the EventSource gives up; it is tried again after a minute while someone
- * still listens. Without EventSource, nothing happens: every page still works by reloading.
+ * (signed out, too many tabs, throttled), the EventSource gives up; it is tried again after a minute and a random part
+ * of another (wave-3 review, L7), so that refused tabs do not all come back at the same instant, while someone still
+ * listens. Without EventSource, nothing happens: every page still works by reloading.
  */
 
 const LiveEventSchema = z.discriminatedUnion("type", [
@@ -21,6 +22,7 @@ export type LiveListener = (event: LiveEvent) => void;
 
 const STREAM_URL = "/api/messages/stream";
 const REOPEN_AFTER_REFUSAL_MS = 60_000;
+const REOPEN_JITTER_MS = 60_000;
 const CLOSE_DELAY_MS = 1_000;
 
 const listeners = new Set<LiveListener>();
@@ -61,7 +63,7 @@ const open = (): void => {
       reopenTimer = setTimeout(() => {
         reopenTimer = null;
         if (listeners.size > 0) open();
-      }, REOPEN_AFTER_REFUSAL_MS);
+      }, REOPEN_AFTER_REFUSAL_MS + Math.floor(Math.random() * REOPEN_JITTER_MS));
     }
   };
 };

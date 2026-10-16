@@ -25,6 +25,11 @@ export interface StreamOptions {
   readonly maxLifetimeMs: number;
   /** Delay the browser waits before reconnecting after a drop. */
   readonly retryMs: number;
+  /**
+   * Each stream adds a random part below this to `retryMs` (wave-3 review, L7): after a restart, the browsers come
+   * back spread over that window instead of all at once.
+   */
+  readonly retryJitterMs?: number;
   readonly log: (message: string, error?: unknown) => void;
 }
 
@@ -68,7 +73,7 @@ export const openLiveStream = (hub: LiveHub, userId: string, signal: AbortSignal
     }
   };
 
-  const unsubscribe = hub.subscribe(userId, { send: (event) => write(sseFrame(event)) });
+  const unsubscribe = hub.subscribe(userId, { send: (event) => write(sseFrame(event)), close: () => close() });
   if (unsubscribe === "too_many") return TOO_MANY();
   if (signal.aborted) {
     // The browser left before the stream opened: 204 also tells an EventSource not to reconnect.
@@ -80,7 +85,7 @@ export const openLiveStream = (hub: LiveHub, userId: string, signal: AbortSignal
   const stream = new ReadableStream<Uint8Array>({
     start(c) {
       controller = c;
-      write(`retry: ${options.retryMs}\n\n`);
+      write(`retry: ${options.retryMs + Math.floor(Math.random() * (options.retryJitterMs ?? 0))}\n\n`);
       for (const chunk of backlog.splice(0)) write(chunk);
       initialCounts()
         .then((counts) => write(sseFrame({ type: "counts", messages: counts.messages, notifications: counts.notifications })))

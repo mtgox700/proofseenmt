@@ -26,6 +26,7 @@ export const liveHub = (): LiveHub => {
     maxPerUser: MAX_STREAMS_PER_USER,
     maxTotal: MAX_STREAMS_TOTAL,
     countsDelayMs: 250,
+    resyncJitterMs: 5_000,
     log: logError,
   });
   store[KEY] = hub;

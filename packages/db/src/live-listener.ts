@@ -9,7 +9,9 @@ import { LIVE_CHANNEL, parseLiveSignal, type LiveSignal } from "./live";
  * Une connexion coupée (base redémarrée, réseau, proxy de Railway qui ferme une connexion muette) est rouverte avec
  * une attente croissante, et l'application est prévenue (`onReconnect`) : les signaux émis pendant la coupure sont
  * perdus, les écrans doivent relire. Un `SELECT 1` régulier garde la connexion vivante et détecte une coupure
- * silencieuse.
+ * silencieuse : sans réponse sous `pingTimeoutMs`, la connexion est tenue pour morte et rouverte, et l'ouverture
+ * elle-même échoue au bout de `connectTimeoutMs` (revue de sécurité vague 3, L7) : une connexion muette ne laisse plus
+ * l'écouteur attendre indéfiniment.
  *
  * Cet écouteur est injecté dans l'application : les tests utilisent un faux, sans Postgres ni PGlite.
  */
@@ -25,24 +27,69 @@ export interface LiveListener {
   stop(): Promise<void>;
 }
 
+/** Ce que l'écouteur utilise d'une connexion `pg` ; une fausse la remplace dans les tests. */
+export interface ListenerClient {
+  connect(): Promise<unknown>;
+  query(text: string): Promise<unknown>;
+  end(): Promise<unknown>;
+  on(event: "notification", listener: (message: { readonly channel: string; readonly payload?: string | undefined }) => void): unknown;
+  on(event: "error", listener: (error: Error) => void): unknown;
+  on(event: "end", listener: () => void): unknown;
+  removeAllListeners(): unknown;
+}
+
+export interface ListenerClientConfig {
+  readonly connectionString: string;
+  readonly keepAlive: boolean;
+  readonly application_name: string;
+  readonly connectionTimeoutMillis: number;
+}
+
 export interface PgListenerOptions {
   /** Première attente avant de rouvrir, doublée à chaque échec jusqu'à `maxRetryMs`. */
   readonly retryMs?: number;
   readonly maxRetryMs?: number;
   readonly pingMs?: number;
+  /** Au-delà, un ping sans réponse fait rouvrir la connexion. */
+  readonly pingTimeoutMs?: number;
+  /** Délai d'ouverture d'une connexion. */
+  readonly connectTimeoutMs?: number;
+  /** Fabrique de la connexion ; `pg` par défaut. */
+  readonly createClient?: (config: ListenerClientConfig) => ListenerClient;
   /** Journal d'erreur : seulement le nom de l'erreur, un message de pilote peut contenir l'hôte de la base. */
   readonly log?: (message: string, error?: unknown) => void;
 }
 
-const DEFAULTS = { retryMs: 1_000, maxRetryMs: 30_000, pingMs: 60_000 } as const;
+const DEFAULTS = { retryMs: 1_000, maxRetryMs: 30_000, pingMs: 60_000, pingTimeoutMs: 8_000, connectTimeoutMs: 10_000 } as const;
+
+const pgClient = (config: ListenerClientConfig): ListenerClient => new Client({ ...config });
+
+/** Une requête qui doit répondre avant `ms`, ou échoue. */
+const within = (work: Promise<unknown>, ms: number): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("délai dépassé")), ms);
+    work.then(
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error("échec"));
+      },
+    );
+  });
 
 export const pgLiveListener = (connectionString: string, options: PgListenerOptions = {}): LiveListener => {
   const retryMs = options.retryMs ?? DEFAULTS.retryMs;
   const maxRetryMs = options.maxRetryMs ?? DEFAULTS.maxRetryMs;
   const pingMs = options.pingMs ?? DEFAULTS.pingMs;
+  const pingTimeoutMs = options.pingTimeoutMs ?? DEFAULTS.pingTimeoutMs;
+  const connectTimeoutMs = options.connectTimeoutMs ?? DEFAULTS.connectTimeoutMs;
+  const createClient = options.createClient ?? pgClient;
   const log = options.log ?? (() => undefined);
   let handlers: LiveHandlers | null = null;
-  let client: Client | null = null;
+  let client: ListenerClient | null = null;
   let stopped = false;
   let connectedOnce = false;
   let wait = retryMs;
@@ -74,7 +121,7 @@ export const pgLiveListener = (connectionString: string, options: PgListenerOpti
 
   const connect = async (): Promise<void> => {
     if (stopped) return;
-    const next = new Client({ connectionString, keepAlive: true, application_name: "proofseen-live" });
+    const next = createClient({ connectionString, keepAlive: true, application_name: "proofseen-live", connectionTimeoutMillis: connectTimeoutMs });
     client = next;
     next.on("notification", (message) => {
       if (message.channel !== LIVE_CHANNEL) return;
@@ -96,11 +143,18 @@ export const pgLiveListener = (connectionString: string, options: PgListenerOpti
     }
     if (client !== next) return;
     wait = retryMs;
+    let pinging = false;
     pingTimer = setInterval(() => {
-      next.query("SELECT 1").catch((error: unknown) => {
-        log("live listener: ping failed", error);
-        schedule();
-      });
+      if (pinging) return;
+      pinging = true;
+      within(next.query("SELECT 1"), pingTimeoutMs)
+        .catch((error: unknown) => {
+          log("live listener: ping failed", error);
+          if (client === next) schedule();
+        })
+        .finally(() => {
+          pinging = false;
+        });
     }, pingMs);
     pingTimer.unref?.();
     if (connectedOnce) handlers?.onReconnect();

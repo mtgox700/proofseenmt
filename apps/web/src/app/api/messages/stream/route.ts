@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const OPEN_RULE = { windowMs: 10 * 60_000, max: 60 };
-const OPTIONS = { heartbeatMs: 25_000, maxLifetimeMs: 15 * 60_000, retryMs: 5_000, log: logError } as const;
+const OPTIONS = { heartbeatMs: 25_000, maxLifetimeMs: 15 * 60_000, retryMs: 5_000, retryJitterMs: 10_000, log: logError } as const;
 
 export async function GET(request: Request): Promise<Response> {
   const who = await caller();

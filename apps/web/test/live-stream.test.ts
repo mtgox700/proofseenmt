@@ -51,9 +51,16 @@ const audience = {
   },
 };
 
-const setup = (overrides: { maxPerUser?: number; maxTotal?: number } = {}) => {
+const setup = (overrides: { maxPerUser?: number; maxTotal?: number; resyncJitterMs?: number; random?: () => number } = {}) => {
   const source = fakeSource();
-  const hub = createLiveHub(source, audience, { maxPerUser: overrides.maxPerUser ?? 5, maxTotal: overrides.maxTotal ?? 100, countsDelayMs: 0, log: () => undefined });
+  const hub = createLiveHub(source, audience, {
+    maxPerUser: overrides.maxPerUser ?? 5,
+    maxTotal: overrides.maxTotal ?? 100,
+    countsDelayMs: 0,
+    resyncJitterMs: overrides.resyncJitterMs ?? 0,
+    ...(overrides.random === undefined ? {} : { random: overrides.random }),
+    log: () => undefined,
+  });
   const inboxes = new Map<string, LiveOut[]>();
   const listen = (userId: string) => {
     const received: LiveOut[] = [];
@@ -138,6 +145,28 @@ describe("live hub", () => {
     await eventually(() => expect(owner.received[0]).toEqual({ type: "resync" }));
   });
 
+  it("spreads the re-reads after a reconnection over a random delay, so screens do not all hit the database at once (wave-3 review, L7)", async () => {
+    const { source, listen } = setup({ resyncJitterMs: 300, random: () => 0.9 });
+    const owner = listen(OWNER);
+    source.reconnect();
+    await settle();
+    expect(owner.received).toEqual([]);
+    await eventually(() => expect(owner.received[0]).toEqual({ type: "resync" }));
+  });
+
+  it("closes every open stream of an account as soon as it is suspended (wave-3 review, L12)", async () => {
+    const { source, hub } = setup();
+    const closed: string[] = [];
+    const sink = (name: string) => ({ send: () => undefined, close: () => closed.push(name) });
+    for (const name of ["tab-1", "tab-2"]) {
+      const unsubscribe = hub.subscribe(OWNER, sink(name));
+      if (unsubscribe === "too_many") throw new Error("too many");
+    }
+    hub.subscribe(FREELANCE, sink("other"));
+    source.emit({ kind: "suspended", userId: OWNER });
+    await eventually(() => expect(closed.sort()).toEqual(["tab-1", "tab-2"]));
+  });
+
   it("starts the listener once, with the first subscriber, and caps streams per person and in all", () => {
     const { source, hub, listen } = setup({ maxPerUser: 2, maxTotal: 3 });
     expect(source.starts).toBe(0);
@@ -205,6 +234,24 @@ describe("live stream (Server-Sent Events)", () => {
     expect(refused.status).toBe(429);
     abort.abort();
     expect(hub.size(OWNER)).toBe(0);
+  });
+
+  it("tells each browser a slightly different reconnection delay (wave-3 review, L7)", async () => {
+    const { hub } = setup();
+    const delays = new Set<number>();
+    for (let i = 0; i < 20; i += 1) {
+      const abort = new AbortController();
+      const response = openLiveStream(hub, FREELANCE, abort.signal, async () => ({ messages: 0, notifications: 0 }), { ...OPTIONS, retryJitterMs: 2_000 });
+      const reader = response.body?.getReader();
+      if (reader === undefined) throw new Error("no body");
+      const text = await readFrames(reader, (t) => t.includes("retry:"));
+      const delay = Number(/retry: (\d+)/.exec(text)?.[1]);
+      expect(delay).toBeGreaterThanOrEqual(OPTIONS.retryMs);
+      expect(delay).toBeLessThan(OPTIONS.retryMs + 2_000);
+      delays.add(delay);
+      abort.abort();
+    }
+    expect(delays.size).toBeGreaterThan(1);
   });
 
   it("ends by itself after its lifetime, so the session is checked again on reconnection", async () => {
