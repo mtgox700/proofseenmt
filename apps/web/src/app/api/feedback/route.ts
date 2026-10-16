@@ -1,5 +1,6 @@
 import type { NextResponse } from "next/server";
-import { feedback, FeedbackInputSchema, getDb, users } from "@proofseen/db";
+import { feedback, FeedbackInputSchema, getDb } from "@proofseen/db";
+import { accountUsers } from "@/data/accounts";
 import { clientAddress, throttled } from "@/data/throttle";
 import { hasDatabase } from "@/data/intake-sink";
 import { fail, invalid, jsonBody, ok, sameOrigin } from "@/lib/api";
@@ -27,7 +28,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const db = getDb();
     const userId =
       state.kind === "signed-in" && state.person.email !== ""
-        ? (await users(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name })).userId
+        ? (await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name })).userId
         : null;
     if (userId !== null && (await throttled("feedback-user", userId, RULE, now))) return fail("trop de demandes");
     await feedback(db).submit(userId, parsed.data);

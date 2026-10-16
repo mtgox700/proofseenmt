@@ -404,7 +404,8 @@ export { userDesk, type SuspendResult, type UserDesk, type UserHit, type UserSum
 export { APPEAL_PAGE, feedbackTriage, TRIAGE_PAGE_SIZE, TriageFilterSchema, TriageInputSchema, type FeedbackTriage, type TriageEntry, type TriageFilter } from "./feedback-triage";
 export { operatorStats, type MeasurementOversight, type OperatorStats } from "./operator-stats";
 export { accountNotices, type AccountNotices, type AccountStanding, type ModerationNotice } from "./account-notices";
-export { type EnsuredUser } from "./users";
+export { type EnsuredUser, type UsersOptions } from "./users";
+export { normalisedEmail, tombstoneHash, TOMBSTONE_RETENTION_YEARS } from "./erasure-tombstones";
 // Application installable et notifications poussées (C20).
 export {
   MAX_PUSH_SUBSCRIPTIONS,

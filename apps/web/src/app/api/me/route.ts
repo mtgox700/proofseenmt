@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { gdpr, getDb, storedFiles, users } from "@proofseen/db";
+import { erasureOptions } from "@/data/accounts";
 import { throttled } from "@/data/throttle";
 import { deleteStored } from "@/data/uploads";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
@@ -60,7 +61,7 @@ export async function DELETE(request: Request): Promise<NextResponse> {
   try {
     // The uploaded files' rows leave with the account (cascade): their ids are read first, so their bytes go too.
     const fileIds = await storedFiles(getDb()).idsOfOwner(who.actor.userId);
-    const erased = await gdpr(getDb()).eraseUser(who.actor.userId);
+    const erased = await gdpr(getDb()).eraseUser(who.actor.userId, erasureOptions());
     if (erased === "in_progress") return fail("contrat en cours");
     await deleteStored(fileIds);
     await deleteSignInAccount(state.person.id);
@@ -69,7 +70,7 @@ export async function DELETE(request: Request): Promise<NextResponse> {
     const recreated = await users(getDb()).idOfSignIn(state.person.id);
     for (const userId of new Set([who.actor.userId, ...(recreated === null ? [] : [recreated])])) {
       const lateFileIds = await storedFiles(getDb()).idsOfOwner(userId);
-      await gdpr(getDb()).eraseUser(userId);
+      await gdpr(getDb()).eraseUser(userId, erasureOptions());
       await deleteStored(lateFileIds);
     }
     return ok({ erased: true });

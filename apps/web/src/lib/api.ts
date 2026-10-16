@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { BELOW_MINIMUM, getDb, NO_CONTACT, users, type Actor } from "@proofseen/db";
+import { BELOW_MINIMUM, getDb, NO_CONTACT, type Actor } from "@proofseen/db";
+import { accountUsers } from "@/data/accounts";
 import { hasDatabase } from "@/data/intake-sink";
 import { session } from "./session";
 
@@ -92,7 +93,7 @@ export const caller = async (options: { readonly allowSuspended?: boolean } = {}
   const state = await session();
   if (state.kind === "unconfigured") return { kind: "refused", response: fail("non-configuré") };
   if (state.kind === "signed-out" || state.person.email === "") return { kind: "refused", response: fail("non-connecté") };
-  const { userId, suspension } = await users(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  const { userId, suspension } = await accountUsers(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
   // A suspended account (C19) keeps no access to the connected API either.
   if (suspension !== null && options.allowSuspended !== true) return { kind: "refused", response: fail("compte suspendu") };
   return { kind: "actor", actor: { userId } };

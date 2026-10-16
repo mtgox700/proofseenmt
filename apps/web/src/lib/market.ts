@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getDb, organisations, users, type Actor, type Db, type OrganisationRecord } from "@proofseen/db";
+import { getDb, organisations, type Actor, type Db, type OrganisationRecord } from "@proofseen/db";
+import { accountUsers } from "@/data/accounts";
 import { hasDatabase } from "@/data/intake-sink";
 import type { Lang } from "@/i18n";
 import type { Role } from "@/lib/roles";
@@ -22,7 +23,7 @@ export interface Market {
 
 /** The person as a database actor; a suspended account (C19) is sent to the page that says so, never further. */
 const actorOf = async (db: Db, person: Person, lang: Lang): Promise<Actor> => {
-  const { userId, suspension } = await users(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
   stopIfSuspended(lang, suspension);
   return { userId };
 };

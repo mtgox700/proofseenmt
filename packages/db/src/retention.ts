@@ -1,4 +1,5 @@
 import { purgeAudience } from "./audience-stats";
+import { tombstoneCutoff, TOMBSTONE_RETENTION_YEARS } from "./erasure-tombstones";
 import type { Db } from "./client";
 import { MEASUREMENT_SPEND_RETENTION_DAYS } from "./measurement-ledger";
 import { MAX_ATTEMPTS } from "./notifications";
@@ -66,6 +67,8 @@ export const RETENTION = {
    * abonnement) est perdu, changé ou désinstallé ; l'abonnement part.
    */
   idlePushSubscriptionsDays: 90,
+  /** Traces d'un compte suspendu puis effacé (revue vague 3, L11) : trois ans, au titre de l'intérêt légitime. */
+  erasureTombstonesYears: TOMBSTONE_RETENTION_YEARS,
 } as const;
 
 export interface PurgeReport {
@@ -85,6 +88,7 @@ export interface PurgeReport {
   readonly operatorActions: number;
   readonly pushSubscriptions: number;
   readonly pushDeliveries: number;
+  readonly erasureTombstones: number;
 }
 
 export interface Retention {
@@ -140,6 +144,7 @@ export const retention = (db: Db): Retention => ({
     // La plus prudente des deux bornes : jamais en deçà de cinq ans à l'horloge de la base, que refuserait le déclencheur.
     const operatorCutoff = new Date(now);
     operatorCutoff.setUTCFullYear(operatorCutoff.getUTCFullYear() - RETENTION.operatorActionsYears);
+    const tombstoneRows = await db.erasureTombstone.deleteMany({ where: { createdAt: { lt: tombstoneCutoff(now) } } });
     const operatorActions = await db.$executeRaw`
       DELETE FROM "OperatorAction" WHERE "createdAt" < LEAST(${operatorCutoff}::timestamptz, now() - make_interval(years => ${RETENTION.operatorActionsYears}::int))`;
     return {
@@ -159,6 +164,7 @@ export const retention = (db: Db): Retention => ({
       operatorActions,
       pushSubscriptions: pushSubscriptionRows.count,
       pushDeliveries: pushDeliveryRows.count,
+      erasureTombstones: tombstoneRows.count,
     };
   },
 });

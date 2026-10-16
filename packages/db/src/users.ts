@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { FRESH_ACCOUNT_MS, tombstoneCutoff, tombstoneHash } from "./erasure-tombstones";
 import type { Actor } from "./messaging";
 
 /*
@@ -45,17 +46,43 @@ export interface Users {
   idOfSignIn(clerkId: string): Promise<string | null>;
 }
 
-export const users = (db: Db): Users => ({
+export interface UsersOptions {
+  /**
+   * Clé des traces d'effacement (`erasure-tombstones.ts`), dérivée du secret du serveur. Sans elle, une réinscription
+   * n'est pas comparée aux comptes suspendus effacés.
+   */
+  readonly tombstoneKey?: string | null;
+}
+
+/**
+ * Un compte tout neuf dont l'adresse a laissé une trace de suspension : la suspension est reposée, et la trace part
+ * (revue de sécurité vague 3, L11). `null` s'il n'y a rien à reposer.
+ */
+const reapplySuspension = async (db: Db, userId: string, email: string, key: string): Promise<EnsuredUser["suspension"]> =>
+  db.$transaction(async (tx) => {
+    const emailHash = tombstoneHash(email, key);
+    const stone = await tx.erasureTombstone.findUnique({ where: { emailHash }, select: { suspendedAt: true, suspensionReason: true, createdAt: true } });
+    if (stone === null || stone.createdAt < tombstoneCutoff(new Date())) return null;
+    await tx.erasureTombstone.deleteMany({ where: { emailHash } });
+    await tx.user.updateMany({ where: { id: userId, suspendedAt: null }, data: { suspendedAt: stone.suspendedAt, suspensionReason: stone.suspensionReason } });
+    return { at: stone.suspendedAt, reason: stone.suspensionReason };
+  });
+
+export const users = (db: Db, options: UsersOptions = {}): Users => ({
   async ensure(identity) {
     const { clerkId, email, displayName } = ClerkIdentitySchema.parse(identity);
     // Une seule instruction : deux onglets ouverts en même temps ne créent pas deux lignes.
-    const { id, suspendedAt, suspensionReason } = await db.user.upsert({
+    const { id, suspendedAt, suspensionReason, createdAt } = await db.user.upsert({
       where: { clerkId },
       create: { clerkId, email, displayName },
       update: { email, displayName },
-      select: { id: true, suspendedAt: true, suspensionReason: true },
+      select: { id: true, suspendedAt: true, suspensionReason: true, createdAt: true },
     });
-    return { userId: id, suspension: suspendedAt === null || suspensionReason === null ? null : { at: suspendedAt, reason: suspensionReason } };
+    if (suspendedAt !== null && suspensionReason !== null) return { userId: id, suspension: { at: suspendedAt, reason: suspensionReason } };
+    // Seul un compte de moins d'un jour est comparé aux traces : le coût d'une requête ne pèse pas sur tous les passages.
+    const key = options.tombstoneKey ?? null;
+    if (key === null || key === "" || Date.now() - createdAt.getTime() > FRESH_ACCOUNT_MS) return { userId: id, suspension: null };
+    return { userId: id, suspension: await reapplySuspension(db, id, email, key) };
   },
 
   async lang(userId) {

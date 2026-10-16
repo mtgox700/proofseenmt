@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
+import { leaveTombstone } from "./erasure-tombstones";
 import { storedFiles } from "./stored-files";
 import { exportMissionsSpace } from "./gdpr-missions";
 import { exportLiveMessaging } from "./gdpr-messaging";
@@ -34,6 +35,7 @@ export const RETAINED_AFTER_ERASURE = [
   "invitations envoyées, modèles de mission et lectures de candidatures faits au nom d'une entreprise : conservés pour elle, sans auteur",
   "pièces jointes envoyées : effacées avec le compte, le message qui les portait reste sans elles",
   "décisions d'un opérateur sur le compte ou ses contenus (journal du back-office) : conservées cinq ans, rattachées au seul identifiant interne du compte (ni nom ni adresse), comme preuve de ce qui a été décidé",
+  "compte suspendu par un opérateur : une empreinte chiffrée de l'adresse e-mail (jamais l'adresse), le motif et la date de la suspension, conservés trois ans au titre de l'intérêt légitime, pour que la suspension s'applique de nouveau si la même adresse se réinscrit",
 ] as const;
 
 export interface UserExport {
@@ -75,7 +77,11 @@ export interface Gdpr {
   /** Tout ce que la base tient sur cet utilisateur ; `null` s'il n'existe pas. */
   exportUser(userId: string, now: Date): Promise<UserExport | null>;
   /** Efface le compte et ce qui en dépend, sauf contrat en cours. */
-  eraseUser(userId: string): Promise<EraseResult>;
+  /**
+   * `tombstoneKey` : la clé des traces d'effacement. Un compte suspendu effacé laisse alors une trace de sa suspension
+   * (`erasure-tombstones.ts`).
+   */
+  eraseUser(userId: string, options?: { readonly tombstoneKey?: string | null }): Promise<EraseResult>;
 }
 
 const Uuid = z.uuid();
@@ -213,12 +219,12 @@ export const gdpr = (db: Db): Gdpr => ({
     };
   },
 
-  async eraseUser(userId) {
+  async eraseUser(userId, options = {}) {
     if (!Uuid.safeParse(userId).success) return "absent";
     return db.$transaction(async (tx): Promise<EraseResult> => {
       const user = await tx.user.findUnique({
         where: { id: userId },
-        select: { email: true, freelanceProfile: { select: { id: true } }, memberships: { select: { organisationId: true } } },
+        select: { email: true, suspendedAt: true, suspensionReason: true, freelanceProfile: { select: { id: true } }, memberships: { select: { organisationId: true } } },
       });
       if (user === null) return "absent";
       const orgIds = user.memberships.map((m) => m.organisationId).sort();
@@ -245,6 +251,11 @@ export const gdpr = (db: Db): Gdpr => ({
       // Les vagues mesurées décrivent la personne : elles partent avec elle au lieu de rester détachées. Les demandes de
       // mesure partent par cascade avec le profil.
       if (user.freelanceProfile !== null) await tx.wave.deleteMany({ where: { profileId: user.freelanceProfile.id } });
+      // Une suspension ne s'efface pas avec le compte (revue vague 3, L11) : sa trace reste, sans l'adresse.
+      const key = options.tombstoneKey ?? null;
+      if (key !== null && key !== "" && user.suspendedAt !== null && user.suspensionReason !== null) {
+        await leaveTombstone(tx, user.email, key, { at: user.suspendedAt, reason: user.suspensionReason });
+      }
       await tx.user.delete({ where: { id: userId } });
       return "erased";
     });

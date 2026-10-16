@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getDb, ReasonSchema, users, type Db, type Operator, type OperatorResult } from "@proofseen/db";
+import { getDb, ReasonSchema, type Db, type Operator, type OperatorResult } from "@proofseen/db";
+import { accountUsers } from "@/data/accounts";
 import { hasDatabase } from "@/data/intake-sink";
 import { throttled } from "@/data/throttle";
 import type { Lang } from "@/i18n";
@@ -21,7 +22,7 @@ export interface OperatorContext {
 
 const contextOf = async (person: Person): Promise<OperatorContext> => {
   const db = getDb();
-  const { userId, suspension } = await users(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
   // An operator account suspended by another operator loses the back office too, including the power to lift it.
   if (suspension !== null) notFound();
   return { person, operator: { role: "operator", userId }, db };
