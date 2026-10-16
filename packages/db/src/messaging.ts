@@ -238,7 +238,8 @@ export const messaging = (db: Db): Messaging => ({
   },
 
   async decide(actor, conversationId, decision, now) {
-    if (!Uuid.safeParse(conversationId).success) return false;
+    // Accepter ou refuser, rien d'autre : fermer un fil en attente n'appartient qu'à la relecture des opérateurs.
+    if (!Uuid.safeParse(conversationId).success || (decision !== "accepted" && decision !== "declined")) return false;
     // La condition porte tout : bon fil, freelance du profil, encore en attente. Une seule instruction, donc deux
     // décisions simultanées ne peuvent pas se succéder.
     const { count } = await db.conversation.updateMany({

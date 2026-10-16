@@ -71,7 +71,9 @@ export const contactReviews = (db: Db, operator: Operator): ContactReviews => {
       const { count } = await tx.contactReview.updateMany({ where: { conversationId, reviewedAt: null }, data: { reviewedAt: now, outcome } });
       if (count === 0) return "unchanged";
       if (outcome === "closed") {
-        // Conditionnel : si le freelance décide au même instant, le fil n'est fermé que s'il est encore ouvert.
+        // Conditionnel : si le freelance décide au même instant, le fil n'est fermé que s'il est encore ouvert. Seule
+        // cette relecture ferme un fil en attente, et elle le dit à la base pour sa transaction (revue vague 3, L15).
+        await tx.$executeRaw`SELECT set_config('proofseen.operator_review', 'on', true)`;
         const pending = await tx.conversation.updateMany({ where: { id: conversationId, status: "pending" }, data: { status: "closed", decidedAt: now } });
         const accepted = pending.count === 1 ? pending : await tx.conversation.updateMany({ where: { id: conversationId, status: "accepted" }, data: { status: "closed" } });
         if (accepted.count === 1) await notifyAccount(tx, await organisationAdmins(tx, review.conversation.organisationId), "contact_closed", reason);

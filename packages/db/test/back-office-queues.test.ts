@@ -91,6 +91,17 @@ describe("premiers contacts des entreprises récentes", () => {
   });
 });
 
+describe("fermeture d'un fil en attente (revue vague 3, L15)", () => {
+  it("n'est permise qu'à la relecture des opérateurs, jusque dans la base", async () => {
+    const c = await contact(1);
+    expect(await messaging(t.db).decide({ userId: c.profile.userId }, c.conversationId, "closed" as "accepted", new Date())).toBe(false);
+    await expect(t.db.conversation.update({ where: { id: c.conversationId }, data: { status: "closed" } })).rejects.toThrow(/définitive/);
+    expect((await t.db.conversation.findUniqueOrThrow({ where: { id: c.conversationId } })).status).toBe("pending");
+    expect(await contactReviews(t.db, operator).close(c.conversationId, REASON, new Date())).toBe("done");
+    expect((await t.db.conversation.findUniqueOrThrow({ where: { id: c.conversationId } })).status).toBe("closed");
+  });
+});
+
 describe("attestations de vigilance URSSAF", () => {
   const declared = async () => {
     const p = await published();
