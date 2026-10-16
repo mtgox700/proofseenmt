@@ -105,6 +105,17 @@ describe("non-lus et repères de lecture", () => {
 });
 
 describe("pièces jointes", () => {
+  it("dit, avant toute lecture de fichier, si l'acteur peut joindre des fichiers à ce fil (revue vague 3, M3)", async () => {
+    const accepted = await thread();
+    const pending = await thread(false);
+    const stranger = await createUser(t.db);
+    expect(await messaging(t.db).canAttach({ userId: accepted.freelance }, accepted.id)).toBe(true);
+    expect(await messaging(t.db).canAttach({ userId: accepted.colleague }, accepted.id)).toBe(true);
+    expect(await messaging(t.db).canAttach({ userId: pending.owner }, pending.id)).toBe(false);
+    expect(await messaging(t.db).canAttach({ userId: stranger }, accepted.id)).toBe(false);
+    expect(await messaging(t.db).canAttach({ userId: accepted.owner }, "pas-un-uuid")).toBe(false);
+  });
+
   it("se rattachent au message de leur auteur et ne sont lues que par les parties du fil", async () => {
     const c = await thread();
     const file = await upload(c.freelance);

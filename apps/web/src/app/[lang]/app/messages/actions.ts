@@ -31,6 +31,8 @@ export async function postMessage(formData: FormData): Promise<void> {
   if (!body.success) redirect(thread(lang, id, "invalide"));
   const files = chosenFiles(formData.getAll("attachments"));
   if (files.length > 0 && (await throttled("message-attachment", market.actor.userId, ATTACHMENT_RULE, new Date()))) redirect(thread(lang, id, "trop"));
+  // Who may attach is checked before a single byte is read or a PDF worker started (wave-3 review, M3).
+  if (files.length > 0 && !(await messaging(market.db).canAttach(market.actor, id))) redirect(thread(lang, id, "pj-state"));
   const attached: SavedAttachments =
     files.length === 0
       ? { kind: "saved", ids: [], containContact: false }

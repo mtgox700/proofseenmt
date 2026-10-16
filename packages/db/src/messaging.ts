@@ -117,6 +117,11 @@ export interface Messaging {
   /** Les messages d'un fil, du plus récent au plus ancien. `null` si le fil n'existe pas ou n'est pas le sien. */
   listMessages(actor: Actor, conversationId: string, page?: PageRequest): Promise<Page<MessageRecord> | null>;
   post(actor: Actor, conversationId: string, body: string, attachments?: PostAttachments): Promise<PostResult>;
+  /**
+   * Vrai si l'acteur peut joindre des fichiers à ce fil : il en est partie et le contact est accepté. Une seule requête
+   * légère, posée avant de lire le moindre fichier (revue de sécurité vague 3, M3) ; `post` revérifie au moment d'écrire.
+   */
+  canAttach(actor: Actor, conversationId: string): Promise<boolean>;
 }
 
 const DEFAULT_PAGE = 30;
@@ -285,6 +290,11 @@ export const messaging = (db: Db): Messaging => ({
       select: MESSAGE,
     });
     return pageOf(rows, limit, (row) => ({ at: row.createdAt, id: row.id }));
+  },
+
+  async canAttach(actor, conversationId) {
+    if (!Uuid.safeParse(conversationId).success) return false;
+    return (await db.conversation.count({ where: { id: conversationId, status: "accepted", ...participant(actor.userId) } })) === 1;
   },
 
   async post(actor, conversationId, body, attachments) {
