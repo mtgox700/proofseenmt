@@ -32,6 +32,15 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      // The service worker of the installable app (C20): scope "/" allowed explicitly, and always revalidated so a new
+      // version is picked up at the next visit instead of whenever a cache decides.
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Service-Worker-Allowed", value: "/" },
+          { key: "Cache-Control", value: "no-cache" },
+        ],
+      },
     ];
   },
 };
