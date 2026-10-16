@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { proofDisputes, registryDesk, registryVerdict, vigilanceDesk, type RegistryAnswer } from "@proofseen/db";
+import { companyRows, type CompanySearchState } from "@/lib/company-rows";
 import { lookUp } from "@/data/registry-lookup";
 import { logError } from "@/lib/log";
 import { field, OUTCOME_FLAGS, operatorAction, reasonOf } from "@/lib/operator";
@@ -9,8 +10,16 @@ import { field, OUTCOME_FLAGS, operatorAction, reasonOf } from "@/lib/operator";
 /*
  * Verifications from the back office: URSSAF certificates (verified with the code the operator checked by hand, or
  * rejected with a reason), contested address proofs (withdrawn with a reason), and company registry checks re-run on
- * demand against the free public registry API.
+ * demand against the free public registry API. Companies are searched through a server action (wave-3 review, L14):
+ * a name or a SIRET never lands in a URL, a browser history or an access log.
  */
+
+/** Searches companies by name or SIRET. */
+export async function searchCompanies(_previous: CompanySearchState, formData: FormData): Promise<CompanySearchState> {
+  const { db, operator, limited } = await operatorAction(formData, "company-search");
+  if (limited) return { kind: "too_many" };
+  return { kind: "hits", rows: companyRows(await registryDesk(db, operator).list(field(formData, "q"))) };
+}
 
 const backTo = (lang: string, flag: string, anchor = ""): never => redirect(`/${lang}/app/operateur/verifications?etat=${flag}${anchor}`);
 

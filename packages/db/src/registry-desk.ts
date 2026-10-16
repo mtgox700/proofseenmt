@@ -21,6 +21,8 @@ export interface CompanyCheck {
   readonly createdAt: Date;
   readonly publicSlug: string | null;
   readonly moderatedAt: Date | null;
+  /** Entreprise entière masquée avec ses missions (revue vague 3, M5). */
+  readonly suspendedAt: Date | null;
 }
 
 export interface RegistryDesk {
@@ -35,7 +37,7 @@ export interface RegistryDesk {
 const Uuid = z.uuid();
 const SearchSchema = z.string().trim().max(120);
 const MAX_LISTED = 100;
-const SELECT = { id: true, name: true, siret: true, registryStatus: true, registryName: true, registryCheckedAt: true, registryAttemptedAt: true, createdAt: true, publicSlug: true, moderatedAt: true } as const;
+const SELECT = { id: true, name: true, siret: true, registryStatus: true, registryName: true, registryCheckedAt: true, registryAttemptedAt: true, createdAt: true, publicSlug: true, moderatedAt: true, suspendedAt: true } as const;
 
 /** Ce qui demande un regard en premier : un état qui n'est pas « actif ». */
 const concern = (status: RegistryStatus | null): number => (status === "active" ? 1 : 0);

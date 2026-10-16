@@ -100,6 +100,13 @@ describe("every back-office entry point goes through the gate", () => {
     }
   }
 
+  it("searches companies through a server action, never a GET form whose words would land in the address (wave-3 review, L14)", () => {
+    const page = source(join(AREA, "verifications/page.tsx"));
+    expect(page).not.toMatch(/method="get"/);
+    expect(page).not.toMatch(/\bq\?: string/);
+    expect(exportedActions(source(join(AREA, "verification-actions.ts"))).map(([fn]) => fn)).toContain("searchCompanies");
+  });
+
   for (const path of FILES.filter((f) => f.endsWith("route.ts"))) {
     it(`route ${name(path)} answers 404 to anyone but an operator`, () => {
       const text = source(path);
