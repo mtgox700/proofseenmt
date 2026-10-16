@@ -3,6 +3,7 @@ import type { Db } from "./client";
 import type { ApplicationStatus } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
+import { isListedProfile } from "./public-visibility";
 
 /*
  * Une candidature ouverte par l'entreprise : le mot du freelance, ses réponses aux questions de la mission, ses faits
@@ -64,6 +65,8 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
             headline: true,
             slug: true,
             visibility: true,
+            moderatedAt: true,
+            user: { select: { suspendedAt: true } },
             _count: { select: { ownedUrls: { where: { verifiedAt: { not: null } } }, missions: true } },
           },
         },
@@ -83,7 +86,8 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
       profile: {
         reference: row.profile.reference,
         headline: row.profile.headline,
-        slug: row.profile.visibility === "private" ? null : row.profile.slug,
+        // Pas d'adresse publique pour un profil privé, masqué ou dont le compte est suspendu (revue vague 3, L9).
+        slug: row.profile.visibility === "private" || !isListedProfile(row.profile) ? null : row.profile.slug,
         verifiedUrls: row.profile._count.ownedUrls,
         verifiedMissions: row.profile._count.missions,
       },

@@ -134,6 +134,25 @@ describe("contrôle d'accès dans chaque requête", () => {
   });
 });
 
+describe("profil retiré du public par un opérateur (revue vague 3, L9)", () => {
+  it("un profil masqué, ou dont le compte est suspendu, se lit comme non publié", async () => {
+    const { owner, organisationId } = await company();
+    const listId = await newList(owner, organisationId);
+    const hidden = await freelancer();
+    const suspended = await freelancer();
+    await freelanceLists(t.db).addItem({ userId: owner }, listId, hidden.profileId);
+    await freelanceLists(t.db).addItem({ userId: owner }, listId, suspended.profileId);
+    await t.db.freelanceProfile.update({ where: { id: hidden.profileId }, data: { moderatedAt: new Date(), moderationReason: "Contenu trompeur" } });
+    await t.db.user.update({ where: { id: suspended.userId }, data: { suspendedAt: new Date(), suspensionReason: "Fraude avérée" } });
+    const items = (await freelanceLists(t.db).detail({ userId: owner }, listId))?.items ?? [];
+    expect(items).toHaveLength(2);
+    for (const item of items) {
+      expect(item.published).toBe(false);
+      expect([item.headline, item.city, item.slug, item.skills]).toEqual([null, null, null, []]);
+    }
+  });
+});
+
 describe("plafonds", () => {
   it(`au plus ${MAX_LISTS_PER_ORGANISATION} listes par entreprise`, async () => {
     const { owner, organisationId } = await company();

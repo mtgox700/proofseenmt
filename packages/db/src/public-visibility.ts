@@ -30,6 +30,13 @@ export const LISTED_MISSION = {
   NOT: [{ author: { is: { suspendedAt: { not: null } } } }, { organisation: { suspendedAt: { not: null } } }],
 } satisfies Prisma.JobPostWhereInput;
 
+/**
+ * Le même critère que LISTED_PROFILE, sur une ligne déjà lue : un profil masqué, ou dont le compte est suspendu, se
+ * montre comme non publié là où une entreprise le voit encore (listes, candidatures).
+ */
+export const isListedProfile = (p: { readonly moderatedAt: Date | null; readonly user: { readonly suspendedAt: Date | null } }): boolean =>
+  p.moderatedAt === null && p.user.suspendedAt === null;
+
 /** Une page d'entreprise que personne n'a retirée du public, tenue par au moins un membre actif. */
 export const LISTED_COMPANY = {
   moderatedAt: null,

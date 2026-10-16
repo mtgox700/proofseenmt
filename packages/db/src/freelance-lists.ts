@@ -6,7 +6,7 @@ import type { Prisma } from "./generated/client";
 import type { AvailabilityStatus, ListReaction, MemberRole, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { publicName } from "./public-profiles";
-import { LISTED_PROFILE } from "./public-visibility";
+import { isListedProfile, LISTED_PROFILE } from "./public-visibility";
 
 /*
  * Listes de freelances d'une entreprise : favoris, présélections, partagées par tous ses membres. Chaque ligne porte une
@@ -112,7 +112,8 @@ const ITEM_SELECT = {
       currency: true,
       availability: true,
       availableFrom: true,
-      user: { select: { displayName: true } },
+      moderatedAt: true,
+      user: { select: { displayName: true, suspendedAt: true } },
       skills: { select: { skill: { select: { label: true } } } },
     },
   },
@@ -125,7 +126,8 @@ const isMissingReference = (error: unknown): boolean => typeof error === "object
 
 const toListed = (row: ItemRow, userId: string): ListedProfile => {
   const p = row.profile;
-  const published = p.visibility !== "private";
+  // Masqué par un opérateur ou compte suspendu : la ligne reste, réduite à la référence (revue vague 3, L9).
+  const published = p.visibility !== "private" && isListedProfile(p);
   const name = published ? publicName(p.visibility, p.user.displayName) : null;
   return {
     itemId: row.id,

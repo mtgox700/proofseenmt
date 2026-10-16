@@ -82,6 +82,22 @@ describe("questions de l'entreprise : une réponse par question", () => {
   });
 });
 
+describe("candidat retiré du public par un opérateur (revue vague 3, L9)", () => {
+  it("l'entreprise ne reçoit plus l'adresse publique d'un profil masqué ou d'un compte suspendu", async () => {
+    const m = await openMission();
+    const dev = await freelance();
+    const applied = await applications(t.db).apply({ userId: dev.userId }, m.id, "Bonjour", NOW);
+    if (applied.kind !== "applied") throw new Error("candidature refusée");
+    const slug = async () => (await applicationDetails(t.db).open({ userId: m.recruiter }, applied.applicationId, NOW))?.profile.slug;
+    expect(await slug()).not.toBeNull();
+    await t.db.freelanceProfile.update({ where: { id: dev.profileId }, data: { moderatedAt: NOW, moderationReason: "Contenu trompeur" } });
+    expect(await slug()).toBeNull();
+    await t.db.freelanceProfile.update({ where: { id: dev.profileId }, data: { moderatedAt: null, moderationReason: null } });
+    await t.db.user.update({ where: { id: dev.userId }, data: { suspendedAt: NOW, suspensionReason: "Fraude avérée" } });
+    expect(await slug()).toBeNull();
+  });
+});
+
 describe("candidature lue : une date, une fois, jamais le nom du lecteur", () => {
   it("date la première ouverture par un membre, prévient le freelance une fois, et ne bouge plus", async () => {
     const m = await openMission();

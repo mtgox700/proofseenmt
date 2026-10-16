@@ -393,7 +393,7 @@ export { dayOf, daysEnding, isDay, monthOf, monthsEnding, parisDay, retentionSta
 export { freelanceInsights, REVENUE_MONTHS, TOP_KEYWORDS, type DailyAudience, type FreelanceInsights, type FreelanceInsightsRepository, type KeywordCount, type MonthlyRevenue } from "./freelance-insights";
 export { COMPANY_MONTHS, companyInsights, medianDays, type CompanyInsights, type CompanyInsightsRepository, type CostCentreSpend, type MonthlySpend } from "./company-insights";
 export { ACCOUNT_NOTICES, ReasonSchema, type AccountNotice, type Operator, type OperatorResult } from "./back-office";
-export { LISTED_COMPANY, LISTED_MISSION, LISTED_PROFILE } from "./public-visibility";
+export { isListedProfile, LISTED_COMPANY, LISTED_MISSION, LISTED_PROFILE } from "./public-visibility";
 export { moderation, ProfileReferenceInputSchema, type HiddenItem, type Moderation, type ModerationTarget } from "./moderation";
 export { OPERATOR_LOG_PAGE_SIZE, operatorLog, OperatorLogFilterSchema, type OperatorLog, type OperatorLogEntry, type OperatorLogFilter } from "./operator-log";
 export { contactReviews, FIRST_CONTACT_REVIEW, isRecentSender, type ContactReviews, type FirstContactMode, type PendingContact } from "./contact-review";
