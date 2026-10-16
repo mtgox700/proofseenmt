@@ -8,6 +8,7 @@ import { deleteStored } from "@/data/uploads";
 import { checkDueRegistry } from "@/data/registry-lookup";
 import { hasDatabase } from "@/data/intake-sink";
 import { sweepOrphanUploads } from "@/data/upload-sweeper";
+import { deliverPushes } from "@/data/web-push-sender";
 import { confirmationSecret } from "@/lib/confirmation-secret";
 import { cronAuthorised } from "@/lib/cron-auth";
 import { logError } from "@/lib/log";
@@ -17,6 +18,8 @@ import { publicBaseUrl } from "@/lib/public-url";
  * Periodic job, called by a scheduler with `Authorization: Bearer <CRON_SECRET>`: deletes what has outlived its
  * retention period (and uploaded files left on disk without their row, a bounded number per run), replays the saved mission alerts, retries escrow releases, then sends what is waiting in the
  * notification queue. Proven addresses are reread by their own call (/api/cron/proofs).
+ *
+ * Push notifications (C20) go out before the mail, whatever the mail transport: they only need the VAPID keys.
  *
  * Without a mail transport configured (RESEND_API_KEY and NOTIFY_FROM), alerts are still turned into queued
  * notifications but nothing is sent: they wait, they are not lost. Several runs at once are safe — each batch is
@@ -81,8 +84,14 @@ export async function GET(request: Request): Promise<Response> {
     const identity = proofseenIdentity();
     const releases = gateway !== null && identity !== null ? await payments(db).releaseDue(gateway, identity, now()) : null;
 
+    // Pushes to subscribed devices (C20): a bounded number per run; a failing push service only delays them.
+    const pushes = await deliverPushes(now).catch((error: unknown) => {
+      logError("cron: push notifications failed", error);
+      return null;
+    });
+
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, overdue, vigilanceReminders, registryChecks, releases, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, overdue, vigilanceReminders, registryChecks, releases, pushes, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -109,7 +118,7 @@ export async function GET(request: Request): Promise<Response> {
       logError("cron: message digests failed", error);
       return null;
     });
-    return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, overdue, vigilanceReminders, registryChecks, releases, sent, failed, confirmationMails, digests, transport: "resend" } });
+    return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, overdue, vigilanceReminders, registryChecks, releases, pushes, sent, failed, confirmationMails, digests, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);

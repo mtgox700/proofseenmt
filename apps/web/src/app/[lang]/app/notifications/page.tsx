@@ -1,13 +1,15 @@
 import { notFound } from "next/navigation";
-import { appNotifications, messageDigests } from "@proofseen/db";
+import { appNotifications, messageDigests, pushSubscriptions } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { LiveRefresh } from "@/components/live/LiveRefresh";
 import { messageTime } from "@/components/live/message-time";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { PushToggle } from "@/components/pwa/PushToggle";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { pageMarket } from "@/lib/market";
 import { notificationText } from "@/lib/notification-link";
+import { vapidFromEnv } from "@/lib/push/vapid";
 import { markAllNotificationsRead, markNotificationRead, openNotification, setMessageDigest } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -18,7 +20,10 @@ interface PageProps {
   readonly searchParams: Promise<{ avis?: string }>;
 }
 
-/** The notification centre: latest first, unread marked, each one opening where it points; and the daily summary. */
+/**
+ * The notification centre: latest first, unread marked, each one opening where it points; the daily summary; and push
+ * notifications on this device (C20), offered only when the server holds its VAPID keys.
+ */
 export default async function NotificationsPage({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
@@ -27,7 +32,13 @@ export default async function NotificationsPage({ params, searchParams }: PagePr
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
   const { avis } = await searchParams;
   const n = m.live.notifications;
-  const [items, digestOn] = await Promise.all([appNotifications(market.db).list(market.actor), messageDigests(market.db).enabled(market.actor)]);
+  const pushKey = vapidFromEnv(process.env)?.publicKey ?? null;
+  const [items, digestOn, devices] = await Promise.all([
+    appNotifications(market.db).list(market.actor),
+    messageDigests(market.db).enabled(market.actor),
+    pushKey === null ? 0 : pushSubscriptions(market.db).count(market.actor),
+  ]);
+  const p = m.pwa;
   const unread = items.some((item) => item.readAt === null);
   const notice = avis === "trop" ? n.tooMany : avis === "resume-on" ? n.digest.on : avis === "resume-off" ? n.digest.off : null;
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
@@ -104,6 +115,16 @@ export default async function NotificationsPage({ params, searchParams }: PagePr
           </button>
         </form>
       </section>
+
+      {pushKey === null ? null : (
+        <section className="panel" aria-labelledby="push-title">
+          <h2 id="push-title">{p.push.title}</h2>
+          <p className="muted measure">{p.push.lead}</p>
+          <PushToggle publicKey={pushKey} texts={p.push} />
+          <p className="small muted">{p.devices(devices)}</p>
+          <p className="small muted">{p.install}</p>
+        </section>
+      )}
     </>
   );
 }

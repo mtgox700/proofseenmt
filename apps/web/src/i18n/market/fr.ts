@@ -10,6 +10,7 @@ import { missionsSpaceFr } from "./missions-space-fr";
 import { operatorFr } from "./operator-fr";
 import { profileFr } from "./profile-fr";
 import { proofsFr } from "./proofs-fr";
+import { pwaFr } from "./pwa-fr";
 import { searchFr } from "./search-fr";
 import { settingsFr } from "./settings-fr";
 import { standingFr } from "./standing-fr";
@@ -47,6 +48,7 @@ export const marketFr = {
   operator: operatorFr,
   profile: profileFr,
   proofs: proofsFr,
+  pwa: pwaFr,
   search: searchFr,
   settings: settingsFr,
   standing: standingFr,

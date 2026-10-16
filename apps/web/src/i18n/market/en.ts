@@ -12,6 +12,7 @@ import { missionsSpaceEn } from "./missions-space-en";
 import { operatorEn } from "./operator-en";
 import { profileEn } from "./profile-en";
 import { proofsEn } from "./proofs-en";
+import { pwaEn } from "./pwa-en";
 import { searchEn } from "./search-en";
 import { settingsEn } from "./settings-en";
 import { standingEn } from "./standing-en";
@@ -31,6 +32,7 @@ export const marketEn: MarketDictionary = {
   operator: operatorEn,
   profile: profileEn,
   proofs: proofsEn,
+  pwa: pwaEn,
   search: searchEn,
   settings: settingsEn,
   standing: standingEn,
