@@ -378,6 +378,7 @@ export { readState, UNREAD_CAP, type ReadState } from "./read-state";
 export {
   APP_NOTIFICATION_KINDS,
   APP_NOTIFICATIONS_PAGE,
+  appNotificationPayload,
   appNotifications,
   recordAppNotifications,
   type AppNotificationPayload,
@@ -403,3 +404,15 @@ export { APPEAL_PAGE, feedbackTriage, TRIAGE_PAGE_SIZE, TriageFilterSchema, Tria
 export { operatorStats, type MeasurementOversight, type OperatorStats } from "./operator-stats";
 export { accountNotices, type AccountNotices, type AccountStanding, type ModerationNotice } from "./account-notices";
 export { type EnsuredUser } from "./users";
+// Application installable et notifications poussées (C20).
+export {
+  MAX_PUSH_SUBSCRIPTIONS,
+  PushEndpointSchema,
+  pushEndpoint,
+  PushSubscriptionInputSchema,
+  pushSubscriptions,
+  type PushSubscriptionInput,
+  type PushSubscriptions,
+  type SubscribeResult,
+} from "./push-subscriptions";
+export { MAX_PUSH_ATTEMPTS, PUSH_STALE_MS, pushQueue, type PendingPush, type PushQueue } from "./push-queue";

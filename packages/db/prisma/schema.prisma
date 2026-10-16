@@ -203,6 +203,7 @@ model User {
   conversationReads       ConversationRead[]
   appNotifications        AppNotification[]
   messageDigest           MessageDigest?
+  pushSubscriptions       PushSubscription[]
 }
 
 model Organisation {
@@ -1486,7 +1487,8 @@ model AppNotification {
   readAt    DateTime?           @db.Timestamptz(3)
   createdAt DateTime            @default(now()) @db.Timestamptz(3)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pushQueue PushDelivery[]
 
   @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
   @@index([userId], where: raw("\"readAt\" IS NULL"), map: "AppNotification_unread_idx")
@@ -1503,6 +1505,47 @@ model MessageDigest {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([lastRunAt])
+}
+
+// ─── Application installable et notifications poussées (C20) ────────────────────────────────────────────────────────
+// Un abonnement par appareil (navigateur) qui a accepté les notifications. L'adresse d'envoi est celle d'un service de
+// notifications connu (Google, Mozilla, Apple, Microsoft) : jamais une adresse arbitraire que le serveur appellerait.
+
+/// Abonnement d'un appareil aux notifications poussées. `userAgent` est un libellé court (« Chrome · Android »), jamais
+/// l'en-tête complet. Sans réussite pendant 90 jours, l'abonnement est purgé ; un 404 ou un 410 du service le supprime.
+model PushSubscription {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @db.Uuid
+  endpoint      String    @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  lastSuccessAt DateTime? @db.Timestamptz(3)
+  failures      Int       @default(0)
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries PushDelivery[]
+
+  @@index([userId])
+}
+
+/// Une notification de l'application à pousser vers un appareil. La ligne disparaît une fois poussée, abandonnée, ou
+/// devenue sans objet (notification lue entre-temps, compte suspendu, plus d'un jour d'attente).
+model PushDelivery {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  subscriptionId String   @db.Uuid
+  notificationId String   @db.Uuid
+  attempts       Int      @default(0)
+  sendAfter      DateTime @default(now()) @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+
+  subscription PushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  notification AppNotification  @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, notificationId])
+  @@index([sendAfter])
+  @@index([notificationId])
 }
 
 // ─── Audience des profils et activité des équipes (C17) ─────────────────────────────────────────────────────────────

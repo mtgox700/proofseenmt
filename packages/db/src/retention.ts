@@ -2,6 +2,7 @@ import { purgeAudience } from "./audience-stats";
 import type { Db } from "./client";
 import { MEASUREMENT_SPEND_RETENTION_DAYS } from "./measurement-ledger";
 import { MAX_ATTEMPTS } from "./notifications";
+import { PUSH_STALE_MS } from "./push-queue";
 import { STATS_RETENTION_MONTHS } from "./stat-days";
 
 /*
@@ -60,6 +61,11 @@ export const RETENTION = {
    * recours. Le déclencheur de la table refuse toute suppression plus tôt : la purge ne peut pas aller plus vite que lui.
    */
   operatorActionsYears: 5,
+  /**
+   * Abonnements aux notifications poussées (C20) : un appareil qui n'a rien reçu depuis 90 jours (ni depuis son
+   * abonnement) est perdu, changé ou désinstallé ; l'abonnement part.
+   */
+  idlePushSubscriptionsDays: 90,
 } as const;
 
 export interface PurgeReport {
@@ -77,6 +83,8 @@ export interface PurgeReport {
   readonly audienceStats: number;
   readonly audienceSightings: number;
   readonly operatorActions: number;
+  readonly pushSubscriptions: number;
+  readonly pushDeliveries: number;
 }
 
 export interface Retention {
@@ -122,6 +130,12 @@ export const retention = (db: Db): Retention => ({
         ],
       },
     });
+    const pushCutoff = before(now, RETENTION.idlePushSubscriptionsDays);
+    const pushSubscriptionRows = await db.pushSubscription.deleteMany({
+      where: { OR: [{ lastSuccessAt: { lt: pushCutoff } }, { lastSuccessAt: null, createdAt: { lt: pushCutoff } }] },
+    });
+    // Une notification poussée qui attend depuis plus d'un jour n'a plus d'intérêt (la file la retire aussi d'elle-même).
+    const pushDeliveryRows = await db.pushDelivery.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - PUSH_STALE_MS) } } });
     const audience = await purgeAudience(db, now);
     // La plus prudente des deux bornes : jamais en deçà de cinq ans à l'horloge de la base, que refuserait le déclencheur.
     const operatorCutoff = new Date(now);
@@ -143,6 +157,8 @@ export const retention = (db: Db): Retention => ({
       audienceStats: audience.stats,
       audienceSightings: audience.sightings,
       operatorActions,
+      pushSubscriptions: pushSubscriptionRows.count,
+      pushDeliveries: pushDeliveryRows.count,
     };
   },
 });

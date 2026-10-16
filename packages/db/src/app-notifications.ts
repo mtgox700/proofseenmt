@@ -3,6 +3,7 @@ import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { AppNotificationKind, NotificationKind } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { queuePushes } from "./push-enqueue";
 
 /*
  * Centre de notifications de l'application (C15).
@@ -54,6 +55,12 @@ const sanitise = (payload: Readonly<Record<string, unknown>>): AppNotificationPa
 
 const PayloadSchema = z.record(z.string(), z.unknown());
 
+/** La charge d'une notification relue en base, réduite aux références permises (aussi pour la notification poussée). */
+export const appNotificationPayload = (raw: unknown): AppNotificationPayload => {
+  const parsed = PayloadSchema.safeParse(raw);
+  return parsed.success ? sanitise(parsed.data) : {};
+};
+
 /** Les notifications d'un fil se regroupent : une seule non lue par fil et par personne. */
 const COLLAPSED: ReadonlySet<AppNotificationKind> = new Set(["contact_received", "message_received"]);
 
@@ -67,7 +74,10 @@ export interface AppNotificationView {
 
 export const APP_NOTIFICATIONS_PAGE = 50;
 
-/** Écrit une notification pour chaque destinataire, dans la transaction de l'événement. Rend le nombre écrit. */
+/**
+ * Écrit une notification pour chaque destinataire, dans la transaction de l'événement, et met en file sa version
+ * poussée vers les appareils abonnés (C20). Rend le nombre écrit.
+ */
 export const recordAppNotifications = async (tx: Prisma.TransactionClient, userIds: readonly string[], kind: AppNotificationKind, payload: Readonly<Record<string, unknown>>): Promise<number> => {
   const unique = [...new Set(userIds)];
   if (unique.length === 0) return 0;
@@ -82,8 +92,9 @@ export const recordAppNotifications = async (tx: Prisma.TransactionClient, userI
     recipients = unique.filter((id) => !already.has(id));
   }
   if (recipients.length === 0) return 0;
-  const { count } = await tx.appNotification.createMany({ data: recipients.map((userId) => ({ userId, kind, payload: kept as Prisma.InputJsonObject })) });
-  return count;
+  const created = await tx.appNotification.createManyAndReturn({ data: recipients.map((userId) => ({ userId, kind, payload: kept as Prisma.InputJsonObject })), select: { id: true } });
+  await queuePushes(tx, created.map((row) => row.id));
+  return created.length;
 };
 
 export interface AppNotifications {
@@ -101,10 +112,13 @@ export interface AppNotifications {
 const Uuid = z.uuid();
 const SELECT = { id: true, kind: true, payload: true, readAt: true, createdAt: true } as const;
 
-const view = (row: { id: string; kind: AppNotificationKind; payload: unknown; readAt: Date | null; createdAt: Date }): AppNotificationView => {
-  const parsed = PayloadSchema.safeParse(row.payload);
-  return { id: row.id, kind: row.kind, payload: parsed.success ? sanitise(parsed.data) : {}, readAt: row.readAt, createdAt: row.createdAt };
-};
+const view = (row: { id: string; kind: AppNotificationKind; payload: unknown; readAt: Date | null; createdAt: Date }): AppNotificationView => ({
+  id: row.id,
+  kind: row.kind,
+  payload: appNotificationPayload(row.payload),
+  readAt: row.readAt,
+  createdAt: row.createdAt,
+});
 
 export const appNotifications = (db: Db): AppNotifications => ({
   async list(actor, limit = APP_NOTIFICATIONS_PAGE) {
