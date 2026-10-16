@@ -30,6 +30,9 @@ export const profileSectionsFr = {
     failed: "La lecture est indisponible pour l'instant : réessayez plus tard.",
     stale: "Ces propositions ont changé entre-temps : relisez la liste.",
     no_cv: "Déposez d'abord un CV.",
+    encrypted: "Ce PDF est protégé (mot de passe ou chiffrement) : enregistrez-le de nouveau sans protection.",
+    busy: "La vérification des PDF est très demandée en ce moment : déposez votre CV de nouveau dans une minute.",
+    too_many_pages: "Ce PDF dépasse 50 pages : déposez un CV plus court.",
   },
   availability: {
     title: "Disponibilité confirmée",

@@ -2,13 +2,15 @@
 
 import { profileSections, storedFiles } from "@proofseen/db";
 import { announceProfile, backTo, freelanceAction, SECTION_RULE, UPLOAD_RULE, writeNotice } from "@/data/profile-action";
+import { saveCv } from "@/data/cv-upload";
 import { deleteStored, saveUpload } from "@/data/uploads";
 import { portfolioFromForm } from "@/lib/profile-sections-form";
 
 /*
  * Server actions that receive files: the profile photo, a portfolio item with its optional image, the CV. Each upload
  * is sniffed, size-checked and (for images) re-encoded by `saveUpload`, stored under a random id, then attached. When
- * attaching fails, the new file is removed again; when it replaces another, the old one is removed from disk.
+ * attaching fails, the new file is removed again; when it replaces another, the old one is removed from disk. The CV
+ * is also read by the PDF worker before it is stored (`saveCv`): companies download it.
  */
 
 const UPLOADS = "profile-uploads";
@@ -58,7 +60,7 @@ export async function addPortfolioItem(formData: FormData): Promise<void> {
 
 export async function uploadCv(formData: FormData): Promise<void> {
   const { lang, market } = await freelanceAction(formData, "cv", UPLOADS, UPLOAD_RULE);
-  const saved = await saveUpload(market.db, market.actor, "cv", formData.get("cv"));
+  const saved = await saveCv(market.db, market.actor, formData.get("cv"));
   if (saved.kind !== "stored") backTo(lang, "cv", saved.kind);
   // One CV at a time: the previous ones go, rows and bytes.
   await deleteStored(await storedFiles(market.db).removeKind(market.actor, "cv", saved.id));

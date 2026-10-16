@@ -99,15 +99,21 @@ export const imageDimensions = (bytes: Uint8Array, type: SniffedType): Dimension
 
 /*
  * PDF features that run something when the file is opened: scripts, launch actions, embedded files, rich media, XFA
- * forms. A CV needs none of them. This check is best effort, on purpose (wave-2 review, L2): markers inside compressed
- * object streams, or names written with #xx escapes, escape it, and decompressing every stream here would hand the web
- * process the very parsing cost that pdf-text.ts moves into a capped worker. What actually protects: the file is only
- * ever served to its owner, as an attachment, under a policy that forbids everything, and the server reads its text in
- * PDF.js without scripting, XFA or font loading.
+ * forms, form submissions. A CV or a document sent in a conversation needs none of them, and both now reach someone
+ * else: a CV is downloaded by companies, an attachment by the other party of the conversation (C15).
+ *
+ * This raw scan is only the cheap first filter, run in the web process on every PDF: names written with #xx escapes
+ * are decoded before the search, but markers packed in compressed object streams escape it. The verdict that counts
+ * comes from the PDF worker (pdf-worker.mjs, pdf-scan.mjs), which reads the document with PDF.js and opens its object
+ * streams in a capped thread; CVs (cv-upload.ts) and attachments (attachments.ts) are refused when it finds active
+ * content, encryption, or cannot read the file. Files are then served as downloads, under a policy that forbids
+ * everything. The list of names is shared with pdf-scan.mjs: keep both together.
  */
-const ACTIVE_PDF = /\/(?:JavaScript|JS|Launch|EmbeddedFiles?|RichMedia|XFA)(?![A-Za-z])/;
+const ACTIVE_PDF = /\/(?:JavaScript|JS|Launch|EmbeddedFiles?|RichMedia|XFA|SubmitForm|ImportData|GoToE)(?![A-Za-z])/;
+const NAME_ESCAPE = /#([0-9A-Fa-f]{2})/g;
 
-export const hasActivePdfContent = (bytes: Uint8Array): boolean => ACTIVE_PDF.test(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1"));
+export const hasActivePdfContent = (bytes: Uint8Array): boolean =>
+  ACTIVE_PDF.test(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1").replace(NAME_ESCAPE, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16))));
 
 export type UploadProblem = "empty" | "too_large" | "type" | "dimensions" | "active_content";
 

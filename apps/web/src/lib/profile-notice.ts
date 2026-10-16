@@ -32,6 +32,9 @@ export const NOTICE_CODES = [
   "failed",
   "stale",
   "no_cv",
+  "encrypted",
+  "busy",
+  "too_many_pages",
 ] as const;
 export type NoticeCode = (typeof NOTICE_CODES)[number];
 

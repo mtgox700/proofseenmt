@@ -62,4 +62,15 @@ describe("PDF text extraction in a worker", () => {
     // Once they are stopped, the slots are free again.
     expect((await pdfText(SOME_BYTES, { workerFile: fixture("chatty") })).kind).toBe("ok");
   });
+
+  it("gives message attachments their own budget: a burst of them never blocks a CV reading", async () => {
+    const attachments = Array.from({ length: MAX_PDF_WORKERS }, () => pdfText(SOME_BYTES, { workerFile: fixture("hang"), deadlineMs: 1_500, purpose: "attachment" }));
+    expect(await pdfText(SOME_BYTES, { workerFile: fixture("chatty"), purpose: "attachment" })).toEqual({ kind: "busy" });
+    expect((await pdfText(SOME_BYTES, { workerFile: fixture("chatty"), purpose: "cv" })).kind).toBe("ok");
+    await Promise.all(attachments);
+  });
+
+  it("refuses an answer that claims a text without saying whether the document is active", async () => {
+    expect(await pdfText(SOME_BYTES, { workerFile: fixture("vague") })).toEqual({ kind: "unreadable" });
+  });
 });

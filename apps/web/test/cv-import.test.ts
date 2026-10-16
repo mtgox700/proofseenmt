@@ -18,7 +18,7 @@ const nextUser = (): string => {
 const person = (overrides: Partial<ImportCaller> = {}): ImportCaller => ({ userId: nextUser(), address: `198.51.100.${user % 250}-${Date.now()}`, established: true, ...overrides });
 
 const CV_TEXT = `Camille Martin — Data engineer. ${"Expérience : plateforme Spark et dbt chez Acme de 2021 à aujourd'hui. ".repeat(6)}`;
-const extracted = (text: string = CV_TEXT): ((bytes: Uint8Array) => Promise<PdfText>) => async () => ({ kind: "ok", text });
+const extracted = (text: string = CV_TEXT): ((bytes: Uint8Array) => Promise<PdfText>) => async () => ({ kind: "ok", text, active: false, links: [] });
 const reading = (candidate: unknown): CvReader => async () => ({ candidate, costUsd: 0 });
 const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
 
@@ -145,7 +145,7 @@ const tinyPdf = (line: string, pages = 1): Uint8Array => {
 describe("PDF text", () => {
   it("reads the text of a real PDF", async () => {
     const result = await pdfText(tinyPdf("Data engineer Spark dbt"));
-    expect(result).toEqual({ kind: "ok", text: "Data engineer Spark dbt" });
+    expect(result).toEqual({ kind: "ok", text: "Data engineer Spark dbt", active: false, links: [] });
   });
 
   it("refuses a PDF longer than a CV and a file that is not a PDF", async () => {

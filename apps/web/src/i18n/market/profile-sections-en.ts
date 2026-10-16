@@ -32,6 +32,9 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     failed: "Reading is unavailable right now: try again later.",
     stale: "These proposals changed in the meantime: read the list again.",
     no_cv: "Upload a CV first.",
+    encrypted: "This PDF is protected (password or encryption): save it again without protection.",
+    busy: "PDF checking is very busy right now: upload your CV again in a minute.",
+    too_many_pages: "This PDF has more than 50 pages: upload a shorter CV.",
   },
   availability: {
     title: "Confirmed availability",

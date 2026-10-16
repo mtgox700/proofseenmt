@@ -75,6 +75,8 @@ export const importCv = async (caller: ImportCaller, pdf: Uint8Array, options: I
   const extracted = await (options.extract ?? pdfText)(pdf);
   // A busy reader is a "try later", like a limit: nothing was read, nothing is paid.
   if (extracted.kind === "busy") return { kind: "throttled" };
+  // An encrypted CV is not read: the upload refuses it, and one stored before that check is simply unreadable here.
+  if (extracted.kind === "encrypted") return { kind: "unreadable" };
   if (extracted.kind !== "ok") return { kind: extracted.kind };
   if (extracted.text.length < MIN_TEXT_CHARS) return { kind: "no_text" };
   // The platform-wide pool is counted last, so refused requests do not use it up.
