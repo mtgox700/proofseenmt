@@ -235,6 +235,10 @@ model Organisation {
   /// Page publique masquée par un opérateur (C19), avec son motif, montré aux membres de l'entreprise.
   moderatedAt       DateTime? @db.Timestamptz(3)
   moderationReason  String?
+  /// Entreprise entière masquée par un opérateur (revue de sécurité vague 3, M5), avec son motif : sa page publique,
+  /// toutes ses missions et ses clés d'API sortent d'usage, qu'un membre soit actif ou non.
+  suspendedAt       DateTime? @db.Timestamptz(3)
+  suspensionReason  String?
   createdAt      DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -1636,6 +1640,8 @@ enum OperatorActionKind {
   user_restored
   user_exported
   feedback_triaged
+  organisation_hidden
+  organisation_restored
 }
 
 /// Sur quoi porte l'action.
@@ -1689,4 +1695,16 @@ model ContactReview {
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([flaggedAt, id], where: raw("\"reviewedAt\" IS NULL"), map: "ContactReview_pending_idx")
+}
+
+/// Trace laissée par l'effacement d'un compte suspendu (revue de sécurité vague 3, L11), pour que la suspension se
+/// réapplique si la même adresse revient. Rien d'autre que l'empreinte de l'adresse normalisée (HMAC sous une clé dérivée
+/// du secret du serveur, jamais l'adresse), le motif et la date de la suspension. Intérêt légitime ; gardée trois ans.
+model ErasureTombstone {
+  emailHash        String   @id
+  suspendedAt      DateTime @db.Timestamptz(3)
+  suspensionReason String
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt])
 }
