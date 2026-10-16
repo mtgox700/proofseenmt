@@ -211,6 +211,27 @@ describe("événements en direct", () => {
   });
 });
 
+describe("e-mails d'un compte suspendu (revue vague 3, L12)", () => {
+  it("les e-mails de messages sont abandonnés, l'avis de suspension part", async () => {
+    const c = await thread();
+    const now = new Date();
+    await t.db.user.update({ where: { id: c.freelance }, data: { suspendedAt: now, suspensionReason: "Fraude avérée" } });
+    await t.db.notification.create({ data: { userId: c.freelance, kind: "account_notice", payload: { notice: "account_suspended", reason: "Fraude avérée", subject: "" } } });
+    const pending = await t.db.notification.findMany({ where: { userId: c.freelance, sentAt: null }, select: { id: true, kind: true } });
+    expect(pending.some((n) => n.kind !== "account_notice")).toBe(true);
+    const claimed = (await notifications(t.db).claim(1000, new Date(now.getTime() + 60 * 60_000))).filter((n) => pending.some((p) => p.id === n.id));
+    expect(claimed.map((n) => n.kind)).toEqual(["account_notice"]);
+    const dropped = await t.db.notification.findMany({ where: { userId: c.freelance, kind: { not: "account_notice" } }, select: { lastError: true, sentAt: true } });
+    expect(dropped.every((n) => n.lastError === "account_suspended" && n.sentAt === null)).toBe(true);
+  });
+
+  it("le signal de suspension se lit, celui d'un identifiant mal formé non", () => {
+    const userId = randomUUID();
+    expect(parseLiveSignal(JSON.stringify({ kind: "suspended", userId }))).toEqual({ kind: "suspended", userId });
+    expect(parseLiveSignal(JSON.stringify({ kind: "suspended", userId: "x" }))).toBeNull();
+  });
+});
+
 describe("résumé quotidien par e-mail", () => {
   it("est désactivé par défaut, part le matin, une fois par jour, seulement avec des non-lus", async () => {
     const c = await thread();
@@ -231,6 +252,14 @@ describe("résumé quotidien par e-mail", () => {
     expect(mineOnly(await digests.claimDue(new Date("2026-11-21T08:30:00Z"), 100)).map((d) => d.userId)).toEqual([c.freelance]);
     await digests.set({ userId: c.freelance }, false);
     expect(await digests.enabled({ userId: c.freelance })).toBe(false);
+  });
+
+  it("ne part pas pour un compte suspendu (revue vague 3, L12)", async () => {
+    const c = await thread();
+    const digests = messageDigests(t.db);
+    await digests.set({ userId: c.freelance }, true);
+    await t.db.user.update({ where: { id: c.freelance }, data: { suspendedAt: new Date(), suspensionReason: "Fraude avérée" } });
+    expect((await digests.claimDue(new Date("2026-11-22T08:30:00Z"), 1000)).map((d) => d.userId)).not.toContain(c.freelance);
   });
 
   it("prend le jour de Paris, heure d'hiver comme heure d'été", () => {

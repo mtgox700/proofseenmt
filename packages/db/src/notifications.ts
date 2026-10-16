@@ -77,13 +77,20 @@ export const notifications = (db: Db): Notifications => ({
 
   async claim(limit, now) {
     const lease = new Date(now.getTime() + LEASE_MS);
+    // Un compte suspendu ne reçoit plus que les décisions qui le concernent (revue vague 3, L12) : ses autres e-mails
+    // en attente sont abandonnés, pour ne pas partir en retard s'il est rétabli.
+    await db.$executeRaw`
+      UPDATE "Notification" n SET "attempts" = ${MAX_ATTEMPTS}, "lastError" = 'account_suspended'
+      FROM "User" u
+      WHERE u."id" = n."userId" AND u."suspendedAt" IS NOT NULL AND n."sentAt" IS NULL AND n."attempts" < ${MAX_ATTEMPTS} AND n."kind" <> 'account_notice'`;
     const rows = await db.$queryRaw<unknown[]>`
       WITH picked AS (
-        SELECT "id" FROM "Notification"
-        WHERE "sentAt" IS NULL AND "sendAfter" <= ${now} AND "attempts" < ${MAX_ATTEMPTS}
-        ORDER BY "sendAfter", "id"
+        SELECT p."id" FROM "Notification" p JOIN "User" s ON s."id" = p."userId"
+        WHERE p."sentAt" IS NULL AND p."sendAfter" <= ${now} AND p."attempts" < ${MAX_ATTEMPTS}
+          AND (s."suspendedAt" IS NULL OR p."kind" = 'account_notice')
+        ORDER BY p."sendAfter", p."id"
         LIMIT ${limit}
-        FOR UPDATE SKIP LOCKED
+        FOR UPDATE OF p SKIP LOCKED
       )
       UPDATE "Notification" n SET "sendAfter" = ${lease}
       FROM picked, "User" u

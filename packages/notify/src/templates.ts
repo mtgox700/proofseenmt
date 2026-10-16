@@ -22,6 +22,8 @@ export interface Email {
   readonly subject: string;
   readonly text: string;
   readonly html: string;
+  /** En-têtes ajoutés à l'e-mail, comme `List-Unsubscribe` d'un résumé (revue vague 3, L12). */
+  readonly headers?: Readonly<Record<string, string>>;
 }
 
 const ESCAPES: Readonly<Record<string, string>> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };

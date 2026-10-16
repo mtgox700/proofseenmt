@@ -10,6 +10,7 @@ import { hasDatabase } from "@/data/intake-sink";
 import { sweepOrphanUploads } from "@/data/upload-sweeper";
 import { deliverPushes } from "@/data/web-push-sender";
 import { confirmationSecret } from "@/lib/confirmation-secret";
+import { digestUnsubscribeSecret, unsubscribeToken, unsubscribeUrl } from "@/lib/digest-unsubscribe";
 import { cronAuthorised } from "@/lib/cron-auth";
 import { logError } from "@/lib/log";
 import { publicBaseUrl } from "@/lib/public-url";
@@ -114,7 +115,10 @@ export async function GET(request: Request): Promise<Response> {
             return null;
           });
     // Daily summaries of unread messages, for those who asked (C15): one a day at most, from the morning on.
-    const digests = await sendDigests({ digests: messageDigests(db), transport, baseUrl: publicBaseUrl(request), now }).catch((error: unknown) => {
+    const unsubscribeSecret = digestUnsubscribeSecret();
+    const baseUrl = publicBaseUrl(request);
+    const unsubscribe = (userId: string): string | null => (unsubscribeSecret === null ? null : unsubscribeUrl(baseUrl, userId, unsubscribeToken(unsubscribeSecret, userId)));
+    const digests = await sendDigests({ digests: messageDigests(db), transport, baseUrl, now, unsubscribe }).catch((error: unknown) => {
       logError("cron: message digests failed", error);
       return null;
     });

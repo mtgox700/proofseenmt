@@ -107,4 +107,13 @@ describe("transport Resend", () => {
     expect(JSON.parse(String(init.body))).toEqual({ from: "Proofseen <bonjour@proofseen.com>", to: ["a@x.fr"], subject: "S", text: "T", html: "<p>H</p>" });
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer re_test");
   });
+
+  it("transmet les en-têtes d'un e-mail qui en porte, comme la désinscription d'un résumé (revue vague 3, L12)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    const transport = resendTransport({ apiKey: "re_test", from: "Proofseen <bonjour@proofseen.com>" }, fetchMock);
+    const headers = { "List-Unsubscribe": "<https://proofseen.com/api/digest/unsubscribe?u=1&t=2>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
+    await transport.send("a@x.fr", { subject: "S", text: "T", html: "<p>H</p>", headers });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ headers });
+  });
 });

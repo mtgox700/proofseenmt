@@ -11,6 +11,8 @@ import type { Actor } from "./messaging";
  * ne l'est plus avant demain, qu'elle ait eu des non-lus ou non. Le jour est celui de Paris : le résumé part le matin,
  * à partir de `DIGEST_HOUR_PARIS`, pas au milieu de la nuit.
  *
+ * Un compte suspendu n'en reçoit plus (revue de sécurité vague 3, L12).
+ *
  * Le résumé ne dit que des comptes et qui écrit (le nom de l'entreprise, ou la référence du freelance) : jamais le texte
  * d'un message.
  */
@@ -77,11 +79,11 @@ export const messageDigests = (db: Db): MessageDigests => ({
     const dayStart = parisDayStart(now);
     const rows = await db.$queryRaw<unknown[]>`
       WITH picked AS (
-        SELECT "userId" FROM "MessageDigest"
-        WHERE "lastRunAt" IS NULL OR "lastRunAt" < ${dayStart}
-        ORDER BY "userId"
+        SELECT m."userId" FROM "MessageDigest" m JOIN "User" s ON s."id" = m."userId"
+        WHERE (m."lastRunAt" IS NULL OR m."lastRunAt" < ${dayStart}) AND s."suspendedAt" IS NULL
+        ORDER BY m."userId"
         LIMIT ${limit}
-        FOR UPDATE SKIP LOCKED
+        FOR UPDATE OF m SKIP LOCKED
       )
       UPDATE "MessageDigest" d SET "lastRunAt" = ${now}
       FROM picked, "User" u

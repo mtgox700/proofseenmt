@@ -20,7 +20,7 @@ export const resendTransport = (config: { readonly apiKey: string; readonly from
       const response = await fetchImpl(ENDPOINT, {
         method: "POST",
         headers: { authorization: `Bearer ${config.apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ from: config.from, to: [to], subject: email.subject, text: email.text, html: email.html }),
+        body: JSON.stringify({ from: config.from, to: [to], subject: email.subject, text: email.text, html: email.html, ...(email.headers === undefined ? {} : { headers: email.headers }) }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
       return response.ok ? { ok: true } : { ok: false, error: `HTTP_${response.status}` };
