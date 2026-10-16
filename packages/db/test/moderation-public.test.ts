@@ -235,6 +235,43 @@ describe("une page d'entreprise masquée sort de chaque chemin public", () => {
   });
 });
 
+describe("une entreprise masquée avec ses missions sort de chaque chemin public (revue vague 3, M5)", () => {
+  it("sa page et toutes ses missions, même écrites par un membre actif, jusqu'au rétablissement", async () => {
+    const c = await company();
+    const page = await companyPages(t.db).publish({ userId: c.recruiter }, c.org, { publicName: "Acme Entière" }, NOW);
+    if (page.kind !== "saved") throw new Error(page.kind);
+    const mission = await openMission(c, "Erlang", "Brest");
+    await openMission(c, "Erlang", "Brest");
+    const desk = moderation(t.db, operator);
+    const listed = async () => (await missions(t.db).search({ skills: ["Erlang"] })).items.map((m) => m.id);
+    expect(await listed()).toContain(mission);
+
+    expect(await desk.hide("organisation", c.org, REASON, NOW)).toBe("done");
+    expect(await desk.hide("organisation", c.org, REASON, NOW)).toBe("unchanged");
+    expect(await missions(t.db).findPublic(mission, NOW)).toBeNull();
+    expect(await listed()).not.toContain(mission);
+    expect((await missions(t.db).listOpenForSitemap()).map((m) => m.id)).not.toContain(mission);
+    expect(await cityPages(t.db).page("brest")).toBeNull();
+    expect(await companyPages(t.db).page(page.slug, NOW)).toBeNull();
+    expect((await companyPages(t.db).listForSitemap()).map((p) => p.slug)).not.toContain(page.slug);
+    // Le masque de la seule page reste une autre décision : il n'a pas été posé.
+    expect((await t.db.organisation.findUniqueOrThrow({ where: { id: c.org } })).moderatedAt).toBeNull();
+
+    expect(await desk.restore("organisation", page.slug, "Masque levé", NOW)).toBe("done");
+    expect(await missions(t.db).findPublic(mission, NOW)).not.toBeNull();
+    expect(await companyPages(t.db).page(page.slug, NOW)).not.toBeNull();
+  });
+
+  it("masquer la seule page publique laisse ses missions publiques", async () => {
+    const c = await company();
+    const page = await companyPages(t.db).publish({ userId: c.recruiter }, c.org, { publicName: "Acme Page Seule" }, NOW);
+    if (page.kind !== "saved") throw new Error(page.kind);
+    const mission = await openMission(c, "Elixir");
+    expect(await moderation(t.db, operator).hide("company", page.slug, REASON, NOW)).toBe("done");
+    expect(await missions(t.db).findPublic(mission, NOW)).not.toBeNull();
+  });
+});
+
 describe("un compte suspendu n'a plus de contenu public", () => {
   it("son profil, les missions qu'il a écrites, la page d'une entreprise dont il est le seul membre", async () => {
     const p = await published("Haxe");

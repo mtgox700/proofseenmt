@@ -47,7 +47,7 @@ export default async function CompanyPublicPageSettings({ params, searchParams }
           ) : null}
         </p>
       </header>
-      <StandingNotice lang={lang} market={market} topics={["company"]} />
+      <StandingNotice lang={lang} market={market} topics={["company", "organisation"]} />
       {error === null ? null : (
         <p className="form-error" role="alert">
           {error}

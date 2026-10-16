@@ -16,7 +16,7 @@ interface PageProps {
   readonly searchParams: Promise<{ etat?: string }>;
 }
 
-/** Hide a public profile, mission or company page with a reason; see and restore what is hidden. */
+/** Hide a public profile, mission, company page or whole company with a reason; see and restore what is hidden. */
 export default async function ModerationPage({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
@@ -40,7 +40,7 @@ export default async function ModerationPage({ params, searchParams }: PageProps
         <div className="field">
           <label htmlFor="hide-target">{o.moderation.target}</label>
           <select id="hide-target" name="target" defaultValue="profile">
-            {(["profile", "mission", "company"] as const).map((t) => (
+            {(["profile", "mission", "company", "organisation"] as const).map((t) => (
               <option key={t} value={t}>
                 {o.moderation.targets[t]}
               </option>

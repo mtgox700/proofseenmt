@@ -2,7 +2,7 @@ import type { StandingDictionary } from "./standing-fr";
 
 export const standingEn: StandingDictionary = {
   noticeTitle: "Proofseen decision",
-  targets: { profile: "Your public profile is hidden", mission: "A mission is hidden", company: "The company's public page is hidden" },
+  targets: { profile: "Your public profile is hidden", mission: "A mission is hidden", company: "The company's public page is hidden", organisation: "The company and all its missions are hidden" },
   since: (d: string) => `since ${d}`,
   reason: "Reason",
   vigilanceRejected: "Your URSSAF vigilance certificate could not be verified: declare a new one.",

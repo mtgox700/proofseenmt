@@ -5,7 +5,7 @@ import { day } from "@/lib/format";
 import type { Market } from "@/lib/market";
 import { AppealForm } from "./AppealForm";
 
-type Topic = "profile" | "mission" | "company" | "vigilance";
+type Topic = "profile" | "mission" | "company" | "organisation" | "vigilance";
 
 interface Props {
   readonly lang: Lang;
@@ -33,7 +33,7 @@ export async function StandingNotice({ lang, market, topics }: Props) {
           <li key={`${n.target}-${n.id}`}>
             <p>
               <strong>{s.targets[n.target]}</strong>
-              {n.target === "mission" ? ` · ${n.label}` : null} <span className="muted small">{s.since(day(n.moderatedAt, lang))}</span>
+              {n.target === "mission" || n.target === "organisation" ? ` · ${n.label}` : null} <span className="muted small">{s.since(day(n.moderatedAt, lang))}</span>
             </p>
             <p>
               {s.reason} : {n.reason}

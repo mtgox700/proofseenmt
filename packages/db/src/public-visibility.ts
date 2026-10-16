@@ -4,9 +4,11 @@ import type { Prisma } from "./generated/client";
  * Ce qu'un opérateur a retiré du public (C19), exclu au même endroit pour tous les chemins publics : pages de profil,
  * annuaire, recherche, missions, villes, métiers, entreprises, sitemaps, llms.txt, baromètres.
  *
- * Trois raisons de masquer :
+ * Quatre raisons de masquer :
  *  - le contenu lui-même a été masqué par un opérateur (`moderatedAt`) ;
  *  - son auteur est suspendu : son profil, les missions qu'il a écrites ;
+ *  - l'entreprise entière a été masquée par un opérateur (`Organisation.suspendedAt`, revue vague 3, M5) : sa page et
+ *    toutes ses missions, quel qu'en soit l'auteur ;
  *  - une page d'entreprise dont plus aucun membre n'est actif (tous suspendus).
  *
  * Ces fragments s'ajoutent aux conditions existantes (publié, ouvert…), ils ne les remplacent pas. Chaque chemin public
@@ -19,14 +21,18 @@ export const LISTED_PROFILE = {
   user: { suspendedAt: null },
 } as const satisfies Prisma.FreelanceProfileWhereInput;
 
-/** Une mission que personne n'a retirée du public. Une mission sans auteur (compte effacé) reste celle de l'entreprise. */
+/**
+ * Une mission que personne n'a retirée du public. Une mission sans auteur (compte effacé) reste celle de l'entreprise.
+ * Les exclusions passent par `NOT` : une clé `organisation` posée par l'appelant à côté de ce fragment ne l'écrase pas.
+ */
 export const LISTED_MISSION = {
   moderatedAt: null,
-  NOT: { author: { is: { suspendedAt: { not: null } } } },
-} as const satisfies Prisma.JobPostWhereInput;
+  NOT: [{ author: { is: { suspendedAt: { not: null } } } }, { organisation: { suspendedAt: { not: null } } }],
+} satisfies Prisma.JobPostWhereInput;
 
 /** Une page d'entreprise que personne n'a retirée du public, tenue par au moins un membre actif. */
 export const LISTED_COMPANY = {
   moderatedAt: null,
+  suspendedAt: null,
   members: { some: { user: { suspendedAt: null } } },
 } as const satisfies Prisma.OrganisationWhereInput;

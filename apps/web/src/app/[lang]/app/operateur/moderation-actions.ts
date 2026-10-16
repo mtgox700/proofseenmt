@@ -5,11 +5,12 @@ import { moderation, type ModerationTarget } from "@proofseen/db";
 import { field, OUTCOME_FLAGS, operatorAction, reasonOf } from "@/lib/operator";
 
 /*
- * Hide or restore a public profile, mission or company page. The role is checked first (404 for anyone else), then the
+ * Hide or restore a public profile, mission or company page, or a whole company with all its missions and API keys
+ * (wave-3 review, M5). The role is checked first (404 for anyone else), then the
  * per-operator throttle; the repository writes the decision, its log entry and the e-mail in one transaction.
  */
 
-const TARGETS: readonly ModerationTarget[] = ["profile", "mission", "company"];
+const TARGETS: readonly ModerationTarget[] = ["profile", "mission", "company", "organisation"];
 
 const targetOf = (raw: string): ModerationTarget | null => (TARGETS as readonly string[]).includes(raw) ? (raw as ModerationTarget) : null;
 

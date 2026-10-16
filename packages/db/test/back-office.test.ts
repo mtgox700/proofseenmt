@@ -10,7 +10,7 @@ import { profiles } from "../src/profiles";
 import { retention } from "../src/retention";
 import { userDesk } from "../src/user-desk";
 import { users } from "../src/users";
-import { createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
+import { createOrganisation, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
 
 /*
  * Le journal des opérateurs et les décisions sur les comptes (C19) : chaque action laisse sa trace dans la même
@@ -129,6 +129,21 @@ describe("modération : la personne est prévenue et voit le motif", () => {
     expect(await moderation(t.db, operator).hide("mission", "pas-un-id", REASON, NOW)).toBe("absent");
     expect(await moderation(t.db, operator).hide("company", "Pas Une Adresse!", REASON, NOW)).toBe("absent");
     expect(await t.db.operatorAction.count()).toBe(before);
+  });
+
+  it("une entreprise masquée avec ses missions : journal, e-mail aux administrateurs, avis, liste (revue vague 3, M5)", async () => {
+    const owner = await createUser(t.db);
+    const org = await createOrganisation(t.db, owner);
+    expect(await moderation(t.db, operator).hide("organisation", org, REASON, NOW)).toBe("done");
+    expect(await t.db.operatorAction.findFirstOrThrow({ where: { targetId: org, action: "organisation_hidden" } })).toMatchObject({ targetType: "organisation", reason: REASON });
+    const mail = await t.db.notification.findFirstOrThrow({ where: { userId: owner, kind: "account_notice" }, orderBy: { createdAt: "desc" } });
+    expect(mail.payload).toMatchObject({ notice: "organisation_hidden", reason: REASON });
+    expect((await accountNotices(t.db).standing({ userId: owner })).notices).toEqual([expect.objectContaining({ target: "organisation", id: org, reason: REASON })]);
+    expect((await moderation(t.db, operator).hidden()).find((h) => h.id === org)).toMatchObject({ target: "organisation", key: org, reason: REASON });
+    expect(await moderation(t.db, operator).hide("organisation", "00000000-0000-4000-8000-000000000000", REASON, NOW)).toBe("absent");
+    expect(await moderation(t.db, operator).restore("organisation", org, "Masque levé", NOW)).toBe("done");
+    expect(await t.db.operatorAction.count({ where: { targetId: org, action: "organisation_restored" } })).toBe(1);
+    expect((await accountNotices(t.db).standing({ userId: owner })).notices).toEqual([]);
   });
 
   it("liste ce qui est masqué, avec ce qu'il faut pour le rétablir", async () => {

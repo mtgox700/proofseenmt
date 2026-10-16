@@ -47,7 +47,7 @@ async function CompanyMissions({ lang, market }: { readonly lang: Lang; readonly
           </Link>
         </p>
       </header>
-      <StandingNotice lang={lang} market={market} topics={["mission"]} />
+      <StandingNotice lang={lang} market={market} topics={["mission", "organisation"]} />
       {list.length === 0 ? (
         <EmptyState title={m.company.empty} headingLevel={2}>
           <p>{m.company.emptyText}</p>

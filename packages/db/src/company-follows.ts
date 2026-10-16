@@ -37,7 +37,7 @@ export const companyFollows = (db: Db): CompanyFollows => ({
   async follow(actor, slug) {
     if (!SLUG.test(slug)) return "absent";
     const org = await db.organisation.findFirst({
-      where: { publicSlug: slug, publicSince: { not: null }, moderatedAt: null, members: { none: { userId: actor.userId } } },
+      where: { publicSlug: slug, publicSince: { not: null }, moderatedAt: null, suspendedAt: null, members: { none: { userId: actor.userId } } },
       select: { id: true },
     });
     if (org === null) return "absent";

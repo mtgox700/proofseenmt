@@ -5,16 +5,17 @@ import type { Prisma } from "./generated/client";
 import type { OperatorActionKind } from "./generated/enums";
 
 /*
- * Modération des contenus publics (C19) : un opérateur masque ou rétablit un profil, une mission ou la page publique
- * d'une entreprise, toujours avec un motif. Masquer ne supprime rien et ne touche pas aux réglages de la personne : le
- * contenu sort de tous les chemins publics (voir `public-visibility.ts`), la personne voit le motif dans son espace et
- * le reçoit par e-mail. Rétablir enlève le masque, sans rien republier de plus.
+ * Modération des contenus publics (C19) : un opérateur masque ou rétablit un profil, une mission, la page publique
+ * d'une entreprise, ou l'entreprise entière avec toutes ses missions et ses clés d'API (revue vague 3, M5), toujours
+ * avec un motif. Masquer ne supprime rien et ne touche pas aux réglages de la personne : le contenu sort de tous les
+ * chemins publics (voir `public-visibility.ts`), la personne voit le motif dans son espace et le reçoit par e-mail.
+ * Rétablir enlève le masque, sans rien republier de plus.
  *
  * Chaque action passe par une seule instruction conditionnelle (« pas encore masqué », « encore masqué ») : deux
  * opérateurs qui cliquent en même temps ne produisent qu'une décision et qu'une entrée de journal.
  */
 
-export type ModerationTarget = "profile" | "mission" | "company";
+export type ModerationTarget = "profile" | "mission" | "company" | "organisation";
 
 export const ProfileReferenceInputSchema = z.string().trim().toUpperCase().regex(/^FR-[A-Z2-9]{5,8}$/);
 const Uuid = z.uuid();
@@ -23,7 +24,7 @@ const Slug = z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,80}$/);
 export interface HiddenItem {
   readonly target: ModerationTarget;
   readonly id: string;
-  /** Ce qui désigne la cible dans le formulaire : référence du profil, identifiant de la mission, adresse de la page. */
+  /** Ce qui désigne la cible : référence du profil, identifiant de la mission ou de l'entreprise, adresse de la page. */
   readonly key: string;
   /** Référence du profil, intitulé de la mission, nom de l'entreprise. */
   readonly label: string;
@@ -32,7 +33,10 @@ export interface HiddenItem {
 }
 
 export interface Moderation {
-  /** `key` : la référence d'un profil (FR-XXXXX), l'identifiant d'une mission, l'adresse de la page d'une entreprise. */
+  /**
+   * `key` : la référence d'un profil (FR-XXXXX), l'identifiant d'une mission, l'adresse de la page d'une entreprise ;
+   * pour l'entreprise entière, son identifiant ou l'adresse de sa page.
+   */
   hide(target: ModerationTarget, key: string, reason: string, now: Date): Promise<OperatorResult>;
   restore(target: ModerationTarget, key: string, reason: string, now: Date): Promise<OperatorResult>;
   /** Ce qui est masqué aujourd'hui, le plus récent d'abord. */
@@ -45,12 +49,14 @@ const ACTIONS: Readonly<Record<ModerationTarget, { readonly hide: OperatorAction
   profile: { hide: "profile_hidden", restore: "profile_restored" },
   mission: { hide: "mission_hidden", restore: "mission_restored" },
   company: { hide: "company_page_hidden", restore: "company_page_restored" },
+  organisation: { hide: "organisation_hidden", restore: "organisation_restored" },
 };
 
 const NOTICES: Readonly<Record<ModerationTarget, { readonly hide: AccountNotice; readonly restore: AccountNotice }>> = {
   profile: { hide: "profile_hidden", restore: "profile_restored" },
   mission: { hide: "mission_hidden", restore: "mission_restored" },
   company: { hide: "company_page_hidden", restore: "company_page_restored" },
+  organisation: { hide: "organisation_hidden", restore: "organisation_restored" },
 };
 
 /** La cible résolue : son identifiant, ce qui la décrit dans le journal, et qui prévenir. */
@@ -76,10 +82,21 @@ const resolve = async (tx: Prisma.TransactionClient, target: ModerationTarget, k
     const admins = await organisationAdmins(tx, row.organisationId);
     return { id: row.id, label: row.title, recipients: [...admins, ...(row.authorUserId === null ? [] : [row.authorUserId])], moderated: row.moderatedAt !== null };
   }
+  if (target === "organisation") return resolveOrganisation(tx, key);
   const slug = Slug.safeParse(key);
   if (!slug.success) return null;
   const row = await tx.organisation.findUnique({ where: { publicSlug: slug.data }, select: { id: true, name: true, moderatedAt: true } });
   return row === null ? null : { id: row.id, label: row.name, recipients: await organisationAdmins(tx, row.id), moderated: row.moderatedAt !== null };
+};
+
+/** L'entreprise entière, désignée par son identifiant ou par l'adresse de sa page. */
+const resolveOrganisation = async (tx: Prisma.TransactionClient, key: string): Promise<Resolved | null> => {
+  const id = Uuid.safeParse(key.trim());
+  const slug = Slug.safeParse(key);
+  const where = id.success ? { id: id.data } : slug.success ? { publicSlug: slug.data } : null;
+  if (where === null) return null;
+  const row = await tx.organisation.findUnique({ where, select: { id: true, name: true, suspendedAt: true } });
+  return row === null ? null : { id: row.id, label: row.name, recipients: await organisationAdmins(tx, row.id), moderated: row.suspendedAt !== null };
 };
 
 /** Pose ou retire le masque, seulement s'il est dans l'état attendu ; rend le nombre de lignes changées. */
@@ -88,10 +105,13 @@ const flip = async (tx: Prisma.TransactionClient, target: ModerationTarget, id: 
   const where = { id, moderatedAt: hide ? null : { not: null } };
   if (target === "profile") return (await tx.freelanceProfile.updateMany({ where, data })).count;
   if (target === "mission") return (await tx.jobPost.updateMany({ where, data })).count;
-  return (await tx.organisation.updateMany({ where, data })).count;
+  if (target === "company") return (await tx.organisation.updateMany({ where, data })).count;
+  // L'entreprise entière : ses missions sortent du public par `LISTED_MISSION`, ses clés d'API par `authenticate`.
+  const suspension = hide ? { suspendedAt: now, suspensionReason: reason } : { suspendedAt: null, suspensionReason: null };
+  return (await tx.organisation.updateMany({ where: { id, suspendedAt: hide ? null : { not: null } }, data: suspension })).count;
 };
 
-const TARGET_TYPE = { profile: "profile", mission: "mission", company: "organisation" } as const;
+const TARGET_TYPE = { profile: "profile", mission: "mission", company: "organisation", organisation: "organisation" } as const;
 
 export const moderation = (db: Db, operator: Operator): Moderation => {
   assertOperator(operator);
@@ -116,10 +136,16 @@ export const moderation = (db: Db, operator: Operator): Moderation => {
     async hidden() {
       const where = { moderatedAt: { not: null } };
       const order = [{ moderatedAt: "desc" as const }, { id: "desc" as const }];
-      const [profiles, missions, companies] = await Promise.all([
+      const [profiles, missions, companies, organisations] = await Promise.all([
         db.freelanceProfile.findMany({ where, orderBy: order, take: MAX_LISTED, select: { id: true, reference: true, moderatedAt: true, moderationReason: true } }),
         db.jobPost.findMany({ where, orderBy: order, take: MAX_LISTED, select: { id: true, title: true, moderatedAt: true, moderationReason: true } }),
         db.organisation.findMany({ where, orderBy: order, take: MAX_LISTED, select: { id: true, name: true, publicSlug: true, moderatedAt: true, moderationReason: true } }),
+        db.organisation.findMany({
+          where: { suspendedAt: { not: null } },
+          orderBy: [{ suspendedAt: "desc" }, { id: "desc" }],
+          take: MAX_LISTED,
+          select: { id: true, name: true, suspendedAt: true, suspensionReason: true },
+        }),
       ]);
       const item = (target: ModerationTarget, id: string, key: string, label: string, at: Date | null, reason: string | null): HiddenItem[] =>
         at === null || reason === null ? [] : [{ target, id, key, label, reason, moderatedAt: at }];
@@ -127,6 +153,7 @@ export const moderation = (db: Db, operator: Operator): Moderation => {
         ...profiles.flatMap((p) => item("profile", p.id, p.reference, p.reference, p.moderatedAt, p.moderationReason)),
         ...missions.flatMap((m) => item("mission", m.id, m.id, m.title, m.moderatedAt, m.moderationReason)),
         ...companies.flatMap((c) => (c.publicSlug === null ? [] : item("company", c.id, c.publicSlug, c.name, c.moderatedAt, c.moderationReason))),
+        ...organisations.flatMap((o) => item("organisation", o.id, o.id, o.name, o.suspendedAt, o.suspensionReason)),
       ].sort((a, b) => b.moderatedAt.getTime() - a.moderatedAt.getTime());
     },
   };

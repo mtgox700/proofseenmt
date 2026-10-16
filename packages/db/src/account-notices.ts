@@ -8,7 +8,7 @@ import type { Actor } from "./messaging";
  */
 
 export interface ModerationNotice {
-  readonly target: "profile" | "mission" | "company";
+  readonly target: "profile" | "mission" | "company" | "organisation";
   readonly id: string;
   readonly label: string;
   readonly reason: string;
@@ -27,7 +27,7 @@ const MAX_NOTICES = 50;
 export const accountNotices = (db: Db) => ({
   async standing(actor: Actor): Promise<AccountStanding> {
     const hidden = { moderatedAt: { not: null } };
-    const [user, profile, missions, companies] = await Promise.all([
+    const [user, profile, missions, companies, organisations] = await Promise.all([
       db.user.findUnique({ where: { id: actor.userId }, select: { suspendedAt: true, suspensionReason: true } }),
       db.freelanceProfile.findUnique({
         where: { userId: actor.userId },
@@ -40,6 +40,11 @@ export const accountNotices = (db: Db) => ({
         select: { id: true, title: true, moderatedAt: true, moderationReason: true },
       }),
       db.organisation.findMany({ where: { ...hidden, members: { some: { userId: actor.userId } } }, take: MAX_NOTICES, select: { id: true, name: true, moderatedAt: true, moderationReason: true } }),
+      db.organisation.findMany({
+        where: { suspendedAt: { not: null }, members: { some: { userId: actor.userId } } },
+        take: MAX_NOTICES,
+        select: { id: true, name: true, suspendedAt: true, suspensionReason: true },
+      }),
     ]);
     const notice = (target: ModerationNotice["target"], id: string, label: string, at: Date | null, reason: string | null): ModerationNotice[] =>
       at === null || reason === null ? [] : [{ target, id, label, reason, moderatedAt: at }];
@@ -50,6 +55,7 @@ export const accountNotices = (db: Db) => ({
         ...(profile === null ? [] : notice("profile", profile.id, profile.reference, profile.moderatedAt, profile.moderationReason)),
         ...missions.flatMap((m) => notice("mission", m.id, m.title, m.moderatedAt, m.moderationReason)),
         ...companies.flatMap((c) => notice("company", c.id, c.name, c.moderatedAt, c.moderationReason)),
+        ...organisations.flatMap((o) => notice("organisation", o.id, o.name, o.suspendedAt, o.suspensionReason)),
       ],
       vigilanceRejection: rejected?.rejectedAt != null && rejected.rejectionReason != null ? { at: rejected.rejectedAt, reason: rejected.rejectionReason } : null,
     };

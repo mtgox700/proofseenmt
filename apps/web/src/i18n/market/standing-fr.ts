@@ -1,7 +1,7 @@
 /** Ce que la personne voit des décisions d'un opérateur sur son compte et ses contenus (C19). */
 export const standingFr = {
   noticeTitle: "Décision de Proofseen",
-  targets: { profile: "Votre profil public est masqué", mission: "Une mission est masquée", company: "La page publique de l'entreprise est masquée" },
+  targets: { profile: "Votre profil public est masqué", mission: "Une mission est masquée", company: "La page publique de l'entreprise est masquée", organisation: "L'entreprise et toutes ses missions sont masquées" },
   since: (d: string) => `depuis le ${d}`,
   reason: "Motif",
   vigilanceRejected: "Votre attestation de vigilance URSSAF n'a pas pu être vérifiée : déclarez-en une nouvelle.",

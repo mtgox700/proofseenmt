@@ -63,6 +63,8 @@ export const ACCOUNT_NOTICES = [
   "mission_restored",
   "company_page_hidden",
   "company_page_restored",
+  "organisation_hidden",
+  "organisation_restored",
   "contact_closed",
   "vigilance_rejected",
   "proof_revoked",

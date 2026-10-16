@@ -238,7 +238,7 @@ export const missions = (db: Db): Missions => ({
       // Les personnes qui suivent l'entreprise l'apprennent, tant que sa page publique existe ; jamais ses propres membres.
       const thisMission = { jobPosts: { some: { id: missionId } } };
       const followers = await tx.companyFollow.findMany({
-        where: { organisation: { publicSince: { not: null }, moderatedAt: null, ...thisMission }, user: { memberships: { none: { organisation: thisMission } } } },
+        where: { organisation: { publicSince: { not: null }, moderatedAt: null, suspendedAt: null, ...thisMission }, user: { memberships: { none: { organisation: thisMission } } } },
         select: { userId: true },
         take: MAX_FOLLOWERS_NOTIFIED,
       });

@@ -19,6 +19,11 @@ const COPY: Readonly<Record<Lang, Readonly<Record<string, { readonly subject: st
     mission_restored: { subject: "Une mission de votre entreprise est de nouveau visible", line: (what) => `Le masque posé sur la mission « ${what} » est levé.` },
     company_page_hidden: { subject: "La page publique de votre entreprise est masquée", line: () => "Un opérateur de Proofseen a masqué la page publique de votre entreprise." },
     company_page_restored: { subject: "La page publique de votre entreprise est de nouveau visible", line: () => "Le masque posé sur la page publique de votre entreprise est levé." },
+    organisation_hidden: {
+      subject: "Votre entreprise est masquée sur Proofseen",
+      line: () => "Un opérateur de Proofseen a masqué votre entreprise : sa page publique et toutes ses missions ne sont plus publiques, et ses clés d'API sont refusées.",
+    },
+    organisation_restored: { subject: "Votre entreprise est de nouveau visible sur Proofseen", line: () => "Le masque posé sur votre entreprise est levé : sa page, ses missions et ses clés d'API reprennent." },
     contact_closed: { subject: "Une prise de contact a été fermée", line: () => "Un opérateur de Proofseen a fermé une conversation que votre entreprise avait ouverte." },
     vigilance_rejected: { subject: "Votre attestation de vigilance n'a pas pu être vérifiée", line: () => "Un opérateur de Proofseen n'a pas pu vérifier votre attestation de vigilance URSSAF. Déclarez-en une nouvelle depuis votre espace." },
     proof_revoked: { subject: "La preuve d'une de vos adresses est retirée", line: (what) => `Un opérateur de Proofseen a retiré la preuve de possession de l'adresse ${what}. Elle reste déclarée sur votre profil.` },
@@ -32,6 +37,11 @@ const COPY: Readonly<Record<Lang, Readonly<Record<string, { readonly subject: st
     mission_restored: { subject: "A mission of your company is visible again", line: (what) => `The hold on the mission "${what}" was lifted.` },
     company_page_hidden: { subject: "Your company's public page is hidden", line: () => "A Proofseen operator hid your company's public page." },
     company_page_restored: { subject: "Your company's public page is visible again", line: () => "The hold on your company's public page was lifted." },
+    organisation_hidden: {
+      subject: "Your company is hidden on Proofseen",
+      line: () => "A Proofseen operator hid your company: its public page and all its missions are no longer public, and its API keys are refused.",
+    },
+    organisation_restored: { subject: "Your company is visible again on Proofseen", line: () => "The hold on your company was lifted: its page, missions and API keys work again." },
     contact_closed: { subject: "A first contact was closed", line: () => "A Proofseen operator closed a conversation your company had opened." },
     vigilance_rejected: { subject: "Your vigilance certificate could not be verified", line: () => "A Proofseen operator could not verify your URSSAF vigilance certificate. Declare a new one from your space." },
     proof_revoked: { subject: "The proof of one of your addresses was withdrawn", line: (what) => `A Proofseen operator withdrew the ownership proof of ${what}. It stays declared on your profile.` },
