@@ -1,6 +1,10 @@
 
 # --- Proofseen (added 2026-10-14) ---
 proofseen.com, www.proofseen.com {
+	# Uploads are at most 16 MB (server actions); anything larger is refused before it reaches the app.
+	request_body {
+		max_size 20MB
+	}
 	# The live messaging stream must not be compressed: compression buffers server-sent events.
 	@compress not path /api/messages/stream
 	encode @compress zstd gzip
