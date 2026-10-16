@@ -51,6 +51,8 @@ describe("tableau de bord freelance", () => {
         { profileId, day: day("2026-10-15"), kind: "skill", keyword: "react", appearances: 3 },
         { profileId, day: day("2026-10-14"), kind: "skill", keyword: "react", appearances: 2 },
         { profileId, day: day("2026-10-14"), kind: "city", keyword: "lyon", appearances: 4 },
+        // Moins de trois apparitions : un mot si rare désignerait presque la recherche d'une seule entreprise (revue vague 3, L13).
+        { profileId, day: day("2026-10-14"), kind: "skill", keyword: "rust", appearances: 2 },
         { profileId, day: day("2026-06-01"), kind: "skill", keyword: "cobol", appearances: 40 },
       ],
     });

@@ -12,6 +12,11 @@ import { dayDate, dayOf, daysEnding, monthOf, monthsEnding, parisDay, STATS_WIND
 
 export const REVENUE_MONTHS = 12;
 export const TOP_KEYWORDS = 20;
+/**
+ * Un filtre n'est montré qu'à partir de trois apparitions sur la période (revue vague 3, L13) : en deçà, un mot rare
+ * désignerait presque la recherche d'une seule entreprise.
+ */
+export const MIN_KEYWORD_APPEARANCES = 3;
 
 export interface DailyAudience {
   /** Jour de Paris, « AAAA-MM-JJ ». */
@@ -101,6 +106,7 @@ export const freelanceInsights = (db: Db): FreelanceInsightsRepository => ({
         by: ["kind", "keyword"],
         where: { profileId: profile.id, day: { gte: from } },
         _sum: { appearances: true },
+        having: { appearances: { _sum: { gte: MIN_KEYWORD_APPEARANCES } } },
         orderBy: [{ _sum: { appearances: "desc" } }, { keyword: "asc" }],
         take: TOP_KEYWORDS,
       }),
