@@ -2,6 +2,7 @@ export { createDb, getDb, type Db } from "./client";
 export * from "./generated/enums";
 export { auditRequests, NewAuditRequestSchema, type AuditRequestRecord, type AuditRequests, type NewAuditRequest } from "./audit-requests";
 export { NO_CONTACT } from "./contact-detection";
+export { linkCarriesContact } from "./contact-urls";
 export {
   containsContact,
   InvalidCursorError,

@@ -4,8 +4,10 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "../../../packages/db/test/support/database";
-import { chosenFiles, discardAttachments, saveAttachments } from "../src/data/attachments";
+import { ATTACHMENT_READING, chosenFiles, discardAttachments, saveAttachments as saveWith } from "../src/data/attachments";
+import { pdfText } from "../src/data/pdf-text";
 import { readStored } from "../src/data/uploads";
+import { cleanPdf, encryptedPdf, hiddenLaunchLinkPdf, hiddenOpenActionPdf, linkPdf } from "./support/pdf-samples";
 
 /*
  * Message attachments on disk and in the database (PGlite, temporary folder): what is stored is checked and
@@ -24,6 +26,10 @@ afterAll(async () => {
   await t.close();
   await rm(root, { recursive: true, force: true });
 });
+
+/** The real worker, with a deadline a loaded test machine always meets. */
+const saveAttachments = (...[db, actor, files, folder]: Parameters<typeof saveWith>) =>
+  saveWith(db, actor, files, folder, (bytes) => pdfText(bytes, { ...ATTACHMENT_READING, deadlineMs: 60_000 }));
 
 /** A minimal one-page PDF with a line of text, offsets computed so that the cross-reference table is exact. */
 const tinyPdf = (line: string): Uint8Array => {
@@ -50,6 +56,27 @@ const tinyPdf = (line: string): Uint8Array => {
 const file = (bytes: Uint8Array, name: string, type: string): File => new File([new Uint8Array(bytes)], name, { type });
 
 describe("message attachments", () => {
+  it("refuses a PDF whose active content hides in an object stream, an encrypted one, an unreadable one and a too long one", async () => {
+    const userId = await createUser(t.db);
+    const send = (bytes: Uint8Array) => saveAttachments(t.db, { userId }, [file(tinyPdf("Annexe"), "a.pdf", "application/pdf"), file(bytes, "b.pdf", "application/pdf")], root);
+    expect(await send(hiddenOpenActionPdf())).toEqual({ kind: "refused", problem: "active_content" });
+    expect(await send(hiddenLaunchLinkPdf())).toEqual({ kind: "refused", problem: "active_content" });
+    expect(await send(encryptedPdf())).toEqual({ kind: "refused", problem: "encrypted" });
+    expect(await send(new TextEncoder().encode("%PDF-1.4 not really a document"))).toEqual({ kind: "refused", problem: "unreadable" });
+    expect(await send(cleanPdf("Annexe", 51))).toEqual({ kind: "refused", problem: "too_long" });
+    expect(await t.db.storedFile.count({ where: { ownerId: userId } })).toBe(0);
+  });
+
+  it("reads the links of a PDF for contact details, like its text", async () => {
+    const userId = await createUser(t.db);
+    const mailbox = await saveAttachments(t.db, { userId }, [file(linkPdf("Ecrivez-moi", "mailto:jean.dupont@example.com"), "a.pdf", "application/pdf")], root);
+    expect(mailbox.kind === "saved" && mailbox.containContact).toBe(true);
+    const profile = await saveAttachments(t.db, { userId }, [file(linkPdf("Mon profil", "https://www.linkedin.com/in/jean-dupont"), "b.pdf", "application/pdf")], root);
+    expect(profile.kind === "saved" && profile.containContact).toBe(true);
+    const report = await saveAttachments(t.db, { userId }, [file(linkPdf("Rapport", "https://www.example.com/rapport-annuel"), "c.pdf", "application/pdf")], root);
+    expect(report.kind === "saved" && !report.containContact).toBe(true);
+  });
+
   it("keeps only real files from a form field", () => {
     expect(chosenFiles(["text", file(new Uint8Array(), "", "application/octet-stream"), file(new Uint8Array([1]), "a.pdf", "application/pdf")])).toHaveLength(1);
   });

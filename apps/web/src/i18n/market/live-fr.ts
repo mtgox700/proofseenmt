@@ -6,7 +6,7 @@ export const liveFr = {
   bell: "Notifications",
   attachments: {
     label: "Pièces jointes (facultatif)",
-    hint: "Trois fichiers au plus, PDF, PNG, JPEG ou WebP, 5 Mo chacun. Les images sont réencodées sans leurs métadonnées. Le texte d'un PDF est relu : avant un contrat payé, un PDF qui contient des coordonnées est refusé, comme un message. Les images ne sont pas lues : n'y mettez pas de coordonnées.",
+    hint: "Trois fichiers au plus, PDF, PNG, JPEG ou WebP, 5 Mo chacun. Les images sont réencodées sans leurs métadonnées. Le texte et les liens d'un PDF sont relus : avant un contrat payé, un PDF qui contient des coordonnées est refusé, comme un message. Un PDF protégé ou qui contient du contenu actif est refusé. Les images ne sont pas lues : n'y mettez pas de coordonnées.",
     pdf: "Pièce jointe {n} (PDF)",
     image: "Pièce jointe {n} (image)",
     errors: {
@@ -15,7 +15,9 @@ export const liveFr = {
       type: "Seuls les PDF et les images PNG, JPEG ou WebP sont acceptés.",
       dimensions: "Une image est trop petite ou trop grande (16 à 10 000 pixels de côté).",
       active_content: "Ce PDF contient du contenu actif (script, fichier intégré) : il est refusé.",
-      unreadable: "Une pièce jointe n'a pas pu être lue. Essayez un autre fichier.",
+      unreadable: "Une pièce jointe n'a pas pu être lue : elle n'est pas envoyée sans vérification. Enregistrez-la de nouveau en PDF ou essayez un autre fichier.",
+      encrypted: "Un PDF joint est protégé (mot de passe ou chiffrement) : son contenu ne peut pas être vérifié. Enregistrez-le de nouveau sans protection.",
+      too_long: "Un PDF joint dépasse 50 pages : il ne peut pas être vérifié. Envoyez un document plus court.",
       quota: "Votre espace de fichiers est plein (30 fichiers ou 40 Mo) : retirez un fichier de votre profil d'abord.",
       busy: "La vérification des PDF est très demandée en ce moment : renvoyez la pièce jointe dans une minute.",
       storage_full: "L'espace de stockage de la plateforme est plein pour le moment : envoyez le message sans pièce jointe ou réessayez plus tard.",

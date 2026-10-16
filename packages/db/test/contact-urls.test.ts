@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CompanyPublicInputSchema } from "../src/company-pages";
 import { NO_CONTACT } from "../src/contact-detection";
-import { CONTACT_HOSTS, isContactHost, urlCarriesContact } from "../src/contact-urls";
+import { CONTACT_HOSTS, isContactHost, linkCarriesContact, urlCarriesContact } from "../src/contact-urls";
 import { CertificationInputSchema, PortfolioInputSchema } from "../src/profile-section-schemas";
 
 /*
@@ -83,5 +83,18 @@ describe("champs d'adresse des profils et des entreprises", () => {
     expect(refusedForContact(CompanyPublicInputSchema.safeParse({ publicName: "Acme", website: "calendly.com/acme" }))).toBe(true);
     expect(refusedForContact(CompanyPublicInputSchema.safeParse({ publicName: "Acme", website: "https://acme.fr/contact/rh@acme.fr" }))).toBe(true);
     expect(CompanyPublicInputSchema.safeParse({ publicName: "Acme", website: "acme.fr" }).success).toBe(true);
+  });
+});
+
+describe("liens d'un document joint (revue de sécurité vague 3, M2)", () => {
+  it("prend pour des coordonnées un lien vers une boîte, un téléphone ou une messagerie", () => {
+    for (const link of ["mailto:jean.dupont@example.com", "MAILTO:jean@example.com", "tel:+33612345678", "sms:+33612345678", "callto:jean.dupont", "skype:jean.dupont?call", "whatsapp://send?phone=33612345678", "tg://resolve?domain=jean", "https://wa.me/33612345678", "https://www.linkedin.com/in/jean-dupont", "https://example.com/contact/jean@example.com"]) {
+      expect(linkCarriesContact(link), link).toBe(true);
+    }
+  });
+
+  it("laisse passer un lien vers une page web ordinaire", () => {
+    expect(linkCarriesContact("https://www.example.com/rapport-annuel")).toBe(false);
+    expect(linkCarriesContact("https://docs.example.org/api/v2#auth")).toBe(false);
   });
 });

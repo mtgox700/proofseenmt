@@ -8,7 +8,7 @@ export const liveEn: LiveDictionary = {
   bell: "Notifications",
   attachments: {
     label: "Attachments (optional)",
-    hint: "Three files at most, PDF, PNG, JPEG or WebP, 5 MB each. Images are re-encoded without their metadata. The text of a PDF is checked: before a paid contract, a PDF containing contact details is refused, like a message. Images are not read: do not put contact details in them.",
+    hint: "Three files at most, PDF, PNG, JPEG or WebP, 5 MB each. Images are re-encoded without their metadata. The text and links of a PDF are checked: before a paid contract, a PDF containing contact details is refused, like a message. A protected PDF or one with active content is refused. Images are not read: do not put contact details in them.",
     pdf: "Attachment {n} (PDF)",
     image: "Attachment {n} (image)",
     errors: {
@@ -17,7 +17,9 @@ export const liveEn: LiveDictionary = {
       type: "Only PDF files and PNG, JPEG or WebP images are accepted.",
       dimensions: "An image is too small or too large (16 to 10,000 pixels per side).",
       active_content: "This PDF contains active content (script, embedded file): it is refused.",
-      unreadable: "An attachment could not be read. Try another file.",
+      unreadable: "An attachment could not be read, so it is not sent unchecked. Save it again as a PDF or try another file.",
+      encrypted: "An attached PDF is protected (password or encryption): its content cannot be checked. Save it again without protection.",
+      too_long: "An attached PDF has more than 50 pages: it cannot be checked. Send a shorter document.",
       quota: "Your file space is full (30 files or 40 MB): remove a file from your profile first.",
       busy: "PDF checking is very busy right now: send the attachment again in a minute.",
       storage_full: "The platform storage is full for now: send the message without attachments or try again later.",

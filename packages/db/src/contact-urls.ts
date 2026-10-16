@@ -135,3 +135,16 @@ export const urlCarriesContact = (raw: string): boolean => {
   if (containsDirectContact(withoutIdentifiers(url.hostname.replace(/\./g, " ")))) return true;
   return containsReachableContact(pathParts(url));
 };
+
+/*
+ * Les liens d'un document joint à un message (revue de sécurité vague 3, M2) : un lien vers une page web est lu comme
+ * une adresse publiée ci-dessus ; tout autre schéma (mailto:, tel:, sms:, une messagerie qui s'ouvre…) est un moyen
+ * de joindre quelqu'un.
+ */
+const WEB_LINK = /^https?:\/\//i;
+
+/** Vrai si le lien mène à un contact direct : tout ce qui n'est pas une page web, ou une page web qui en porte un. */
+export const linkCarriesContact = (raw: string): boolean => {
+  const link = raw.trim();
+  return WEB_LINK.test(link) ? urlCarriesContact(link) : true;
+};
