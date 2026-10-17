@@ -533,6 +533,9 @@ model JobPost {
   questions         String[]      @default([])
   /// Les libellés des compétences, à la suite : la recherche plein texte les lit avec l'intitulé et la description.
   skillsText        String        @default("")
+  /// Intitulé, description et compétences pliés (minuscules, sans accents) par le dépôt : « developpeur » trouve
+  /// « développeur ». Index plein texte posé à la main (migration 20261017090000_search_unaccent).
+  searchText        String        @default("")
   status            JobPostStatus @default(draft)
   publishedAt       DateTime?     @db.Timestamptz(3)
   closedAt          DateTime?     @db.Timestamptz(3)

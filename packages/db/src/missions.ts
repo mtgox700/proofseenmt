@@ -6,6 +6,7 @@ import type { JobPostStatus, WorkMode } from "./generated/enums";
 import type { Actor } from "./messaging";
 import { fullTextMatches, SearchTextSchema } from "./mission-search";
 import { notifications } from "./notifications";
+import { missionSearchText } from "./search-text";
 import { ensureSkills, skillKey, uniqueSkills } from "./skills";
 import { LISTED_MISSION } from "./public-visibility";
 
@@ -181,6 +182,12 @@ const ORDER: Record<SearchSort, Prisma.JobPostOrderByWithRelationInput[]> = {
   rate_asc: [{ dailyRateMinCents: { sort: "asc", nulls: "last" } }, { id: "desc" }],
 };
 
+/** Les colonnes lues par la recherche : les compétences à la suite, puis le tout plié (sans accents, en minuscules). */
+const searchColumns = (input: z.output<typeof MissionInputSchema>) => {
+  const skillsText = uniqueSkills(input.skills).map((s) => s.label).join(" ");
+  return { skillsText, searchText: missionSearchText(input.title, input.description, skillsText) };
+};
+
 /** Les colonnes de la mission ; les compétences, elles, vont dans leur table de liaison. */
 const fields = (input: z.output<typeof MissionInputSchema>) => ({
   title: input.title,
@@ -193,7 +200,7 @@ const fields = (input: z.output<typeof MissionInputSchema>) => ({
   cityKey: input.city === null ? null : skillKey(input.city),
   workMode: input.workMode,
   questions: input.questions,
-  skillsText: uniqueSkills(input.skills).map((s) => s.label).join(" "),
+  ...searchColumns(input),
 });
 
 export const missions = (db: Db): Missions => ({
