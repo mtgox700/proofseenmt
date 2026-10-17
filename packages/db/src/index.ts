@@ -418,3 +418,6 @@ export {
   type SubscribeResult,
 } from "./push-subscriptions";
 export { MAX_PUSH_ATTEMPTS, PUSH_STALE_MS, pushQueue, type PendingPush, type PushQueue } from "./push-queue";
+export { jobTitlePages, type JobTitleIndexEntry, type JobTitlePage, type JobTitlePageFacts, type JobTitlePages } from "./job-title-pages";
+export { JOB_TITLES, jobTitlesOf, matchesJobTitle, type JobTitle } from "./job-titles";
+export { foldText } from "./search-text";
