@@ -609,6 +609,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | C18 | Blog, guides et baromètres citables | 🟡 | En production le 2026-10-15 (PR #34) : blog et guides en base, bureau de l'opérateur, règle « aucun chiffre sans source », RSS, sitemap, baromètres TJM et compétences (n ≥ 10, jeux de données CSV/JSON) ; 3 guides en brouillon sourcés sur des pages officielles, à relire et publier ; reste un simulateur de revenu net |
 | C19 | Back-office opérateur | 🟡 | En production le 2026-10-16 (PR #43) : journal des opérateurs en ajout seul (5 ans), modération des profils, missions et pages entreprises respectée par chaque chemin public, revue des premiers contacts, attestations URSSAF, litiges d’adresses, registre, recherche et suspension de comptes (droits RGPD conservés), retours de la bêta, entonnoir, dépenses de mesure ; reste la recette par un opérateur réel |
 | C20 | Paiement de bout en bout et application mobile | 🟡 | Application installable et notifications poussées en production le 2026-10-16 (PR #45) : manifeste et service worker limités à l'espace connecté, page hors ligne, Web Push (clés VAPID générées sur le serveur), pages publiques inchangées ; restent l'installation et une notification reçue sur un vrai téléphone, et toute la partie Stripe (décision du founder, fin de projet) |
+| C21 | Finitions de parité | 🟡 | démarré le 2026-10-17 : simulateur de revenu net, pages par métier, recherche insensible aux accents (lot A) ; édition des éléments du profil, filtre langues, CV joint aux candidatures (lot B) |
 
 **Règles propres à ces sprints**, en plus du BLOC COMMUN :
 - Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
@@ -835,4 +836,32 @@ les freelances, Free-Work aucune).
 - [ ] Mission payée en mode test de bout en bout, facture et avis visibles
 - [ ] Application installée sur un téléphone, notification reçue
 - [ ] Gate complet vert, relecture sécurité fermée
+</definition_of_done>
+
+
+---
+
+## C21 — FINITIONS DE PARITÉ
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C21 : « Finitions de parité »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Fermer les écarts que C13 à C20 ont laissés et qui ne dépendent pas du founder, d'après les notes de lot et la veille
+(`research/CONQUETE_PARITE.md` §5) : ce qu'un utilisateur de Malt ou de Free-Work cherche encore et ne trouve pas.
+</objectif>
+
+<perimetre>
+- Lot A, côté public : simulateur de revenu net d'un freelance (TJM, jours, statut, frais), page citable sourcée sur les
+  pages officielles ; pages par métier (intitulé de poste) en plus des compétences, avec le même seuil d'effectif ;
+  recherche de missions insensible aux accents.
+- Lot B, côté connecté : modifier un élément déclaré du profil (expérience, formation, certification, langue,
+  portfolio) au lieu de le retirer puis le recréer ; filtre « langues » dans la recherche des entreprises ; CV joint à
+  une candidature et lisible par l'entreprise destinataire seulement.
+</perimetre>
+
+<definition_of_done>
+- [ ] Simulateur et pages par métier en production, `marketplace-verify` vert
+- [ ] Édition d'un élément, filtre langues et CV joint joués dans le navigateur avec les comptes de test
+- [ ] Gate complet vert
 </definition_of_done>
