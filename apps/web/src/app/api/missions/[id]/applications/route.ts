@@ -55,7 +55,9 @@ export async function POST(request: Request, context: Context): Promise<NextResp
         return fail("introuvable");
       case "contact_details":
         return fail("coordonnées refusées");
+      // This route attaches no CV (the apply form uploads it): "cv_absent" is kept for the exhaustive switch.
       case "answers_required":
+      case "cv_absent":
         return fail("requête invalide");
     }
   } catch {

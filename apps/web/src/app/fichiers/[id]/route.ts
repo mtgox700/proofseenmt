@@ -7,7 +7,8 @@ import { session } from "@/lib/session";
 
 /*
  * Serves a stored file to whoever may read it: a public photo or portfolio image to anyone, a message attachment to the
- * parties of its conversation (C15), anything else to its owner only. A file the caller may not read answers 404 exactly like a file that does not exist, so ids cannot be probed.
+ * parties of its conversation (C15), a CV to the company members of a live application it is attached to (C21),
+ * anything else to its owner only. A file the caller may not read answers 404 exactly like a file that does not exist, so ids cannot be probed.
  *
  * The answer can never run in the browser: the type is the one recognised and re-encoded at upload, the browser may
  * not guess another (nosniff), and the document policy forbids every resource and script (sandbox). A CV is always a
@@ -34,8 +35,9 @@ const readableBy = async (id: string): Promise<ReadableFile | null> => {
   if (state.kind !== "signed-in" || state.person.email === "") return null;
   const { userId, suspension } = await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
   const readable = await storedFiles(db).readable(id, { userId });
-  // A suspended account (C19) keeps its own files (they are its data) but no longer reads its conversations' attachments.
-  return suspension !== null && readable?.audience === "participant" ? null : readable;
+  // A suspended account (C19) keeps its own files (they are its data) but no longer reads what others shared with it:
+  // its conversations' attachments, the CVs attached to its company's applications.
+  return suspension !== null && (readable?.audience === "participant" || readable?.audience === "recipient") ? null : readable;
 };
 
 /*

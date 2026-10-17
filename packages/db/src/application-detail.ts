@@ -26,6 +26,11 @@ export interface ApplicationDetail {
   /** Chaque question de la mission avec la réponse du freelance, dans leur ordre. */
   readonly answers: readonly { readonly question: string; readonly answer: string }[];
   readonly mission: { readonly id: string; readonly title: string };
+  /**
+   * Le CV joint (C21), à télécharger par `/fichiers/<id>` ; `null` sans CV, ou quand la mission est masquée, le candidat
+   * ou l'entreprise suspendus : les mêmes règles que la lecture du fichier lui-même.
+   */
+  readonly cvFileId: string | null;
   readonly profile: {
     readonly reference: string;
     readonly headline: string | null;
@@ -56,8 +61,9 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
         readAt: true,
         coverNote: true,
         answers: true,
+        cvFileId: true,
         conversation: { select: { id: true } },
-        jobPost: { select: { id: true, title: true, questions: true } },
+        jobPost: { select: { id: true, title: true, questions: true, moderatedAt: true, organisation: { select: { suspendedAt: true } } } },
         profile: {
           select: {
             userId: true,
@@ -83,6 +89,7 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
       coverNote: row.coverNote,
       answers: row.jobPost.questions.map((question, i) => ({ question, answer: row.answers[i] ?? "" })),
       mission: { id: row.jobPost.id, title: row.jobPost.title },
+      cvFileId: row.jobPost.moderatedAt === null && row.jobPost.organisation.suspendedAt === null && row.profile.user.suspendedAt === null ? row.cvFileId : null,
       profile: {
         reference: row.profile.reference,
         headline: row.profile.headline,

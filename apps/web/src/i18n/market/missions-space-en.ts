@@ -44,6 +44,10 @@ export const missionsSpaceEn: MissionsSpaceDictionary = {
     readHint: "The freelancer sees when their application was first opened, never by whom.",
     sentOn: "sent on",
     readOn: "read on",
+    cvTitle: "Attached CV",
+    downloadCv: "Download the CV",
+    noCv: "No CV attached to this application.",
+    cvHint: "The CV is a file uploaded by the freelancer: it downloads, it never opens in the browser.",
   },
   invite: {
     title: "Invite a freelancer to apply",
@@ -73,6 +77,12 @@ export const missionsSpaceEn: MissionsSpaceDictionary = {
     saved: "Mission saved.",
     savedLimit: "Two hundred saved missions at most: remove some first.",
     profileAttached: "Your public profile is attached to your application: the company sees your reference, your headline and your verified facts.",
+    cvTitle: "CV (optional)",
+    cvLead: "Only this company can download it, as long as you do not withdraw your application.",
+    attachStored: (day: string) => `Attach the CV of my profile (uploaded on ${day})`,
+    noStoredCv: "No CV in your profile.",
+    upload: "Or upload a CV as PDF",
+    uploadHint: "5 MB at most. It also becomes the CV of your profile; the one already sent to other companies does not change.",
   },
   mine: {
     read: (date: string) => `read by the company on ${date}`,

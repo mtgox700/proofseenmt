@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { missions, savedMissions } from "@proofseen/db";
+import { missions, savedMissions, storedFiles, type StoredFileRecord } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
-import { money } from "@/lib/format";
+import { cvRefusalOf } from "@/lib/application-cv-form";
+import { day, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 import { ANSWER_FIELDS } from "@/lib/mission-form";
 import { applyToMission } from "../../actions";
@@ -23,6 +24,8 @@ const MAX_ANSWER = 2000;
 
 const errorText = (code: string | undefined, dict: MarketDictionary): string | null => {
   if (code === undefined) return null;
+  const refusal = cvRefusalOf(code);
+  if (refusal !== null) return dict.profile.sections.notices[refusal];
   const m = dict.missions;
   const errors: Readonly<Record<string, string>> = {
     ...m.apply.errors,
@@ -55,6 +58,37 @@ function SaveButton({ lang, dict, missionId, saved, notice }: { readonly lang: L
   );
 }
 
+/**
+ * The CV of the application (C21): the profile's CV with one box, or a PDF uploaded here. Only the company of this
+ * mission can download it, while the application is not withdrawn.
+ */
+function CvFields({ lang, dict, cv }: { readonly lang: Lang; readonly dict: MarketDictionary; readonly cv: StoredFileRecord | null }) {
+  const a = dict.missionsSpace.apply;
+  return (
+    <fieldset className="fieldset" aria-describedby="apply-cv-lead">
+      <legend>{a.cvTitle}</legend>
+      <p id="apply-cv-lead" className="field-hint">
+        {a.cvLead}
+      </p>
+      {cv === null ? (
+        <p className="muted small">{a.noStoredCv}</p>
+      ) : (
+        <div className="field field-inline">
+          <input id="apply-cv-stored" name="joindreCv" value="1" type="checkbox" />
+          <label htmlFor="apply-cv-stored">{a.attachStored(day(cv.createdAt, lang))}</label>
+        </div>
+      )}
+      <div className="field">
+        <label htmlFor="apply-cv-file">{a.upload}</label>
+        <input id="apply-cv-file" name="cv" type="file" accept="application/pdf" aria-describedby="apply-cv-hint" />
+        <p id="apply-cv-hint" className="field-hint">
+          {a.uploadHint}
+        </p>
+      </div>
+    </fieldset>
+  );
+}
+
 /** A freelancer applies to an open mission, reached from the mission's public page; or saves it for later. */
 export default async function ApplyPage({ params, searchParams }: PageProps) {
   const { lang, id } = await params;
@@ -67,7 +101,7 @@ export default async function ApplyPage({ params, searchParams }: PageProps) {
   const mission = await missions(market.db).findPublic(id);
   if (mission === null) notFound();
   const freelance = market.person.role === "freelance";
-  const saved = freelance ? await savedMissions(market.db).isSaved(market.actor, mission.id) : false;
+  const [saved, cv] = freelance ? await Promise.all([savedMissions(market.db).isSaved(market.actor, mission.id), storedFiles(market.db).latest(market.actor, "cv")]) : [false, null];
   const { erreur, enregistrement } = await searchParams;
   const error = errorText(erreur, dict);
   const rate = m.apply.rate(
@@ -137,6 +171,7 @@ export default async function ApplyPage({ params, searchParams }: PageProps) {
                 })}
               </fieldset>
             )}
+            <CvFields lang={lang} dict={dict} cv={cv} />
             <button type="submit" className="btn btn-primary">
               {m.apply.send}
             </button>

@@ -15,7 +15,9 @@ import type { Actor } from "./messaging";
  *   pseudonyme ne montre jamais de visage) ;
  * - l'image d'une réalisation du portfolio est publique seulement sur un profil publié sous le nom de la personne : une
  *   capture d'écran peut porter un nom, un logo client, un visage, et lèverait le pseudonyme ;
- * - un CV n'est lu que par son propriétaire ;
+ * - un CV est lu par son propriétaire, et par les membres de l'entreprise qui publie la mission d'une candidature à
+ *   laquelle il est joint (C21), tant que cette candidature n'est pas retirée, que la mission n'est pas masquée, que ni
+ *   l'entreprise, ni le membre, ni le candidat ne sont suspendus ;
  * - une pièce jointe (C15) est lue par les parties du fil de son message, et par son auteur seul tant qu'elle n'est
  *   rattachée à aucun message.
  *
@@ -56,10 +58,13 @@ export interface StoredFileRecord {
   readonly createdAt: Date;
 }
 
-/** Un fichier lisible, et pour qui : `public` peut être mis en cache partagé, `owner` et `participant` jamais. */
+/**
+ * Un fichier lisible, et pour qui : `public` peut être mis en cache partagé, les autres jamais. `recipient` : un membre
+ * de l'entreprise destinataire d'une candidature qui joint ce CV.
+ */
 export interface ReadableFile {
   readonly file: StoredFileRecord;
-  readonly audience: "public" | "owner" | "participant";
+  readonly audience: "public" | "owner" | "participant" | "recipient";
 }
 
 export type RecordResult = "recorded" | "quota" | "invalid";
@@ -75,6 +80,11 @@ export interface StoredFiles {
   latest(actor: Actor, kind: StoredFileKind): Promise<StoredFileRecord | null>;
   /** Supprime les fichiers de l'acteur de cet usage, sauf `keepId` ; rend les identifiants supprimés. */
   removeKind(actor: Actor, kind: StoredFileKind, keepId?: string): Promise<readonly string[]>;
+  /**
+   * Garde le CV `keepId` de l'acteur (à défaut, le plus récent) et ceux joints à une candidature non retirée ; supprime
+   * ses autres CV et rend leurs identifiants, à effacer du disque. Un CV envoyé à une entreprise reste celui qu'elle a reçu.
+   */
+  pruneCvs(actor: Actor, keepId?: string): Promise<readonly string[]>;
   /** Supprime un fichier de l'acteur ; rend son identifiant, ou `null` s'il n'est pas à lui. */
   remove(actor: Actor, id: string): Promise<string | null>;
   /** Les identifiants de tous les fichiers d'un compte : à effacer du disque avec lui. */
@@ -103,6 +113,21 @@ const SELECT = { id: true, ownerId: true, kind: true, contentType: true, size: t
 const PUBLIC_STATE = { visibility: true, moderatedAt: true, user: { select: { suspendedAt: true } } } as const;
 const listed = (p: { readonly moderatedAt: Date | null; readonly user: { readonly suspendedAt: Date | null } }): boolean => p.moderatedAt === null && p.user.suspendedAt === null;
 
+/**
+ * Le lecteur est membre actif de l'entreprise destinataire d'une candidature vivante qui joint ce CV : vérifié dans la
+ * requête, comme pour ouvrir la candidature elle-même. Une mission masquée, une entreprise ou un compte suspendus (C19)
+ * ferment l'accès.
+ */
+const cvRecipient = async (db: Db, id: string, viewer: Actor): Promise<boolean> =>
+  (await db.application.count({
+    where: {
+      cvFileId: id,
+      status: { not: "withdrawn" },
+      profile: { user: { suspendedAt: null } },
+      jobPost: { moderatedAt: null, organisation: { suspendedAt: null, members: { some: { userId: viewer.userId, user: { suspendedAt: null } } } } },
+    },
+  })) > 0;
+
 export const storedFiles = (db: Db): StoredFiles => ({
   async record(actor, raw) {
     const parsed = NewStoredFileSchema.safeParse(raw);
@@ -129,6 +154,7 @@ export const storedFiles = (db: Db): StoredFiles => ({
     if (row.kind === "portfolio_image" && portfolioOf?.profile.visibility === "named" && listed(portfolioOf.profile)) return { file, audience: "public" };
     if (viewer === null) return null;
     if (row.ownerId === viewer.userId) return { file, audience: "owner" };
+    if (row.kind === "cv") return (await cvRecipient(db, id, viewer)) ? { file, audience: "recipient" } : null;
     if (row.kind !== "message_attachment") return null;
     // Partie au fil du message qui porte la pièce jointe : vérifié dans la requête, comme pour lire le fil lui-même.
     const shared = await db.storedFile.count({
@@ -153,6 +179,21 @@ export const storedFiles = (db: Db): StoredFiles => ({
   async removeKind(actor, kind, keepId) {
     return db.$transaction(async (tx) => {
       const rows = await tx.storedFile.findMany({ where: { ownerId: actor.userId, kind, ...(keepId === undefined ? {} : { id: { not: keepId } }) }, select: { id: true } });
+      const ids = rows.map((r) => r.id);
+      if (ids.length > 0) await tx.storedFile.deleteMany({ where: { id: { in: ids }, ownerId: actor.userId } });
+      return ids;
+    });
+  },
+
+  async pruneCvs(actor, keepId) {
+    if (keepId !== undefined && !Uuid.safeParse(keepId).success) return [];
+    return db.$transaction(async (tx) => {
+      const keep = keepId ?? (await tx.storedFile.findFirst({ where: { ownerId: actor.userId, kind: "cv" }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { id: true } }))?.id;
+      if (keep === undefined) return [];
+      const rows = await tx.storedFile.findMany({
+        where: { ownerId: actor.userId, kind: "cv", id: { not: keep }, applications: { none: { status: { not: "withdrawn" } } } },
+        select: { id: true },
+      });
       const ids = rows.map((r) => r.id);
       if (ids.length > 0) await tx.storedFile.deleteMany({ where: { id: { in: ids }, ownerId: actor.userId } });
       return ids;

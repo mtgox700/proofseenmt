@@ -20,7 +20,8 @@ const Hidden = ({ name, value }: { readonly name: string; readonly value: string
 
 /**
  * One application, opened by a member of the company: the note, the answers to the mission's questions, the verified
- * facts. The first opening is dated for the freelancer ("read on …"); who opened it stays with the company.
+ * facts, the attached CV. The first opening is dated for the freelancer ("read on …"); who opened it stays with the
+ * company. The CV link goes through `/fichiers/<id>`, which checks the same rules again and serves it as a download.
  */
 export default async function ApplicationPage({ params }: PageProps) {
   const { lang, id, applicationId } = await params;
@@ -68,6 +69,23 @@ export default async function ApplicationPage({ params }: PageProps) {
             </Link>
           )}
         </p>
+      </section>
+
+      <section className="ws-block" aria-labelledby="cv-title">
+        <h2 id="cv-title">{s.detail.cvTitle}</h2>
+        {detail.cvFileId === null ? (
+          <p className="muted small">{s.detail.noCv}</p>
+        ) : (
+          <>
+            <p>
+              {/* A route handler, not a page: a plain link, never prefetched. */}
+              <a className="btn" href={`/fichiers/${detail.cvFileId}`} download>
+                {s.detail.downloadCv}
+              </a>
+            </p>
+            <p className="muted small">{s.detail.cvHint}</p>
+          </>
+        )}
       </section>
 
       <section className="ws-block" aria-labelledby="note-title">

@@ -134,7 +134,7 @@ export const gdpr = (db: Db): Gdpr => ({
           skills: { select: { skill: { select: { key: true, label: true } } } },
           ownedUrls: true,
           missions: true,
-          applications: { select: { id: true, jobPostId: true, coverNote: true, answers: true, status: true, createdAt: true, readAt: true } },
+          applications: { select: { id: true, jobPostId: true, coverNote: true, answers: true, status: true, createdAt: true, readAt: true, cvFileId: true } },
           reviews: { select: { rating: true, body: true, createdAt: true } },
           // Mesures de visibilité : les chiffres de l'entonnoir et l'historique des demandes. Aucune réponse brute de
           // moteur n'est en base, il n'y a donc rien d'autre à rendre.

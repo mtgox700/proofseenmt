@@ -15,6 +15,9 @@ import { LISTED_MISSION } from "./public-visibility";
  * Le freelance voit toujours où en est sa candidature : « sans réponse » est le premier grief fait aux job boards.
  * L'entreprise voit des faits vérifiés sur le candidat (adresses prouvées, missions vérifiées), jamais une note ni un
  * rang calculé (AI Act). L'ordre de la liste est celui qu'elle choisit.
+ *
+ * Le freelance peut joindre un de ses CV (C21) : vérifié dans la transaction (son fichier, de l'usage `cv`), et lisible
+ * par l'entreprise tant que la candidature n'est pas retirée (`stored-files.ts`).
  */
 
 const Uuid = z.uuid();
@@ -33,6 +36,8 @@ export type ApplyResult =
   /** Le profil est privé : le publier d'abord, plutôt que de l'exposer par la candidature. */
   | { readonly kind: "profile_private" }
   | { readonly kind: "already_applied" }
+  /** Le CV à joindre n'est pas (ou plus) un CV de l'acteur. */
+  | { readonly kind: "cv_absent" }
   /** Mission inexistante, pas encore publiée ou clôturée. */
   | { readonly kind: "absent" };
 
@@ -72,8 +77,11 @@ const ORGANISATION_MOVES: Record<"shortlisted" | "declined" | "hired", readonly 
 };
 
 export interface Applications {
-  /** `answers` : une réponse par question de la mission, dans leur ordre ; aucune si elle n'en pose pas. */
-  apply(actor: Actor, missionId: string, coverNote: string, now: Date, answers?: readonly string[]): Promise<ApplyResult>;
+  /**
+   * `answers` : une réponse par question de la mission, dans leur ordre ; aucune si elle n'en pose pas. `cvFileId` : un
+   * CV de l'acteur à joindre, ou `null`.
+   */
+  apply(actor: Actor, missionId: string, coverNote: string, now: Date, answers?: readonly string[], cvFileId?: string | null): Promise<ApplyResult>;
   /** Les candidatures d'une mission, pour les membres de son entreprise ; `null` pour les autres. */
   listForMission(actor: Actor, missionId: string, order?: "oldest" | "newest"): Promise<readonly ApplicantView[] | null>;
   /** Les candidatures du freelance, les plus récentes d'abord. */
@@ -83,8 +91,9 @@ export interface Applications {
 }
 
 export const applications = (db: Db): Applications => ({
-  async apply(actor, missionId, rawNote, now, rawAnswers = []) {
+  async apply(actor, missionId, rawNote, now, rawAnswers = [], cvFileId = null) {
     if (!Uuid.safeParse(missionId).success) return { kind: "absent" };
+    if (cvFileId !== null && !Uuid.safeParse(cvFileId).success) return { kind: "cv_absent" };
     const note = CoverNoteSchema.parse(rawNote);
     if (containsContact(note)) return { kind: "contact_details" };
     const parsedAnswers = z.array(AnswerSchema).max(3).safeParse(rawAnswers);
@@ -101,8 +110,9 @@ export const applications = (db: Db): Applications => ({
     if (mission === null) return { kind: "absent" };
     if (answers.length !== mission.questions.length) return { kind: "answers_required" };
     try {
-      return await db.$transaction(async (tx) => {
-        const application = await tx.application.create({ data: { jobPostId: missionId, profileId: profile.id, coverNote: note, answers }, select: { id: true } });
+      return await db.$transaction(async (tx): Promise<ApplyResult> => {
+        if (cvFileId !== null && (await tx.storedFile.count({ where: { id: cvFileId, ownerId: actor.userId, kind: "cv" } })) === 0) return { kind: "cv_absent" };
+        const application = await tx.application.create({ data: { jobPostId: missionId, profileId: profile.id, coverNote: note, answers, cvFileId }, select: { id: true } });
         const conversation = await tx.conversation.create({
           data: { organisationId: mission.organisationId, profileId: profile.id, applicationId: application.id, status: "accepted", decidedAt: now },
           select: { id: true },

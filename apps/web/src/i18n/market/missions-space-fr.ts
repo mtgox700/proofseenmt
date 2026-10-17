@@ -42,6 +42,10 @@ export const missionsSpaceFr = {
     readHint: "Le freelance voit la date de la première ouverture de sa candidature, jamais qui l'a ouverte.",
     sentOn: "envoyée le",
     readOn: "lue le",
+    cvTitle: "CV joint",
+    downloadCv: "Télécharger le CV",
+    noCv: "Pas de CV joint à cette candidature.",
+    cvHint: "Le CV est un fichier déposé par le freelance : il se télécharge, il ne s'ouvre pas dans le navigateur.",
   },
   invite: {
     title: "Inviter un freelance à postuler",
@@ -71,6 +75,12 @@ export const missionsSpaceFr = {
     saved: "Mission enregistrée.",
     savedLimit: "Deux cents missions enregistrées au plus : retirez-en d'abord.",
     profileAttached: "Votre profil public est joint à votre candidature : l'entreprise voit votre référence, votre titre et vos faits vérifiés.",
+    cvTitle: "CV (facultatif)",
+    cvLead: "Seule cette entreprise pourra le télécharger, tant que vous ne retirez pas votre candidature.",
+    attachStored: (day: string) => `Joindre le CV de mon profil (déposé le ${day})`,
+    noStoredCv: "Aucun CV dans votre profil.",
+    upload: "Ou déposer un CV en PDF",
+    uploadHint: "5 Mo au plus. Il devient aussi le CV de votre profil ; celui déjà envoyé à d'autres entreprises ne change pas.",
   },
   mine: {
     read: (date: string) => `lue par l'entreprise le ${date}`,

@@ -2,16 +2,20 @@
 
 import { redirect } from "next/navigation";
 import { applications, CoverNoteSchema, missions } from "@proofseen/db";
+import { cvChoiceOf, prepareApplicationCv, pruneAfterWithdrawal, settleApplicationCv } from "@/data/application-cv";
 import { notifyMissionChanged } from "@/data/indexnow";
+import { UPLOAD_RULE } from "@/data/profile-action";
 import { throttled } from "@/data/throttle";
 import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
+import { cvErrorCode } from "@/lib/application-cv-form";
 import { answersOf, missionFromForm } from "@/lib/mission-form";
 import { MAX_DRAFTS } from "@/lib/mission-limits";
 
 /*
  * Server actions of missions and applications. The session decides who acts; the repositories decide, inside their
  * own queries, whether that person may (member of the company, owner of the profile). Outcomes travel back as
- * `?erreur=<code>`, turned into a sentence by the page.
+ * `?erreur=<code>`, turned into a sentence by the page. A CV can be attached to an application (C21): the stored one,
+ * or one uploaded with the form, which counts against the same upload budget as the profile's uploads.
  */
 
 const SAVE_RULE = { windowMs: 60_000, max: 20 };
@@ -92,14 +96,26 @@ export async function applyToMission(formData: FormData): Promise<void> {
   if (await throttled("application-apply", market.actor.userId, APPLY_RULE, new Date())) redirect(back("trop"));
   const note = CoverNoteSchema.safeParse(text(formData.get("coverNote")));
   if (!note.success) redirect(back("invalide"));
-  const result = await applications(market.db).apply(market.actor, missionId, note.data, new Date(), answersOf(formData));
-  redirect(result.kind === "applied" ? `/${lang}/app/messages/${result.conversationId}` : back(result.kind));
+  const choice = cvChoiceOf(formData);
+  if (choice.kind === "upload" && (await throttled("profile-uploads", market.actor.userId, UPLOAD_RULE, new Date()))) redirect(back("trop"));
+  const cv = await prepareApplicationCv(market.db, market.actor, choice);
+  if (cv.kind === "refused") redirect(back(cvErrorCode(cv.code)));
+  const result = await applications(market.db)
+    .apply(market.actor, missionId, note.data, new Date(), answersOf(formData), cv.kind === "ready" ? cv.fileId : null)
+    .catch(async (error: unknown) => {
+      // Nothing uploaded for an application that failed is left behind.
+      await settleApplicationCv(market.db, market.actor, cv, false);
+      throw error;
+    });
+  await settleApplicationCv(market.db, market.actor, cv, result.kind === "applied");
+  redirect(result.kind === "applied" ? `/${lang}/app/messages/${result.conversationId}` : back(result.kind === "cv_absent" ? cvErrorCode("no_cv") : result.kind));
 }
 
 export async function withdrawApplication(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
   const market = await actionMarket(lang);
   if (await throttled("application-withdraw", market.actor.userId, DECIDE_RULE, new Date())) redirect(`/${lang}/app/missions`);
-  await applications(market.db).withdraw(market.actor, text(formData.get("applicationId")));
+  // A withdrawn application no longer opens its CV to the company; a CV only it kept is removed.
+  if (await applications(market.db).withdraw(market.actor, text(formData.get("applicationId")))) await pruneAfterWithdrawal(market.db, market.actor);
   redirect(`/${lang}/app/missions`);
 }
