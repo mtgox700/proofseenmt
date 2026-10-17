@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { Actor } from "./messaging";
+import { LANGUAGE_CODES, MAX_LANGUAGE_FILTERS } from "./profile-section-schemas";
 import { skillKey } from "./skills";
 import { dayDate, daysEnding, isDay, parisDay, retentionStart } from "./stat-days";
 
@@ -26,8 +27,8 @@ export type AppearanceScope = (typeof APPEARANCE_SCOPES)[number];
 export const MAX_KEYWORDS_PER_DAY = 20;
 /** Une page de résultats en montre cinquante au plus. */
 const MAX_REFERENCES = 50;
-/** Dix compétences et une ville : les filtres que la recherche accepte. */
-const MAX_SEARCH_KEYWORDS = 11;
+/** Dix compétences, une ville et trois langues : les filtres que la recherche accepte. */
+const MAX_SEARCH_KEYWORDS = 11 + MAX_LANGUAGE_FILTERS;
 /** Empreintes gardées par profil et par jour, toutes portées confondues ; bien au-delà de l'audience d'un profil réel. */
 export const MAX_SIGHTINGS_PER_PROFILE_DAY = 5_000;
 
@@ -36,7 +37,7 @@ const ReferenceSchema = z.string().regex(/^FR-[A-Z0-9]{5}$/);
 const KEYWORD = /^[a-z0-9+#-]{1,60}$/;
 
 export interface StatKeyword {
-  readonly kind: "skill" | "city";
+  readonly kind: "skill" | "city" | "language";
   readonly keyword: string;
 }
 
@@ -50,11 +51,19 @@ export interface Sighting {
   readonly viewerClerkId: string | null;
 }
 
-/** Les filtres d'une recherche, sous leur forme normalisée, sans doublon. Une phrase libre n'en fait jamais partie. */
-export const statKeywords = (filters: { readonly skills?: readonly string[]; readonly city?: string | null }): readonly StatKeyword[] => {
+/**
+ * Les filtres d'une recherche, sous leur forme normalisée, sans doublon. Une phrase libre n'en fait jamais partie. Une
+ * langue compte par son code de la liste fermée, sans le niveau demandé.
+ */
+export const statKeywords = (filters: { readonly skills?: readonly string[]; readonly city?: string | null; readonly languages?: readonly string[] }): readonly StatKeyword[] => {
   const skills = [...new Set((filters.skills ?? []).map(skillKey))].filter((key) => KEYWORD.test(key));
   const city = filters.city === undefined || filters.city === null ? "" : skillKey(filters.city);
-  return [...skills.map((keyword) => ({ kind: "skill" as const, keyword })), ...(KEYWORD.test(city) ? [{ kind: "city" as const, keyword: city }] : [])].slice(0, MAX_SEARCH_KEYWORDS);
+  const languages = [...new Set(filters.languages ?? [])].filter((code) => (LANGUAGE_CODES as readonly string[]).includes(code)).slice(0, MAX_LANGUAGE_FILTERS);
+  return [
+    ...skills.map((keyword) => ({ kind: "skill" as const, keyword })),
+    ...(KEYWORD.test(city) ? [{ kind: "city" as const, keyword: city }] : []),
+    ...languages.map((keyword) => ({ kind: "language" as const, keyword })),
+  ].slice(0, MAX_SEARCH_KEYWORDS);
 };
 
 const validSighting = (s: Sighting): boolean => isDay(s.day) && ViewerHashSchema.safeParse(s.viewerHash).success;

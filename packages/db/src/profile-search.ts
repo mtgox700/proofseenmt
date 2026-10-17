@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
+import type { LanguageLevel } from "./generated/enums";
+import { LANGUAGE_CODES, LANGUAGE_LEVELS, levelsAtLeast, MAX_LANGUAGE_FILTERS } from "./profile-section-schemas";
 import type { ProfileFacts } from "./profiles";
 import { publicName } from "./public-profiles";
 import { skillKey } from "./skills";
@@ -36,6 +38,8 @@ export const ProfileSearchSchema = z.object({
   city: z.string().trim().min(1).max(120).optional(),
   /** Toutes les compétences demandées doivent figurer au profil. */
   skills: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
+  /** Toutes les langues demandées, chacune au moins au niveau indiqué (C21) : un filtre sur le niveau déclaré. */
+  languages: z.array(z.object({ code: z.enum(LANGUAGE_CODES), minLevel: z.enum(LANGUAGE_LEVELS) })).max(MAX_LANGUAGE_FILTERS).default([]),
   minDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
   maxDailyRateCents: z.number().int().min(0).max(MAX_RATE_CENTS).optional(),
   availableOnly: z.boolean().default(false),
@@ -62,6 +66,8 @@ export interface ProfileCard extends ProfileFacts {
   readonly registryActive: boolean;
   readonly vigilanceValid: boolean;
   readonly updatedAt: Date;
+  /** Les langues déclarées et leur niveau, déjà publiées sur la page du profil. */
+  readonly languages: readonly { readonly code: string; readonly level: LanguageLevel }[];
 }
 
 export interface ProfileSearchPage {
@@ -93,6 +99,7 @@ const SELECT = {
   updatedAt: true,
   user: { select: { displayName: true } },
   skills: { select: { skill: { select: { label: true } } } },
+  languages: { orderBy: { code: "asc" }, select: { code: true, level: true } },
   billing: { select: { registryStatus: true } },
   vigilance: { select: { issuedOn: true, verifiedAt: true } },
   _count: { select: { ownedUrls: { where: { verifiedAt: { not: null } } }, missions: true } },
@@ -117,6 +124,7 @@ export const searchWhere = (f: Filters, now: Date): Prisma.FreelanceProfileWhere
   const skillKeys = [...new Set(f.skills.map(skillKey).filter((key) => key !== ""))];
   const and: Prisma.FreelanceProfileWhereInput[] = [
     ...skillKeys.map((key) => ({ skills: { some: { skill: { key } } } })),
+    ...f.languages.map((l) => ({ languages: { some: { code: l.code, level: { in: [...levelsAtLeast(l.minLevel)] } } } })),
     ...(f.availableBy === undefined ? [] : [{ OR: [{ availability: "available" as const }, { availability: "available_from" as const, availableFrom: { lte: f.availableBy } }] }]),
   ];
   return {

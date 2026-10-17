@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AVAILABILITY_FRESH_DAYS } from "@proofseen/db";
+import { AVAILABILITY_FRESH_DAYS, LANGUAGE_CODES, LANGUAGE_LEVELS, MAX_LANGUAGE_FILTERS } from "@proofseen/db";
+import { languageName } from "@proofseen/hub";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
 import { centsToField } from "@/lib/mission-form";
@@ -12,6 +13,52 @@ interface SearchFiltersProps {
 }
 
 const SORTS = Object.keys(SORT_SLUGS) as SortSlug[];
+const LANGUAGE_SLOTS = Array.from({ length: MAX_LANGUAGE_FILTERS }, (_, i) => i);
+
+/**
+ * Up to three languages, each with the lowest level that satisfies it. Each slot sends a `langue` and a `niveau`, in
+ * order, so the address pairs them without any script; an empty slot is no filter.
+ */
+function LanguageFilters({ lang, m, query }: SearchFiltersProps) {
+  const f = m.search.form;
+  const options = LANGUAGE_CODES.map((code) => ({ code, name: languageName(code, lang) })).sort((a, b) => a.name.localeCompare(b.name, lang));
+  return (
+    <fieldset className="fieldset" aria-describedby="search-languages-hint">
+      <legend>{f.languages}</legend>
+      <p id="search-languages-hint" className="field-hint">
+        {f.languagesHint}
+      </p>
+      {LANGUAGE_SLOTS.map((i) => {
+        const chosen = query.languages[i];
+        return (
+          <div key={i} className="panel-grid">
+            <div className="field">
+              <label htmlFor={`search-language-${i}`}>{f.language(i + 1)}</label>
+              <select id={`search-language-${i}`} name="langue" defaultValue={chosen?.code ?? ""}>
+                <option value="">{f.noLanguage}</option>
+                {options.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor={`search-level-${i}`}>{f.minLevel(i + 1)}</label>
+              <select id={`search-level-${i}`} name="niveau" defaultValue={chosen?.minLevel ?? "b2"}>
+                {LANGUAGE_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {f.levels[level]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        );
+      })}
+    </fieldset>
+  );
+}
 
 /**
  * The company search form: a plain GET form, so every search has its own address and works without script. Every
@@ -30,6 +77,7 @@ export function SearchFilters({ lang, m, query }: SearchFiltersProps) {
         <label htmlFor="search-city">{f.city}</label>
         <input id="search-city" name="ville" type="search" maxLength={120} defaultValue={query.city} autoComplete="address-level2" />
       </div>
+      <LanguageFilters lang={lang} m={m} query={query} />
       <fieldset className="fieldset">
         <legend>{f.workModes}</legend>
         {WORK_MODES.map((mode) => (

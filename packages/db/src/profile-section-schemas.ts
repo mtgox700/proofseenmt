@@ -23,6 +23,15 @@ export const MAX_YEAR = 2100;
 export const LANGUAGE_LEVELS = ["a1", "a2", "b1", "b2", "c1", "c2", "native"] as const;
 export type LanguageLevelValue = (typeof LANGUAGE_LEVELS)[number];
 
+/** Langues demandées dans une même recherche d'entreprise, au plus (C21). */
+export const MAX_LANGUAGE_FILTERS = 3;
+
+/**
+ * Les niveaux qui satisfont « au moins `min` » : au moins B2 retient B2, C1, C2 et la langue maternelle. Un filtre sur une
+ * déclaration, jamais une note (AI Act).
+ */
+export const levelsAtLeast = (min: LanguageLevelValue): readonly LanguageLevelValue[] => LANGUAGE_LEVELS.slice(LANGUAGE_LEVELS.indexOf(min));
+
 /**
  * Langues proposées (codes ISO 639-1) : une liste fermée, pour que chaque code ait un nom lisible dans les deux langues
  * du site et qu'une saisie libre ne devienne jamais un filtre fantôme.

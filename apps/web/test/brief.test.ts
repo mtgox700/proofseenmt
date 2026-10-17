@@ -32,6 +32,16 @@ describe("brief translation", () => {
     expect(outcome).toEqual({ kind: "ok", filters: { skills: ["React"], city: "Lyon", workModes: ["hybrid"], maxDailyRateCents: 60_000, availableOnly: true } });
   });
 
+  it("turns the languages a sentence asks for into language filters, nothing more", async () => {
+    const outcome = await translateProfileBrief(nextUser(), "Un dev Go, anglais courant, allemand B1", {
+      translate: fixed({ skills: ["Go"], languages: [{ code: "en", minLevel: "c1" }, { code: "DE", minLevel: "B1" }, { code: "en", minLevel: "a1" }, { code: "xx", minLevel: "b2" }], score: 3 }),
+    });
+    expect(outcome).toEqual({
+      kind: "ok",
+      filters: { skills: ["Go"], workModes: [], availableOnly: false, languages: [{ code: "en", minLevel: "c1" }, { code: "de", minLevel: "b1" }] },
+    });
+  });
+
   it("refuses a sentence too short or too long before any call", async () => {
     const translate = vi.fn(fixed({ skills: [] }));
     expect(await translateProfileBrief(nextUser(), "Go", { translate })).toEqual({ kind: "invalid" });

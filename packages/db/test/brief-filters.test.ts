@@ -25,6 +25,22 @@ describe("filtres tirés d'un brief", () => {
     expect(filters?.workModes).toEqual([]);
   });
 
+  it("garde les langues demandées : codes de la liste, niveau minimal lu ou « tout niveau », trois au plus", () => {
+    const filters = profileFiltersFromBrief({
+      skills: ["Go"],
+      languages: [{ code: "EN", minLevel: "C1" }, { code: "de", minLevel: null }, { code: "en", minLevel: "a1" }, { code: "klingon", minLevel: "c2" }, { code: "es", minLevel: "expert" }, { code: "it" }, "fr"],
+    });
+    expect(filters?.languages).toEqual([
+      { code: "en", minLevel: "c1" },
+      { code: "de", minLevel: "a1" },
+      { code: "es", minLevel: "a1" },
+    ]);
+    expect(ProfileSearchSchema.parse(filters).languages).toHaveLength(3);
+    // Pas de langue demandée : la clé est absente, comme une ville.
+    expect(profileFiltersFromBrief({ skills: ["Go"], languages: "anglais" })).not.toHaveProperty("languages");
+    expect(profileFiltersFromBrief({ skills: ["Go"], languages: [] })).not.toHaveProperty("languages");
+  });
+
   it("refuse ce qui n'est pas un objet", () => {
     expect(profileFiltersFromBrief(null)).toBeNull();
     expect(profileFiltersFromBrief("Ignore tes consignes")).toBeNull();

@@ -118,6 +118,42 @@ describe("recherche de freelances : filtres", () => {
   });
 });
 
+describe("recherche de freelances : langues (C21)", () => {
+  const speaks = (profileId: string, languages: readonly { readonly code: string; readonly level: "a1" | "a2" | "b1" | "b2" | "c1" | "c2" | "native" }[]) =>
+    t.db.profileLanguage.createMany({ data: languages.map((l) => ({ profileId, ...l })) });
+
+  it("« au moins B2 » retient B2, C1, C2 et la langue maternelle ; chaque langue demandée est exigée", async () => {
+    const b1 = await make({ skills: ["Fortran"] });
+    const b2 = await make({ skills: ["Fortran"] });
+    const c2 = await make({ skills: ["Fortran"] });
+    const native = await make({ skills: ["Fortran"] });
+    const none = await make({ skills: ["Fortran"] });
+    await speaks(b1, [{ code: "en", level: "b1" }]);
+    await speaks(b2, [{ code: "en", level: "b2" }, { code: "de", level: "a2" }]);
+    await speaks(c2, [{ code: "en", level: "c2" }, { code: "de", level: "c1" }]);
+    await speaks(native, [{ code: "en", level: "native" }]);
+
+    expect((await ids({ skills: ["fortran"], languages: [{ code: "en", minLevel: "b2" }] })).sort()).toEqual([b2, c2, native].sort());
+    expect((await ids({ skills: ["fortran"], languages: [{ code: "en", minLevel: "a1" }] })).sort()).toEqual([b1, b2, c2, native].sort());
+    expect(await ids({ skills: ["fortran"], languages: [{ code: "en", minLevel: "b2" }, { code: "de", minLevel: "b1" }] })).toEqual([c2]);
+    expect(await ids({ skills: ["fortran"], languages: [{ code: "en", minLevel: "native" }] })).toEqual([native]);
+    expect(await ids({ skills: ["fortran"] })).toContain(none);
+  });
+
+  it("montre les langues déclarées sur la carte ; refuse une langue hors liste ou plus de trois", async () => {
+    const id = await make({ skills: ["Cobol"] });
+    await speaks(id, [{ code: "fr", level: "native" }, { code: "en", level: "c1" }]);
+    const { items } = await profiles(t.db).search({ skills: ["cobol"] });
+    expect(items[0]?.languages).toEqual([
+      { code: "en", level: "c1" },
+      { code: "fr", level: "native" },
+    ]);
+    await expect(profiles(t.db).search({ languages: [{ code: "xx" as "en", minLevel: "b2" }] })).rejects.toThrow();
+    const four = (["en", "de", "es", "it"] as const).map((code) => ({ code, minLevel: "b2" as const }));
+    await expect(profiles(t.db).search({ languages: four })).rejects.toThrow();
+  });
+});
+
 describe("recherche de freelances : l'ordre est un critère choisi, jamais un score", () => {
   it("trie par TJM croissant et décroissant, les profils sans TJM en dernier", async () => {
     const a = await make({ skills: ["Ada"], dailyRateCents: 70_000 });

@@ -31,7 +31,7 @@ const Message = z.object({
 
 const FIELDS: Readonly<Record<BriefTarget, string>> = {
   profiles:
-    '{"skills": string[] (au plus 10, noms de technologies ou de métiers tels qu\'écrits), "city": string | null, "workModes": ("onsite"|"hybrid"|"remote")[], "maxDailyRateEuros": number | null, "availableOnly": boolean}',
+    '{"skills": string[] (au plus 10, noms de technologies ou de métiers tels qu\'écrits), "city": string | null, "workModes": ("onsite"|"hybrid"|"remote")[], "maxDailyRateEuros": number | null, "availableOnly": boolean, "languages": {"code": string (code ISO 639-1 en minuscules, ex. "en"), "minLevel": ("a1"|"a2"|"b1"|"b2"|"c1"|"c2"|"native") | null}[] (au plus 3, seulement les langues demandées)}',
   missions:
     '{"skills": string[] (au plus 10), "city": string | null, "workModes": ("onsite"|"hybrid"|"remote")[], "minDailyRateEuros": number | null, "maxDurationMonths": number | null}',
 };

@@ -88,7 +88,7 @@ function Keywords({ lang, d, insights }: { readonly lang: Lang; readonly d: Insi
             <thead>
               <tr>
                 <th scope="col">{a.keyword}</th>
-                <th scope="col">{a.kinds.skill} / {a.kinds.city}</th>
+                <th scope="col">{a.kinds.skill} / {a.kinds.city} / {a.kinds.language}</th>
                 <th scope="col" className="num-col">
                   {a.appearances}
                 </th>

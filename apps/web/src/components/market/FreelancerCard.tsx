@@ -1,4 +1,5 @@
-import type { AvailabilityStatus, WorkMode } from "@proofseen/db";
+import type { AvailabilityStatus, LanguageLevelValue, WorkMode } from "@proofseen/db";
+import { languageName } from "@proofseen/hub";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
 import { date, day, money } from "@/lib/format";
@@ -21,6 +22,8 @@ export interface CardFacts {
   readonly registryActive?: boolean;
   readonly vigilanceValid?: boolean;
   readonly updatedAt?: Date;
+  /** Declared languages and levels, as on the public page. */
+  readonly languages?: readonly { readonly code: string; readonly level: LanguageLevelValue }[];
 }
 
 interface FreelancerCardProps {
@@ -79,6 +82,12 @@ export function FreelancerCard({ lang, m, facts, headingId, children }: Freelanc
             <div>
               <dt>{c.availability}</dt>
               <dd>{availability}</dd>
+            </div>
+          )}
+          {facts.languages === undefined || facts.languages.length === 0 ? null : (
+            <div>
+              <dt>{c.languages}</dt>
+              <dd>{facts.languages.map((l) => `${languageName(l.code, lang)} (${l.level === "native" ? m.profile.sections.languages.levels.native : l.level.toUpperCase()})`).join(" · ")}</dd>
             </div>
           )}
         </dl>

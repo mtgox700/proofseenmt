@@ -44,7 +44,7 @@ export const insightsFr = {
     keywordsLead: "Compétences et villes que les entreprises avaient choisies quand votre profil est sorti, sur 90 jours. Jamais le nom de l'entreprise.",
     keywordsNone: "Aucune recherche d'entreprise ne vous a encore fait apparaître.",
     keyword: "Filtre",
-    kinds: { skill: "Compétence", city: "Ville" },
+    kinds: { skill: "Compétence", city: "Ville", language: "Langue" },
     appearances: "Apparitions",
   },
   ai: {

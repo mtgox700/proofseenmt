@@ -122,6 +122,22 @@ describe("apparitions et mots-clés", () => {
     expect(Object.keys(await t.db.profileStatKeyword.findFirstOrThrow({ where: { profileId: p.profileId } }))).not.toContain("organisationId");
   });
 
+  it("compte une langue demandée par son code, sans le niveau ; un code hors liste n'entre pas (C21)", async () => {
+    const p = await published();
+    const keywords = statKeywords({ skills: ["Go"], languages: ["en", "en", "xx", "de"] });
+    expect(keywords).toEqual([
+      { kind: "skill", keyword: "go" },
+      { kind: "language", keyword: "en" },
+      { kind: "language", keyword: "de" },
+    ]);
+    await audienceStats(t.db).recordAppearances("search", [p.reference], visitor(HASH_A), keywords);
+    const rows = await t.db.profileStatKeyword.findMany({ where: { profileId: p.profileId, kind: "language" }, orderBy: { keyword: "asc" }, select: { keyword: true, appearances: true } });
+    expect(rows).toEqual([
+      { keyword: "de", appearances: 1 },
+      { keyword: "en", appearances: 1 },
+    ]);
+  });
+
   it("ne garde que vingt filtres par profil et par jour, puis la purge ramène aux plus fréquents", async () => {
     const p = await published();
     const stats = audienceStats(t.db);

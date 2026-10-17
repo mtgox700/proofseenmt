@@ -28,7 +28,7 @@ export interface DailyAudience {
 }
 
 export interface KeywordCount {
-  readonly kind: "skill" | "city";
+  readonly kind: "skill" | "city" | "language";
   readonly keyword: string;
   readonly appearances: number;
 }

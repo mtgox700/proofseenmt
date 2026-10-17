@@ -1,4 +1,4 @@
-import type { ProfileBriefFilters, ProfileSearch, ProfileSort } from "@proofseen/db";
+import { LANGUAGE_CODES, LANGUAGE_LEVELS, MAX_LANGUAGE_FILTERS, type LanguageCode, type LanguageLevelValue, type ProfileBriefFilters, type ProfileSearch, type ProfileSort } from "@proofseen/db";
 import { centsToField, eurosToCents, skillsOf } from "./mission-form";
 
 /*
@@ -7,7 +7,8 @@ import { centsToField, eurosToCents, skillsOf } from "./mission-form";
  * malformed is dropped, field by field, rather than answered with an error: a hand-edited address always answers.
  *
  * The order is one the company picks among stated, neutral criteria (profile update, daily rate, availability date):
- * never a relevance or a score of people (AI Act).
+ * never a relevance or a score of people (AI Act). A language filter keeps the profiles that declare that language at
+ * least at the level asked ("at least B2" keeps B2, C1, C2 and native): a filter on a declaration, never a score.
  */
 
 export const WORK_MODES = ["remote", "hybrid", "onsite"] as const;
@@ -26,9 +27,17 @@ const MAX_CITY_LENGTH = 120;
 const MAX_RATE_CENTS = 10_000_000;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** One language asked for, with the lowest level that satisfies it. */
+export interface LanguageFilter {
+  readonly code: LanguageCode;
+  readonly minLevel: LanguageLevelValue;
+}
+
 export interface SearchQuery {
   readonly skills: readonly string[];
   readonly city: string;
+  /** Every language asked for, each at least at its level; three at most, one per language. */
+  readonly languages: readonly LanguageFilter[];
   readonly workModes: readonly WorkModeValue[];
   readonly minRateCents: number | null;
   readonly maxRateCents: number | null;
@@ -45,6 +54,7 @@ export interface SearchQuery {
 export const EMPTY_QUERY: SearchQuery = {
   skills: [],
   city: "",
+  languages: [],
   workModes: [],
   minRateCents: null,
   maxRateCents: null,
@@ -74,6 +84,27 @@ const isoDate = (raw: string | null): string | null => {
   return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value ? null : value;
 };
 
+const isCode = (raw: string): raw is LanguageCode => (LANGUAGE_CODES as readonly string[]).includes(raw);
+const isLevel = (raw: string): raw is LanguageLevelValue => (LANGUAGE_LEVELS as readonly string[]).includes(raw);
+
+/** Language filters without duplicates (the first one asked wins), unknown codes dropped, three at most. */
+export const languageFilters = (items: readonly { readonly code: string; readonly minLevel: string }[]): readonly LanguageFilter[] => {
+  const kept = new Map<LanguageCode, LanguageLevelValue>();
+  for (const item of items) {
+    const code = item.code.trim().toLowerCase();
+    const level = item.minLevel.trim().toLowerCase();
+    // A level that cannot be read asks for no level: any declared level satisfies it.
+    if (isCode(code) && !kept.has(code)) kept.set(code, isLevel(level) ? level : "a1");
+  }
+  return [...kept].slice(0, MAX_LANGUAGE_FILTERS).map(([code, minLevel]) => ({ code, minLevel }));
+};
+
+/** `langue` and `niveau` come in pairs, in the order of the form; an empty language slot is no filter. */
+const languagesOf = (params: URLSearchParams): readonly LanguageFilter[] => {
+  const levels = params.getAll("niveau");
+  return languageFilters(params.getAll("langue").map((code, i) => ({ code, minLevel: levels[i] ?? "" })));
+};
+
 const pageOf = (raw: string | null): number => {
   const value = Number(raw ?? "1");
   return Number.isInteger(value) && value >= 1 && value <= MAX_PAGE ? value : 1;
@@ -86,6 +117,7 @@ export const searchQuery = (params: URLSearchParams): SearchQuery => {
   return {
     skills: skillsOf(params.get("competences") ?? "").filter((skill) => skill.length <= MAX_SKILL_LENGTH).slice(0, MAX_SKILLS),
     city: city.length <= MAX_CITY_LENGTH ? city : "",
+    languages: languagesOf(params),
     workModes: WORK_MODES.filter((mode) => params.getAll("mode").includes(mode)),
     minRateCents: rate(params.get("tjm_min")),
     maxRateCents: rate(params.get("tjm_max")),
@@ -102,6 +134,7 @@ export const searchQuery = (params: URLSearchParams): SearchQuery => {
 /** The repository's input for a query. */
 export const searchFilters = (q: SearchQuery): ProfileSearch => ({
   skills: [...q.skills],
+  languages: q.languages.map((l) => ({ code: l.code, minLevel: l.minLevel })),
   workModes: [...q.workModes],
   ...(q.city === "" ? {} : { city: q.city }),
   ...(q.minRateCents === null ? {} : { minDailyRateCents: q.minRateCents }),
@@ -121,6 +154,10 @@ export const searchParamsOf = (q: SearchQuery): URLSearchParams => {
   const params = new URLSearchParams();
   if (q.skills.length > 0) params.set("competences", q.skills.join(", "));
   if (q.city !== "") params.set("ville", q.city);
+  for (const language of q.languages) {
+    params.append("langue", language.code);
+    params.append("niveau", language.minLevel);
+  }
   for (const mode of q.workModes) params.append("mode", mode);
   if (q.minRateCents !== null) params.set("tjm_min", centsToField(q.minRateCents));
   if (q.maxRateCents !== null) params.set("tjm_max", centsToField(q.maxRateCents));
@@ -147,6 +184,7 @@ export const queryFromBrief = (f: ProfileBriefFilters): SearchQuery => ({
   ...EMPTY_QUERY,
   skills: f.skills.filter((skill) => skill.length <= MAX_SKILL_LENGTH).slice(0, MAX_SKILLS),
   city: f.city !== undefined && f.city.length <= MAX_CITY_LENGTH ? f.city : "",
+  languages: languageFilters(f.languages ?? []),
   workModes: WORK_MODES.filter((mode) => f.workModes.includes(mode)),
   maxRateCents: f.maxDailyRateCents !== undefined && f.maxDailyRateCents <= MAX_RATE_CENTS ? f.maxDailyRateCents : null,
   availableOnly: f.availableOnly,

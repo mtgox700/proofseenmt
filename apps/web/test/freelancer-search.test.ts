@@ -9,6 +9,7 @@ describe("company search address", () => {
     expect(q).toEqual({
       skills: ["React", "Node.js"],
       city: "Lyon",
+      languages: [],
       workModes: ["remote", "hybrid"],
       minRateCents: 45_000,
       maxRateCents: 70_050,
@@ -38,6 +39,7 @@ describe("company search address", () => {
     const filters = searchFilters(parse("competences=Go&ville=Paris&tjm_max=600&dispo_avant=2026-11-15&urssaf=1&tri=disponibilite"));
     expect(filters).toEqual({
       skills: ["Go"],
+      languages: [],
       workModes: [],
       city: "Paris",
       maxDailyRateCents: 60_000,
@@ -59,6 +61,29 @@ describe("company search address", () => {
     expect(searchParamsOf(EMPTY_QUERY).toString()).toBe("");
     expect(searchHref("fr", EMPTY_QUERY)).toBe("/fr/app/recherche");
     expect(searchHref("en", { ...EMPTY_QUERY, page: 2 }, { ajout: "added" })).toBe("/en/app/recherche?page=2&ajout=added");
+  });
+
+  it("reads language filters as pairs of language and minimum level, three at most, one per language", () => {
+    const q = parse("langue=en&niveau=b2&langue=&niveau=c1&langue=DE&niveau=C1&langue=en&niveau=a1&langue=xx&niveau=b2&langue=es&niveau=expert&langue=it&niveau=b1");
+    expect(q.languages).toEqual([
+      { code: "en", minLevel: "b2" },
+      { code: "de", minLevel: "c1" },
+      { code: "es", minLevel: "a1" },
+    ]);
+    expect(parse("langue=en").languages).toEqual([{ code: "en", minLevel: "a1" }]);
+    expect(searchFilters(q).languages).toEqual(q.languages);
+  });
+
+  it("writes language filters back into the address, and reads them again", () => {
+    const q = parse("competences=Go&langue=fr&niveau=native&langue=en&niveau=c1");
+    expect(searchParamsOf(q).toString()).toBe("competences=Go&langue=fr&niveau=native&langue=en&niveau=c1");
+    expect(searchQuery(searchParamsOf(q))).toEqual(q);
+  });
+
+  it("shows a brief's languages as visible filters", () => {
+    const q = queryFromBrief({ skills: ["React"], workModes: [], availableOnly: false, languages: [{ code: "en", minLevel: "b2" }] });
+    expect(q.languages).toEqual([{ code: "en", minLevel: "b2" }]);
+    expect(searchHref("fr", q)).toBe("/fr/app/recherche?competences=React&langue=en&niveau=b2");
   });
 
   it("shows a brief's filters as an editable query, never with an order of its own", () => {

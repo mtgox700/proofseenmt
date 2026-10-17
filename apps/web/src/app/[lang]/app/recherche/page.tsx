@@ -174,7 +174,7 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
       clerkId: market.person.id,
       organisationId: organisation.id,
       references: page.items.map((card) => card.reference),
-      keywords: statKeywords({ skills: filters.skills ?? [], city: filters.city ?? null }),
+      keywords: statKeywords({ skills: filters.skills ?? [], city: filters.city ?? null, languages: (filters.languages ?? []).map((l) => l.code) }),
       firstPage: query.page === 1,
     };
     after(() => countSearch(counted));

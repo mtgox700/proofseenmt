@@ -41,7 +41,7 @@ export const insightsEn: InsightsDictionary = {
     keywordsLead: "Skills and cities companies had chosen when your profile came up, over 90 days. Never the company's name.",
     keywordsNone: "No company search has made you appear yet.",
     keyword: "Filter",
-    kinds: { skill: "Skill", city: "City" },
+    kinds: { skill: "Skill", city: "City", language: "Language" },
     appearances: "Appearances",
   },
   ai: {
