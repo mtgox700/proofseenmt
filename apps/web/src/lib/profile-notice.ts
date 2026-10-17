@@ -44,7 +44,20 @@ export interface SectionNotice {
   readonly ok: boolean;
 }
 
-export const noticeHref = (lang: string, anchor: SectionAnchor, code: NoticeCode): string => `/${lang}/app/profil?section=${anchor}&avis=${code}#${anchor}`;
+/** What may name the item being edited in the address: an item id, or a language code. Anything else is dropped. */
+const EDITABLE = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-z]{2})$/;
+
+/** The item being edited, read back from `?modifier=`; `null` when absent or not an id. */
+export const editingOf = (raw: string | undefined): string | null => (raw !== undefined && EDITABLE.test(raw) ? raw : null);
+
+/** The section after an action; `editing` keeps an edit form open after a refused change. */
+export const noticeHref = (lang: string, anchor: SectionAnchor, code: NoticeCode, editing?: string | null): string => {
+  const kept = editingOf(editing ?? undefined);
+  return `/${lang}/app/profil?section=${anchor}&avis=${code}${kept === null ? "" : `&modifier=${kept}`}#${anchor}`;
+};
+
+/** The address that opens the edit form of one item, at its section. */
+export const editHref = (lang: string, anchor: SectionAnchor, id: string): string => `/${lang}/app/profil?modifier=${encodeURIComponent(id)}#${anchor}`;
 
 export const readNotice = (section: string | undefined, code: string | undefined): SectionNotice | null => {
   const anchor = SECTION_ANCHORS.find((a) => a === section);

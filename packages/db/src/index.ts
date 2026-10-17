@@ -86,6 +86,7 @@ export {
   type ProfileSections,
   type ProfileSectionsView,
   type SectionName,
+  type SectionUpdateResult,
   type SectionWriteResult,
 } from "./profile-sections";
 export {

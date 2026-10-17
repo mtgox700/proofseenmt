@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 import type { Db } from "./client";
 import { NO_CONTACT } from "./contact-detection";
 import type { Prisma } from "./generated/client";
@@ -22,6 +22,10 @@ import {
  * Les sections du profil enrichi, lues et écrites par le seul freelance qui les possède : chaque requête passe par le
  * compte de l'acteur, un identifiant d'un autre profil est absent comme un identifiant inconnu.
  *
+ * Un élément se modifie en place (C21) avec la même validation qu'à l'ajout : mêmes bornes, mêmes refus de coordonnées
+ * dans les textes et les adresses. La modification vise l'élément par son identifiant et le compte de l'acteur dans la
+ * même requête : l'élément d'un autre freelance est absent.
+ *
  * Chaque ajout se fait sous verrou du profil : deux ajouts simultanés ne dépassent pas le plafond de la section. La
  * photo et l'image d'une réalisation sont des fichiers déposés : remplacées ou retirées, leur ligne part, et le dépôt
  * rend l'identifiant pour que l'application efface le fichier du disque.
@@ -33,6 +37,9 @@ import {
 export type SectionName = "experiences" | "educations" | "certifications" | "portfolio";
 
 export type SectionWriteResult = { readonly kind: "added"; readonly id: string } | { readonly kind: "absent" | "invalid" | "contact" | "limit" };
+
+/** `removedFileIds` : l'image remplacée ou retirée d'une réalisation, supprimée, à effacer du disque. */
+export type SectionUpdateResult = { readonly kind: "updated"; readonly removedFileIds: readonly string[] } | { readonly kind: "absent" | "invalid" | "contact" };
 
 export interface ExperienceRecord {
   readonly id: string;
@@ -93,6 +100,14 @@ export interface ProfileSections {
   addCertification(actor: Actor, input: CertificationInput): Promise<SectionWriteResult>;
   /** L'image, facultative, est un fichier `portfolio_image` déjà déposé par l'acteur et libre. */
   addPortfolioItem(actor: Actor, input: PortfolioInput, imageFileId?: string | null): Promise<SectionWriteResult>;
+  updateExperience(actor: Actor, id: string, input: ExperienceInput): Promise<SectionUpdateResult>;
+  updateEducation(actor: Actor, id: string, input: EducationInput): Promise<SectionUpdateResult>;
+  updateCertification(actor: Actor, id: string, input: CertificationInput): Promise<SectionUpdateResult>;
+  /**
+   * `image` : absente, l'image reste ; `null`, elle est retirée ; un identifiant, elle est remplacée par ce fichier
+   * `portfolio_image` déjà déposé par l'acteur et libre. L'ancienne image est supprimée.
+   */
+  updatePortfolioItem(actor: Actor, id: string, input: PortfolioInput, image?: string | null): Promise<SectionUpdateResult>;
   /** Pose ou change le niveau d'une langue (une ligne par langue). */
   setLanguage(actor: Actor, input: LanguageInput): Promise<SectionWriteResult>;
   removeLanguage(actor: Actor, code: string): Promise<boolean>;
@@ -116,8 +131,27 @@ const lockProfile = async (tx: Prisma.TransactionClient, actor: Actor): Promise<
 
 type Counter = (tx: Prisma.TransactionClient, profileId: string) => Promise<number>;
 
-const failure = (issues: readonly { readonly message: string }[]): SectionWriteResult =>
+const failure = (issues: readonly { readonly message: string }[]): { readonly kind: "contact" | "invalid" } =>
   issues.some((issue) => issue.message === NO_CONTACT) ? { kind: "contact" } : { kind: "invalid" };
+
+/** Valide comme à l'ajout, puis modifie l'élément de l'acteur ; `update` rend le nombre de lignes modifiées. */
+const updateWith = async <S extends z.ZodType>(id: string, schema: S, raw: unknown, update: (data: z.output<S>) => Promise<number>): Promise<SectionUpdateResult> => {
+  if (!UUID.test(id)) return { kind: "absent" };
+  const parsed = schema.safeParse(raw);
+  if (!parsed.success) return failure(parsed.error.issues);
+  return (await update(parsed.data)) === 0 ? { kind: "absent" } : { kind: "updated", removedFileIds: [] };
+};
+
+const ImageRow = z.object({ imageFileId: z.string().nullable() });
+
+/** La réalisation de l'acteur, verrouillée jusqu'à la fin de la transaction ; `null` si elle n'est pas à lui. */
+const lockPortfolioItem = async (tx: Prisma.TransactionClient, actor: Actor, id: string): Promise<{ readonly imageFileId: string | null } | null> => {
+  const rows = await tx.$queryRaw<unknown[]>`
+    SELECT i."imageFileId"::text AS "imageFileId" FROM "PortfolioItem" i JOIN "FreelanceProfile" p ON p."id" = i."profileId"
+    WHERE i."id" = ${id}::uuid AND p."userId" = ${actor.userId}::uuid
+    FOR UPDATE OF i`;
+  return rows.length === 0 ? null : ImageRow.parse(rows[0]);
+};
 
 /** Valide, verrouille le profil, vérifie le plafond, crée. */
 const addWith = async <S extends z.ZodType>(
@@ -183,6 +217,36 @@ export const profileSections = (db: Db): ProfileSections => ({
       // L'image doit être un fichier de l'acteur, de cet usage, et ne servir à aucune autre réalisation.
       if (imageFileId !== null && (await tx.storedFile.count({ where: { id: imageFileId, ownerId: actor.userId, kind: "portfolio_image", portfolioOf: null } })) === 0) return null;
       return (await tx.portfolioItem.create({ data: { ...data, profileId, imageFileId }, select: { id: true } })).id;
+    });
+  },
+
+  updateExperience(actor, id, raw) {
+    return updateWith(id, ExperienceInputSchema, raw, async (data) => (await db.profileExperience.updateMany({ where: { id, profile: { userId: actor.userId } }, data })).count);
+  },
+
+  updateEducation(actor, id, raw) {
+    return updateWith(id, EducationInputSchema, raw, async (data) => (await db.profileEducation.updateMany({ where: { id, profile: { userId: actor.userId } }, data })).count);
+  },
+
+  updateCertification(actor, id, raw) {
+    return updateWith(id, CertificationInputSchema, raw, async (data) => (await db.profileCertification.updateMany({ where: { id, profile: { userId: actor.userId } }, data })).count);
+  },
+
+  async updatePortfolioItem(actor, id, raw, image) {
+    if (!UUID.test(id) || (typeof image === "string" && !UUID.test(image))) return { kind: "absent" };
+    const parsed = PortfolioInputSchema.safeParse(raw);
+    if (!parsed.success) return failure(parsed.error.issues);
+    return db.$transaction(async (tx): Promise<SectionUpdateResult> => {
+      const item = await lockPortfolioItem(tx, actor, id);
+      if (item === null) return { kind: "absent" };
+      // La nouvelle image doit être un fichier de l'acteur, de cet usage, et ne servir à aucune autre réalisation.
+      if (typeof image === "string" && (await tx.storedFile.count({ where: { id: image, ownerId: actor.userId, kind: "portfolio_image", portfolioOf: null } })) === 0) return { kind: "absent" };
+      const imageFileId = image === undefined ? item.imageFileId : image;
+      await tx.portfolioItem.update({ where: { id }, data: { ...parsed.data, imageFileId } });
+      const previous = item.imageFileId !== null && item.imageFileId !== imageFileId ? item.imageFileId : null;
+      if (previous === null) return { kind: "updated", removedFileIds: [] };
+      await tx.storedFile.deleteMany({ where: { id: previous, ownerId: actor.userId } });
+      return { kind: "updated", removedFileIds: [previous] };
     });
   },
 

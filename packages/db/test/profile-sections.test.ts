@@ -101,6 +101,83 @@ describe("sections du profil", () => {
   });
 });
 
+describe("modifier un élément en place (C21)", () => {
+  const added = (result: { readonly kind: string; readonly id?: string }): string => {
+    if (result.kind !== "added" || result.id === undefined) throw new Error("non ajouté");
+    return result.id;
+  };
+
+  it("modifie une expérience, une formation et une certification avec la validation de l'ajout", async () => {
+    const { actor } = await freelancer();
+    const repo = profileSections(t.db);
+    const xp = added(await repo.addExperience(actor, EXPERIENCE));
+    const edu = added(await repo.addEducation(actor, { school: "INSA Lyon" }));
+    const cert = added(await repo.addCertification(actor, { name: "AWS SAA" }));
+
+    expect(await repo.updateExperience(actor, xp, { ...EXPERIENCE, title: "Staff data engineer", endMonth: month("2025-06"), skills: ["Kafka"] })).toEqual({ kind: "updated", removedFileIds: [] });
+    expect(await repo.updateEducation(actor, edu, { school: "INSA Lyon", degree: "Ingénieur", startYear: 2014, endYear: 2019 })).toEqual({ kind: "updated", removedFileIds: [] });
+    expect(await repo.updateCertification(actor, cert, { name: "AWS SAA", issuer: "AWS", credentialUrl: "https://aws.example.com/v/2" })).toEqual({ kind: "updated", removedFileIds: [] });
+
+    const mine = await repo.mine(actor);
+    expect(mine?.experiences[0]).toMatchObject({ id: xp, title: "Staff data engineer", endMonth: month("2025-06"), skills: ["Kafka"] });
+    expect(mine?.educations[0]).toMatchObject({ id: edu, degree: "Ingénieur", endYear: 2019 });
+    expect(mine?.certifications[0]).toMatchObject({ id: cert, issuer: "AWS", credentialUrl: "https://aws.example.com/v/2" });
+  });
+
+  it("refuse une modification invalide ou porteuse de coordonnées, et laisse l'élément intact", async () => {
+    const { actor } = await freelancer();
+    const repo = profileSections(t.db);
+    const xp = added(await repo.addExperience(actor, EXPERIENCE));
+    const cert = added(await repo.addCertification(actor, { name: "AWS SAA" }));
+    const item = added(await repo.addPortfolioItem(actor, { title: "Démo", url: "https://demo.example.com" }));
+
+    expect(await repo.updateExperience(actor, xp, { ...EXPERIENCE, endMonth: month("2020-01") })).toEqual({ kind: "invalid" });
+    expect(await repo.updateExperience(actor, xp, { ...EXPERIENCE, description: "Écrivez-moi : jean@exemple.fr" })).toEqual({ kind: "contact" });
+    expect(await repo.updateCertification(actor, cert, { name: "AWS SAA", credentialUrl: "http://aws.example.com" })).toEqual({ kind: "invalid" });
+    expect(await repo.updatePortfolioItem(actor, item, { title: "Démo", url: "https://wa.me/33612345678" })).toEqual({ kind: "contact" });
+    expect((await repo.mine(actor))?.experiences[0]).toMatchObject({ endMonth: null, description: "Plateforme Spark." });
+  });
+
+  it("l'élément d'un autre freelance est absent, comme un identifiant inconnu", async () => {
+    const owner = await freelancer();
+    const intruder = await freelancer();
+    const repo = profileSections(t.db);
+    const edu = added(await repo.addEducation(owner.actor, { school: "INSA Lyon" }));
+    const item = added(await repo.addPortfolioItem(owner.actor, { title: "Démo", url: "https://demo.example.com" }));
+
+    expect(await repo.updateEducation(intruder.actor, edu, { school: "Volée" })).toEqual({ kind: "absent" });
+    expect(await repo.updatePortfolioItem(intruder.actor, item, { title: "Volée", url: "https://x.example.com" })).toEqual({ kind: "absent" });
+    expect(await repo.updateExperience(owner.actor, "pas-un-uuid", EXPERIENCE)).toEqual({ kind: "absent" });
+    expect((await repo.mine(owner.actor))?.educations[0]?.school).toBe("INSA Lyon");
+  });
+
+  it("une réalisation garde, remplace ou retire son image ; l'ancienne est supprimée", async () => {
+    const { actor, userId } = await freelancer();
+    const repo = profileSections(t.db);
+    const image = (sha: string) => t.db.storedFile.create({ data: { ownerId: userId, kind: "portfolio_image", contentType: "image/webp", size: 10, sha256: sha.repeat(64) }, select: { id: true } });
+    const first = await image("1");
+    const item = added(await repo.addPortfolioItem(actor, { title: "Démo", url: "https://demo.example.com" }, first.id));
+
+    expect(await repo.updatePortfolioItem(actor, item, { title: "Démo v2", url: "https://demo.example.com" })).toEqual({ kind: "updated", removedFileIds: [] });
+    expect((await repo.mine(actor))?.portfolio[0]).toMatchObject({ title: "Démo v2", imageFileId: first.id });
+
+    const second = await image("2");
+    expect(await repo.updatePortfolioItem(actor, item, { title: "Démo v2", url: "https://demo.example.com" }, second.id)).toEqual({ kind: "updated", removedFileIds: [first.id] });
+    expect(await t.db.storedFile.count({ where: { id: first.id } })).toBe(0);
+
+    // L'image d'un autre, ou déjà prise par une autre réalisation, n'est pas posée.
+    const other = await freelancer();
+    const foreign = await t.db.storedFile.create({ data: { ownerId: other.userId, kind: "portfolio_image", contentType: "image/webp", size: 10, sha256: "3".repeat(64) }, select: { id: true } });
+    expect(await repo.updatePortfolioItem(actor, item, { title: "Démo v2", url: "https://demo.example.com" }, foreign.id)).toEqual({ kind: "absent" });
+    const otherItem = added(await repo.addPortfolioItem(actor, { title: "Autre", url: "https://autre.example.com" }));
+    expect(await repo.updatePortfolioItem(actor, otherItem, { title: "Autre", url: "https://autre.example.com" }, second.id)).toEqual({ kind: "absent" });
+
+    expect(await repo.updatePortfolioItem(actor, item, { title: "Démo v2", url: "https://demo.example.com" }, null)).toEqual({ kind: "updated", removedFileIds: [second.id] });
+    expect((await repo.mine(actor))?.portfolio.find((p) => p.id === item)?.imageFileId).toBeNull();
+    expect(await t.db.storedFile.count({ where: { ownerId: userId } })).toBe(0);
+  });
+});
+
 describe("page publique enrichie", () => {
   const fill = async (userId: string, profileId: string) => {
     const actor = { userId };

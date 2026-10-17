@@ -6,7 +6,8 @@ import { StandingNotice } from "@/components/market/StandingNotice";
 import { StatusTag } from "@/components/market/StatusTag";
 import { CertificationSection, LanguageSection } from "@/components/profile/CredentialSections";
 import { CvSection } from "@/components/profile/CvSection";
-import { EducationSection, ExperienceSection } from "@/components/profile/ExperienceSection";
+import { EducationSection } from "@/components/profile/EducationSection";
+import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { AvailabilitySection, PhotoSection } from "@/components/profile/PhotoAndAvailability";
 import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { ProfileChecklist } from "@/components/visibility/ProfileChecklist";
@@ -17,7 +18,7 @@ import { marketDictionary } from "@/i18n/market";
 import type { ProfileDictionary } from "@/i18n/market/profile-fr";
 import { centsToField } from "@/lib/mission-form";
 import { pageMarket, type Market } from "@/lib/market";
-import { readNotice, type SectionNotice } from "@/lib/profile-notice";
+import { editingOf, readNotice, type SectionNotice } from "@/lib/profile-notice";
 import { saveProfile, setProfileVisibility } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -25,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; manque?: string; enregistre?: string; section?: string; avis?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; manque?: string; enregistre?: string; section?: string; avis?: string; modifier?: string }>;
 }
 
 const MODES = ["remote", "hybrid", "onsite"] as const;
@@ -134,11 +135,14 @@ function Publication({ lang, p, profile }: { readonly lang: Lang; readonly p: Pr
   );
 }
 
-/** The rich sections of an existing profile: photo, availability, declared items, CV and its import draft. */
-async function RichSections({ lang, market, notice, s }: { readonly lang: Lang; readonly market: Market; readonly notice: SectionNotice | null; readonly s: ProfileDictionary["sections"] }) {
+/**
+ * The rich sections of an existing profile: photo, availability, declared items, CV and its import draft. `editing`
+ * opens the edit form of one item; only items read from the person's own profile can match it.
+ */
+async function RichSections({ lang, market, notice, editing, s }: { readonly lang: Lang; readonly market: Market; readonly notice: SectionNotice | null; readonly editing: string | null; readonly s: ProfileDictionary["sections"] }) {
   const [sections, cv, draft] = await Promise.all([profileSections(market.db).mine(market.actor), storedFiles(market.db).latest(market.actor, "cv"), importDrafts(market.db).get(market.actor)]);
   if (sections === null) return null;
-  const common = { lang, s, notice };
+  const common = { lang, s, notice, editing };
   return (
     <>
       <AvailabilitySection {...common} confirmedAt={sections.availabilityAt} now={new Date()} />
@@ -163,7 +167,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const p = dict.profile;
   const profile = await profiles(market.db).findMine(market.actor);
   const checklist = await checklistFor(market, lang, profile, new Date());
-  const { erreur, manque, enregistre, section, avis } = await searchParams;
+  const { erreur, manque, enregistre, section, avis, modifier } = await searchParams;
   const notice = readNotice(section, avis);
   const missing = (manque ?? "")
     .split(",")
@@ -191,7 +195,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       <ProfileChecklist c={dict.visibility.checklist} checklist={checklist} headingId="profile-checklist" />
       {profile === null ? null : <Publication lang={lang} p={p} profile={profile} />}
       <ProfileForm lang={lang} p={p} modes={dict.missions.workModes} profile={profile} />
-      {profile === null ? null : <RichSections lang={lang} market={market} notice={notice} s={p.sections} />}
+      {profile === null ? null : <RichSections lang={lang} market={market} notice={notice} editing={editingOf(modifier)} s={p.sections} />}
     </>
   );
 }

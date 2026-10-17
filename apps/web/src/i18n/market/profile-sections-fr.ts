@@ -1,6 +1,9 @@
 /** Le profil enrichi : photo, disponibilité confirmée, expériences, formation, certifications, langues, réalisations, CV. */
 export const profileSectionsFr = {
   remove: "Retirer",
+  edit: "Modifier",
+  cancel: "Annuler",
+  saveChanges: "Enregistrer les modifications",
   optional: "facultatif",
   count: (n: number, max: number) => `${n} sur ${max}`,
   notices: {
@@ -95,6 +98,7 @@ export const profileSectionsFr = {
     empty: "Aucune langue pour l'instant.",
     add: "Enregistrer la langue",
     hint: "Choisir une langue déjà listée change son niveau.",
+    editHint: "Choisissez le nouveau niveau, puis enregistrez.",
     fields: { code: "Langue", level: "Niveau" },
     levels: { a1: "A1 — découverte", a2: "A2 — intermédiaire", b1: "B1 — seuil", b2: "B2 — avancé", c1: "C1 — autonome", c2: "C2 — maîtrise", native: "Langue maternelle" },
   },
@@ -105,17 +109,18 @@ export const profileSectionsFr = {
     add: "Ajouter la réalisation",
     addTitle: "Nouvelle réalisation",
     imageAlt: (title: string) => `Aperçu de « ${title} »`,
-    fields: { title: "Titre", url: "Adresse (https)", description: "Description", image: "Image (JPEG, PNG ou WebP, 2 Mo au plus)" },
+    fields: { title: "Titre", url: "Adresse (https)", description: "Description", image: "Image (JPEG, PNG ou WebP, 2 Mo au plus)", replaceImage: "Nouvelle image (facultatif, remplace l'actuelle)", removeImage: "Retirer l'image actuelle" },
   },
   cv: {
     title: "CV et import",
-    lead: "Déposez votre CV, ou votre profil LinkedIn enregistré en PDF depuis LinkedIn (« Plus », puis « Enregistrer au format PDF »). Il reste privé : vous seul pouvez le télécharger.",
+    lead: "Déposez votre CV, ou votre profil LinkedIn enregistré en PDF depuis LinkedIn (« Plus », puis « Enregistrer au format PDF »). Il reste privé : seules les entreprises auxquelles vous le joignez en postulant peuvent le télécharger, tant que votre candidature n'est pas retirée.",
     none: "Aucun CV déposé.",
     current: (day: string) => `CV déposé le ${day}.`,
     file: "CV en PDF (5 Mo au plus, 10 pages au plus pour l'import)",
     upload: "Déposer le CV",
     download: "Télécharger mon CV",
     remove: "Supprimer le CV",
+    removeHint: "Le supprimer le retire aussi des candidatures auxquelles vous l'avez joint. En déposer un nouveau ne change pas celui déjà envoyé aux entreprises.",
     import: "Proposer des champs à partir de ce CV",
     importHint: "Un modèle d'IA lit le texte de votre CV et propose des expériences, formations, certifications, langues et compétences. Rien n'est publié : vous ajoutez chaque élément vous-même.",
   },

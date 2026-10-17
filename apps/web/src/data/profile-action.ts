@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { profiles, type SectionWriteResult } from "@proofseen/db";
+import { profiles, type SectionUpdateResult, type SectionWriteResult } from "@proofseen/db";
 import type { Lang } from "@/i18n";
 import { actionMarket, langOf, type Market } from "@/lib/market";
 import { noticeHref, type NoticeCode, type SectionAnchor } from "@/lib/profile-notice";
@@ -30,13 +30,22 @@ export const freelanceAction = async (formData: FormData, anchor: SectionAnchor,
   return { lang, market };
 };
 
-/** A function declaration, not an arrow: callers rely on `never` to narrow what follows. */
-export function backTo(lang: Lang, anchor: SectionAnchor, code: NoticeCode): never {
-  redirect(noticeHref(lang, anchor, code));
+/** A function declaration, not an arrow: callers rely on `never` to narrow what follows. `editing` reopens a form. */
+export function backTo(lang: Lang, anchor: SectionAnchor, code: NoticeCode, editing?: string | null): never {
+  redirect(noticeHref(lang, anchor, code, editing));
 }
 
 /** The notice for a section write. */
 export const writeNotice = (result: SectionWriteResult): NoticeCode => (result.kind === "added" ? "saved" : result.kind);
+
+/** The notice for an edit in place. */
+export const updateNotice = (result: SectionUpdateResult): NoticeCode => (result.kind === "updated" ? "saved" : result.kind);
+
+/** The id of the item an edit form targets; the repository still checks it belongs to the person. */
+export const itemIdOf = (formData: FormData): string => {
+  const id = formData.get("id");
+  return typeof id === "string" ? id : "";
+};
 
 /** Announces the profile page to search engines when it is published. */
 export const announceProfile = async (market: Market): Promise<void> => {

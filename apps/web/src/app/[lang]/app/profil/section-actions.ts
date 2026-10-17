@@ -1,7 +1,7 @@
 "use server";
 
 import { profileSections, type SectionName } from "@proofseen/db";
-import { announceProfile, backTo, freelanceAction, SECTION_RULE, writeNotice } from "@/data/profile-action";
+import { announceProfile, backTo, freelanceAction, itemIdOf, SECTION_RULE, updateNotice, writeNotice } from "@/data/profile-action";
 import { deleteStored } from "@/data/uploads";
 import type { SectionAnchor } from "@/lib/profile-notice";
 import { certificationFromForm, educationFromForm, experienceFromForm, languageFromForm } from "@/lib/profile-sections-form";
@@ -9,7 +9,8 @@ import { certificationFromForm, educationFromForm, experienceFromForm, languageF
 /*
  * Server actions of the declared profile sections: plain forms, no client script. Each one checks the session and the
  * freelancer role, is throttled per person, writes through the repository (which validates, caps and checks ownership
- * inside its own query) and lands back on the section with a notice.
+ * inside its own query) and lands back on the section with a notice. An edit in place goes through the same validation
+ * as an addition; a refused edit lands back on its open form.
  */
 
 const SCOPE = "profile-sections";
@@ -36,6 +37,30 @@ export async function addCertification(formData: FormData): Promise<void> {
   const result = await profileSections(market.db).addCertification(market.actor, certificationFromForm(formData));
   if (result.kind === "added") await announceProfile(market);
   backTo(lang, "certifications", writeNotice(result));
+}
+
+export async function updateExperience(formData: FormData): Promise<void> {
+  const { lang, market } = await freelanceAction(formData, "experiences", SCOPE, SECTION_RULE);
+  const id = itemIdOf(formData);
+  const result = await profileSections(market.db).updateExperience(market.actor, id, experienceFromForm(formData));
+  if (result.kind === "updated") await announceProfile(market);
+  backTo(lang, "experiences", updateNotice(result), result.kind === "updated" ? null : id);
+}
+
+export async function updateEducation(formData: FormData): Promise<void> {
+  const { lang, market } = await freelanceAction(formData, "formation", SCOPE, SECTION_RULE);
+  const id = itemIdOf(formData);
+  const result = await profileSections(market.db).updateEducation(market.actor, id, educationFromForm(formData));
+  if (result.kind === "updated") await announceProfile(market);
+  backTo(lang, "formation", updateNotice(result), result.kind === "updated" ? null : id);
+}
+
+export async function updateCertification(formData: FormData): Promise<void> {
+  const { lang, market } = await freelanceAction(formData, "certifications", SCOPE, SECTION_RULE);
+  const id = itemIdOf(formData);
+  const result = await profileSections(market.db).updateCertification(market.actor, id, certificationFromForm(formData));
+  if (result.kind === "updated") await announceProfile(market);
+  backTo(lang, "certifications", updateNotice(result), result.kind === "updated" ? null : id);
 }
 
 export async function setLanguage(formData: FormData): Promise<void> {

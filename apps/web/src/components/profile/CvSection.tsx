@@ -105,10 +105,13 @@ export function CvSection({ lang, s, notice, cv, draft, importAvailable }: Secti
           </a>
           <form action={removeCv}>
             <input type="hidden" name="lang" value={lang} />
-            <button type="submit" className="btn btn-quiet">
+            <button type="submit" className="btn btn-quiet" aria-describedby="cv-remove-hint">
               {c.remove}
             </button>
           </form>
+          <p id="cv-remove-hint" className="muted small">
+            {c.removeHint}
+          </p>
         </div>
       )}
       <form action={uploadCv} className="panel-grid">

@@ -3,6 +3,9 @@ import type { ProfileSectionsDictionary } from "./profile-sections-fr";
 /** The rich profile: photo, confirmed availability, experience, education, certifications, languages, portfolio, CV. */
 export const profileSectionsEn: ProfileSectionsDictionary = {
   remove: "Remove",
+  edit: "Edit",
+  cancel: "Cancel",
+  saveChanges: "Save the changes",
   optional: "optional",
   count: (n: number, max: number) => `${n} of ${max}`,
   notices: {
@@ -97,6 +100,7 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     empty: "No language yet.",
     add: "Save the language",
     hint: "Choosing a language already listed changes its level.",
+    editHint: "Choose the new level, then save.",
     fields: { code: "Language", level: "Level" },
     levels: { a1: "A1 — beginner", a2: "A2 — elementary", b1: "B1 — intermediate", b2: "B2 — upper intermediate", c1: "C1 — advanced", c2: "C2 — proficient", native: "Native" },
   },
@@ -107,17 +111,18 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     add: "Add the item",
     addTitle: "New portfolio item",
     imageAlt: (title: string) => `Preview of “${title}”`,
-    fields: { title: "Title", url: "Address (https)", description: "Description", image: "Image (JPEG, PNG or WebP, 2 MB at most)" },
+    fields: { title: "Title", url: "Address (https)", description: "Description", image: "Image (JPEG, PNG or WebP, 2 MB at most)", replaceImage: "New image (optional, replaces the current one)", removeImage: "Remove the current image" },
   },
   cv: {
     title: "CV and import",
-    lead: "Upload your CV, or your LinkedIn profile saved as PDF from LinkedIn (“More”, then “Save to PDF”). It stays private: only you can download it.",
+    lead: "Upload your CV, or your LinkedIn profile saved as PDF from LinkedIn (“More”, then “Save to PDF”). It stays private: only the companies you attach it to when applying can download it, as long as your application is not withdrawn.",
     none: "No CV uploaded.",
     current: (day: string) => `CV uploaded on ${day}.`,
     file: "CV as PDF (5 MB at most, 10 pages at most for the import)",
     upload: "Upload the CV",
     download: "Download my CV",
     remove: "Delete the CV",
+    removeHint: "Deleting it also removes it from the applications you attached it to. Uploading a new one does not change the one already sent to companies.",
     import: "Propose fields from this CV",
     importHint: "An AI model reads the text of your CV and proposes experience, education, certifications, languages and skills. Nothing is published: you add each item yourself.",
   },

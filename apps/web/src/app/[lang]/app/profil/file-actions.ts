@@ -1,7 +1,7 @@
 "use server";
 
 import { profileSections, storedFiles } from "@proofseen/db";
-import { announceProfile, backTo, freelanceAction, SECTION_RULE, UPLOAD_RULE, writeNotice } from "@/data/profile-action";
+import { announceProfile, backTo, freelanceAction, itemIdOf, SECTION_RULE, UPLOAD_RULE, updateNotice, writeNotice } from "@/data/profile-action";
 import { saveCv } from "@/data/cv-upload";
 import { deleteStored, saveUpload } from "@/data/uploads";
 import { portfolioFromForm } from "@/lib/profile-sections-form";
@@ -58,12 +58,33 @@ export async function addPortfolioItem(formData: FormData): Promise<void> {
   backTo(lang, "realisations", writeNotice(result));
 }
 
+/*
+ * Edits a portfolio item in place. A new image replaces the current one, "remove the image" drops it; the image that
+ * goes is deleted, row and bytes. A new image that could not be attached is removed again.
+ */
+export async function updatePortfolioItem(formData: FormData): Promise<void> {
+  const { lang, market } = await freelanceAction(formData, "realisations", UPLOADS, UPLOAD_RULE);
+  const id = itemIdOf(formData);
+  const upload = formData.get("image");
+  const hasImage = upload !== null && typeof upload !== "string" && upload.size > 0;
+  const image = hasImage ? await saveUpload(market.db, market.actor, "portfolio_image", upload) : null;
+  if (image !== null && image.kind !== "stored") backTo(lang, "realisations", image.kind, id);
+  const imageId = image === null ? (formData.get("removeImage") === "1" ? null : undefined) : image.id;
+  const result = await profileSections(market.db).updatePortfolioItem(market.actor, id, portfolioFromForm(formData), imageId);
+  if (result.kind !== "updated" && typeof imageId === "string") await discard(market.db, market.actor.userId, imageId);
+  if (result.kind === "updated") {
+    await deleteStored(result.removedFileIds);
+    await announceProfile(market);
+  }
+  backTo(lang, "realisations", updateNotice(result), result.kind === "updated" ? null : id);
+}
+
 export async function uploadCv(formData: FormData): Promise<void> {
   const { lang, market } = await freelanceAction(formData, "cv", UPLOADS, UPLOAD_RULE);
   const saved = await saveCv(market.db, market.actor, formData.get("cv"));
   if (saved.kind !== "stored") backTo(lang, "cv", saved.kind);
-  // One CV at a time: the previous ones go, rows and bytes.
-  await deleteStored(await storedFiles(market.db).removeKind(market.actor, "cv", saved.id));
+  // One CV at a time: the previous ones go, rows and bytes, except those already sent with a live application.
+  await deleteStored(await storedFiles(market.db).pruneCvs(market.actor, saved.id));
   backTo(lang, "cv", "uploaded");
 }
 
