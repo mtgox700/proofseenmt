@@ -583,6 +583,9 @@ model Application {
   /// Première ouverture de la candidature par un membre de l'entreprise : le freelance voit la date, jamais le nom.
   readAt       DateTime?      @db.Timestamptz(3)
   readByUserId String?        @db.Uuid
+  /// CV joint (C21) : un fichier `cv` du candidat, lisible par l'entreprise tant que la candidature n'est pas retirée.
+  /// Le freelance qui supprime son CV le retire aussi de ses candidatures.
+  cvFileId     String?        @db.Uuid
   createdAt DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -591,12 +594,14 @@ model Application {
   conversation Conversation?
   /// Privé : sert à l'entreprise seule. Le lecteur peut quitter l'entreprise ou effacer son compte.
   readBy       User?            @relation("ApplicationReader", fields: [readByUserId], references: [id], onDelete: SetNull)
+  cvFile       StoredFile?      @relation("ApplicationCv", fields: [cvFileId], references: [id], onDelete: SetNull)
 
   /// Une seule candidature par freelance et par mission.
   @@unique([jobPostId, profileId])
   @@index([jobPostId, status, createdAt(sort: Desc)])
   @@index([profileId, createdAt(sort: Desc)])
   @@index([readByUserId], where: raw("\"readByUserId\" IS NOT NULL"), map: "Application_readByUserId_idx")
+  @@index([cvFileId], where: raw("\"cvFileId\" IS NOT NULL"), map: "Application_cvFileId_idx")
 }
 
 // ─── Messagerie ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1290,6 +1295,8 @@ model StoredFile {
   photoOf     FreelanceProfile? @relation("ProfilePhoto")
   portfolioOf PortfolioItem?
   message     Message?          @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  /// Les candidatures auxquelles ce CV est joint (C21).
+  applications Application[]    @relation("ApplicationCv")
 
   @@index([ownerId, kind, createdAt(sort: Desc)])
   @@index([messageId], where: raw("\"messageId\" IS NOT NULL"), map: "StoredFile_messageId_idx")
@@ -1578,6 +1585,8 @@ model ProfileStatDay {
 enum StatKeywordKind {
   skill
   city
+  /// Une langue demandée (code ISO 639-1), sans le niveau (C21).
+  language
 }
 
 /// Les filtres (compétence, ville) d'une recherche d'entreprise qui a fait apparaître le profil, comptés par jour sous
