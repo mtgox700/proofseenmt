@@ -22,7 +22,7 @@ export const insightsEn: InsightsDictionary = {
   },
   audience: {
     title: "Your audience over 90 days",
-    lead: "Counted without tracking: no address, no company name, no cookie. A visitor counts once a day; bots and your own visits do not count. These are minimums: a page served from the network cache is not counted.",
+    lead: "Counted without tracking: no address, no company name, no cookie. A visitor counts once a day; bots and your own visits do not count. These are minimums: several visitors behind one shared address (an office, a mobile carrier) count as three at most.",
     noRanking: "Proofseen does not rank freelancers: there is no average position, only the filters that made you appear.",
     unpublished: "Your profile is not published: nobody sees it, nothing is counted.",
     series: {

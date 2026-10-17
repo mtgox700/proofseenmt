@@ -25,7 +25,7 @@ export const insightsFr = {
   },
   audience: {
     title: "Votre audience sur 90 jours",
-    lead: "Comptée sans pistage : ni adresse, ni nom d'entreprise, ni cookie. Un visiteur compte une fois par jour ; les robots et vos propres visites ne comptent pas. Ce sont des minimums : une page servie depuis le cache du réseau n'est pas comptée.",
+    lead: "Comptée sans pistage : ni adresse, ni nom d'entreprise, ni cookie. Un visiteur compte une fois par jour ; les robots et vos propres visites ne comptent pas. Ce sont des minimums : plusieurs visiteurs derrière une même adresse (un bureau, un opérateur mobile) comptent pour trois au plus.",
     noRanking: "Proofseen ne classe pas les freelances : pas de position moyenne, seulement les filtres qui vous ont fait apparaître.",
     unpublished: "Votre profil n'est pas publié : personne ne le voit, rien n'est compté.",
     series: {
