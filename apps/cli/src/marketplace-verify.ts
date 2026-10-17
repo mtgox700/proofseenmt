@@ -1,5 +1,20 @@
-import { cityPages, companyPages, getDb, missions, publicProfiles, skillPages } from "@proofseen/db";
-import { cityUrl, companyUrl, directoryUrl, missionUrl, profileName, profileUrl, skillIndexUrl, skillUrl, verifyMarketplace, type PageExpectation, type Served } from "@proofseen/hub";
+import { cityPages, companyPages, getDb, jobTitlePages, missions, publicProfiles, skillPages } from "@proofseen/db";
+import {
+  cityUrl,
+  companyUrl,
+  directoryUrl,
+  jobTitleIndexUrl,
+  jobTitleUrl,
+  missionUrl,
+  profileName,
+  profileUrl,
+  simulatorUrl,
+  skillIndexUrl,
+  skillUrl,
+  verifyMarketplace,
+  type PageExpectation,
+  type Served,
+} from "@proofseen/hub";
 import { CliError } from "./files";
 
 /*
@@ -45,6 +60,15 @@ const expectations = async (baseUrl: string, limit: number): Promise<PageExpecta
     if (c === null) continue;
     pages.push({ url: companyUrl(baseUrl, "fr", slug), texts: [c.name, ...c.missions.map((m) => m.title)], sitemap: `${baseUrl}/sitemap-companies.xml` });
   }
+  const titles = (await jobTitlePages(db).listForSitemap()).slice(0, limit);
+  for (const { key } of titles) {
+    const t = await jobTitlePages(db).page(key);
+    if (t === null) continue;
+    pages.push({ url: jobTitleUrl(baseUrl, "fr", key), texts: [t.label.fr, ...t.missions.map((m) => m.title), ...t.profiles.map((p) => p.headline)], sitemap: `${baseUrl}/sitemap-job-titles.xml` });
+  }
+  pages.push({ url: jobTitleIndexUrl(baseUrl, "fr"), texts: titles.map((t) => t.label.fr), sitemap: `${baseUrl}/sitemap-pages.xml` });
+  // Le simulateur ne dépend pas de la base : ses taux et leurs sources doivent être dans le HTML servi.
+  pages.push({ url: simulatorUrl(baseUrl, "fr"), texts: ["Simulateur de revenu net d'un freelance", "Taux en vigueur au"], sitemap: `${baseUrl}/sitemap-pages.xml` });
   // L'annuaire et l'index des métiers : leur première page porte les profils et les métiers que la base liste.
   const directory = (await publicProfiles(db).directory({})).items.slice(0, limit);
   pages.push({ url: directoryUrl(baseUrl, "fr"), texts: directory.map((c) => c.headline), sitemap: `${baseUrl}/sitemap-pages.xml` });

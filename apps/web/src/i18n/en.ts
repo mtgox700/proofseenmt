@@ -14,6 +14,8 @@ export const en: Dictionary = {
     missions: "Missions",
     freelancers: "Freelancers",
     skills: "Skills",
+    jobTitles: "Job titles",
+    simulator: "Simulator",
     blog: "Blog",
     signIn: "Sign in",
     signUp: "Sign up",

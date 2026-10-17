@@ -2,10 +2,10 @@ import { publicBaseUrl } from "@/lib/public-url";
 
 /*
  * The sitemap index, at the address the former static site already declared: it points to the sitemap of the fixed
- * pages and to the three that are built from the database (missions, profiles, skill pages).
+ * pages and to those built from the database (missions, profiles, skill pages, blog, companies, job titles).
  */
 
-const PARTS = ["sitemap-pages.xml", "sitemap-missions.xml", "sitemap-profiles.xml", "sitemap-skills.xml", "sitemap-blog.xml", "sitemap-companies.xml"] as const;
+const PARTS = ["sitemap-pages.xml", "sitemap-missions.xml", "sitemap-profiles.xml", "sitemap-skills.xml", "sitemap-blog.xml", "sitemap-companies.xml", "sitemap-job-titles.xml"] as const;
 
 export function GET(request: Request): Response {
   const base = publicBaseUrl(request);

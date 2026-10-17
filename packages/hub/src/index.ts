@@ -12,7 +12,9 @@ export { fileUrl, languageName, type PublicSectionsView, type SectionLanguageLev
 export { renderSkillPage, skillSitemap, skillUrl, type SkillPageFactsView, type SkillPageView } from "./skill-page";
 export { renderSkillIndex, skillIndexUrl, type SkillIndexItem } from "./skill-index";
 export { directoryUrl, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "./profile-directory";
-export { llmsTxt, type LlmsArticle, type LlmsSkill } from "./llms-txt";
+export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsSkill } from "./llms-txt";
+export { jobTitleUrl, renderJobTitlePage, type JobTitlePageView } from "./job-title-page";
+export { jobTitleIndexUrl, jobTitleSitemap, renderJobTitleIndex, type JobTitleIndexItem } from "./job-title-index";
 export {
   BROWSER_USER_AGENT,
   marketplaceRobots,

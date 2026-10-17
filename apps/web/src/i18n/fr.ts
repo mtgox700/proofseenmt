@@ -16,6 +16,8 @@ export const fr = {
     missions: "Missions",
     freelancers: "Freelances",
     skills: "Métiers",
+    jobTitles: "Postes",
+    simulator: "Simulateur",
     blog: "Blog",
     signIn: "Se connecter",
     signUp: "Créer un compte",

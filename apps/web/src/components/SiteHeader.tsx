@@ -11,9 +11,9 @@ interface SiteHeaderProps {
 }
 
 /*
- * The public menu points only at pages filled from the database: the open missions, the directory of published
- * profiles and the skill pages. Plain links (`<a>`) for those three: they are route handlers serving raw HTML, not
- * pages of the React tree.
+ * The public menu points only at pages filled from the database (the open missions, the directory of published
+ * profiles, the skill and job-title pages, the blog) or from sourced rates (the net income simulator). Plain links
+ * (`<a>`) for those: they are route handlers serving raw HTML, not pages of the React tree.
  */
 export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
@@ -30,6 +30,8 @@ export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
               <a className="hide-narrow" href={`/${lang}/missions`}>{t.nav.missions}</a>
               <a className="hide-narrow" href={`/${lang}/freelances`}>{t.nav.freelancers}</a>
               <a className="hide-narrow" href={`/${lang}/metiers`}>{t.nav.skills}</a>
+              <a className="hide-narrow" href={`/${lang}/postes`}>{t.nav.jobTitles}</a>
+              <a className="hide-narrow" href={`/${lang}/simulateur`}>{t.nav.simulator}</a>
               <a className="hide-narrow" href={`/${lang}/blog`}>{t.nav.blog}</a>
               <Link className="hide-narrow" href={`/${lang}/connexion`}>{t.nav.signIn}</Link>
               <Link className="nav-cta" href={`/${lang}/creer-un-compte`}>{t.nav.signUp}</Link>
