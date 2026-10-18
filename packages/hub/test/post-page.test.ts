@@ -49,6 +49,11 @@ describe("page publique d'une publication", () => {
 
   it("rend le Markdown simple sans titre ni HTML brut", () => {
     expect(renderPostBody("# Titre\n\n<div>brut</div>")).toBe("<p><strong>Titre</strong></p>\n&lt;div&gt;brut&lt;/div&gt;");
+    // Un lien caché dans le texte échapperait au filtre du champ lien : il ne garde que son texte (relecture C22, M1).
+    const hidden = renderPostBody("[rdv](//signal.group/#abc) et [ici][x]\n\n[x]: /fr/app/contact");
+    expect(hidden).not.toContain("<a");
+    expect(hidden).not.toContain("signal.group");
+    expect(hidden).toContain("rdv et ici");
   });
 
   it("montre les commentaires supprimés et les comptes effacés sans texte", () => {

@@ -7,7 +7,10 @@
  * Toutes les expressions sont bornées ou sans retour arrière : un message piégé de 10 000 caractères bloquait le
  * processus près d'une demi-seconde avec la version précédente.
  */
-const INVISIBLE = /[\u200B-\u200D\u2060\uFEFF]/g;
+// Tout caractère de format (espaces sans chasse, marques de direction, trait d'union conditionnel, étiquettes), les
+// sélecteurs de variante et les blancs de remplissage : un lecteur ne les voit pas, un numéro coupé par eux reste un
+// numéro (relecture sécurité C22, M1).
+const INVISIBLE = /[\p{Cf}\u034F\u115F\u1160\u3164\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
 const EMAIL = /[^\s@]{1,64}@[^\s@]{1,253}\.[a-z]{2,24}/i;
 // Le cabochon d'un émoji chiffre (« 6️⃣ ») : le chiffre est là, entouré de deux marques invisibles.
 const KEYCAP = new RegExp(`[${String.fromCharCode(0xfe0f, 0x20e3)}]`, "g");
@@ -18,7 +21,7 @@ const EMAIL_SPELLED =
 const TECH_NAMES = /\b(?:asp|vb|ml|ado)\.net\b|\b(?:socket|draw)\.io\b/gi;
 // Les raccourcisseurs (cutt.ly, linktr.ee, is.gd, x.gy) passent par leur extension ; « .sh » ou « .to » restent permis,
 // un freelance tech écrit « deploy.sh » tous les jours.
-const TLD = "com|fr|io|dev|net|org|co|eu|me|ch|be|de|lu|uk|es|it|nl|xyz|ai|app|info|biz|pro|tech|email|link|page|site|online|ly|ee|gd|gy";
+const TLD = "com|fr|io|dev|net|org|co|eu|me|ch|be|de|lu|uk|es|it|nl|xyz|ai|app|info|biz|pro|tech|email|link|page|site|online|ly|ee|gd|gy|tn|ma|dz|sn|ca|us|ru|ua|pt|pl|se|dk|fi|ie|cz|ro|br|au|nz|jp|cn|tv|cc|ws|gg";
 // Un caractère de nom avant le point suffit : relire tout le nom à chaque position coûtait 63 pas par caractère.
 const URL_LIKE = new RegExp(String.raw`\bhttps?://|\bwww\.|\b(?:bit\.ly|t\.me|wa\.me|x\.com|calendly\.com)\b|[a-z0-9-]\.(?:${TLD})\b`, "i");
 const HANDLE =

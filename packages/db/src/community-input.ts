@@ -32,6 +32,15 @@ export const POST_VISIBILITIES = ["public", "members"] as const satisfies readon
 /** Une balise HTML, un commentaire ou une déclaration : tout ce que le Markdown n'a pas à contenir. */
 const RAW_HTML = /<\/?[a-z][^>]*>|<!--|<![a-z]/i;
 
+/**
+ * Une référence de caractère (« &#64; », « &commat; ») : le Markdown la décode à l'affichage, le filtre de coordonnées
+ * ne la verrait pas. Un texte de la communauté n'en a pas besoin (relecture sécurité C22, M1).
+ */
+const CHARACTER_REFERENCE = /&(?:#\d{1,8}|#x[0-9a-f]{1,8}|[a-z][a-z0-9]{1,31});/i;
+
+/** Les marques du Markdown qui disparaissent à l'affichage : « 06\-12 », « `06` `12` » se lisent « 06-12 », « 06 12 ». */
+const MARKDOWN_MARKS = /\\(?=[!-/:-@[-`{-~])|[`~*_]/g;
+
 /** Pourquoi un texte est refusé : `html`, `contact` (coordonnées), `empty`, `long`. */
 export type TextProblem = "html" | "contact" | "empty" | "long";
 
@@ -39,8 +48,8 @@ export type TextProblem = "html" | "contact" | "empty" | "long";
 export const textProblem = (text: string, max: number, allowEmpty = false): TextProblem | null => {
   if (text.length > max) return "long";
   if (text === "") return allowEmpty ? null : "empty";
-  if (RAW_HTML.test(text)) return "html";
-  return containsContact(text) ? "contact" : null;
+  if (RAW_HTML.test(text) || CHARACTER_REFERENCE.test(text)) return "html";
+  return containsContact(text) || containsContact(text.replace(MARKDOWN_MARKS, "")) ? "contact" : null;
 };
 
 /** Le problème d'un lien, ou `null` : une adresse https, sans service de contact ni coordonnées. */

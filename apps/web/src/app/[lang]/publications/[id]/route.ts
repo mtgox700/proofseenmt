@@ -36,7 +36,9 @@ export async function GET(request: Request, context: Context): Promise<Response>
     const page = renderPostPage({ ...post, comments }, { baseUrl: publicBaseUrl(request), lang });
     const counted = countedHeaders(request.headers);
     after(async () => countPostSightings(counted, "view", [post.id], await signedInClerkId()));
-    return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
+    // Une publication supprimée, masquée ou effacée doit quitter un cache partagé en une minute, pas en une heure
+    // (relecture sécurité C22, B3).
+    return html(page, 200, "public, max-age=0, s-maxage=60, stale-while-revalidate=60");
   } catch (error) {
     logError("post page: not rendered", error);
     return html(NOT_FOUND, 500, "no-store");

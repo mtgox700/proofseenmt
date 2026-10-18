@@ -102,11 +102,15 @@ const POST_STYLES =
 
 export const postUrl = (baseUrl: string, lang: Lang, id: string): string => `${baseUrl.replace(/\/$/, "")}/${lang}/publications/${encodeURIComponent(id)}`;
 
-/** Le Markdown simple d'une publication : titres ramenés à du texte en gras, liens marqués `nofollow ugc`. */
+/**
+ * Le Markdown simple d'une publication : titres ramenés à du texte en gras, liens ramenés à leur texte. Une publication a
+ * son propre champ de lien, relu par le filtre de coordonnées ; un lien caché dans le texte (« [rdv](//signal.group/…) »)
+ * y échapperait (relecture sécurité C22, M1).
+ */
 export const renderPostBody = (body: string): string =>
   renderMarkdown(body)
     .html.replace(/<h[1-6] id="[^"]*">([\s\S]*?)<\/h[1-6]>/g, (_m, inner: string) => `<p><strong>${inner}</strong></p>`)
-    .replace(/<a href="([^"]*)"(?: rel="noopener")?/g, (_m, href: string) => `<a href="${href}" rel="nofollow ugc noopener"`);
+    .replace(/<a href="[^"]*"[^>]*>([\s\S]*?)<\/a>/g, (_m, inner: string) => inner);
 
 const authorHref = (a: PublicPostAuthor, lang: Lang): string | null =>
   a.profileSlug !== null ? `/${lang}/profils/${encodeURIComponent(a.profileSlug)}` : a.companySlug !== null ? `/${lang}/entreprises/${encodeURIComponent(a.companySlug)}` : null;
