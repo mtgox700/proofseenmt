@@ -611,6 +611,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | C20 | Paiement de bout en bout et application mobile | 🟡 | Application installable et notifications poussées en production le 2026-10-16 (PR #45) : manifeste et service worker limités à l'espace connecté, page hors ligne, Web Push (clés VAPID générées sur le serveur), pages publiques inchangées ; restent l'installation et une notification reçue sur un vrai téléphone, et toute la partie Stripe (décision du founder, fin de projet) |
 | C21 | Finitions de parité | 🟡 | En production le 2026-10-17 (PR #50, #51) : simulateur de revenu net sourcé sur service-public.fr (micro BNC/BIC, SASU en dividendes ; EURL écartée faute de taux officiel lisible), 26 pages par métier (dès 2 éléments réels), recherche insensible aux accents, édition des éléments du profil, filtre langues, CV joint aux candidatures lisible par la seule entreprise destinataire ; `marketplace-verify` vert ; reste le parcours connecté joué avec les comptes de test |
 | C22 | Découverte et communauté | 🟡 | En production le 2026-10-18 (PR #56, #57, #58, durcissement PR #59) : rapprochement expliqué sans note (missions pour vous, profils pour une mission, listes « proches » sur les pages publiques, garde anti-IA), recherche avancée (facettes avec effectifs, tri choisi et affiché, recherches enregistrées avec alertes), annuaires à cartes des freelances et des entreprises, fil communautaire (publications, réactions, commentaires, partages, abonnements, audience sans pistage, pages publiques, sitemap, llms.txt, modération). Relecture sécurité : aucune critique ni haute, 4 moyennes et 8 basses corrigées. Reste : parcours connecté joué dans le navigateur avec le compte du founder |
+| C23 | Amorçage et profils fiables | 🟡 | démarré le 2026-10-18 : invitations (une entreprise amène ses freelances, un freelance amène ses clients), disponibilité reconfirmée, parcours de publication guidé, accueil par le nom |
 
 **Règles propres à ces sprints**, en plus du BLOC COMMUN :
 - Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
@@ -896,4 +897,40 @@ proposé.
 - [x] Chaque rapprochement affiche sa raison ; test qui interdit tout score calculé par un modèle sur une personne
 - [ ] Recherche et fil joués dans le navigateur (reste : parcours connecté), pages publiques vérifiées en production comme les robots les voient (même contenu pour un navigateur et GPTBot, ClaudeBot, PerplexityBot, Google-Extended ; aucun script hors JSON-LD)
 - [x] Relecture sécurité sans critique ni haute ; gate complet vert
+</definition_of_done>
+
+
+---
+
+## C23 — AMORÇAGE ET PROFILS FIABLES
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C23 : « Amorçage et profils fiables »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+C22 joué en production avec le compte du founder (2026-10-18) : tout fonctionne, mais la marketplace est vide, et chaque
+écran neuf n'affiche que son état vide. Malt laisse une entreprise « apporter ses propres freelances » et masque un
+profil dont la disponibilité n'est pas reconfirmée. Proofseen fait entrer de vraies personnes par ceux qui les connaissent
+déjà, et garde des profils dont chaque fait affiché est daté.
+</objectif>
+
+<perimetre>
+- Lot A, invitations : une entreprise invite par e-mail les freelances avec qui elle travaille déjà (ils rejoignent son
+  vivier privé à l'inscription) ; un freelance invite une entreprise cliente (lien d'invitation, rattachement à
+  l'inscription) ; jetons à usage unique, expirés, plafonnés par jour, jamais d'énumération d'adresses, e-mails via
+  Resend avec le filtre de coordonnées ; écran « invitations envoyées » (en attente, acceptée, expirée), relance unique.
+  Aucune récompense d'argent (Stripe en fin de projet).
+- Lot B, profils fiables et premiers pas : disponibilité reconfirmée (rappel tous les 14 jours, par notification et
+  e-mail ; passé 30 jours sans confirmation, la disponibilité s'affiche « non confirmée » au lieu de « disponible »,
+  jamais de masquage du profil) ; parcours de publication guidé (ce qui manque, dans l'ordre, publier en un clic) ;
+  accueil du tableau de bord par le nom affiché et non par l'adresse e-mail ; états vides utiles sur les écrans C22 (fil,
+  missions pour vous, annuaires : que faire ensuite).
+- Reporté, dit au founder : réponse aux messages depuis l'e-mail (demande un enregistrement MX sur un sous-domaine).
+</perimetre>
+
+<definition_of_done>
+- [ ] Une invitation ne révèle jamais si une adresse a déjà un compte ; jetons à usage unique et expirés, testés
+- [ ] Disponibilité : rappel, bascule « non confirmée » à 30 jours, test sur l'horloge
+- [ ] Parcours joué en production avec le compte du founder ; pages publiques inchangées pour les robots
+- [ ] Relecture sécurité sans critique ni haute ; gate complet vert
 </definition_of_done>
