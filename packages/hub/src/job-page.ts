@@ -3,6 +3,7 @@ import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketHeader, MENU_STYLES } from "./market-shell";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
+import { nearbyMissionsSection, type NearbyMission } from "./nearby";
 
 /*
  * Page publique d'une mission de la marketplace : un document HTML complet, lisible sans JavaScript, avec ses données
@@ -83,6 +84,8 @@ export interface JobPageOptions {
   readonly lang: Lang;
   /** Où mène « Postuler » : la page de la plateforme qui prend la candidature. */
   readonly applyHref: string;
+  /** « Missions proches » (C22) : rapprochées sur des faits, chacune avec sa raison. */
+  readonly nearby?: readonly NearbyMission[];
 }
 
 export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
@@ -132,6 +135,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     paragraphs(m.description),
     m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
     `<p><a class="cta" href="${e(o.applyHref)}">${l.apply}</a></p>`,
+    nearbyMissionsSection(o.nearby ?? [], o.lang),
     "</main>",
     "</body>",
     "</html>",

@@ -1,6 +1,7 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketHeader, MENU_STYLES } from "./market-shell";
+import { nearbyProfilesSection, type NearbyProfile } from "./nearby";
 import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
 
 /*
@@ -159,7 +160,11 @@ export const profileJsonLd = (p: PublicProfile, o: { readonly baseUrl: string; r
   },
 });
 
-export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: string; readonly lang: Lang; readonly contactHref: string }): string => {
+export const renderProfilePage = (
+  p: PublicProfile,
+  /** `nearby` : « Profils proches » (C22), rapprochés sur des faits, chacun avec sa raison. */
+  o: { readonly baseUrl: string; readonly lang: Lang; readonly contactHref: string; readonly nearby?: readonly NearbyProfile[] },
+): string => {
   const l = LABELS[o.lang];
   const other: Lang = o.lang === "fr" ? "en" : "fr";
   const name = profileName(p, o.lang);
@@ -227,6 +232,7 @@ export const renderProfilePage = (p: PublicProfile, o: { readonly baseUrl: strin
     reviews,
     `<p><a class="cta" href="${e(o.contactHref)}">${l.contact}</a></p>`,
     `<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p>`,
+    nearbyProfilesSection(o.nearby ?? [], o.lang),
     "</main>",
     "</body>",
     "</html>",

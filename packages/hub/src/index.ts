@@ -59,3 +59,4 @@ export { renderSkillBarometer, skillBarometerUrl } from "./barometer-skills";
 export { EXAMPLE_INPUT, parseSimulatorQuery, simulate, SIMULATOR_STATUSES, type SimulatorInput, type SimulatorQuery, type SimulatorResult, type SimulatorStatus } from "./simulator";
 export { renderSimulatorPage, simulatorUrl } from "./simulator-page";
 export { RATES_AS_OF } from "./simulator-rates";
+export { nearbyMissionsSection, nearbyProfilesSection, nearbyReasonText, type NearbyMission, type NearbyProfile, type NearbyReason } from "./nearby";
