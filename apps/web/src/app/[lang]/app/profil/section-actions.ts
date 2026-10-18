@@ -1,8 +1,10 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { profileSections, type SectionName } from "@proofseen/db";
 import { announceProfile, backTo, freelanceAction, itemIdOf, SECTION_RULE, updateNotice, writeNotice } from "@/data/profile-action";
 import { deleteStored } from "@/data/uploads";
+import { homeNoticeHref, returnsHome } from "@/lib/home-notice";
 import type { SectionAnchor } from "@/lib/profile-notice";
 import { certificationFromForm, educationFromForm, experienceFromForm, languageFromForm } from "@/lib/profile-sections-form";
 
@@ -89,9 +91,20 @@ export async function removeSectionItem(formData: FormData): Promise<void> {
   backTo(lang, anchor, outcome.removed ? "removed" : "invalid");
 }
 
+/** "Still available": the declaration stays, its date moves to now. Sent from the profile page or from the home (C23). */
 export async function confirmAvailability(formData: FormData): Promise<void> {
   const { lang, market } = await freelanceAction(formData, "disponibilite", SCOPE, SECTION_RULE);
   const confirmed = await profileSections(market.db).confirmAvailability(market.actor, new Date());
   if (confirmed !== null) await announceProfile(market);
+  if (confirmed !== null && returnsHome(formData)) redirect(homeNoticeHref(lang, "dispo-confirmee"));
   backTo(lang, "disponibilite", confirmed === null ? "absent" : "confirmed");
+}
+
+/** "No longer available", in one click (C23): the profile says so at once, dated, and is never hidden. */
+export async function declareUnavailable(formData: FormData): Promise<void> {
+  const { lang, market } = await freelanceAction(formData, "disponibilite", SCOPE, SECTION_RULE);
+  const declared = await profileSections(market.db).declareUnavailable(market.actor, new Date());
+  if (declared !== null) await announceProfile(market);
+  if (declared !== null && returnsHome(formData)) redirect(homeNoticeHref(lang, "indisponible"));
+  backTo(lang, "disponibilite", declared === null ? "absent" : "unavailable");
 }

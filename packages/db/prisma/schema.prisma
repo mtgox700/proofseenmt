@@ -301,6 +301,9 @@ model FreelanceProfile {
   /// Dernière déclaration ou confirmation de la disponibilité par le freelance : affichée sur la page publique ; au-delà
   /// de 30 jours, les filtres de disponibilité de la recherche ne retiennent plus le profil.
   availabilityAt DateTime           @default(now()) @db.Timestamptz(3)
+  /// Dernier rappel de reconfirmer la disponibilité (C23) : au plus un par fenêtre de 14 jours, tant que la personne ne
+  /// l'a pas reconfirmée. Écrit par la tâche planifiée, dans la transaction qui met le rappel en file.
+  availabilityRemindedAt DateTime? @db.Timestamptz(3)
   /// Photo du profil : publique seulement sur un profil nominatif.
   photoFileId    String?            @unique @db.Uuid
   /// Profil masqué par un opérateur (C19) : absent de toute page publique, avec son motif, montré au freelance.
@@ -1049,6 +1052,7 @@ enum NotificationKind {
   company_mission      // une entreprise suivie publie une mission (freelance)
   account_notice       // décision d'un opérateur sur le compte ou ses contenus, avec son motif (C19)
   profile_match        // nouveaux profils pour une recherche enregistrée avec alerte (entreprise, C22)
+  availability_reminder // disponibilité à reconfirmer, 14 jours sans confirmation (freelance, C23)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
@@ -1552,6 +1556,7 @@ enum AppNotificationKind {
   post_reaction // des réactions à l'une de mes publications, regroupées par publication (C22)
   post_share    // l'une de mes publications est partagée (C22)
   new_follower  // une personne suit mon profil (C22)
+  availability_reminder // disponibilité à reconfirmer (C23)
 }
 
 /// Notification dans l'application, écrite avec l'e-mail correspondant (même transaction), qu'il parte ou non. Comme

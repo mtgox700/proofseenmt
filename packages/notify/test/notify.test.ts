@@ -40,6 +40,15 @@ describe("contenu des e-mails", () => {
     expect(email.text).toContain("5 000 € HT");
   });
 
+  it("rappelle de reconfirmer sa disponibilité, avec un lien vers l'espace connecté et non une confirmation en un clic", () => {
+    const email = renderEmail({ kind: "availability_reminder", payload: {}, to: TO }, BASE);
+    expect(email.subject).toBe("Votre disponibilité est-elle toujours à jour ?");
+    expect(email.text).toContain("« non confirmée »");
+    expect(email.text).toContain("https://proofseen.com/fr/app/profil#disponibilite");
+    expect(email.html).not.toMatch(/confirmer\?|token=|jeton=/);
+    expect(renderEmail({ kind: "availability_reminder", payload: {}, to: { ...TO, lang: "en" } }, BASE).subject).toBe("Is your availability still up to date?");
+  });
+
   it("annonce un relevé mensuel déposé, validé ou à corriger, avec son mois", () => {
     const submitted = renderEmail({ kind: "contract_update", payload: { contractId: "k-2", status: "timesheet_submitted", month: "2026-12" }, to: TO }, BASE);
     expect(submitted.subject).toBe("Un relevé mensuel attend votre validation");

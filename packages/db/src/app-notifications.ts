@@ -29,6 +29,7 @@ export const APP_NOTIFICATION_KINDS = [
   "post_reaction",
   "post_share",
   "new_follower",
+  "availability_reminder",
 ] as const satisfies readonly AppNotificationKind[];
 
 /** Les e-mails qui ont leur pendant dans l'application ; les autres (alertes, vigilance, entreprises suivies) restent par e-mail. */
@@ -41,6 +42,8 @@ const FROM_EMAIL: Readonly<Partial<Record<NotificationKind, AppNotificationKind>
   mission_invitation: "mission_invitation",
   mission_confirmation: "mission_confirmation",
   contract_update: "contract_update",
+  // C23 : le rappel de reconfirmer sa disponibilité se voit dans l'application (et sur l'appareil abonné) même sans e-mail.
+  availability_reminder: "availability_reminder",
 };
 
 export const appKindOfEmail = (kind: NotificationKind): AppNotificationKind | null => FROM_EMAIL[kind] ?? null;
@@ -76,6 +79,8 @@ const COLLAPSED: Readonly<Partial<Record<AppNotificationKind, "conversationId" |
   post_reaction: "postId",
   post_share: "postId",
   new_follower: null,
+  // Un seul rappel non lu à la fois : le suivant ne s'ajoute pas à un rappel que la personne n'a pas encore vu.
+  availability_reminder: null,
 };
 
 export interface AppNotificationView {

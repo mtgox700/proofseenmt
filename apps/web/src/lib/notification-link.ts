@@ -45,6 +45,8 @@ export const notificationHref = (lang: Lang, n: NotificationLike): string => {
       return under(`${app}/fil`, n.payload.postId);
     case "new_follower":
       return `${app}/abonnements`;
+    case "availability_reminder":
+      return `${app}/profil#disponibilite`;
   }
 };
 

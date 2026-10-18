@@ -10,6 +10,7 @@ export const profileSectionsFr = {
     saved: "Enregistré.",
     removed: "Retiré.",
     confirmed: "Disponibilité confirmée.",
+    unavailable: "C'est noté : votre profil indique désormais que vous n'êtes pas disponible.",
     uploaded: "Fichier enregistré.",
     imported: "Champs proposés ci-dessous : ajoutez ceux qui sont justes.",
     invalid: "Vérifiez les champs : un intitulé de 2 caractères au moins, des dates cohérentes, une adresse en https.",
@@ -40,9 +41,10 @@ export const profileSectionsFr = {
   availability: {
     title: "Disponibilité confirmée",
     confirmedOn: (day: string) => `Confirmée le ${day}.`,
-    staleNote: "Plus de 30 jours sans confirmation : les entreprises qui filtrent sur la disponibilité ne vous retiennent plus.",
-    lead: "Confirmez-la chaque semaine. La date est affichée sur votre page publique ; au-delà de 30 jours sans confirmation, les filtres de disponibilité des entreprises ne vous retiennent plus. Enregistrer le formulaire du profil la confirme aussi.",
+    staleNote: "Plus de 30 jours sans confirmation : votre disponibilité s'affiche « non confirmée » et les entreprises qui filtrent sur la disponibilité ne vous retiennent plus. Votre profil reste visible.",
+    lead: "Confirmez-la au moins toutes les deux semaines : Proofseen vous le rappelle au bout de 14 jours. La date est affichée sur votre page publique ; au-delà de 30 jours sans confirmation, votre disponibilité s'affiche « non confirmée » et les filtres de disponibilité des entreprises ne vous retiennent plus. Enregistrer le formulaire du profil la confirme aussi.",
     confirm: "Je confirme ma disponibilité",
+    notAvailable: "Je ne suis plus disponible",
   },
   photo: {
     title: "Photo",

@@ -48,6 +48,7 @@ export const liveFr = {
       post_reaction: "Nouvelles réactions à l'une de vos publications.",
       post_share: "L'une de vos publications a été partagée.",
       new_follower: "De nouvelles personnes suivent votre profil.",
+      availability_reminder: "Votre disponibilité est-elle toujours à jour ? Confirmez-la en un clic.",
     },
     statuses: {
       shortlisted: "Votre candidature est retenue pour la suite.",

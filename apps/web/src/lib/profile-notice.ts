@@ -7,7 +7,7 @@
 export const SECTION_ANCHORS = ["photo", "disponibilite", "experiences", "formation", "certifications", "langues", "realisations", "cv"] as const;
 export type SectionAnchor = (typeof SECTION_ANCHORS)[number];
 
-export const SUCCESS_CODES = ["saved", "removed", "confirmed", "uploaded", "imported"] as const;
+export const SUCCESS_CODES = ["saved", "removed", "confirmed", "unavailable", "uploaded", "imported"] as const;
 
 export const NOTICE_CODES = [
   ...SUCCESS_CODES,

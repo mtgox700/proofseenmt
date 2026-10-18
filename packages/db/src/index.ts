@@ -118,7 +118,16 @@ export {
   type DraftSection,
 } from "./cv-draft";
 export { importDrafts, type AcceptResult, type ImportDrafts } from "./import-drafts";
-export { AVAILABILITY_FRESH_DAYS, availabilityFreshSince } from "./profile-search";
+export {
+  AVAILABILITY_FRESH_DAYS,
+  AVAILABILITY_REMINDER_DAYS,
+  availabilityFreshSince,
+  availabilityReminderDue,
+  isAvailabilityFresh,
+  shownAvailability,
+  type ShownAvailability,
+} from "./availability";
+export { AVAILABILITY_REMINDER_BATCH, availabilityReminders, type AvailabilityReminders } from "./availability-reminders";
 export {
   freelanceLists,
   ListNameSchema,

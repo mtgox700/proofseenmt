@@ -12,6 +12,7 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     saved: "Saved.",
     removed: "Removed.",
     confirmed: "Availability confirmed.",
+    unavailable: "Noted: your profile now says you are not available.",
     uploaded: "File saved.",
     imported: "Proposed fields below: add the ones that are right.",
     invalid: "Check the fields: a title of at least 2 characters, consistent dates, an https address.",
@@ -42,9 +43,10 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
   availability: {
     title: "Confirmed availability",
     confirmedOn: (day: string) => `Confirmed on ${day}.`,
-    staleNote: "More than 30 days without confirmation: companies filtering on availability no longer see you.",
-    lead: "Confirm it every week. The date is shown on your public page; after 30 days without confirmation, the availability filters of companies no longer include you. Saving the profile form confirms it too.",
+    staleNote: "More than 30 days without confirmation: your availability shows as \"not confirmed\" and companies filtering on availability no longer see you. Your profile stays visible.",
+    lead: "Confirm it at least every two weeks: Proofseen reminds you after 14 days. The date is shown on your public page; after 30 days without confirmation, your availability shows as \"not confirmed\" and the availability filters of companies no longer include you. Saving the profile form confirms it too.",
     confirm: "I confirm my availability",
+    notAvailable: "I am no longer available",
   },
   photo: {
     title: "Photo",

@@ -1,6 +1,6 @@
-import { availabilityFreshSince } from "@proofseen/db";
+import { isAvailabilityFresh } from "@proofseen/db";
 import { removePhoto, uploadPhoto } from "@/app/[lang]/app/profil/file-actions";
-import { confirmAvailability } from "@/app/[lang]/app/profil/section-actions";
+import { confirmAvailability, declareUnavailable } from "@/app/[lang]/app/profil/section-actions";
 import { day } from "@/lib/format";
 import { SectionShell, type SectionProps } from "./SectionShell";
 
@@ -44,7 +44,7 @@ export function PhotoSection({ lang, s, notice, photoFileId }: SectionProps & { 
 /** When the person last declared or confirmed their availability, and the button to confirm it again. */
 export function AvailabilitySection({ lang, s, notice, confirmedAt, now }: SectionProps & { readonly confirmedAt: Date; readonly now: Date }) {
   const a = s.availability;
-  const stale = confirmedAt.getTime() < availabilityFreshSince(now).getTime();
+  const stale = !isAvailabilityFresh(confirmedAt, now);
   return (
     <SectionShell anchor="disponibilite" title={a.title} lead={a.lead} s={s} notice={notice}>
       <p>
@@ -55,12 +55,20 @@ export function AvailabilitySection({ lang, s, notice, confirmedAt, now }: Secti
           {a.staleNote}
         </p>
       ) : null}
-      <form action={confirmAvailability}>
-        <input type="hidden" name="lang" value={lang} />
-        <button type="submit" className="btn btn-primary">
-          {a.confirm}
-        </button>
-      </form>
+      <div className="empty-actions">
+        <form action={confirmAvailability}>
+          <input type="hidden" name="lang" value={lang} />
+          <button type="submit" className="btn btn-primary">
+            {a.confirm}
+          </button>
+        </form>
+        <form action={declareUnavailable}>
+          <input type="hidden" name="lang" value={lang} />
+          <button type="submit" className="btn">
+            {a.notAvailable}
+          </button>
+        </form>
+      </div>
     </SectionShell>
   );
 }

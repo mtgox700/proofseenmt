@@ -1,4 +1,4 @@
-import { confirmationMail, getDb, messageDigests, missionAlerts, notifications, payments, retention, savedSearches, storedFiles, validationReminders, vigilance } from "@proofseen/db";
+import { availabilityReminders, confirmationMail, getDb, messageDigests, missionAlerts, notifications, payments, retention, savedSearches, storedFiles, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
@@ -95,6 +95,14 @@ export async function GET(request: Request): Promise<Response> {
     // Paid work never approved: both parties are reminded and a person reviews the case. Nothing is released here.
     const overdue = await validationReminders(db).flagOverdue(now());
     const vigilanceReminders = await vigilance(db).remindExpiring(now());
+    // Availability not confirmed for 14 days (C23): one reminder per profile per 14-day window, a bounded batch per run,
+    // queued with the in-app notification; a failure only delays them.
+    const availabilityReminded = await availabilityReminders(db)
+      .remindDue(now())
+      .catch((error: unknown) => {
+        logError("cron: availability reminders failed", error);
+        return null;
+      });
     // SIRET numbers checked against the official directory; an unreachable directory only delays the check.
     const registryChecks = await checkDueRegistry(db, now()).catch((error: unknown) => {
       logError("cron: registry checks failed", error);
@@ -120,7 +128,7 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     const transport = transportFromEnv(process.env);
-    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, registryChecks, releases, pushes, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, availabilityReminded, registryChecks, releases, pushes, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -150,7 +158,7 @@ export async function GET(request: Request): Promise<Response> {
       logError("cron: message digests failed", error);
       return null;
     });
-    return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, registryChecks, releases, pushes, sent, failed, confirmationMails, digests, transport: "resend" } });
+    return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, availabilityReminded, registryChecks, releases, pushes, sent, failed, confirmationMails, digests, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);

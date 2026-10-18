@@ -50,6 +50,7 @@ export const liveEn: LiveDictionary = {
       post_reaction: "New reactions to one of your posts.",
       post_share: "One of your posts was shared.",
       new_follower: "New people follow your profile.",
+      availability_reminder: "Is your availability still up to date? Confirm it in one click.",
     },
     statuses: {
       shortlisted: "Your application was shortlisted.",

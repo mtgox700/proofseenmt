@@ -13,6 +13,7 @@ describe("in-app notification links", () => {
     expect(notificationHref("fr", { kind: "mission_confirmation", payload: { status: "requested" } })).toBe("/fr/app/confirmations");
     expect(notificationHref("fr", { kind: "mission_confirmation", payload: { status: "confirmed" } })).toBe("/fr/app/preuves");
     expect(notificationHref("fr", { kind: "measurement_done", payload: {} })).toBe("/fr/app/visibilite");
+    expect(notificationHref("en", { kind: "availability_reminder", payload: {} })).toBe("/en/app/profil#disponibilite");
   });
 
   it("never puts anything but a uuid in a path", () => {

@@ -115,6 +115,8 @@ export interface ProfileSections {
   remove(actor: Actor, section: SectionName, id: string): Promise<{ readonly removed: boolean; readonly fileIds: readonly string[] }>;
   /** Date de la confirmation ; `null` sans profil. */
   confirmAvailability(actor: Actor, now: Date): Promise<Date | null>;
+  /** « Plus disponible » en un clic (C23) : la déclaration et sa date changent ensemble. Date posée ; `null` sans profil. */
+  declareUnavailable(actor: Actor, now: Date): Promise<Date | null>;
   /** Pose la photo (un fichier `photo` de l'acteur) ; rend l'ancienne, supprimée, à effacer du disque. */
   setPhoto(actor: Actor, fileId: string): Promise<{ readonly kind: "set"; readonly previousFileId: string | null } | { readonly kind: "absent" }>;
   /** Retire la photo ; rend son identifiant, à effacer du disque. */
@@ -287,6 +289,11 @@ export const profileSections = (db: Db): ProfileSections => ({
 
   async confirmAvailability(actor, now) {
     const { count } = await db.freelanceProfile.updateMany({ where: { userId: actor.userId }, data: { availabilityAt: now } });
+    return count === 0 ? null : now;
+  },
+
+  async declareUnavailable(actor, now) {
+    const { count } = await db.freelanceProfile.updateMany({ where: { userId: actor.userId }, data: { availability: "unavailable", availableFrom: null, availabilityAt: now } });
     return count === 0 ? null : now;
   },
 

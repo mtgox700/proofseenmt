@@ -10,7 +10,7 @@ import { accountNoticeBody } from "./account-notice";
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice" | "profile_match";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice" | "profile_match" | "availability_reminder";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -214,6 +214,19 @@ const body = (n: NotificationInput, base: string): Body => {
           ...slugs.map((slug, i) => ({ label: fr ? `Profil ${i + 1}` : `Profile ${i + 1}`, href: `${base}/${lang}/profils/${slug}` })),
           ...(/^[0-9a-f-]{36}$/.test(search) ? [{ label: fr ? "Ouvrir la recherche" : "Open the search", href: `${app}/recherche/enregistree/${search}` }] : []),
         ],
+      };
+    }
+    case "availability_reminder": {
+      // Le lien mène à l'espace connecté, jamais à une confirmation en un clic depuis l'e-mail : un lien suivi par un
+      // antivirus de messagerie confirmerait à la place de la personne une disponibilité qu'elle n'a pas redite.
+      return {
+        subject: fr ? "Votre disponibilité est-elle toujours à jour ?" : "Is your availability still up to date?",
+        lines: [
+          fr
+            ? "Vous n'avez pas confirmé votre disponibilité depuis deux semaines. Dites en un clic si vous êtes toujours disponible ou non : passé 30 jours sans confirmation, votre profil reste visible, mais votre disponibilité s'affiche « non confirmée »."
+            : "You have not confirmed your availability for two weeks. Say in one click whether you are still available: after 30 days without a confirmation, your profile stays visible, but your availability shows as \"not confirmed\".",
+        ],
+        links: [{ label: fr ? "Confirmer ma disponibilité" : "Confirm my availability", href: `${app}/profil#disponibilite` }],
       };
     }
   }

@@ -18,7 +18,7 @@ interface PageProps {
 /** The e-mails each side can receive: a company is never told about contacts it made, a freelancer about applications. */
 const KINDS: Readonly<Record<"company" | "freelance", readonly NotificationKind[]>> = {
   company: ["application_received", "message_received", "profile_match", "contract_update"],
-  freelance: ["contact_received", "message_received", "application_status", "application_read", "mission_invitation", "mission_match", "company_mission", "contract_update", "vigilance_expiring"],
+  freelance: ["contact_received", "message_received", "application_status", "application_read", "mission_invitation", "mission_match", "company_mission", "contract_update", "vigilance_expiring", "availability_reminder"],
 };
 const MODES = ["remote", "hybrid", "onsite"] as const;
 
