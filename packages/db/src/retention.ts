@@ -1,4 +1,5 @@
 import { purgeAudience } from "./audience-stats";
+import { purgeCommunity } from "./post-stats";
 import { tombstoneCutoff, TOMBSTONE_RETENTION_YEARS } from "./erasure-tombstones";
 import type { Db } from "./client";
 import { MEASUREMENT_SPEND_RETENTION_DAYS } from "./measurement-ledger";
@@ -89,6 +90,10 @@ export interface PurgeReport {
   readonly pushSubscriptions: number;
   readonly pushDeliveries: number;
   readonly erasureTombstones: number;
+  /** Publications supprimées depuis plus de 30 jours, parties pour de bon (C22). */
+  readonly deletedPosts: number;
+  /** Empreintes et compteurs d'audience des publications (C22). */
+  readonly postAudience: number;
 }
 
 export interface Retention {
@@ -141,6 +146,7 @@ export const retention = (db: Db): Retention => ({
     // Une notification poussée qui attend depuis plus d'un jour n'a plus d'intérêt (la file la retire aussi d'elle-même).
     const pushDeliveryRows = await db.pushDelivery.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - PUSH_STALE_MS) } } });
     const audience = await purgeAudience(db, now);
+    const community = await purgeCommunity(db, now);
     // La plus prudente des deux bornes : jamais en deçà de cinq ans à l'horloge de la base, que refuserait le déclencheur.
     const operatorCutoff = new Date(now);
     operatorCutoff.setUTCFullYear(operatorCutoff.getUTCFullYear() - RETENTION.operatorActionsYears);
@@ -165,6 +171,8 @@ export const retention = (db: Db): Retention => ({
       pushSubscriptions: pushSubscriptionRows.count,
       pushDeliveries: pushDeliveryRows.count,
       erasureTombstones: tombstoneRows.count,
+      deletedPosts: community.posts,
+      postAudience: community.stats,
     };
   },
 });

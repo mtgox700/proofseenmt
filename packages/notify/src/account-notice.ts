@@ -29,6 +29,10 @@ const COPY: Readonly<Record<Lang, Readonly<Record<string, { readonly subject: st
     proof_revoked: { subject: "La preuve d'une de vos adresses est retirée", line: (what) => `Un opérateur de Proofseen a retiré la preuve de possession de l'adresse ${what}. Elle reste déclarée sur votre profil.` },
     account_suspended: { subject: "Votre compte Proofseen est suspendu", line: () => "Un opérateur de Proofseen a suspendu votre compte : vous ne pouvez plus utiliser votre espace, et vos contenus publics sont masqués." },
     account_restored: { subject: "Votre compte Proofseen est rétabli", line: () => "La suspension de votre compte est levée : votre espace est de nouveau accessible." },
+    post_hidden: { subject: "Une de vos publications est masquée", line: (what) => `Un opérateur de Proofseen a masqué votre publication « ${what} » : elle n'est plus visible, sauf pour vous.` },
+    post_restored: { subject: "Une de vos publications est de nouveau visible", line: (what) => `Le masque posé sur votre publication « ${what} » est levé.` },
+    comment_hidden: { subject: "Un de vos commentaires est masqué", line: (what) => `Un opérateur de Proofseen a masqué votre commentaire « ${what} » : il n'est plus visible, sauf pour vous.` },
+    comment_restored: { subject: "Un de vos commentaires est de nouveau visible", line: (what) => `Le masque posé sur votre commentaire « ${what} » est levé.` },
   },
   en: {
     profile_hidden: { subject: "Your public profile is hidden", line: () => "A Proofseen operator hid your public profile: it no longer appears in the directory, in search or to engines." },
@@ -47,6 +51,10 @@ const COPY: Readonly<Record<Lang, Readonly<Record<string, { readonly subject: st
     proof_revoked: { subject: "The proof of one of your addresses was withdrawn", line: (what) => `A Proofseen operator withdrew the ownership proof of ${what}. It stays declared on your profile.` },
     account_suspended: { subject: "Your Proofseen account is suspended", line: () => "A Proofseen operator suspended your account: you can no longer use your space, and your public content is hidden." },
     account_restored: { subject: "Your Proofseen account is restored", line: () => "The suspension of your account was lifted: your space is available again." },
+    post_hidden: { subject: "One of your posts is hidden", line: (what) => `A Proofseen operator hid your post "${what}": nobody but you can see it.` },
+    post_restored: { subject: "One of your posts is visible again", line: (what) => `The hold on your post "${what}" was lifted.` },
+    comment_hidden: { subject: "One of your comments is hidden", line: (what) => `A Proofseen operator hid your comment "${what}": nobody but you can see it.` },
+    comment_restored: { subject: "One of your comments is visible again", line: (what) => `The hold on your comment "${what}" was lifted.` },
   },
 };
 

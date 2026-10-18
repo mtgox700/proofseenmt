@@ -470,3 +470,33 @@ export {
   type CompanySearch,
   type CompanySort,
 } from "./company-directory";
+// Communauté (C22) : publications, réactions, commentaires, partages, abonnements aux profils, audience sans pistage.
+export {
+  COMMENT_BODY_MAX,
+  DELETED_POST_RETENTION_DAYS,
+  FEED_PAGE_SIZE,
+  linkProblem,
+  MAX_COMMENTS_PER_DAY,
+  MAX_FOLLOWED_PROFILES,
+  MAX_POSTS_PER_DAY,
+  POST_BODY_MAX,
+  POST_LINK_MAX,
+  POST_VISIBILITIES,
+  PostInputSchema,
+  REACTION_KINDS,
+  ReactionKindSchema,
+  SHARE_COMMENT_MAX,
+  textProblem,
+  type PostInput,
+  type TextProblem,
+} from "./community-input";
+export { authorView, resolveSpeaker, type AuthorView, type Speaker, type SpeakerChoice } from "./community-speaker";
+export { posts, type CreatePostResult, type EditPostResult, type Posts, type RemovePostResult, type SharePostResult, type WriteProblem } from "./posts";
+export { plainExcerpt, type PostAudience, type PostCounts, type PostView, type SharedOriginal } from "./post-views";
+export { MAX_SITEMAP_POSTS, postFeed, RECENT_ON_PAGES, type FeedPage, type FeedTab, type PostFeed, type PostSnippet } from "./post-feed";
+export { postReactions, type PostReactions, type ReactResult } from "./post-reactions";
+export { MAX_COMMENTS_SHOWN, postComments, type CommentEditResult, type CommentResult, type CommentState, type CommentView, type PostComments } from "./post-comments";
+export { peopleFollows, type FollowedProfile, type Follower, type Followers, type PeopleFollows, type ProfileFollowResult } from "./people-follows";
+export { MAX_POST_SIGHTINGS_PER_DAY, postStats, type PostSightingScope, type PostStats } from "./post-stats";
+export { communityModeration, type CommunityItem, type CommunityModeration, type CommunityTarget } from "./community-moderation";
+export { LISTED_COMMENT, LISTED_POST } from "./public-visibility";

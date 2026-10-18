@@ -70,6 +70,10 @@ export const ACCOUNT_NOTICES = [
   "proof_revoked",
   "account_suspended",
   "account_restored",
+  "post_hidden",
+  "post_restored",
+  "comment_hidden",
+  "comment_restored",
 ] as const;
 
 export type AccountNotice = (typeof ACCOUNT_NOTICES)[number];

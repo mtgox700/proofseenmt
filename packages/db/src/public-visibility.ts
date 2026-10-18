@@ -43,3 +43,32 @@ export const LISTED_COMPANY = {
   suspendedAt: null,
   members: { some: { user: { suspendedAt: null } } },
 } as const satisfies Prisma.OrganisationWhereInput;
+
+/*
+ * Communauté (C22). Une publication ou un commentaire parle au nom d'un profil publié ou d'une entreprise : il sort du
+ * public quand il est supprimé ou masqué, quand son auteur est suspendu, quand le profil n'est plus publié (privé,
+ * masqué, compte suspendu) ou quand l'entreprise est masquée ou n'a plus de membre actif. Ces fragments s'emploient
+ * dans un `AND: [...]` : leurs clés `OR` et `NOT` n'écrasent ainsi rien de l'appelant.
+ */
+
+/** Une publication vivante que personne n'a retirée du public (sa visibilité, publique ou membres, se filtre à part). */
+export const LISTED_POST = {
+  deletedAt: null,
+  moderatedAt: null,
+  NOT: [{ author: { is: { suspendedAt: { not: null } } } }],
+  OR: [
+    { profile: { is: { visibility: { not: "private" }, moderatedAt: null, user: { suspendedAt: null } } } },
+    { organisation: { is: { suspendedAt: null, members: { some: { user: { suspendedAt: null } } } } } },
+  ],
+} satisfies Prisma.PostWhereInput;
+
+/** Un commentaire vivant que personne n'a retiré du public. */
+export const LISTED_COMMENT = {
+  deletedAt: null,
+  moderatedAt: null,
+  NOT: [{ author: { is: { suspendedAt: { not: null } } } }],
+  OR: [
+    { profile: { is: { visibility: { not: "private" }, moderatedAt: null, user: { suspendedAt: null } } } },
+    { organisation: { is: { suspendedAt: null, members: { some: { user: { suspendedAt: null } } } } } },
+  ],
+} satisfies Prisma.PostCommentWhereInput;

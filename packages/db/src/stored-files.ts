@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { Db } from "./client";
-import type { StoredFileKind } from "./generated/enums";
+import type { PostVisibility, StoredFileKind } from "./generated/enums";
 import type { Actor } from "./messaging";
+import { LISTED_POST } from "./public-visibility";
 
 /*
  * Les fichiers déposés : une ligne par fichier (propriétaire, usage, type reconnu, taille, empreinte), le contenu étant
@@ -19,7 +20,10 @@ import type { Actor } from "./messaging";
  *   laquelle il est joint (C21), tant que cette candidature n'est pas retirée, que la mission n'est pas masquée, que ni
  *   l'entreprise, ni le membre, ni le candidat ne sont suspendus ;
  * - une pièce jointe (C15) est lue par les parties du fil de son message, et par son auteur seul tant qu'elle n'est
- *   rattachée à aucun message.
+ *   rattachée à aucun message ;
+ * - l'image d'une publication (C22) suit la publication : publique si la publication l'est, lue par toute personne
+ *   connectée si elle est réservée aux membres, jamais si elle est supprimée, masquée ou si son locuteur n'est plus
+ *   public, ni sous un profil pseudonyme (une image peut porter un visage, un nom).
  *
  * Quotas par compte, comptés sous verrou du compte : deux dépôts simultanés ne passent pas tous deux sous la limite.
  */
@@ -27,14 +31,14 @@ import type { Actor } from "./messaging";
 export const FILE_QUOTA = { maxFiles: 30, maxBytes: 40 * 1024 * 1024 } as const;
 
 /** Taille maximale enregistrée par usage (après réencodage pour les images). */
-export const MAX_FILE_BYTES: Readonly<Record<StoredFileKind, number>> = { photo: 2 * 1024 * 1024, portfolio_image: 2 * 1024 * 1024, cv: 5 * 1024 * 1024, message_attachment: 5 * 1024 * 1024 };
+export const MAX_FILE_BYTES: Readonly<Record<StoredFileKind, number>> = { photo: 2 * 1024 * 1024, portfolio_image: 2 * 1024 * 1024, cv: 5 * 1024 * 1024, message_attachment: 5 * 1024 * 1024, post_image: 2 * 1024 * 1024 };
 
 export const STORED_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
 
 export const NewStoredFileSchema = z
   .object({
     id: z.uuid(),
-    kind: z.enum(["photo", "cv", "portfolio_image", "message_attachment"]),
+    kind: z.enum(["photo", "cv", "portfolio_image", "message_attachment", "post_image"]),
     contentType: z.enum(STORED_CONTENT_TYPES),
     size: z.number().int().min(1),
     sha256: z.string().regex(/^[0-9a-f]{64}$/),
@@ -60,11 +64,12 @@ export interface StoredFileRecord {
 
 /**
  * Un fichier lisible, et pour qui : `public` peut être mis en cache partagé, les autres jamais. `recipient` : un membre
- * de l'entreprise destinataire d'une candidature qui joint ce CV.
+ * de l'entreprise destinataire d'une candidature qui joint ce CV. `member` : toute personne connectée (image d'une
+ * publication réservée aux membres, C22).
  */
 export interface ReadableFile {
   readonly file: StoredFileRecord;
-  readonly audience: "public" | "owner" | "participant" | "recipient";
+  readonly audience: "public" | "owner" | "participant" | "recipient" | "member";
 }
 
 export type RecordResult = "recorded" | "quota" | "invalid";
@@ -128,6 +133,18 @@ const cvRecipient = async (db: Db, id: string, viewer: Actor): Promise<boolean> 
     },
   })) > 0;
 
+/**
+ * L'image d'une publication vivante et listée, sous un profil nominatif ou une entreprise : sa visibilité (publique ou
+ * membres), ou `null` si elle ne se montre à personne d'autre que son auteur.
+ */
+const postImageVisibility = async (db: Db, id: string): Promise<PostVisibility | null> => {
+  const post = await db.post.findFirst({
+    where: { AND: [{ imageFileId: id }, LISTED_POST, { OR: [{ organisationId: { not: null } }, { profile: { is: { visibility: "named" } } }] }] },
+    select: { visibility: true },
+  });
+  return post?.visibility ?? null;
+};
+
 export const storedFiles = (db: Db): StoredFiles => ({
   async record(actor, raw) {
     const parsed = NewStoredFileSchema.safeParse(raw);
@@ -152,8 +169,11 @@ export const storedFiles = (db: Db): StoredFiles => ({
     const { photoOf, portfolioOf, ...file } = row;
     if (row.kind === "photo" && photoOf?.visibility === "named" && listed(photoOf)) return { file, audience: "public" };
     if (row.kind === "portfolio_image" && portfolioOf?.profile.visibility === "named" && listed(portfolioOf.profile)) return { file, audience: "public" };
+    const shown = row.kind === "post_image" ? await postImageVisibility(db, id) : null;
+    if (shown === "public") return { file, audience: "public" };
     if (viewer === null) return null;
     if (row.ownerId === viewer.userId) return { file, audience: "owner" };
+    if (shown === "members") return { file, audience: "member" };
     if (row.kind === "cv") return (await cvRecipient(db, id, viewer)) ? { file, audience: "recipient" } : null;
     if (row.kind !== "message_attachment") return null;
     // Partie au fil du message qui porte la pièce jointe : vérifié dans la requête, comme pour lire le fil lui-même.

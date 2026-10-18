@@ -25,6 +25,10 @@ export const APP_NOTIFICATION_KINDS = [
   "mission_confirmation",
   "contract_update",
   "measurement_done",
+  "post_comment",
+  "post_reaction",
+  "post_share",
+  "new_follower",
 ] as const satisfies readonly AppNotificationKind[];
 
 /** Les e-mails qui ont leur pendant dans l'application ; les autres (alertes, vigilance, entreprises suivies) restent par e-mail. */
@@ -42,7 +46,7 @@ const FROM_EMAIL: Readonly<Partial<Record<NotificationKind, AppNotificationKind>
 export const appKindOfEmail = (kind: NotificationKind): AppNotificationKind | null => FROM_EMAIL[kind] ?? null;
 
 /** Ce qui peut être gardé d'une charge : des références et des codes courts, rien d'autre. */
-const KEPT_KEYS = ["conversationId", "applicationId", "missionId", "invitationId", "contractId", "requestId", "status", "month"] as const;
+const KEPT_KEYS = ["conversationId", "applicationId", "missionId", "invitationId", "contractId", "requestId", "status", "month", "postId", "commentId"] as const;
 const KEPT_VALUE = /^[A-Za-z0-9_-]{1,64}$/;
 
 export type AppNotificationPayload = Readonly<Partial<Record<(typeof KEPT_KEYS)[number], string>>>;
@@ -61,8 +65,18 @@ export const appNotificationPayload = (raw: unknown): AppNotificationPayload => 
   return parsed.success ? sanitise(parsed.data) : {};
 };
 
-/** Les notifications d'un fil se regroupent : une seule non lue par fil et par personne. */
-const COLLAPSED: ReadonlySet<AppNotificationKind> = new Set(["contact_received", "message_received"]);
+/**
+ * Les notifications d'un même objet se regroupent : une seule non lue par fil, par publication (réactions, commentaires,
+ * partages, C22) et par personne ; les nouveaux abonnés font une seule notification non lue à la fois (`null`).
+ */
+const COLLAPSED: Readonly<Partial<Record<AppNotificationKind, "conversationId" | "postId" | null>>> = {
+  contact_received: "conversationId",
+  message_received: "conversationId",
+  post_comment: "postId",
+  post_reaction: "postId",
+  post_share: "postId",
+  new_follower: null,
+};
 
 export interface AppNotificationView {
   readonly id: string;
@@ -83,9 +97,11 @@ export const recordAppNotifications = async (tx: Prisma.TransactionClient, userI
   if (unique.length === 0) return 0;
   const kept = sanitise(payload);
   let recipients = unique;
-  if (COLLAPSED.has(kind) && kept.conversationId !== undefined) {
+  const key = COLLAPSED[kind];
+  const value = key === undefined || key === null ? undefined : kept[key];
+  if (key === null || (key !== undefined && value !== undefined)) {
     const waiting = await tx.appNotification.findMany({
-      where: { userId: { in: unique }, kind, readAt: null, payload: { path: ["conversationId"], equals: kept.conversationId } },
+      where: { userId: { in: unique }, kind, readAt: null, ...(key === null || value === undefined ? {} : { payload: { path: [key], equals: value } }) },
       select: { userId: true },
     });
     const already = new Set(waiting.map((w) => w.userId));

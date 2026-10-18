@@ -4,6 +4,7 @@ import { leaveTombstone } from "./erasure-tombstones";
 import { storedFiles } from "./stored-files";
 import { exportMissionsSpace } from "./gdpr-missions";
 import { exportLiveMessaging } from "./gdpr-messaging";
+import { eraseCommunityComments, exportCommunity } from "./gdpr-community";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -36,6 +37,7 @@ export const RETAINED_AFTER_ERASURE = [
   "pièces jointes envoyées : effacées avec le compte, le message qui les portait reste sans elles",
   "décisions d'un opérateur sur le compte ou ses contenus (journal du back-office) : conservées cinq ans, rattachées au seul identifiant interne du compte (ni nom ni adresse), comme preuve de ce qui a été décidé",
   "compte suspendu par un opérateur : une empreinte chiffrée de l'adresse e-mail (jamais l'adresse), le motif et la date de la suspension, conservés trois ans au titre de l'intérêt légitime, pour que la suspension s'applique de nouveau si la même adresse se réinscrit",
+  "publications, réactions et abonnements de la communauté : supprimés avec le compte ; les commentaires restent à leur place, vidés de leur texte et sans auteur (« Compte supprimé ») ; les publications écrites au nom d'une entreprise restent à elle, sans auteur",
 ] as const;
 
 export interface UserExport {
@@ -64,6 +66,8 @@ export interface UserExport {
   readonly liveMessaging: unknown;
   /** Décisions d'un opérateur sur le compte ou ses contenus (C19) : l'action, son motif et sa date, jamais l'opérateur. */
   readonly operatorDecisions: unknown;
+  /** Publications, commentaires, réactions, profils suivis, nombre d'abonnés, audience des publications (C22). */
+  readonly community: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -191,6 +195,7 @@ export const gdpr = (db: Db): Gdpr => ({
     const files = await storedFiles(db).listForExport(userId);
     const missionsSpace = await exportMissionsSpace(db, userId);
     const liveMessaging = await exportLiveMessaging(db, userId);
+    const community = await exportCommunity(db, userId);
     const operatorDecisions = await db.operatorAction.findMany({
       where: { targetId: { in: [userId, ...(freelanceProfile === null ? [] : [freelanceProfile.id])] } },
       orderBy: { createdAt: "asc" },
@@ -217,6 +222,7 @@ export const gdpr = (db: Db): Gdpr => ({
       missionsSpace,
       liveMessaging,
       operatorDecisions,
+      community,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
@@ -258,6 +264,7 @@ export const gdpr = (db: Db): Gdpr => ({
       if (key !== null && key !== "" && user.suspendedAt !== null && user.suspensionReason !== null) {
         await leaveTombstone(tx, user.email, key, { at: user.suspendedAt, reason: user.suspensionReason });
       }
+      await eraseCommunityComments(tx, userId, new Date());
       await tx.user.delete({ where: { id: userId } });
       return "erased";
     });
