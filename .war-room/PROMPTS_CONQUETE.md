@@ -610,6 +610,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | C19 | Back-office opérateur | 🟡 | En production le 2026-10-16 (PR #43) : journal des opérateurs en ajout seul (5 ans), modération des profils, missions et pages entreprises respectée par chaque chemin public, revue des premiers contacts, attestations URSSAF, litiges d’adresses, registre, recherche et suspension de comptes (droits RGPD conservés), retours de la bêta, entonnoir, dépenses de mesure ; reste la recette par un opérateur réel |
 | C20 | Paiement de bout en bout et application mobile | 🟡 | Application installable et notifications poussées en production le 2026-10-16 (PR #45) : manifeste et service worker limités à l'espace connecté, page hors ligne, Web Push (clés VAPID générées sur le serveur), pages publiques inchangées ; restent l'installation et une notification reçue sur un vrai téléphone, et toute la partie Stripe (décision du founder, fin de projet) |
 | C21 | Finitions de parité | 🟡 | En production le 2026-10-17 (PR #50, #51) : simulateur de revenu net sourcé sur service-public.fr (micro BNC/BIC, SASU en dividendes ; EURL écartée faute de taux officiel lisible), 26 pages par métier (dès 2 éléments réels), recherche insensible aux accents, édition des éléments du profil, filtre langues, CV joint aux candidatures lisible par la seule entreprise destinataire ; `marketplace-verify` vert ; reste le parcours connecté joué avec les comptes de test |
+| C22 | Découverte et communauté | 🟡 | démarré le 2026-10-18 : rapprochement expliqué (missions et profils proches), recherche avancée au design soigné, fil communautaire (publications, réactions, commentaires, vues) |
 
 **Règles propres à ces sprints**, en plus du BLOC COMMUN :
 - Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
@@ -864,4 +865,35 @@ Fermer les écarts que C13 à C20 ont laissés et qui ne dépendent pas du found
 - [ ] Simulateur et pages par métier en production, `marketplace-verify` vert
 - [ ] Édition d'un élément, filtre langues et CV joint joués dans le navigateur avec les comptes de test
 - [ ] Gate complet vert
+</definition_of_done>
+
+
+---
+
+## C22 — DÉCOUVERTE ET COMMUNAUTÉ
+
+/war-room MISSION : EXÉCUTION — Proofseen « Conquête », SPRINT C22 : « Découverte et communauté »
+Applique intégralement le BLOC COMMUN et le PROTOCOLE D'ENCHAÎNEMENT de ce fichier.
+
+<objectif>
+Le founder (2026-10-18) : Malt pousse des missions et des profils « similaires », offre une recherche riche et visuelle, et
+LinkedIn fait vivre une communauté. Proofseen fait autant, sans note opaque : chaque rapprochement dit pourquoi il est
+proposé.
+</objectif>
+
+<perimetre>
+- Lot A, rapprochement expliqué : missions proches d'un profil ou d'une mission, profils proches d'une mission ou d'un
+  profil ; calcul déterministe sur des faits (compétences, ville, mode, fourchette de TJM, disponibilité, preuves), raison
+  affichée sur chaque proposition ; aucun modèle d'IA ne note une personne.
+- Lot B, recherche avancée : page de recherche des entreprises et annuaire public refaits (cartes avec photo, facettes avec
+  effectifs, filtres combinés, tri choisi et affiché, recherches enregistrées) ; annuaire des entreprises publiques.
+- Lot C, communauté : publications des freelances et des entreprises (texte, lien, image), réactions, commentaires,
+  partages, abonnements, vues et impressions comptées sans pistage, fil personnalisé, pages publiques indexables,
+  modération branchée sur le back-office.
+</perimetre>
+
+<definition_of_done>
+- [ ] Chaque rapprochement affiche sa raison ; test qui interdit tout score calculé par un modèle sur une personne
+- [ ] Recherche et fil joués dans le navigateur, `marketplace-verify` vert sur les pages publiques
+- [ ] Relecture sécurité sans critique ni haute ; gate complet vert
 </definition_of_done>
