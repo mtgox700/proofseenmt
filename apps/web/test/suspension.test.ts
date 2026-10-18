@@ -34,7 +34,8 @@ describe("suspension", () => {
   it("is applied by the market context of every page and every server action", () => {
     const market = read("lib/market.ts");
     expect(market).toMatch(/stopIfSuspended\(lang, suspension\)/);
-    expect(market.match(/await actorOf\(db, (person|state\.person), lang\)/g)).toHaveLength(2);
+    // Pages, server actions, and the answer to an invitation (C23): each goes through actorOf, which stops a suspended account.
+    expect(market.match(/await actorOf\(db, (person|state\.person), lang\)/g)).toHaveLength(3);
   });
 
   it("is applied by the connected API, except to the person's own GDPR export and erasure", () => {
