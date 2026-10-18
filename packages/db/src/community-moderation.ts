@@ -73,7 +73,9 @@ export const communityModeration = (db: Db, operator: Operator): CommunityModera
       if (!found.found) return "absent";
       if ((await flip(tx, target, id, hide, reason, now)) === 0) return "unchanged";
       const kind = hide ? "hide" : "restore";
-      await recordAction(tx, operator, { action: ACTIONS[target][kind], targetType: target, targetId: id, reason, metadata: { label: found.label } }, now);
+      // Le journal est gardé après l’effacement du compte : il ne garde que l’identifiant de la cible, jamais un extrait de
+      // son texte (relecture sécurité C22, B2). L’extrait ne part que dans l’avis envoyé sur le moment.
+      await recordAction(tx, operator, { action: ACTIONS[target][kind], targetType: target, targetId: id, reason }, now);
       await notifyAccount(tx, found.users, ACTIONS[target][kind], reason, found.label);
       return "done";
     });

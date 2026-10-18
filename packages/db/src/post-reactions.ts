@@ -22,9 +22,12 @@ export interface PostReactions {
 
 const Uuid = z.uuid();
 
-/** Une publication que l'acteur peut lire : listée (publique ou membres), ou la sienne. */
+/**
+ * Une publication que l'acteur peut lire, et donc commenter ou aimer : listée (publique ou membres), ou la sienne tant
+ * qu'elle n'est ni masquée par l'opérateur ni écrite au nom d'une entreprise suspendue (relecture sécurité C22, B1).
+ */
 export const READABLE_BY = (userId: string): Prisma.PostWhereInput => ({
-  OR: [LISTED_POST, { deletedAt: null, OR: [{ authorUserId: userId }, { profile: { is: { userId } } }, { organisation: { is: { members: { some: { userId } } } } }] }],
+  OR: [LISTED_POST, { deletedAt: null, moderatedAt: null, AND: [{ OR: [{ organisationId: null }, { organisation: { is: { suspendedAt: null } } }] }], OR: [{ authorUserId: userId }, { profile: { is: { userId } } }, { organisation: { is: { members: { some: { userId } } } } }] }],
 });
 
 export const postReactions = (db: Db): PostReactions => ({

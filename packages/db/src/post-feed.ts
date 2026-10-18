@@ -67,10 +67,25 @@ const afterCursor = (cursor: string | null): Prisma.PostWhereInput => {
   }
 };
 
-/** Les publications de la personne : son profil, ses entreprises, ce qu'elle a écrit ; masquées comprises, jamais supprimées. */
+/**
+ * Les publications de la personne : son profil, ses entreprises, ce qu'elle a écrit ; jamais supprimées. Une publication
+ * masquée par l'opérateur ne reste visible que de son auteur et des administrateurs de l'entreprise, pas de toute
+ * l'équipe (relecture sécurité C22, B1).
+ */
 const mine = (viewer: Actor, organisationIds: readonly string[]): Prisma.PostWhereInput => ({
   deletedAt: null,
-  OR: [{ authorUserId: viewer.userId }, { profile: { is: { userId: viewer.userId } } }, ...(organisationIds.length === 0 ? [] : [{ organisationId: { in: [...organisationIds] } }])],
+  OR: [
+    { authorUserId: viewer.userId },
+    { profile: { is: { userId: viewer.userId } } },
+    ...(organisationIds.length === 0
+      ? []
+      : [
+          {
+            organisationId: { in: [...organisationIds] },
+            OR: [{ moderatedAt: null }, { organisation: { is: { members: { some: { userId: viewer.userId, role: { in: ["owner" as const, "admin" as const] } } } } } }],
+          },
+        ]),
+  ],
 });
 
 const ORDER = [{ createdAt: "desc" as const }, { id: "desc" as const }];

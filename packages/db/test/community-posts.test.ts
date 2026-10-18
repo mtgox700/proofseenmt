@@ -5,6 +5,7 @@ import { MAX_POSTS_PER_DAY } from "../src/community-input";
 import { communityModeration } from "../src/community-moderation";
 import { postComments } from "../src/post-comments";
 import { postFeed } from "../src/post-feed";
+import { postReactions } from "../src/post-reactions";
 import { posts } from "../src/posts";
 import { storedFiles } from "../src/stored-files";
 import { userDesk } from "../src/user-desk";
@@ -216,5 +217,68 @@ describe("image d'une publication", () => {
     if (created.kind !== "created") throw new Error("non publiée");
     expect(await posts(t.db).remove(named.actor, created.id, NOW)).toEqual({ removed: true, fileIds: [file] });
     expect(await t.db.storedFile.count({ where: { id: file } })).toBe(0);
+  });
+});
+
+describe("relecture sécurité C22 : qui garde la main sur une publication", () => {
+  it("une personne qui a quitté l'entreprise ne modifie ni ne supprime plus ce qu'elle a écrit en son nom", async () => {
+    const owner = await createUser(t.db);
+    const org = await createOrganisation(t.db, owner);
+    const writer = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId: org, userId: writer, role: "member" } });
+    const created = await posts(t.db).create({ userId: writer }, { as: "organisation", organisationId: org }, { body: "Nous recrutons." }, NOW);
+    if (created.kind !== "created") throw new Error("non publiée");
+    const comment = await postComments(t.db).comment({ userId: writer }, { as: "organisation", organisationId: org }, created.id, "Écrivez-nous ici.", null, NOW);
+    if (comment.kind !== "created") throw new Error("commentaire refusé");
+    expect(await posts(t.db).edit({ userId: writer }, created.id, { body: "Encore membre" }, NOW)).toEqual({ kind: "edited" });
+
+    await t.db.membership.deleteMany({ where: { organisationId: org, userId: writer } });
+    expect(await posts(t.db).edit({ userId: writer }, created.id, { body: "Lien piégé" }, NOW)).toEqual({ kind: "absent" });
+    expect((await posts(t.db).remove({ userId: writer }, created.id, NOW)).removed).toBe(false);
+    expect(await postComments(t.db).edit({ userId: writer }, comment.id, "Réécrit", NOW)).toBe("absent");
+    expect(await postComments(t.db).remove({ userId: writer }, comment.id, NOW)).toBe(false);
+    expect((await t.db.post.findUniqueOrThrow({ where: { id: created.id }, select: { body: true } })).body).toBe("Encore membre");
+    expect((await posts(t.db).remove({ userId: owner }, created.id, NOW)).removed).toBe(true);
+  });
+
+  it("une publication masquée ne se réécrit pas, ne s'aime pas et ne se commente pas, même par son auteur", async () => {
+    const f = await freelancer();
+    const id = await publish(f.userId, "À masquer");
+    expect(await communityModeration(t.db, operator).hide("post", id, "Contenu trompeur", NOW)).toBe("done");
+    expect(await posts(t.db).edit(f.actor, id, { body: "Réécrit avant la remise en ligne" }, NOW)).toEqual({ kind: "absent" });
+    expect(await postReactions(t.db).react(f.actor, id, "like")).toBe("absent");
+    expect((await postComments(t.db).comment(f.actor, AS_PROFILE, id, "Je me réponds", null, NOW)).kind).not.toBe("created");
+    expect((await t.db.post.findUniqueOrThrow({ where: { id }, select: { body: true } })).body).toBe("À masquer");
+  });
+
+  it("un membre simple ne lit pas la publication masquée d'un collègue ; l'administrateur, si", async () => {
+    const owner = await createUser(t.db);
+    const org = await createOrganisation(t.db, owner);
+    const writer = await createUser(t.db);
+    const colleague = await createUser(t.db);
+    await t.db.membership.createMany({ data: [{ organisationId: org, userId: writer, role: "member" }, { organisationId: org, userId: colleague, role: "member" }] });
+    const created = await posts(t.db).create({ userId: writer }, { as: "organisation", organisationId: org }, { body: "Annonce" }, NOW);
+    if (created.kind !== "created") throw new Error("non publiée");
+    await communityModeration(t.db, operator).hide("post", created.id, "Annonce trompeuse", NOW);
+    expect(await postFeed(t.db).get({ userId: colleague }, created.id)).toBeNull();
+    expect(await postFeed(t.db).get({ userId: owner }, created.id)).not.toBeNull();
+    expect(await postFeed(t.db).get({ userId: writer }, created.id)).not.toBeNull();
+  });
+
+  it("le journal de l'opérateur ne garde aucun extrait du texte masqué", async () => {
+    const f = await freelancer();
+    const id = await publish(f.userId, "Texte personnel à ne pas garder");
+    await communityModeration(t.db, operator).hide("post", id, "Contenu trompeur", NOW);
+    const entry = await t.db.operatorAction.findFirstOrThrow({ where: { targetId: id, action: "post_hidden" }, select: { metadata: true } });
+    expect(JSON.stringify(entry.metadata ?? {})).not.toContain("personnel");
+  });
+
+  it("une entreprise suspendue ne fait plus réagir ses membres à ses publications", async () => {
+    const owner = await createUser(t.db);
+    const org = await createOrganisation(t.db, owner);
+    const created = await posts(t.db).create({ userId: owner }, { as: "organisation", organisationId: org }, { body: "Offre" }, NOW);
+    if (created.kind !== "created") throw new Error("non publiée");
+    await t.db.organisation.update({ where: { id: org }, data: { suspendedAt: NOW, suspensionReason: "Entreprise fictive" } });
+    expect(await postReactions(t.db).react({ userId: owner }, created.id, "like")).toBe("absent");
   });
 });

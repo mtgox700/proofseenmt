@@ -48,10 +48,14 @@ export interface Posts {
 const Uuid = z.uuid();
 const DAY_MS = 86_400_000;
 
-/** La personne a écrit cette publication, ou administre l'entreprise au nom de qui elle est écrite. */
+/**
+ * La personne a écrit cette publication et parle encore au nom de qui elle l'a écrite, ou administre l'entreprise au
+ * nom de qui elle est écrite. Une personne qui a quitté l'entreprise ne touche plus à ce qu'elle a publié pour elle
+ * (relecture sécurité C22, M2).
+ */
 export const MANAGEABLE_BY = (userId: string): Prisma.PostWhereInput => ({
   OR: [
-    { authorUserId: userId },
+    { authorUserId: userId, OR: [{ organisationId: null }, { organisation: { is: { members: { some: { userId } } } } }] },
     { profile: { is: { userId } } },
     { organisation: { is: { members: { some: { userId, role: { in: ["owner", "admin"] } } } } } },
   ],
@@ -136,18 +140,19 @@ export const posts = (db: Db): Posts => ({
     if (!Uuid.safeParse(postId).success) return { kind: "absent" };
     const parsed = PostInputSchema.pick({ body: true, linkUrl: true }).safeParse(raw);
     if (!parsed.success) return { kind: "text", problem: "long" };
-    const existing = await db.post.findFirst({ where: { AND: [{ id: postId, deletedAt: null }, MANAGEABLE_BY(actor.userId)] }, select: { sharedPostId: true } });
+    // Une publication masquée par l'opérateur reste telle qu'il l'a vue jusqu'à sa remise en ligne.
+    const existing = await db.post.findFirst({ where: { AND: [{ id: postId, deletedAt: null, moderatedAt: null }, MANAGEABLE_BY(actor.userId)] }, select: { sharedPostId: true } });
     if (existing === null) return { kind: "absent" };
     // Un partage garde son seul commentaire, qui peut être vide ; une publication garde un texte et peut changer de lien.
     if (existing.sharedPostId !== null) {
       const text = textProblem(parsed.data.body, SHARE_COMMENT_MAX, true);
       if (text !== null) return { kind: "text", problem: text };
-      const { count } = await db.post.updateMany({ where: { id: postId, deletedAt: null }, data: { body: parsed.data.body, editedAt: now } });
+      const { count } = await db.post.updateMany({ where: { id: postId, deletedAt: null, moderatedAt: null }, data: { body: parsed.data.body, editedAt: now } });
       return count === 1 ? { kind: "edited" } : { kind: "absent" };
     }
     const content = checkContent(parsed.data.body, parsed.data.linkUrl);
     if (isProblem(content)) return content;
-    const { count } = await db.post.updateMany({ where: { id: postId, deletedAt: null }, data: { body: content.body, linkUrl: content.linkUrl, editedAt: now } });
+    const { count } = await db.post.updateMany({ where: { id: postId, deletedAt: null, moderatedAt: null }, data: { body: content.body, linkUrl: content.linkUrl, editedAt: now } });
     return count === 1 ? { kind: "edited" } : { kind: "absent" };
   },
 

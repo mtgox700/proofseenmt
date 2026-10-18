@@ -60,6 +60,12 @@ const DAY_MS = 86_400_000;
 /** Commentaires montrés sous une publication. */
 export const MAX_COMMENTS_SHOWN = 300;
 
+/** La personne a écrit ce commentaire et parle encore au nom de qui elle l'a écrit (relecture sécurité C22, M2). */
+const AUTHORED_BY = (userId: string): Prisma.PostCommentWhereInput => ({
+  authorUserId: userId,
+  OR: [{ organisationId: null }, { organisation: { is: { members: { some: { userId } } } } }],
+});
+
 const COMMENT_SELECT = { id: true, parentId: true, authorUserId: true, body: true, createdAt: true, editedAt: true, deletedAt: true, moderatedAt: true, moderationReason: true, ...SPEAKER_SELECT } as const;
 type CommentRow = Prisma.PostCommentGetPayload<{ select: typeof COMMENT_SELECT }>;
 
@@ -104,14 +110,14 @@ export const postComments = (db: Db): PostComments => ({
     const body = rawBody.trim();
     const problem = textProblem(body, COMMENT_BODY_MAX);
     if (problem !== null) return { kind: "text", problem };
-    const { count } = await db.postComment.updateMany({ where: { id: commentId, authorUserId: actor.userId, deletedAt: null }, data: { body, editedAt: now } });
+    const { count } = await db.postComment.updateMany({ where: { AND: [{ id: commentId, deletedAt: null, moderatedAt: null }, AUTHORED_BY(actor.userId)] }, data: { body, editedAt: now } });
     return count === 1 ? "edited" : "absent";
   },
 
   async remove(actor, commentId, now) {
     if (!Uuid.safeParse(commentId).success) return false;
     const { count } = await db.postComment.updateMany({
-      where: { id: commentId, deletedAt: null, OR: [{ authorUserId: actor.userId }, { post: MANAGEABLE_BY(actor.userId) }] },
+      where: { id: commentId, deletedAt: null, OR: [AUTHORED_BY(actor.userId), { post: MANAGEABLE_BY(actor.userId) }] },
       data: { deletedAt: now, body: "" },
     });
     return count === 1;
