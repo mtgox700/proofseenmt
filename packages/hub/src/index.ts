@@ -35,8 +35,6 @@ export {
   type CompanyDirectorySort,
   type CompanyKind,
 } from "./company-directory";
-export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsSkill } from "./llms-txt";
-export { directoryUrl, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "./profile-directory";
 export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsPost, type LlmsSkill } from "./llms-txt";
 export { jobTitleUrl, renderJobTitlePage, type JobTitlePageView } from "./job-title-page";
 export { jobTitleIndexUrl, jobTitleSitemap, renderJobTitleIndex, type JobTitleIndexItem } from "./job-title-index";
