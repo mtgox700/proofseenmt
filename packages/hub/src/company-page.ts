@@ -2,6 +2,7 @@ import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { missionUrl } from "./job-posting";
 import { isoDay, longDate, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { recentPostsSection, type RecentPostItem } from "./post-page";
 
 /*
  * Page publique d'une entreprise, qui l'a choisie. Des faits datés seulement : active au répertoire officiel (date du
@@ -29,6 +30,8 @@ export interface CompanyPageModel {
   readonly registryActiveCheckedAt: Date | null;
   readonly response: { readonly medianDays: number; readonly decided: number } | null;
   readonly missions: readonly CompanyPageMission[];
+  /** Publications publiques récentes de l'entreprise (C22). */
+  readonly posts?: readonly RecentPostItem[];
   readonly generatedAt: Date;
 }
 
@@ -162,6 +165,7 @@ export const renderCompanyPage = (c: CompanyPageModel, o: { readonly baseUrl: st
     about,
     `<h2>${l.missions}</h2>`,
     missionList(c, o.lang),
+    recentPostsSection(c.posts, o.lang),
     `<p><a class="cta" href="${e(`/${o.lang}/app/entreprises-suivies?suivre=${encodeURIComponent(c.slug)}`)}" rel="nofollow">${l.follow}</a></p>`,
     `<p class="muted">${l.followHint}</p>`,
     `<p class="byline"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(longDate(c.generatedAt, o.lang)))}</time></p>`,

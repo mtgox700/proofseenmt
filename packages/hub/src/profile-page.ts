@@ -3,6 +3,7 @@ import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketHeader, MENU_STYLES } from "./market-shell";
 import { nearbyProfilesSection, type NearbyProfile } from "./nearby";
 import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
+import { recentPostsSection, type RecentPostItem } from "./post-page";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -51,6 +52,8 @@ export interface PublicProfile {
   readonly availabilityConfirmedAt?: Date | null;
   /** Expériences, formations, certifications, langues et réalisations déclarées. */
   readonly sections?: PublicSectionsView;
+  /** Publications publiques récentes du profil (C22). */
+  readonly posts?: readonly RecentPostItem[];
   readonly updatedAt: Date;
 }
 
@@ -230,6 +233,7 @@ export const renderProfilePage = (
     renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, named: p.visibility === "named" }),
     proofs,
     reviews,
+    recentPostsSection(p.posts, o.lang),
     `<p><a class="cta" href="${e(o.contactHref)}">${l.contact}</a></p>`,
     `<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p>`,
     nearbyProfilesSection(o.nearby ?? [], o.lang),

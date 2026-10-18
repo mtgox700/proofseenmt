@@ -47,11 +47,21 @@ export interface LlmsJobTitle {
 }
 
 
-export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles: readonly LlmsArticle[] = [], jobTitles: readonly LlmsJobTitle[] = []): string => {
+/** Une publication publique récente de la communauté (C22), telle que llms.txt la liste. */
+export interface LlmsPost {
+  readonly id: string;
+  readonly authorName: string;
+  readonly excerpt: string;
+}
+
+const MAX_POSTS = 50;
+
+export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles: readonly LlmsArticle[] = [], jobTitles: readonly LlmsJobTitle[] = [], communityPosts: readonly LlmsPost[] = []): string => {
   const base = baseUrl.replace(/\/$/, "");
   const sorted = [...skills].sort((a, b) => a.label.localeCompare(b.label, "fr") || a.key.localeCompare(b.key)).slice(0, MAX_SKILLS);
   const titles = [...jobTitles].sort((a, b) => a.label.fr.localeCompare(b.label.fr, "fr") || a.key.localeCompare(b.key)).slice(0, MAX_SKILLS);
   const posts = articles.slice(0, MAX_ARTICLES).map((a) => `- [${oneLine(a.title)}](${articleUrl(base, a.lang, a.slug)}): ${oneLine(a.description)}`);
+  const community = communityPosts.slice(0, MAX_POSTS).map((p) => `- [${oneLine(p.authorName) || "Proofseen"}](${base}/fr/publications/${encodeURIComponent(p.id)}): ${oneLine(p.excerpt)}`);
   return [
     "# Proofseen",
     "",
@@ -74,6 +84,9 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles:
     ...(posts.length === 0 ? [] : ["## Articles", "", ...posts, ""]),
     ...(sorted.length === 0 ? [] : ["## Skill pages", "", ...sorted.map((s) => `- [${linkText(s)}](${skillUrl(base, "fr", s.key)})`), ""]),
     ...(titles.length === 0 ? [] : ["## Job title pages", "", ...titles.map((t) => `- [${oneLine(t.label.fr) || t.key}](${jobTitleUrl(base, "fr", t.key)})`), ""]),
+    ...(community.length === 0
+      ? []
+      : ["## Recent community posts", "", "Public posts by freelancers and companies, newest first (ordered by date only, never by engagement). Pseudonymous freelancers post under their reference.", "", ...community, ""]),
     "## Sitemaps",
     "",
     `- [Sitemap index](${base}/sitemap.xml): points to every sitemap below.`,
@@ -82,6 +95,7 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles:
     `- [Skills](${base}/sitemap-skills.xml): one address per skill page.`,
     `- [Job titles](${base}/sitemap-job-titles.xml): one address per job title page.`,
     `- [Blog](${base}/sitemap-blog.xml): blog index, barometers and one address per published article.`,
+    `- [Community posts](${base}/sitemap-posts.xml): one address per public post (/fr/publications/… and /en/publications/…).`,
     `- [Fixed pages](${base}/sitemap-pages.xml): home pages, indexes, directories and the net income simulator.`,
     `- [Companies](${base}/sitemap-companies.xml): one address per public company page.`,
     "",

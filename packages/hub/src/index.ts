@@ -36,6 +36,8 @@ export {
   type CompanyKind,
 } from "./company-directory";
 export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsSkill } from "./llms-txt";
+export { directoryUrl, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "./profile-directory";
+export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsPost, type LlmsSkill } from "./llms-txt";
 export { jobTitleUrl, renderJobTitlePage, type JobTitlePageView } from "./job-title-page";
 export { jobTitleIndexUrl, jobTitleSitemap, renderJobTitleIndex, type JobTitleIndexItem } from "./job-title-index";
 export {
@@ -83,3 +85,16 @@ export { EXAMPLE_INPUT, parseSimulatorQuery, simulate, SIMULATOR_STATUSES, type 
 export { renderSimulatorPage, simulatorUrl } from "./simulator-page";
 export { RATES_AS_OF } from "./simulator-rates";
 export { nearbyMissionsSection, nearbyProfilesSection, nearbyReasonText, type NearbyMission, type NearbyProfile, type NearbyReason } from "./nearby";
+export {
+  postJsonLd,
+  postSitemap,
+  postUrl,
+  recentPostsSection,
+  renderPostBody,
+  renderPostPage,
+  type PublicPostAuthor,
+  type PublicPostComment,
+  type PublicPostModel,
+  type PublicPostOriginal,
+  type RecentPostItem,
+} from "./post-page";
