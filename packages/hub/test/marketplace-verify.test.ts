@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { marketplaceRobots, verifyMarketplace, type FetchAs, type Served } from "../src/marketplace-verify";
-import { renderProfileDirectory } from "../src/profile-directory";
+import { NO_DIRECTORY_FILTERS, renderProfileDirectory } from "../src/profile-directory";
 import { renderSkillIndex } from "../src/skill-index";
 import { renderSkillPage, skillSitemap, type SkillPageView } from "../src/skill-page";
 
@@ -66,7 +66,7 @@ describe("vérification des pages publiques de la marketplace", () => {
     };
     const card = { slug: "fr-abcde", reference: "FR-ABCDE", displayName: null, headline: "Dev Rust", city: "Lyon", workMode: "remote" as const, skills: ["Rust"], facts: { registryActive: false, identityVerified: true, vigilanceValid: false, verifiedMissions: 0, payingClients: 0 }, updatedAt: view.generatedAt };
     const served: Record<string, string> = {
-      [`${BASE}/fr/freelances`]: renderProfileDirectory([card], { baseUrl: BASE, lang: "fr", filters: { skill: "", city: "", page: 1 }, hasMore: false }),
+      [`${BASE}/fr/freelances`]: renderProfileDirectory([card], { baseUrl: BASE, lang: "fr", filters: NO_DIRECTORY_FILTERS, hasMore: false }),
       [`${BASE}/fr/metiers`]: renderSkillIndex([{ key: "rust", label: "Rust", missions: 0, profiles: 2 }], { baseUrl: BASE, lang: "fr" }),
       [`${BASE}/fr/metiers/rust`]: renderSkillPage(view, { baseUrl: BASE, lang: "fr" }),
     };

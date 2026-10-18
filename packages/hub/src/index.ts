@@ -11,7 +11,30 @@ export { profileJsonLd, profileName, profileSitemap, profileUrl, renderProfilePa
 export { fileUrl, languageName, type PublicSectionsView, type SectionLanguageLevel } from "./profile-sections";
 export { renderSkillPage, skillSitemap, skillUrl, type SkillPageFactsView, type SkillPageView } from "./skill-page";
 export { renderSkillIndex, skillIndexUrl, type SkillIndexItem } from "./skill-index";
-export { directoryUrl, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "./profile-directory";
+export {
+  directoryQueryString,
+  directoryUrl,
+  NO_DIRECTORY_FILTERS,
+  renderProfileDirectory,
+  type DirectoryCardView,
+  type DirectoryFilters,
+  type DirectoryWorkMode,
+  type JobTitleOption,
+} from "./profile-directory";
+export { AVATAR_TONES, avatarTone, monogram } from "./directory-cards";
+export {
+  COMPANY_DIRECTORY_SORTS,
+  COMPANY_KINDS,
+  companyDirectoryQueryString,
+  companyDirectoryUrl,
+  NO_COMPANY_FILTERS,
+  renderCompanyDirectory,
+  type CompanyDirectoryCardView,
+  type CompanyDirectoryFacetsView,
+  type CompanyDirectoryFilters,
+  type CompanyDirectorySort,
+  type CompanyKind,
+} from "./company-directory";
 export { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsSkill } from "./llms-txt";
 export { jobTitleUrl, renderJobTitlePage, type JobTitlePageView } from "./job-title-page";
 export { jobTitleIndexUrl, jobTitleSitemap, renderJobTitleIndex, type JobTitleIndexItem } from "./job-title-index";

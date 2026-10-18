@@ -1,4 +1,5 @@
 import { articleUrl, blogIndexUrl } from "./blog-model";
+import { companyDirectoryUrl } from "./company-directory";
 import { jobTitleIndexUrl } from "./job-title-index";
 import { jobTitleUrl } from "./job-title-page";
 import { directoryUrl } from "./profile-directory";
@@ -61,7 +62,8 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles:
     "## Public pages",
     "",
     `- [Open missions](${base}/fr/missions): every open freelance mission, newest first, filterable by skill, city and work mode. English: ${base}/en/missions`,
-    `- [Freelancers](${directoryUrl(base, "fr")}): directory of published profiles, most recently updated first, filterable by skill and city. English: ${directoryUrl(base, "en")}`,
+    `- [Freelancers](${directoryUrl(base, "fr")}): directory of published profiles, most recently updated first, filterable by skills, city, work mode, job title, availability and verified facts. English: ${directoryUrl(base, "en")}`,
+    `- [Companies](${companyDirectoryUrl(base, "fr")}): companies that opened a public page, with their verified facts, open missions and median response time; filterable by city, company type and hiring now. English: ${companyDirectoryUrl(base, "en")}`,
     `- [Skills](${skillIndexUrl(base, "fr")}): one page per skill that real open missions or published profiles carry, with dated counts. English: ${skillIndexUrl(base, "en")}`,
     `- [Job titles](${jobTitleIndexUrl(base, "fr")}): one page per tech job title (data engineer, DevOps / SRE, product designer…) that real open missions or published profiles carry, with dated counts. English: ${jobTitleIndexUrl(base, "en")}`,
     `- [Net income simulator](${simulatorUrl(base, "fr")}): estimated social contributions, taxes and net income of a freelancer in France from a day rate, billed days, status and expenses; every rate is dated and links to its official source. English: ${simulatorUrl(base, "en")}`,
@@ -80,7 +82,8 @@ export const llmsTxt = (baseUrl: string, skills: readonly LlmsSkill[], articles:
     `- [Skills](${base}/sitemap-skills.xml): one address per skill page.`,
     `- [Job titles](${base}/sitemap-job-titles.xml): one address per job title page.`,
     `- [Blog](${base}/sitemap-blog.xml): blog index, barometers and one address per published article.`,
-    `- [Fixed pages](${base}/sitemap-pages.xml): home pages, indexes, directory and the net income simulator.`,
+    `- [Fixed pages](${base}/sitemap-pages.xml): home pages, indexes, directories and the net income simulator.`,
+    `- [Companies](${base}/sitemap-companies.xml): one address per public company page.`,
     "",
     "## Optional",
     "",
