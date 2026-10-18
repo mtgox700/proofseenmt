@@ -424,3 +424,19 @@ export { MAX_PUSH_ATTEMPTS, PUSH_STALE_MS, pushQueue, type PendingPush, type Pus
 export { jobTitlePages, type JobTitleIndexEntry, type JobTitlePage, type JobTitlePageFacts, type JobTitlePages } from "./job-title-pages";
 export { JOB_TITLES, jobTitlesOf, matchesJobTitle, type JobTitle } from "./job-titles";
 export { foldText } from "./search-text";
+// Rapprochement expliqué (C22, lot A) : des faits comparés un par un, jamais une note sur une personne.
+export {
+  AVAILABILITY_WINDOW_DAYS,
+  CLOSE_RATE_SHARE,
+  DEFAULT_SUGGESTIONS,
+  MATCH_CRITERIA,
+  MatchOptionsSchema,
+  MAX_SUGGESTIONS,
+  workModesCompatible,
+  type Explained,
+  type MatchCriterion,
+  type MatchExplanation,
+  type MatchOptions,
+  type MatchReason,
+} from "./matching-criteria";
+export { matching, MAX_MATCH_CANDIDATES, type Matching, type ProfileForMission, type SuggestedMission, type SuggestedProfile, type Suggestions } from "./matching";
