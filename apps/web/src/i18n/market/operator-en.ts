@@ -14,6 +14,7 @@ export const operatorEn: OperatorDictionary = {
     funnel: "Funnel",
     measurements: "Measurements",
     journal: "Log",
+    community: "Community",
   },
   overview: {
     pendingContacts: "First contacts to review",
@@ -205,6 +206,10 @@ export const operatorEn: OperatorDictionary = {
       user_restored: "Suspension lifted",
       user_exported: "GDPR export",
       feedback_triaged: "Feedback sorted",
+      post_hidden: "Post hidden",
+      post_restored: "Post restored",
+      comment_hidden: "Comment hidden",
+      comment_restored: "Comment restored",
     },
     targets: {
       profile: "Profile",
@@ -215,6 +220,8 @@ export const operatorEn: OperatorDictionary = {
       owned_url: "Address",
       user: "Account",
       feedback: "Feedback",
+      post: "Post",
+      comment: "Comment",
     },
   },
 };

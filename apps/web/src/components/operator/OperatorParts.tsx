@@ -7,6 +7,7 @@ import type { OperatorDictionary } from "@/i18n/market/operator-fr";
 const SECTIONS = [
   ["overview", ""],
   ["moderation", "/moderation"],
+  ["community", "/communaute"],
   ["contacts", "/contacts"],
   ["verifications", "/verifications"],
   ["users", "/utilisateurs"],

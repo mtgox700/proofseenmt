@@ -13,6 +13,7 @@ export const operatorFr = {
     funnel: "Entonnoir",
     measurements: "Mesures",
     journal: "Journal",
+    community: "Communauté",
   },
   overview: {
     pendingContacts: "Premiers contacts à relire",
@@ -204,6 +205,10 @@ export const operatorFr = {
       user_restored: "Suspension levée",
       user_exported: "Export RGPD",
       feedback_triaged: "Retour classé",
+      post_hidden: "Publication masquée",
+      post_restored: "Publication rétablie",
+      comment_hidden: "Commentaire masqué",
+      comment_restored: "Commentaire rétabli",
     },
     targets: {
       profile: "Profil",
@@ -214,6 +219,8 @@ export const operatorFr = {
       owned_url: "Adresse",
       user: "Compte",
       feedback: "Retour",
+      post: "Publication",
+      comment: "Commentaire",
     },
   },
 };
