@@ -10,7 +10,7 @@
 // Tout caractère de format (espaces sans chasse, marques de direction, trait d'union conditionnel, étiquettes), les
 // sélecteurs de variante et les blancs de remplissage : un lecteur ne les voit pas, un numéro coupé par eux reste un
 // numéro (relecture sécurité C22, M1).
-const INVISIBLE = /[\p{Cf}\u034F\u115F\u1160\u3164\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
+const INVISIBLE = /[\p{Cf}\u115F\u1160\u3164]|\u034F|\p{Variation_Selector}/gu;
 const EMAIL = /[^\s@]{1,64}@[^\s@]{1,253}\.[a-z]{2,24}/i;
 // Le cabochon d'un émoji chiffre (« 6️⃣ ») : le chiffre est là, entouré de deux marques invisibles.
 const KEYCAP = new RegExp(`[${String.fromCharCode(0xfe0f, 0x20e3)}]`, "g");
