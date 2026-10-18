@@ -1,11 +1,14 @@
+import "@/styles/discovery.css";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
-import { freelanceLists, profiles, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
-import { FreelancerCard } from "@/components/market/FreelancerCard";
+import { freelanceLists, profileFacets, profiles, savedSearches, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
-import { SearchFilters } from "@/components/market/SearchFilters";
+import { ProfileResultCard } from "@/components/search/ProfileResultCard";
+import { ResultsToolbar } from "@/components/search/ResultsToolbar";
+import { SavedSearchesPanel } from "@/components/search/SavedSearchesPanel";
+import { SearchSidebar } from "@/components/search/SearchSidebar";
 import { countedHeaders, countSearch } from "@/data/audience";
 import { briefConfigured } from "@/data/brief";
 import { throttled } from "@/data/throttle";
@@ -27,6 +30,7 @@ interface PageProps {
 const SEARCH_RULE = { windowMs: 60_000, max: 60 };
 const BRIEF_CODES = ["invalid", "throttled", "not_understood", "failed", "unconfigured"] as const;
 const ADDED_CODES = ["added", "already", "limit", "absent"] as const;
+const SAVED_CODES = ["saved", "alert", "deleted", "invalid", "limit", "alert_limit", "absent", "trop"] as const;
 
 const paramsOf = (raw: Record<string, string | string[] | undefined>): URLSearchParams => {
   const params = new URLSearchParams();
@@ -42,36 +46,41 @@ function BriefBox({ lang, m, query, code }: { readonly lang: Lang; readonly m: M
   const b = m.search.brief;
   const error = codeOf(BRIEF_CODES, code);
   return (
-    <form action={suggestFilters} className="panel" aria-labelledby="brief-title">
-      <input type="hidden" name="lang" value={lang} />
-      <input type="hidden" name="back" value={searchParamsOf(query).toString()} />
-      <h2 id="brief-title">{b.title}</h2>
-      {code === "ok" ? (
-        <p className="form-ok" role="status">
-          {b.filled}
-        </p>
-      ) : error === null ? null : (
-        <p className="form-error" role="alert">
-          {b.errors[error]}
-        </p>
-      )}
-      <div className="field">
-        <label htmlFor="brief-text" className="sr-only">
+    <details className="brief-box" open={code !== null}>
+      <summary>{b.title}</summary>
+      <form action={suggestFilters} aria-labelledby="brief-title">
+        <input type="hidden" name="lang" value={lang} />
+        <input type="hidden" name="back" value={searchParamsOf(query).toString()} />
+        <h2 id="brief-title" className="sr-only">
           {b.title}
-        </label>
-        <textarea id="brief-text" name="brief" required minLength={5} maxLength={600} aria-describedby="brief-hint" />
-        <p id="brief-hint" className="field-hint">
-          {b.hint}
-        </p>
-      </div>
-      <button type="submit" className="btn">
-        {b.submit}
-      </button>
-    </form>
+        </h2>
+        {code === "ok" ? (
+          <p className="form-ok" role="status">
+            {b.filled}
+          </p>
+        ) : error === null ? null : (
+          <p className="form-error" role="alert">
+            {b.errors[error]}
+          </p>
+        )}
+        <div className="field">
+          <label htmlFor="brief-text" className="sr-only">
+            {b.title}
+          </label>
+          <textarea id="brief-text" name="brief" required minLength={5} maxLength={600} aria-describedby="brief-hint" />
+          <p id="brief-hint" className="field-hint">
+            {b.hint}
+          </p>
+        </div>
+        <button type="submit" className="btn">
+          {b.submit}
+        </button>
+      </form>
+    </details>
   );
 }
 
-function AddToList({ lang, m, card, lists, back }: { readonly lang: Lang; readonly m: MarketDictionary; readonly card: ProfileCard; readonly lists: readonly ListSummary[]; readonly back: string }) {
+function CardActions({ lang, m, card, lists, back }: { readonly lang: Lang; readonly m: MarketDictionary; readonly card: ProfileCard; readonly lists: readonly ListSummary[]; readonly back: string }) {
   const c = m.search.card;
   const contact = (
     <Link className="btn btn-primary" href={`/${lang}/app/contact/${encodeURIComponent(card.reference)}`}>
@@ -80,34 +89,36 @@ function AddToList({ lang, m, card, lists, back }: { readonly lang: Lang; readon
   );
   if (lists.length === 0) {
     return (
-      <div className="row-actions">
+      <>
         {contact}
         <Link className="btn btn-quiet" href={`/${lang}/app/listes`}>
           {c.noList}
         </Link>
-      </div>
+      </>
     );
   }
   return (
-    <form action={addToList} className="row-actions">
+    <>
       {contact}
-      <input type="hidden" name="lang" value={lang} />
-      <input type="hidden" name="profileId" value={card.id} />
-      <input type="hidden" name="back" value={back} />
-      <label htmlFor={`list-${card.id}`} className="sr-only">
-        {c.addTo}
-      </label>
-      <select id={`list-${card.id}`} name="listId" defaultValue={lists[0]?.id}>
-        {lists.map((list) => (
-          <option key={list.id} value={list.id}>
-            {list.name}
-          </option>
-        ))}
-      </select>
-      <button type="submit" className="btn">
-        {c.add}
-      </button>
-    </form>
+      <form action={addToList} className="pc-list">
+        <input type="hidden" name="lang" value={lang} />
+        <input type="hidden" name="profileId" value={card.id} />
+        <input type="hidden" name="back" value={back} />
+        <label htmlFor={`list-${card.id}`} className="sr-only">
+          {c.addTo}
+        </label>
+        <select id={`list-${card.id}`} name="listId" defaultValue={lists[0]?.id}>
+          {lists.map((list) => (
+            <option key={list.id} value={list.id}>
+              {list.name}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="btn">
+          {c.add}
+        </button>
+      </form>
+    </>
   );
 }
 
@@ -115,23 +126,30 @@ function Pagination({ lang, m, query, hasMore }: { readonly lang: Lang; readonly
   const r = m.search.results;
   if (query.page === 1 && !hasMore) return null;
   return (
-    <nav className="row-actions" aria-label={r.pagination}>
+    <nav className="pager-row" aria-label={r.pagination}>
       {query.page > 1 ? (
         <Link className="btn" href={searchHref(lang, { ...query, page: query.page - 1 })} rel="prev">
           {r.previous}
         </Link>
-      ) : null}
+      ) : (
+        <span />
+      )}
       <span className="muted small">{r.page(query.page)}</span>
       {hasMore ? (
         <Link className="btn" href={searchHref(lang, { ...query, page: query.page + 1 })} rel="next">
           {r.next}
         </Link>
-      ) : null}
+      ) : (
+        <span />
+      )}
     </nav>
   );
 }
 
-/** The company freelancer search: visible filters, a chosen and stated order, results as cards of public facts. */
+/**
+ * The company freelancer search: filters with the count of each option, active filters as removable chips, a chosen
+ * and stated order, results as cards of public facts, and saved searches with an optional daily alert.
+ */
 export default async function SearchPage({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
@@ -160,14 +178,21 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
   const raw = paramsOf(await searchParams);
   const query = searchQuery(raw);
   const added = codeOf(ADDED_CODES, raw.get("ajout"));
-  const limited = await throttled("company-search", market.actor.userId, SEARCH_RULE, new Date());
-  const results = limited ? null : await Promise.all([profiles(market.db).search(searchFilters(query)), freelanceLists(market.db).lists(market.actor, organisation.id)]);
-  const page = results?.[0] ?? null;
-  const lists = results?.[1] ?? [];
+  const savedCode = codeOf(SAVED_CODES, raw.get("enregistree"));
+  const now = new Date();
+  const limited = await throttled("company-search", market.actor.userId, SEARCH_RULE, now);
+  const filters = searchFilters(query);
+  const [page, facets, lists, saved] = limited
+    ? [null, null, [], (await savedSearches(market.db).list(market.actor, organisation.id)) ?? []]
+    : await Promise.all([
+        profiles(market.db).search(filters, now),
+        profileFacets(market.db, filters, now),
+        freelanceLists(market.db).lists(market.actor, organisation.id).then((items) => items ?? []),
+        savedSearches(market.db).list(market.actor, organisation.id).then((items) => items ?? []),
+      ]);
   const back = searchParamsOf(query).toString();
   if (page !== null) {
     // Counted once the page is sent: the profiles shown, the filters that led to them, never who searched.
-    const filters = searchFilters(query);
     const counted = {
       headers: countedHeaders(await headers()),
       actor: market.actor,
@@ -184,36 +209,38 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
     <>
       {header}
       {briefConfigured() ? <BriefBox lang={lang} m={m} query={query} code={raw.get("brief")} /> : null}
-      <SearchFilters lang={lang} m={m} query={query} />
-      <section className="ws-block" aria-labelledby="results-title">
-        <div className="results-head">
-          <h2 id="results-title">{s.results.title}</h2>
-          <p className="muted small">{s.results.order(s.form.sorts[query.sort])}</p>
-        </div>
-        {added === null ? null : (
-          <p className={added === "added" ? "form-ok" : "form-error"} role={added === "added" ? "status" : "alert"}>
-            {s.added[added]}
-          </p>
-        )}
-        {page === null ? (
-          <p className="form-error" role="alert">
-            {s.results.tooMany}
-          </p>
-        ) : page.items.length === 0 ? (
-          <p className="muted">{s.results.none}</p>
-        ) : (
-          <ul className="profiles">
-            {page.items.map((card) => (
-              <li key={card.id}>
-                <FreelancerCard lang={lang} m={m} facts={card} headingId={`card-${card.id}`}>
-                  <AddToList lang={lang} m={m} card={card} lists={lists} back={back} />
-                </FreelancerCard>
-              </li>
-            ))}
-          </ul>
-        )}
-        {page === null ? null : <Pagination lang={lang} m={m} query={query} hasMore={page.hasMore} />}
-      </section>
+      <div className="search-layout">
+        <aside className="search-side" aria-label={m.discovery.filters.title}>
+          <SearchSidebar lang={lang} m={m} query={query} facets={facets} />
+          <SavedSearchesPanel lang={lang} m={m} query={query} items={saved} notice={savedCode === "trop" ? "tooMany" : savedCode} />
+        </aside>
+        <section className="search-main" aria-labelledby="results-title">
+          <ResultsToolbar lang={lang} m={m} query={query} facets={facets} />
+          {added === null ? null : (
+            <p className={added === "added" ? "form-ok" : "form-error"} role={added === "added" ? "status" : "alert"}>
+              {s.added[added]}
+            </p>
+          )}
+          {page === null ? (
+            <p className="form-error" role="alert">
+              {s.results.tooMany}
+            </p>
+          ) : page.items.length === 0 ? (
+            <p className="muted">{s.results.none}</p>
+          ) : (
+            <ul className="result-grid">
+              {page.items.map((card) => (
+                <li key={card.id}>
+                  <ProfileResultCard lang={lang} m={m} card={card}>
+                    <CardActions lang={lang} m={m} card={card} lists={lists} back={back} />
+                  </ProfileResultCard>
+                </li>
+              ))}
+            </ul>
+          )}
+          {page === null ? null : <Pagination lang={lang} m={m} query={query} hasMore={page.hasMore} />}
+        </section>
+      </div>
     </>
   );
 }

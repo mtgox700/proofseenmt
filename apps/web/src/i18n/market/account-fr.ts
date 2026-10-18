@@ -56,6 +56,7 @@ export const accountFr = {
       mission_invitation: "Une entreprise vous invite à postuler",
       company_mission: "Une entreprise que vous suivez publie une mission",
       account_notice: "Une décision de Proofseen sur votre compte ou vos contenus",
+      profile_match: "Une recherche enregistrée trouve de nouveaux profils",
     },
     save: "Enregistrer mes choix",
     saved: "Préférences enregistrées.",

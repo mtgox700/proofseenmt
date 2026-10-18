@@ -3,6 +3,7 @@ import { articlesFr } from "./articles-fr";
 import { billingFr } from "./billing-fr";
 import { confirmationsFr } from "./confirmations-fr";
 import { dealsFr } from "./deals-fr";
+import { discoveryFr } from "./discovery-fr";
 import { liveFr } from "./live-fr";
 import { matchingFr } from "./matching-fr";
 import { insightsFr } from "./insights-fr";
@@ -42,6 +43,7 @@ export const marketFr = {
   billing: billingFr,
   confirmations: confirmationsFr,
   deals: dealsFr,
+  discovery: discoveryFr,
   live: liveFr,
   matching: matchingFr,
   insights: insightsFr,

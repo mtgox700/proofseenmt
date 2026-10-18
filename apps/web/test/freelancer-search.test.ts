@@ -7,6 +7,7 @@ describe("company search address", () => {
   it("reads every filter of a shared address", () => {
     const q = parse("competences=React,%20Node.js,%20React&ville=Lyon&mode=hybrid&mode=remote&tjm_min=450&tjm_max=700,50&dispo_avant=2026-12-01&disponible=1&adresse=on&siret=1&urssaf=1&tri=tjm_croissant&page=3");
     expect(q).toEqual({
+      ...EMPTY_QUERY,
       skills: ["React", "Node.js"],
       city: "Lyon",
       languages: [],
@@ -45,9 +46,13 @@ describe("company search address", () => {
       maxDailyRateCents: 60_000,
       availableBy: new Date("2026-11-15T00:00:00Z"),
       availableOnly: false,
+      availableNow: false,
       provenOnly: false,
+      verifiedMissionsOnly: false,
       registryActiveOnly: false,
       vigilanceValidOnly: true,
+      photoOnly: false,
+      portfolioOnly: false,
       sort: "availability",
       page: 1,
       pageSize: SEARCH_PAGE_SIZE,

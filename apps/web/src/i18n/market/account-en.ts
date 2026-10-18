@@ -57,6 +57,7 @@ export const accountEn: AccountDictionary = {
       mission_invitation: "A company invites you to apply",
       company_mission: "A company you follow posts a mission",
       account_notice: "A Proofseen decision about your account or your content",
+      profile_match: "A saved search finds new profiles",
     },
     save: "Save my choices",
     saved: "Preferences saved.",

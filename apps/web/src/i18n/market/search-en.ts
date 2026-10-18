@@ -46,6 +46,7 @@ export const searchEn: SearchDictionary = {
       tjm_croissant: "Daily rate, lowest first",
       tjm_decroissant: "Daily rate, highest first",
       disponibilite: "Soonest availability",
+      faits_verifies: "Number of verified facts",
     },
     submit: "Search",
     reset: "Clear filters",

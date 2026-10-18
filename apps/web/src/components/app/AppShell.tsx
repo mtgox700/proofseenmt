@@ -34,7 +34,7 @@ const itemsFor = (lang: Lang, t: Dictionary, person: Person, counts: LiveCounts 
   const search = marketDictionary(lang).search;
   if (person.role === "company") return [home, { href: `${base}/recherche`, label: search.nav }, { href: `${base}/listes`, label: search.lists.nav }, { href: `${base}/missions`, label: m.company }, messages, contractsItem, invoicesItem, billing, { href: `${base}/equipe`, label: marketDictionary(lang).team.nav }, { href: `${base}/confirmations`, label: marketDictionary(lang).confirmations.nav }, alertsItem, settingsItem];
   const visibilityItem = { href: `${base}/visibilite`, label: marketDictionary(lang).visibility.nav };
-  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, visibilityItem, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, messages, contractsItem, invoicesItem, billing, alertsItem, settingsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
+  return [home, { href: `${base}/profil`, label: marketDictionary(lang).profile.nav }, visibilityItem, { href: `${base}/preuves`, label: marketDictionary(lang).proofs.nav }, { href: `${base}/missions`, label: m.freelance }, { href: `${base}/entreprises`, label: marketDictionary(lang).discovery.companies.nav }, messages, contractsItem, invoicesItem, billing, alertsItem, settingsItem, { href: `/${lang}/missions`, label: marketDictionary(lang).nav.missions }];
 };
 
 export function AppShell({ lang, t, person, counts = null, children }: AppShellProps) {

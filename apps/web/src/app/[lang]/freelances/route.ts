@@ -4,14 +4,15 @@ import { renderProfileDirectory } from "@proofseen/hub";
 import { countDirectoryAppearances } from "@/data/audience";
 import { hasDatabase } from "@/data/intake-sink";
 import { clientAddress, throttled } from "@/data/throttle";
-import { directoryQuery } from "@/lib/directory-filters";
+import { directoryQuery, directorySearch, jobTitleOptions } from "@/lib/directory-filters";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
 
 /*
- * Public directory of published freelancer profiles, with a GET filter form (skill, city): raw HTML from
- * `@proofseen/hub`, no JavaScript, every search at its own address. Most recently updated first — an order stated on
- * the page, never a score or a ranking of people.
+ * Public directory of published freelancer profiles, as cards, with a GET filter form (skills, city, work mode, job
+ * title, availability, verified facts): raw HTML from `@proofseen/hub`, no JavaScript, every search at its own address,
+ * the same HTML for every visitor and crawler. Most recently updated first — an order stated on the page, never a
+ * score or a ranking of people.
  */
 
 export const runtime = "nodejs";
@@ -35,8 +36,8 @@ export async function GET(request: Request, context: Context): Promise<Response>
   }
   const filters = directoryQuery(new URL(request.url).searchParams);
   try {
-    const { items, hasMore } = await publicProfiles(getDb()).directory(filters);
-    const page = renderProfileDirectory(items, { baseUrl: publicBaseUrl(request), lang, filters, hasMore });
+    const { items, hasMore } = await publicProfiles(getDb()).directory(directorySearch(filters));
+    const page = renderProfileDirectory(items, { baseUrl: publicBaseUrl(request), lang, filters, hasMore, jobTitles: jobTitleOptions(lang) });
     // Counted once the page is sent: what the directory shows never depends on it.
     after(() => countDirectoryAppearances(request.headers, items.map((item) => item.reference)));
     return html(page, 200, "public, max-age=0, s-maxage=120, stale-while-revalidate=600");
