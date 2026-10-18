@@ -3,6 +3,7 @@ import type { MarketDictionary } from "./fr";
 import { accountEn } from "./account-en";
 import { articlesEn } from "./articles-en";
 import { billingEn } from "./billing-en";
+import { communityEn } from "./community-en";
 import { confirmationsEn } from "./confirmations-en";
 import { dealsEn } from "./deals-en";
 import { discoveryEn } from "./discovery-en";
@@ -25,6 +26,7 @@ export const marketEn: MarketDictionary = {
   account: accountEn,
   articles: articlesEn,
   billing: billingEn,
+  community: communityEn,
   confirmations: confirmationsEn,
   deals: dealsEn,
   discovery: discoveryEn,

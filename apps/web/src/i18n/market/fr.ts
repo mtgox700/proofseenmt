@@ -1,6 +1,7 @@
 import { accountFr } from "./account-fr";
 import { articlesFr } from "./articles-fr";
 import { billingFr } from "./billing-fr";
+import { communityFr } from "./community-fr";
 import { confirmationsFr } from "./confirmations-fr";
 import { dealsFr } from "./deals-fr";
 import { discoveryFr } from "./discovery-fr";
@@ -41,6 +42,7 @@ export const marketFr = {
   account: accountFr,
   articles: articlesFr,
   billing: billingFr,
+  community: communityFr,
   confirmations: confirmationsFr,
   deals: dealsFr,
   discovery: discoveryFr,

@@ -37,7 +37,7 @@ const readableBy = async (id: string): Promise<ReadableFile | null> => {
   const readable = await storedFiles(db).readable(id, { userId });
   // A suspended account (C19) keeps its own files (they are its data) but no longer reads what others shared with it:
   // its conversations' attachments, the CVs attached to its company's applications.
-  return suspension !== null && (readable?.audience === "participant" || readable?.audience === "recipient") ? null : readable;
+  return suspension !== null && (readable?.audience === "participant" || readable?.audience === "recipient" || readable?.audience === "member") ? null : readable;
 };
 
 /*

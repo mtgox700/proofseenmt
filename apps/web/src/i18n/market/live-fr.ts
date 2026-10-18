@@ -44,6 +44,10 @@ export const liveFr = {
       mission_confirmation: "Une demande de confirmation de mission a changé.",
       contract_update: "Un de vos contrats a changé.",
       measurement_done: "Votre mesure de visibilité est terminée.",
+      post_comment: "Nouveau commentaire sur l'une de vos publications.",
+      post_reaction: "Nouvelles réactions à l'une de vos publications.",
+      post_share: "L'une de vos publications a été partagée.",
+      new_follower: "De nouvelles personnes suivent votre profil.",
     },
     statuses: {
       shortlisted: "Votre candidature est retenue pour la suite.",

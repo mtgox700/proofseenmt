@@ -46,6 +46,10 @@ export const liveEn: LiveDictionary = {
       mission_confirmation: "A mission confirmation request changed.",
       contract_update: "One of your contracts changed.",
       measurement_done: "Your visibility measurement is finished.",
+      post_comment: "New comment on one of your posts.",
+      post_reaction: "New reactions to one of your posts.",
+      post_share: "One of your posts was shared.",
+      new_follower: "New people follow your profile.",
     },
     statuses: {
       shortlisted: "Your application was shortlisted.",

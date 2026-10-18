@@ -39,6 +39,12 @@ export const notificationHref = (lang: Lang, n: NotificationLike): string => {
       return under(`${app}/contrats`, n.payload.contractId);
     case "measurement_done":
       return `${app}/visibilite`;
+    case "post_comment":
+    case "post_reaction":
+    case "post_share":
+      return under(`${app}/fil`, n.payload.postId);
+    case "new_follower":
+      return `${app}/abonnements`;
   }
 };
 

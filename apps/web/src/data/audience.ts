@@ -31,7 +31,7 @@ export const countedHeaders = (source: Pick<Headers, "get">): Headers => {
 let warnedAboutSecret = false;
 
 /** The visitor of this request, or `null` when it must not count (crawler, prefetch, no secret, no database). */
-const sightingOf = (headers: Pick<Headers, "get">, viewerClerkId: string | null, now: Date): Sighting | null => {
+export const sightingOf = (headers: Pick<Headers, "get">, viewerClerkId: string | null, now: Date): Sighting | null => {
   if (!hasDatabase() || isSpeculative(headers)) return null;
   const agent = headers.get("user-agent");
   if (isAutomatedAgent(agent)) return null;
@@ -48,7 +48,7 @@ const sightingOf = (headers: Pick<Headers, "get">, viewerClerkId: string | null,
 };
 
 /** The signed-in person's Clerk id, so that their own profile does not count; `null` when signed out. */
-const signedInClerkId = async (): Promise<string | null> => {
+export const signedInClerkId = async (): Promise<string | null> => {
   if (!authConfigured()) return null;
   try {
     return (await auth()).userId;
