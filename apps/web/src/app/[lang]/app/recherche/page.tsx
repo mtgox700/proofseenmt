@@ -27,7 +27,8 @@ interface PageProps {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-const SEARCH_RULE = { windowMs: 60_000, max: 60 };
+// Chaque recherche calcule aussi ses facettes : vingt par minute suffisent à une personne (relecture C22, recherche M1).
+const SEARCH_RULE = { windowMs: 60_000, max: 20 };
 const BRIEF_CODES = ["invalid", "throttled", "not_understood", "failed", "unconfigured"] as const;
 const ADDED_CODES = ["added", "already", "limit", "absent"] as const;
 const SAVED_CODES = ["saved", "alert", "deleted", "invalid", "limit", "alert_limit", "absent", "trop"] as const;

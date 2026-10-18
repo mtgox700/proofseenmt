@@ -36,13 +36,14 @@ export const PUBLISHED_PROFILE = {
 /**
  * Les profils dont le texte contient les mots cherchés, en français et en anglais, sans accents. L'expression est celle
  * de l'index `FreelanceProfile_public_search_text_idx` (migration 20261018100000_advanced_search), au caractère près.
- * Le texte cherché passe en paramètre, jamais dans le SQL.
+ * Le texte cherché passe en paramètre, jamais dans le SQL. Un profil masqué par l’opérateur ne prend pas de place dans la
+ * limite (relecture sécurité C22, recherche B3).
  */
 export const textMatches = async (db: Db, raw: string): Promise<readonly string[]> => {
   const q = foldText(ProfileTextSchema.parse(raw));
   const rows = await db.$queryRaw<{ id: string }[]>`
     SELECT "id" FROM "FreelanceProfile"
-    WHERE "visibility" <> 'private'
+    WHERE "visibility" <> 'private' AND "moderatedAt" IS NULL
       AND (to_tsvector('french'::regconfig, "searchText") || to_tsvector('english'::regconfig, "searchText"))
           @@ (websearch_to_tsquery('french'::regconfig, ${q}) || websearch_to_tsquery('english'::regconfig, ${q}))
     ORDER BY "updatedAt" DESC, "id" DESC

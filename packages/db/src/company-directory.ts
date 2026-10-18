@@ -148,10 +148,32 @@ const kindFacet = (rows: readonly Scanned[]): CompanyFacets["kinds"] =>
 const Uuid = z.uuid();
 const uuids = (ids: readonly string[]): string[] => ids.filter((id) => Uuid.safeParse(id).success);
 
-export const companyDirectory = (db: Db): CompanyDirectory => ({
+export interface CompanyDirectoryOptions {
+  /**
+   * Durée pendant laquelle la lecture des pages publiques est reprise telle quelle. Elle ne dépend pas des filtres,
+   * appliqués ensuite en mémoire : l'annuaire public, sans compte, ne relit pas 2000 entreprises à chaque adresse
+   * différente (relecture sécurité C22, recherche B2). Zéro, par défaut : chaque appel relit la base.
+   */
+  readonly scanCacheMs?: number;
+}
+
+const scans = new WeakMap<Db, { readonly at: number; readonly value: Promise<readonly Scanned[]> }>();
+
+const cachedScan = (db: Db, cacheMs: number, now: number): Promise<readonly Scanned[]> => {
+  if (cacheMs <= 0) return scan(db);
+  const known = scans.get(db);
+  if (known !== undefined && now - known.at < cacheMs) return known.value;
+  const value = scan(db);
+  scans.set(db, { at: now, value });
+  // Une lecture en échec n'est pas gardée : la suivante réessaie.
+  value.catch(() => scans.delete(db));
+  return value;
+};
+
+export const companyDirectory = (db: Db, options: CompanyDirectoryOptions = {}): CompanyDirectory => ({
   async page(search, now = new Date()) {
     const f = CompanySearchSchema.parse(search);
-    const all = await scan(db);
+    const all = await cachedScan(db, options.scanCacheMs ?? 0, Date.now());
     const matching = all.filter((c) => keep(f, c)).sort(COMPARE[f.sort]);
     const start = (f.page - 1) * COMPANY_PAGE_SIZE;
     const shown = matching.slice(start, start + COMPANY_PAGE_SIZE);

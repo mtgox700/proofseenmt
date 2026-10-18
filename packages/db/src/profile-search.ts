@@ -207,9 +207,13 @@ export const restrictedIds = async (db: Db, f: Pick<ProfileSearchFilters, "text"
   return intersect(byText, byTitle);
 };
 
-/** Les conditions complètes : celles de Prisma, et la liste d'identifiants des mots-clés et du poste. */
-export const fullWhere = async (db: Db, f: ProfileSearchFilters, now: Date): Promise<Prisma.FreelanceProfileWhereInput> => {
-  const ids = await restrictedIds(db, f);
+/**
+ * Les conditions complètes : celles de Prisma, et la liste d'identifiants des mots-clés et du poste. `known` reprend une
+ * liste déjà calculée pour les mêmes mots-clés et le même poste : les facettes ne refont pas le parcours à chaque
+ * dimension (relecture sécurité C22, recherche M1).
+ */
+export const fullWhere = async (db: Db, f: ProfileSearchFilters, now: Date, known?: readonly string[] | null): Promise<Prisma.FreelanceProfileWhereInput> => {
+  const ids = known !== undefined ? known : await restrictedIds(db, f);
   const where = searchWhere(f, now);
   return ids === null ? where : { AND: [where, { id: { in: [...ids] } }] };
 };

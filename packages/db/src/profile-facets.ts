@@ -1,8 +1,9 @@
 import type { Db } from "./client";
 import type { WorkMode } from "./generated/enums";
-import { JOB_TITLES } from "./job-titles";
-import { availabilityFreshSince, fullWhere, ProfileSearchSchema, type ProfileSearch, type ProfileSearchFilters } from "./profile-search";
-import { inJobTitle, scanHeadlines, type HeadlineRow } from "./profile-search-ids";
+import { JOB_TITLES, matchesFoldedJobTitle } from "./job-titles";
+import { availabilityFreshSince, fullWhere, ProfileSearchSchema, restrictedIds, type ProfileSearch, type ProfileSearchFilters } from "./profile-search";
+import { scanHeadlines, type HeadlineRow } from "./profile-search-ids";
+import { foldText } from "./search-text";
 import { sixMonthsBefore } from "./vigilance";
 
 /*
@@ -58,9 +59,9 @@ const without = (f: ProfileSearchFilters, dimension: Dimension): ProfileSearchFi
 const isActive = (f: ProfileSearchFilters, dimension: Dimension): boolean =>
   dimension === "city" ? f.city !== undefined : dimension === "workModes" ? f.workModes.length > 0 : f.jobTitle !== undefined;
 
-/** Les profils retenus par ces filtres, bornés. */
-const matching = async (db: Db, f: ProfileSearchFilters, now: Date): Promise<{ readonly rows: readonly HeadlineRow[]; readonly capped: boolean }> =>
-  scanHeadlines(db, await fullWhere(db, f, now));
+/** Les profils retenus par ces filtres, bornés ; `known` : la restriction des mots-clés et du poste, déjà calculée. */
+const matching = async (db: Db, f: ProfileSearchFilters, now: Date, known?: readonly string[] | null): Promise<{ readonly rows: readonly HeadlineRow[]; readonly capped: boolean }> =>
+  scanHeadlines(db, await fullWhere(db, f, now, known));
 
 const idsOf = (rows: readonly HeadlineRow[]): string[] => rows.map((row) => row.id);
 
@@ -119,18 +120,29 @@ const factFacet = async (db: Db, ids: readonly string[], now: Date): Promise<Pro
     : { proven: r.proven, verifiedMissions: r.missions, registryActive: r.registry, vigilanceValid: r.vigilance, photo: r.photo, portfolio: r.portfolio, availableNow: r.now };
 };
 
-const jobTitleFacet = (rows: readonly HeadlineRow[]): ProfileFacets["jobTitles"] =>
-  JOB_TITLES.map((t) => ({ key: t.key, count: inJobTitle(t.key, rows).length })).filter((t) => t.count > 0);
+/** Chaque titre est replié une fois, puis comparé à chaque famille : pas une fois par famille. */
+const jobTitleFacet = (rows: readonly HeadlineRow[]): ProfileFacets["jobTitles"] => {
+  const folded = rows.flatMap((row) => (row.headline === null ? [] : [foldText(row.headline)]));
+  return JOB_TITLES.map((t) => ({ key: t.key, count: folded.filter((title) => matchesFoldedJobTitle(t.key, title)).length })).filter((t) => t.count > 0);
+};
 
-/** Les profils d'une dimension : sans son filtre s'il est posé, sinon l'ensemble déjà retenu. */
-const forDimension = async (db: Db, f: ProfileSearchFilters, dimension: Dimension, base: readonly HeadlineRow[], now: Date): Promise<readonly HeadlineRow[]> =>
-  isActive(f, dimension) ? (await matching(db, without(f, dimension), now)).rows : base;
+/**
+ * Les profils d'une dimension : sans son filtre s'il est posé, sinon l'ensemble déjà retenu. Retirer la ville ou le mode
+ * garde les mots-clés et le poste : la restriction déjà calculée resservira.
+ */
+const forDimension = async (db: Db, f: ProfileSearchFilters, dimension: Dimension, base: readonly HeadlineRow[], restricted: readonly string[] | null, now: Date): Promise<readonly HeadlineRow[]> => {
+  if (!isActive(f, dimension)) return base;
+  return (await matching(db, without(f, dimension), now, dimension === "jobTitle" ? undefined : restricted)).rows;
+};
 
 export const profileFacets = async (db: Db, raw: ProfileSearch, now: Date): Promise<ProfileFacets> => {
   const f = ProfileSearchSchema.parse(raw);
-  const base = await matching(db, f, now);
+  const restricted = await restrictedIds(db, f);
+  const base = await matching(db, f, now, restricted);
   const ids = idsOf(base.rows);
-  const [cityRows, modeRows, titleRows] = [await forDimension(db, f, "city", base.rows, now), await forDimension(db, f, "workModes", base.rows, now), await forDimension(db, f, "jobTitle", base.rows, now)];
+  const cityRows = await forDimension(db, f, "city", base.rows, restricted, now);
+  const modeRows = await forDimension(db, f, "workModes", base.rows, restricted, now);
+  const titleRows = await forDimension(db, f, "jobTitle", base.rows, restricted, now);
   const [skills, cities, workModes, languages, facts] = await Promise.all([
     skillFacet(db, ids),
     cityFacet(db, idsOf(cityRows)),

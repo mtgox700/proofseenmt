@@ -12,6 +12,9 @@ import { logError } from "@/lib/log";
  * visitor and crawler; a GET filter form (city, company type, hiring now, active SIRET) with the count of each option.
  */
 
+/** The public directory rereads the companies at most once a minute, whatever the filters (security review C22). */
+const PUBLIC_SCAN_CACHE_MS = 60_000;
+
 export const runtime = "nodejs";
 
 interface Context {
@@ -33,7 +36,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
   }
   const filters = companyDirectoryQuery(new URL(request.url).searchParams);
   try {
-    const { items, hasMore, facets } = await companyDirectory(getDb()).page(companySearch(filters));
+    const { items, hasMore, facets } = await companyDirectory(getDb(), { scanCacheMs: PUBLIC_SCAN_CACHE_MS }).page(companySearch(filters));
     const page = renderCompanyDirectory(items, { baseUrl: publicBaseUrl(request), lang, filters, facets, hasMore });
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=1800");
   } catch (error) {

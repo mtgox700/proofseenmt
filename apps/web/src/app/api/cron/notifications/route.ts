@@ -27,6 +27,22 @@ import { publicBaseUrl } from "@/lib/public-url";
  * leased in the database.
  */
 
+/** Time given to the saved-search alerts before the run goes on to mail. */
+const SEARCH_ALERTS_BUDGET_MS = 20_000;
+
+/** The value of `work`, or `"pending"` when it takes longer than `ms`; the work itself is not cancelled. */
+const withinBudget = async <T>(work: Promise<T>, ms: number): Promise<T | "pending"> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<"pending">((resolve) => {
+    timer = setTimeout(() => resolve("pending"), ms);
+  });
+  try {
+    return await Promise.race([work, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 export const runtime = "nodejs";
 
 const BATCH = 50;
@@ -64,13 +80,18 @@ export async function GET(request: Request): Promise<Response> {
       return null;
     });
     const queued = await missionAlerts(db).scan(now());
-    // Saved freelancer searches with an alert (C22), once a day each: a failure only delays them.
-    const searchAlerts = await savedSearches(db)
-      .scan(now())
-      .catch((error: unknown) => {
-        logError("cron: saved search alerts failed", error);
-        return null;
-      });
+    // Saved freelancer searches with an alert (C22), once a day each: a failure only delays them. The scan runs up to a
+    // hundred searches; past SEARCH_ALERTS_BUDGET_MS the run moves on to the outbox and the scan ends in the background
+    // (security review C22, search B4).
+    const searchAlerts = await withinBudget(
+      savedSearches(db)
+        .scan(now())
+        .catch((error: unknown) => {
+          logError("cron: saved search alerts failed", error);
+          return null;
+        }),
+      SEARCH_ALERTS_BUDGET_MS,
+    );
     // Paid work never approved: both parties are reminded and a person reviews the case. Nothing is released here.
     const overdue = await validationReminders(db).flagOverdue(now());
     const vigilanceReminders = await vigilance(db).remindExpiring(now());
