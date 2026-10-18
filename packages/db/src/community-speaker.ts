@@ -40,6 +40,31 @@ export const resolveSpeaker = async (db: Db | Prisma.TransactionClient, actor: A
   return member === null ? null : { profileId: null, organisationId: member.organisationId, mayShowImage: true };
 };
 
+/** Les façons dont l'acteur peut parler aujourd'hui : son profil publié, et les entreprises dont il est membre. */
+export interface OwnSpeakers {
+  readonly profile: { readonly name: string; readonly mayShowImage: boolean } | null;
+  readonly organisations: readonly { readonly id: string; readonly name: string }[];
+}
+
+export const ownSpeakers = async (db: Db, actor: Actor): Promise<OwnSpeakers> => {
+  const [profile, memberships] = await Promise.all([
+    db.freelanceProfile.findFirst({
+      where: { userId: actor.userId, visibility: { not: "private" }, ...LISTED_PROFILE },
+      select: { reference: true, visibility: true, user: { select: { displayName: true } } },
+    }),
+    db.membership.findMany({
+      where: { userId: actor.userId, organisation: { suspendedAt: null } },
+      orderBy: { createdAt: "asc" },
+      select: { organisation: { select: { id: true, name: true, publicName: true } } },
+    }),
+  ]);
+  const name = profile === null || profile.visibility === "private" ? null : publicName(profile.visibility, profile.user.displayName);
+  return {
+    profile: profile === null ? null : { name: name ?? profile.reference, mayShowImage: name !== null },
+    organisations: memberships.map((m) => ({ id: m.organisation.id, name: m.organisation.publicName ?? m.organisation.name })),
+  };
+};
+
 /** Ce que l'on lit du locuteur d'une publication ou d'un commentaire pour l'afficher. */
 export const SPEAKER_SELECT = {
   profile: { select: { id: true, userId: true, reference: true, slug: true, visibility: true, moderatedAt: true, user: { select: { displayName: true, suspendedAt: true } } } },

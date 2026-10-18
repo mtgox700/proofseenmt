@@ -490,7 +490,7 @@ export {
   type PostInput,
   type TextProblem,
 } from "./community-input";
-export { authorView, resolveSpeaker, type AuthorView, type Speaker, type SpeakerChoice } from "./community-speaker";
+export { authorView, ownSpeakers, resolveSpeaker, type AuthorView, type OwnSpeakers, type Speaker, type SpeakerChoice } from "./community-speaker";
 export { posts, type CreatePostResult, type EditPostResult, type Posts, type RemovePostResult, type SharePostResult, type WriteProblem } from "./posts";
 export { plainExcerpt, type PostAudience, type PostCounts, type PostView, type SharedOriginal } from "./post-views";
 export { MAX_SITEMAP_POSTS, postFeed, RECENT_ON_PAGES, type FeedPage, type FeedTab, type PostFeed, type PostSnippet } from "./post-feed";
