@@ -193,6 +193,7 @@ model User {
   freelanceListsCreated   FreelanceList[]          @relation("FreelanceListCreator")
   freelanceListItemsAdded FreelanceListItem[]      @relation("FreelanceListItemAdder")
   freelanceListReactions  FreelanceListReaction[]
+  savedSearches           SavedSearch[]
   missionConfirmationsDecided MissionConfirmationRequest[] @relation("MissionConfirmationDecider")
   storedFiles             StoredFile[]
   applicationsRead        Application[]            @relation("ApplicationReader")
@@ -253,6 +254,7 @@ model Organisation {
   missionTemplates     MissionTemplate[]
   followers            CompanyFollow[]
   statDays             OrganisationStatDay[]
+  savedSearches        SavedSearch[]
 }
 
 model Membership {
@@ -298,6 +300,10 @@ model FreelanceProfile {
   /// Profil masqué par un opérateur (C19) : absent de toute page publique, avec son motif, montré au freelance.
   moderatedAt      DateTime?        @db.Timestamptz(3)
   moderationReason String?
+  /// Texte de la recherche par mots-clés (C22) : titre, résumé, compétences et intitulés des expériences, pliés (sans
+  /// accents, en minuscules). Tenu à jour par la base (déclencheurs de la migration 20261018100000_advanced_search),
+  /// jamais écrit par l'application.
+  searchText     String             @default("")
   createdAt      DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime           @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -326,6 +332,7 @@ model FreelanceProfile {
   statDays       ProfileStatDay[]
   statKeywords   ProfileStatKeyword[]
   statSeen       ProfileStatSeen[]
+  savedSearchSeen SavedSearchSeen[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -1032,6 +1039,7 @@ enum NotificationKind {
   mission_invitation   // une entreprise invite à postuler (freelance)
   company_mission      // une entreprise suivie publie une mission (freelance)
   account_notice       // décision d'un opérateur sur le compte ou ses contenus, avec son motif (C19)
+  profile_match        // nouveaux profils pour une recherche enregistrée avec alerte (entreprise, C22)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
@@ -1203,6 +1211,45 @@ model FreelanceListReaction {
 
   @@id([itemId, userId])
   @@index([userId])
+}
+
+/// Recherche de freelances enregistrée par un membre d'une entreprise (C22) : son adresse (`query`, les paramètres de
+/// /app/recherche) et ses filtres validés (`filters`), partagés avec les collègues comme les listes. Avec l'alerte, la
+/// recherche est rejouée une fois par jour et son créateur reçoit les profils qui y sont entrés depuis : jamais deux fois
+/// le même profil (SavedSearchSeen). Le créateur qui part ou efface son compte laisse la recherche à l'entreprise, sans
+/// alerte.
+model SavedSearch {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  organisationId  String   @db.Uuid
+  createdByUserId String?  @db.Uuid
+  name            String
+  query           String
+  filters         Json
+  alert           Boolean  @default(false)
+  lastCheckedAt   DateTime @default(now()) @db.Timestamptz(3)
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  organisation Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdBy    User?             @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  seen         SavedSearchSeen[]
+
+  @@index([organisationId, createdAt(sort: Desc)])
+  @@index([createdByUserId], where: raw("\"createdByUserId\" IS NOT NULL"), map: "SavedSearch_createdByUserId_idx")
+  @@index([lastCheckedAt], where: raw("\"alert\""), map: "SavedSearch_alert_due_idx")
+}
+
+/// Un profil déjà signalé par l'alerte d'une recherche enregistrée : il ne le sera plus. Part avec le profil (effacement).
+model SavedSearchSeen {
+  savedSearchId String   @db.Uuid
+  profileId     String   @db.Uuid
+  seenAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  savedSearch SavedSearch      @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
+  profile     FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([savedSearchId, profileId])
+  @@index([profileId])
 }
 
 // ─── Blog, guides et études (C18) ───────────────────────────────────────────────────────────────────────────────────

@@ -55,7 +55,7 @@ describe("annuaire public des profils", () => {
   it("porte des faits vérifiés, jamais une note ni un rang", async () => {
     await publish({ city: "Caen", skills: ["Fortran"] });
     const [card] = (await publicProfiles(t.db).directory({ skill: "fortran" })).items;
-    expect(card?.facts).toEqual({ registryActive: false, identityVerified: false, vigilanceValid: false, verifiedMissions: 0, payingClients: 0 });
+    expect(card?.facts).toEqual({ registryActive: false, identityVerified: false, vigilanceValid: false, verifiedMissions: 0, provenUrls: 0, payingClients: 0 });
     expect(JSON.stringify(card)).not.toMatch(/score|rank|rating/i);
     expect(card?.skills).toEqual(["Fortran"]);
   });

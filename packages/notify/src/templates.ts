@@ -10,7 +10,7 @@ import { accountNoticeBody } from "./account-notice";
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice" | "profile_match";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -199,6 +199,21 @@ const body = (n: NotificationInput, base: string): Body => {
           : `${ids.length} new mission${ids.length > 1 ? "s" : ""} for your alert`,
         lines: [fr ? "Des missions correspondant à votre alerte viennent d'être publiées." : "Missions matching your alert were just published."],
         links: ids.map((id, i) => ({ label: `Mission ${i + 1}`, href: `${base}/${lang}/missions/${id}` })),
+      };
+    }
+    case "profile_match": {
+      // Des adresses de profils publiés et celle de la recherche : jamais un nom, ni le nom donné à la recherche.
+      const slugs = list(n.payload.slugs).filter((slug) => /^[a-z0-9-]{3,60}$/.test(slug));
+      const search = text(n.payload.savedSearchId);
+      return {
+        subject: fr
+          ? `${slugs.length} nouveau${slugs.length > 1 ? "x" : ""} profil${slugs.length > 1 ? "s" : ""} pour votre recherche enregistrée`
+          : `${slugs.length} new profile${slugs.length > 1 ? "s" : ""} for your saved search`,
+        lines: [fr ? "Des profils publiés répondent désormais à l'une de vos recherches enregistrées." : "Published profiles now match one of your saved searches."],
+        links: [
+          ...slugs.map((slug, i) => ({ label: fr ? `Profil ${i + 1}` : `Profile ${i + 1}`, href: `${base}/${lang}/profils/${slug}` })),
+          ...(/^[0-9a-f-]{36}$/.test(search) ? [{ label: fr ? "Ouvrir la recherche" : "Open the search", href: `${app}/recherche/enregistree/${search}` }] : []),
+        ],
       };
     }
   }

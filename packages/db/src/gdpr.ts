@@ -52,7 +52,7 @@ export interface UserExport {
   readonly notificationPreferences: unknown;
   readonly notifications: unknown;
   readonly feedback: unknown;
-  /** Listes de freelances créées, freelances ajoutés (avec la note de l'entreprise) et pouces donnés par la personne. */
+  /** Listes de freelances créées, freelances ajoutés (avec la note de l'entreprise), pouces donnés et recherches enregistrées par la personne. */
   readonly freelanceLists: unknown;
   /** Demandes de confirmation de mission décidées au nom d'une entreprise, ou adressées à l'adresse du compte. */
   readonly missionConfirmations: unknown;
@@ -96,7 +96,9 @@ const exportLists = async (db: Db, userId: string) => {
     db.freelanceListItem.findMany({ where: { addedByUserId: userId }, orderBy: { createdAt: "asc" }, select: { listId: true, note: true, createdAt: true, profile: { select: { reference: true } } } }),
     db.freelanceListReaction.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, select: { itemId: true, reaction: true, createdAt: true } }),
   ]);
-  return { created, itemsAdded, reactions };
+  // Recherches enregistrées par la personne (C22) : elles restent à l'entreprise après son départ, sans alerte.
+  const savedSearches = await db.savedSearch.findMany({ where: { createdByUserId: userId }, orderBy: { createdAt: "asc" }, select: { organisationId: true, name: true, query: true, alert: true, createdAt: true } });
+  return { created, itemsAdded, reactions, savedSearches };
 };
 const CONFIRMATION_EXPORT = {
   role: true,
