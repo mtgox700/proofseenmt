@@ -13,6 +13,15 @@ const Uuid = z.uuid();
 const ADMIN_ROLES = ["owner", "admin"] as const;
 export const CostCenterSchema = z.string().trim().min(1).max(60).nullable();
 
+const PROFILE_SELECT = { id: true, reference: true, headline: true, skills: { select: { skill: { select: { label: true } } } } } as const;
+
+const poolIdentity = (p: { readonly id: string; readonly reference: string; readonly headline: string | null; readonly skills: readonly { readonly skill: { readonly label: string } }[] }) => ({
+  profileId: p.id,
+  reference: p.reference,
+  headline: p.headline,
+  skills: p.skills.map((s) => s.skill.label),
+});
+
 export type ApprovalLevelsResult = "saved" | "absent" | "single_admin";
 export type CostCenterResult = "saved" | "absent" | "invoiced";
 
@@ -24,8 +33,14 @@ export interface PoolMember {
   /** Missions payées (paiement acquis) avec cette entreprise. */
   readonly paidMissions: number;
   readonly totalDays: number;
-  readonly lastMissionStartedOn: Date;
+  /** Nulle pour un freelance entré par invitation, sans mission payée avec l'entreprise. */
+  readonly lastMissionStartedOn: Date | null;
+  /** Date d'entrée par une invitation acceptée (C23) ; nulle pour un freelance seulement connu par ses missions. */
+  readonly invitedOn: Date | null;
 }
+
+/** La date qui classe un freelance du vivier : sa dernière mission payée, sinon son entrée par invitation. */
+const latestFact = (m: PoolMember): number => Math.max(m.lastMissionStartedOn?.getTime() ?? 0, m.invitedOn?.getTime() ?? 0);
 
 export const largeAccounts = (db: Db) => ({
   /**
@@ -57,30 +72,43 @@ export const largeAccounts = (db: Db) => ({
     return (await db.contract.count({ where: administered })) === 1 ? "invoiced" : "absent";
   },
 
-  /** Le vivier privé d'une entreprise, pour ses membres ; `null` pour les autres. Le plus récent d'abord. */
+  /**
+   * Le vivier privé d'une entreprise, pour ses membres ; `null` pour les autres. Le plus récent d'abord. Il réunit les
+   * freelances déjà payés et ceux qui ont accepté une invitation de l'entreprise (C23), dès qu'ils ont un profil.
+   */
   async talentPool(actor: Actor, organisationId: string): Promise<readonly PoolMember[] | null> {
     if (!Uuid.safeParse(organisationId).success) return null;
     const member = await db.membership.count({ where: { organisationId, userId: actor.userId } });
     if (member === 0) return null;
     const rows = await db.contract.findMany({
       where: { organisationId, profileId: { not: null }, payments: { some: SETTLED_PAYMENT } },
-      select: { days: true, startsOn: true, profile: { select: { id: true, reference: true, headline: true, skills: { select: { skill: { select: { label: true } } } } } } },
+      select: { days: true, startsOn: true, profile: { select: PROFILE_SELECT } },
+      take: 2_000,
+    });
+    const invited = await db.talentPoolEntry.findMany({
+      where: { organisationId, user: { suspendedAt: null, freelanceProfile: { isNot: null } } },
+      select: { joinedAt: true, user: { select: { freelanceProfile: { select: PROFILE_SELECT } } } },
       take: 2_000,
     });
     const byProfile = new Map<string, PoolMember>();
     for (const row of rows) {
       if (row.profile === null) continue;
       const known = byProfile.get(row.profile.id);
+      const last = known?.lastMissionStartedOn ?? null;
       byProfile.set(row.profile.id, {
-        profileId: row.profile.id,
-        reference: row.profile.reference,
-        headline: row.profile.headline,
-        skills: row.profile.skills.map((s) => s.skill.label),
+        ...poolIdentity(row.profile),
         paidMissions: (known?.paidMissions ?? 0) + 1,
         totalDays: (known?.totalDays ?? 0) + row.days,
-        lastMissionStartedOn: known === undefined || row.startsOn > known.lastMissionStartedOn ? row.startsOn : known.lastMissionStartedOn,
+        lastMissionStartedOn: last === null || row.startsOn > last ? row.startsOn : last,
+        invitedOn: null,
       });
     }
-    return [...byProfile.values()].sort((a, b) => b.lastMissionStartedOn.getTime() - a.lastMissionStartedOn.getTime() || a.reference.localeCompare(b.reference));
+    for (const entry of invited) {
+      const profile = entry.user.freelanceProfile;
+      if (profile === null) continue;
+      const known = byProfile.get(profile.id);
+      byProfile.set(profile.id, known === undefined ? { ...poolIdentity(profile), paidMissions: 0, totalDays: 0, lastMissionStartedOn: null, invitedOn: entry.joinedAt } : { ...known, invitedOn: entry.joinedAt });
+    }
+    return [...byProfile.values()].sort((a, b) => latestFact(b) - latestFact(a) || a.reference.localeCompare(b.reference));
   },
 });

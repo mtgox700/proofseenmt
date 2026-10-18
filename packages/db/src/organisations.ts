@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Db } from "./client";
 import { containsDirectContact, NO_CONTACT } from "./contact-detection";
 import type { ClientKind, MemberRole } from "./generated/enums";
+import { invitationAnswers } from "./invitation-answers";
 import type { Actor } from "./messaging";
 
 /*
@@ -58,6 +59,8 @@ export const organisations = (db: Db): Organisations => ({
       data: { ...input, members: { create: { userId: actor.userId, role: "owner" } } },
       select: { id: true, name: true, kind: true, siret: true },
     });
+    // Une invitation d'un freelance acceptée avant d'avoir une entreprise s'y rattache maintenant (C23).
+    await invitationAnswers(db).linkClient(actor.userId, org.id, new Date());
     return { ...org, role: "owner" };
   },
 
@@ -81,6 +84,7 @@ export const organisations = (db: Db): Organisations => ({
       // Ajouter quelqu'un qui est déjà propriétaire ne le rétrograde pas.
       update: {},
     });
+    await invitationAnswers(db).linkClient(user.id, organisationId, new Date());
     return true;
   },
 

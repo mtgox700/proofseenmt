@@ -30,6 +30,7 @@ export const APP_NOTIFICATION_KINDS = [
   "post_share",
   "new_follower",
   "availability_reminder",
+  "invitation_accepted",
 ] as const satisfies readonly AppNotificationKind[];
 
 /** Les e-mails qui ont leur pendant dans l'application ; les autres (alertes, vigilance, entreprises suivies) restent par e-mail. */
@@ -44,6 +45,7 @@ const FROM_EMAIL: Readonly<Partial<Record<NotificationKind, AppNotificationKind>
   contract_update: "contract_update",
   // C23 : le rappel de reconfirmer sa disponibilité se voit dans l'application (et sur l'appareil abonné) même sans e-mail.
   availability_reminder: "availability_reminder",
+  invitation_accepted: "invitation_accepted",
 };
 
 export const appKindOfEmail = (kind: NotificationKind): AppNotificationKind | null => FROM_EMAIL[kind] ?? null;

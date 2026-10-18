@@ -5,6 +5,7 @@ import { storedFiles } from "./stored-files";
 import { exportMissionsSpace } from "./gdpr-missions";
 import { exportLiveMessaging } from "./gdpr-messaging";
 import { eraseCommunityComments, exportCommunity } from "./gdpr-community";
+import { exportInvitations } from "./gdpr-invitations";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -68,6 +69,8 @@ export interface UserExport {
   readonly operatorDecisions: unknown;
   /** Publications, commentaires, réactions, profils suivis, nombre d'abonnés, audience des publications (C22). */
   readonly community: unknown;
+  /** Invitations envoyées, reçues à l'adresse du compte ou acceptées, et viviers rejoints (C23) ; jamais l'empreinte du jeton. */
+  readonly invitations: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -196,6 +199,7 @@ export const gdpr = (db: Db): Gdpr => ({
     const missionsSpace = await exportMissionsSpace(db, userId);
     const liveMessaging = await exportLiveMessaging(db, userId);
     const community = await exportCommunity(db, userId);
+    const invitations = await exportInvitations(db, userId, user.email);
     const operatorDecisions = await db.operatorAction.findMany({
       where: { targetId: { in: [userId, ...(freelanceProfile === null ? [] : [freelanceProfile.id])] } },
       orderBy: { createdAt: "asc" },
@@ -223,6 +227,7 @@ export const gdpr = (db: Db): Gdpr => ({
       liveMessaging,
       operatorDecisions,
       community,
+      invitations,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
@@ -256,6 +261,9 @@ export const gdpr = (db: Db): Gdpr => ({
       // Les demandes de confirmation adressées à cette adresse partent aussi ; une mission déjà confirmée reste un fait
       // du profil du freelance, sans plus de lien vers la demande.
       await tx.missionConfirmationRequest.deleteMany({ where: { contactEmail: user.email } });
+      // Les invitations adressées à la personne, ou auxquelles elle a répondu, partent aussi ; celles qu'elle a
+      // envoyées partent avec son compte (C23).
+      await tx.invitation.deleteMany({ where: { OR: [{ email: user.email }, { acceptedByUserId: userId }] } });
       // Les vagues mesurées décrivent la personne : elles partent avec elle au lieu de rester détachées. Les demandes de
       // mesure partent par cascade avec le profil.
       if (user.freelanceProfile !== null) await tx.wave.deleteMany({ where: { profileId: user.freelanceProfile.id } });

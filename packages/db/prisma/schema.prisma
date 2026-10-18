@@ -209,6 +209,9 @@ model User {
   postReactions           PostReaction[]
   postComments            PostComment[]            @relation("PostCommentAuthor")
   profilesFollowed        ProfileFollow[]
+  invitationsSent         Invitation[]             @relation("InvitationSender")
+  invitationsAccepted     Invitation[]             @relation("InvitationAcceptor")
+  talentPoolEntries       TalentPoolEntry[]
 }
 
 model Organisation {
@@ -261,6 +264,9 @@ model Organisation {
   savedSearches        SavedSearch[]
   posts                Post[]
   postComments         PostComment[]
+  invitations          Invitation[]      @relation("InvitationOrganisation")
+  clientInvitations    Invitation[]      @relation("InvitationClient")
+  talentPoolEntries    TalentPoolEntry[]
 }
 
 model Membership {
@@ -1053,6 +1059,7 @@ enum NotificationKind {
   account_notice       // décision d'un opérateur sur le compte ou ses contenus, avec son motif (C19)
   profile_match        // nouveaux profils pour une recherche enregistrée avec alerte (entreprise, C22)
   availability_reminder // disponibilité à reconfirmer, 14 jours sans confirmation (freelance, C23)
+  invitation_accepted  // une invitation envoyée est acceptée : vivier rejoint, ou entreprise cliente rattachée (C23)
 }
 
 /// File d'envoi. Écrite dans la même transaction que l'événement : un e-mail n'est jamais perdu parce que l'envoi a
@@ -1557,6 +1564,7 @@ enum AppNotificationKind {
   post_share    // l'une de mes publications est partagée (C22)
   new_follower  // une personne suit mon profil (C22)
   availability_reminder // disponibilité à reconfirmer (C23)
+  invitation_accepted // une invitation envoyée est acceptée (C23)
 }
 
 /// Notification dans l'application, écrite avec l'e-mail correspondant (même transaction), qu'il parte ou non. Comme
@@ -1941,4 +1949,86 @@ model PostStatSeen {
 
   @@id([day, postId, scope, viewerHash])
   @@index([postId])
+}
+
+// ─── Invitations (C23) ──────────────────────────────────────────────────────────────────────────────────────────────
+
+/// Qui invite qui. `freelance` : un membre d'une entreprise invite un freelance avec qui elle travaille déjà, qui
+/// rejoint son vivier privé en acceptant. `client` : un freelance invite une entreprise cliente, rattachée à
+/// l'invitation quand la personne invitée crée ou rejoint son entreprise.
+enum InvitationKind {
+  freelance
+  client
+}
+
+/// L'échéance n'est pas un statut : une invitation en attente dont `expiresAt` est passé est échue. Un refus n'est
+/// jamais montré à l'expéditeur, comme l'invitation à postuler écartée.
+enum InvitationStatus {
+  pending
+  accepted
+  declined
+  revoked
+}
+
+/// Invitation par e-mail, à une adresse qui a peut-être déjà un compte : rien, ni dans la réponse faite à l'expéditeur
+/// ni dans l'e-mail, ne dit si c'est le cas. Le jeton du lien n'est jamais en base, seulement son empreinte SHA-256 ;
+/// la ligne porte elle-même la file d'envoi de son e-mail (comme une demande de confirmation de mission).
+model Invitation {
+  id               String           @id @db.Uuid
+  kind             InvitationKind
+  /// L'expéditeur : son effacement emporte ses invitations (RGPD).
+  senderUserId     String           @db.Uuid
+  /// L'entreprise qui invite (`freelance`) ; nulle pour une invitation d'un freelance (`client`).
+  organisationId   String?          @db.Uuid
+  /// Adresse invitée, en minuscules (contrainte en base).
+  email            String
+  /// Forme de comparaison de l'adresse (`mailboxKey`) : plafonds par boîte, et pas d'invitation à soi-même.
+  mailbox          String
+  /// Mot personnel facultatif, relu par le filtre de coordonnées ; recopié dans l'e-mail.
+  message          String?
+  lang             String           @default("fr") @db.Char(2)
+  tokenHash        String           @unique
+  status           InvitationStatus @default(pending)
+  expiresAt        DateTime         @db.Timestamptz(3)
+  decidedAt        DateTime?        @db.Timestamptz(3)
+  /// Le compte qui a accepté ou refusé, son adresse vérifiée égale à l'adresse invitée.
+  acceptedByUserId String?          @db.Uuid
+  /// `client` : l'entreprise créée ou rejointe par la personne invitée, rattachée à l'invitation.
+  clientOrganisationId String?      @db.Uuid
+  linkedAt         DateTime?        @db.Timestamptz(3)
+  /// La relance unique : sa date, et l'e-mail repart une fois.
+  remindedAt       DateTime?        @db.Timestamptz(3)
+  emailSendAfter   DateTime?        @db.Timestamptz(3)
+  emailSentAt      DateTime?        @db.Timestamptz(3)
+  emailAttempts    Int              @default(0)
+  createdAt        DateTime         @default(now()) @db.Timestamptz(3)
+
+  sender             User          @relation("InvitationSender", fields: [senderUserId], references: [id], onDelete: Cascade)
+  organisation       Organisation? @relation("InvitationOrganisation", fields: [organisationId], references: [id], onDelete: Cascade)
+  acceptedBy         User?         @relation("InvitationAcceptor", fields: [acceptedByUserId], references: [id], onDelete: SetNull)
+  clientOrganisation Organisation? @relation("InvitationClient", fields: [clientOrganisationId], references: [id], onDelete: SetNull)
+
+  @@index([senderUserId, createdAt(sort: Desc)])
+  @@index([organisationId, createdAt(sort: Desc)], where: raw("\"organisationId\" IS NOT NULL"), map: "Invitation_organisation_idx")
+  @@index([mailbox, createdAt(sort: Desc)])
+  @@index([email])
+  @@index([acceptedByUserId], where: raw("\"acceptedByUserId\" IS NOT NULL"), map: "Invitation_acceptedByUserId_idx")
+  @@index([clientOrganisationId], where: raw("\"clientOrganisationId\" IS NOT NULL"), map: "Invitation_clientOrganisationId_idx")
+  @@index([emailSendAfter, id], where: raw("\"emailSentAt\" IS NULL AND \"status\" = 'pending'"), map: "Invitation_mail_idx")
+  @@index([expiresAt])
+}
+
+/// Freelance entré dans le vivier privé d'une entreprise en acceptant son invitation (C23). Rattaché au compte, pas au
+/// profil : une personne invitée avant d'avoir écrit son profil y figure dès qu'elle l'écrit. Le vivier des
+/// freelances déjà payés, lui, se lit dans les contrats.
+model TalentPoolEntry {
+  organisationId String   @db.Uuid
+  userId         String   @db.Uuid
+  joinedAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([organisationId, userId])
+  @@index([userId])
 }

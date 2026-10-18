@@ -68,6 +68,11 @@ export const RETENTION = {
    * abonnement) est perdu, changé ou désinstallé ; l'abonnement part.
    */
   idlePushSubscriptionsDays: 90,
+  /**
+   * Invitations jamais acceptées (C23) : elles portent l'adresse d'une personne qui n'a peut-être aucun compte ; elles
+   * partent 30 jours après leur échéance. Une invitation acceptée reste : elle est le lien entre les deux comptes.
+   */
+  unacceptedInvitationsDays: 30,
   /** Traces d'un compte suspendu puis effacé (revue vague 3, L11) : trois ans, au titre de l'intérêt légitime. */
   erasureTombstonesYears: TOMBSTONE_RETENTION_YEARS,
 } as const;
@@ -94,6 +99,8 @@ export interface PurgeReport {
   readonly deletedPosts: number;
   /** Empreintes et compteurs d'audience des publications (C22). */
   readonly postAudience: number;
+  /** Invitations jamais acceptées, 30 jours après leur échéance (C23). */
+  readonly invitations: number;
 }
 
 export interface Retention {
@@ -151,6 +158,7 @@ export const retention = (db: Db): Retention => ({
     const operatorCutoff = new Date(now);
     operatorCutoff.setUTCFullYear(operatorCutoff.getUTCFullYear() - RETENTION.operatorActionsYears);
     const tombstoneRows = await db.erasureTombstone.deleteMany({ where: { createdAt: { lt: tombstoneCutoff(now) } } });
+    const invitationRows = await db.invitation.deleteMany({ where: { status: { not: "accepted" }, expiresAt: { lt: before(now, RETENTION.unacceptedInvitationsDays) } } });
     const operatorActions = await db.$executeRaw`
       DELETE FROM "OperatorAction" WHERE "createdAt" < LEAST(${operatorCutoff}::timestamptz, now() - make_interval(years => ${RETENTION.operatorActionsYears}::int))`;
     return {
@@ -173,6 +181,7 @@ export const retention = (db: Db): Retention => ({
       erasureTombstones: tombstoneRows.count,
       deletedPosts: community.posts,
       postAudience: community.stats,
+      invitations: invitationRows.count,
     };
   },
 });
