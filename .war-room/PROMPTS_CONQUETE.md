@@ -610,7 +610,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | C19 | Back-office opérateur | 🟡 | En production le 2026-10-16 (PR #43) : journal des opérateurs en ajout seul (5 ans), modération des profils, missions et pages entreprises respectée par chaque chemin public, revue des premiers contacts, attestations URSSAF, litiges d’adresses, registre, recherche et suspension de comptes (droits RGPD conservés), retours de la bêta, entonnoir, dépenses de mesure ; reste la recette par un opérateur réel |
 | C20 | Paiement de bout en bout et application mobile | 🟡 | Application installable et notifications poussées en production le 2026-10-16 (PR #45) : manifeste et service worker limités à l'espace connecté, page hors ligne, Web Push (clés VAPID générées sur le serveur), pages publiques inchangées ; restent l'installation et une notification reçue sur un vrai téléphone, et toute la partie Stripe (décision du founder, fin de projet) |
 | C21 | Finitions de parité | 🟡 | En production le 2026-10-17 (PR #50, #51) : simulateur de revenu net sourcé sur service-public.fr (micro BNC/BIC, SASU en dividendes ; EURL écartée faute de taux officiel lisible), 26 pages par métier (dès 2 éléments réels), recherche insensible aux accents, édition des éléments du profil, filtre langues, CV joint aux candidatures lisible par la seule entreprise destinataire ; `marketplace-verify` vert ; reste le parcours connecté joué avec les comptes de test |
-| C22 | Découverte et communauté | 🟡 | démarré le 2026-10-18 : rapprochement expliqué (missions et profils proches), recherche avancée au design soigné, fil communautaire (publications, réactions, commentaires, vues) |
+| C22 | Découverte et communauté | 🟡 | En production le 2026-10-18 (PR #56, #57, #58, durcissement PR #59) : rapprochement expliqué sans note (missions pour vous, profils pour une mission, listes « proches » sur les pages publiques, garde anti-IA), recherche avancée (facettes avec effectifs, tri choisi et affiché, recherches enregistrées avec alertes), annuaires à cartes des freelances et des entreprises, fil communautaire (publications, réactions, commentaires, partages, abonnements, audience sans pistage, pages publiques, sitemap, llms.txt, modération). Relecture sécurité : aucune critique ni haute, 4 moyennes et 8 basses corrigées. Reste : parcours connecté joué dans le navigateur avec le compte du founder |
 
 **Règles propres à ces sprints**, en plus du BLOC COMMUN :
 - Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
@@ -893,7 +893,7 @@ proposé.
 </perimetre>
 
 <definition_of_done>
-- [ ] Chaque rapprochement affiche sa raison ; test qui interdit tout score calculé par un modèle sur une personne
-- [ ] Recherche et fil joués dans le navigateur, `marketplace-verify` vert sur les pages publiques
-- [ ] Relecture sécurité sans critique ni haute ; gate complet vert
+- [x] Chaque rapprochement affiche sa raison ; test qui interdit tout score calculé par un modèle sur une personne
+- [ ] Recherche et fil joués dans le navigateur (reste : parcours connecté), pages publiques vérifiées en production comme les robots les voient (même contenu pour un navigateur et GPTBot, ClaudeBot, PerplexityBot, Google-Extended ; aucun script hors JSON-LD)
+- [x] Relecture sécurité sans critique ni haute ; gate complet vert
 </definition_of_done>
