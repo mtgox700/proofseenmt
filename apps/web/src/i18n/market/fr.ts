@@ -8,6 +8,7 @@ import { discoveryFr } from "./discovery-fr";
 import { liveFr } from "./live-fr";
 import { matchingFr } from "./matching-fr";
 import { insightsFr } from "./insights-fr";
+import { invitationsFr } from "./invitations-fr";
 import { missionsFr } from "./missions-fr";
 import { nextStepsFr } from "./next-steps-fr";
 import { missionsSpaceFr } from "./missions-space-fr";
@@ -45,6 +46,7 @@ export const marketFr = {
   billing: billingFr,
   community: communityFr,
   confirmations: confirmationsFr,
+  invitations: invitationsFr,
   deals: dealsFr,
   discovery: discoveryFr,
   live: liveFr,

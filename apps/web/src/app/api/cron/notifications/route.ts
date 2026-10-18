@@ -1,8 +1,10 @@
 import { availabilityReminders, confirmationMail, getDb, messageDigests, missionAlerts, notifications, payments, retention, savedSearches, storedFiles, validationReminders, vigilance } from "@proofseen/db";
+import { confirmationMail, getDb, invitationMail, messageDigests, missionAlerts, notifications, payments, retention, savedSearches, storedFiles, validationReminders, vigilance } from "@proofseen/db";
 import { deliver, transportFromEnv } from "@proofseen/notify";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { proofseenIdentity } from "@/data/payments-config";
 import { sendConfirmationEmails } from "@/data/confirmation-mail";
+import { sendInvitationEmails } from "@/data/invitation-mail";
 import { sendDigests } from "@/data/digest-mail";
 import { deleteStored } from "@/data/uploads";
 import { checkDueRegistry } from "@/data/registry-lookup";
@@ -10,6 +12,7 @@ import { hasDatabase } from "@/data/intake-sink";
 import { sweepOrphanUploads } from "@/data/upload-sweeper";
 import { deliverPushes } from "@/data/web-push-sender";
 import { confirmationSecret } from "@/lib/confirmation-secret";
+import { invitationSecret } from "@/lib/invitation-secret";
 import { digestUnsubscribeSecret, unsubscribeToken, unsubscribeUrl } from "@/lib/digest-unsubscribe";
 import { cronAuthorised } from "@/lib/cron-auth";
 import { logError } from "@/lib/log";
@@ -129,6 +132,7 @@ export async function GET(request: Request): Promise<Response> {
 
     const transport = transportFromEnv(process.env);
     if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, availabilityReminded, registryChecks, releases, pushes, sent: 0, failed: 0, confirmationMails: null, digests: null, transport: "absent" } });
+    if (transport === null) return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, registryChecks, releases, pushes, sent: 0, failed: 0, confirmationMails: null, invitationMails: null, digests: null, transport: "absent" } });
 
     const outbox = notifications(db);
     let sent = 0;
@@ -150,6 +154,15 @@ export async function GET(request: Request): Promise<Response> {
             logError("cron: confirmation e-mails failed", error);
             return null;
           });
+    // Invitations by e-mail (C23): the same link-from-secret rule; without the secret, they wait and expire.
+    const inviteSecret = invitationSecret();
+    const invitationMails =
+      inviteSecret === null
+        ? null
+        : await sendInvitationEmails({ outbox: invitationMail(db), transport, secret: inviteSecret, baseUrl: publicBaseUrl(request), now }).catch((error: unknown) => {
+            logError("cron: invitation e-mails failed", error);
+            return null;
+          });
     // Daily summaries of unread messages, for those who asked (C15): one a day at most, from the morning on.
     const unsubscribeSecret = digestUnsubscribeSecret();
     const baseUrl = publicBaseUrl(request);
@@ -159,6 +172,7 @@ export async function GET(request: Request): Promise<Response> {
       return null;
     });
     return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, availabilityReminded, registryChecks, releases, pushes, sent, failed, confirmationMails, digests, transport: "resend" } });
+    return json({ ok: true, data: { purged, orphanAttachments, sweptUploads, queued, searchAlerts, overdue, vigilanceReminders, registryChecks, releases, pushes, sent, failed, confirmationMails, invitationMails, digests, transport: "resend" } });
   } catch (error) {
     logError("cron notifications: failed", error);
     return json({ ok: false, error: "erreur serveur" }, 500);

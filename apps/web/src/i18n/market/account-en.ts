@@ -59,6 +59,7 @@ export const accountEn: AccountDictionary = {
       account_notice: "A Proofseen decision about your account or your content",
       profile_match: "A saved search finds new profiles",
       availability_reminder: "Your availability needs reconfirming",
+      invitation_accepted: "Someone you invited accepts",
     },
     save: "Save my choices",
     saved: "Preferences saved.",

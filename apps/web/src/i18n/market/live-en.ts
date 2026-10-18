@@ -51,6 +51,7 @@ export const liveEn: LiveDictionary = {
       post_share: "One of your posts was shared.",
       new_follower: "New people follow your profile.",
       availability_reminder: "Is your availability still up to date? Confirm it in one click.",
+      invitation_accepted: "One of your invitations was accepted.",
     },
     statuses: {
       shortlisted: "Your application was shortlisted.",
@@ -67,6 +68,8 @@ export const liveEn: LiveDictionary = {
       timesheet_submitted: "A monthly timesheet is waiting for your approval.",
       timesheet_approved: "Your monthly timesheet was approved.",
       timesheet_rejected: "Your monthly timesheet needs a correction.",
+      pool: "A freelancer you invited joined your talent pool.",
+      client: "A company you invited is now linked to your invitation.",
     },
     digest: {
       title: "Daily e-mail summary",

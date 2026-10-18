@@ -45,6 +45,16 @@ export const session = async (): Promise<SessionState> => {
   };
 };
 
+/**
+ * Every address Clerk has verified on the signed-in account (C23): accepting an invitation requires the invited address
+ * among them. Empty when signed out or unconfigured: an unverified address never counts.
+ */
+export const verifiedAddresses = async (): Promise<readonly string[]> => {
+  if (!authConfigured()) return [];
+  const user = await currentUser();
+  return user === null ? [] : verifiedEmails(user.emailAddresses);
+};
+
 /** For pages: the person, or a redirect to sign-in (or to the role choice). Never renders for the wrong role. */
 export const requirePerson = async (lang: Lang, allowed?: readonly Role[]): Promise<Person | null> => {
   const state = await session();

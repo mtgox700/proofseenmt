@@ -121,7 +121,17 @@ function Pool({ lang, m, pool }: { readonly lang: Lang; readonly m: MarketDictio
                 {p.write}
               </Link>
               <span className="thread-last muted small">
-                {p.facts(freelance.paidMissions, freelance.totalDays)} · {p.last} {date(freelance.lastMissionStartedOn.toISOString(), lang)}
+                {freelance.lastMissionStartedOn === null ? null : (
+                  <>
+                    {p.facts(freelance.paidMissions, freelance.totalDays)} · {p.last} {date(freelance.lastMissionStartedOn.toISOString(), lang)}
+                  </>
+                )}
+                {freelance.invitedOn === null ? null : (
+                  <>
+                    {freelance.lastMissionStartedOn === null ? null : " · "}
+                    {p.invited(date(freelance.invitedOn.toISOString(), lang))}
+                  </>
+                )}
               </span>
             </li>
           ))}

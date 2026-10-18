@@ -47,6 +47,8 @@ export const notificationHref = (lang: Lang, n: NotificationLike): string => {
       return `${app}/abonnements`;
     case "availability_reminder":
       return `${app}/profil#disponibilite`;
+    case "invitation_accepted":
+      return `${app}/invitations`;
   }
 };
 

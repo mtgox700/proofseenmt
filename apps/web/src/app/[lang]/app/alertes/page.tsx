@@ -19,6 +19,8 @@ interface PageProps {
 const KINDS: Readonly<Record<"company" | "freelance", readonly NotificationKind[]>> = {
   company: ["application_received", "message_received", "profile_match", "contract_update"],
   freelance: ["contact_received", "message_received", "application_status", "application_read", "mission_invitation", "mission_match", "company_mission", "contract_update", "vigilance_expiring", "availability_reminder"],
+  company: ["application_received", "message_received", "profile_match", "contract_update", "invitation_accepted"],
+  freelance: ["contact_received", "message_received", "application_status", "application_read", "mission_invitation", "mission_match", "company_mission", "contract_update", "vigilance_expiring", "invitation_accepted"],
 };
 const MODES = ["remote", "hybrid", "onsite"] as const;
 

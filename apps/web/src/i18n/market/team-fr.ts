@@ -27,8 +27,9 @@ export const teamFr = {
   },
   pool: {
     title: "Vivier",
-    lead: "Les freelances que votre entreprise a déjà payés, par des faits : missions payées, jours, dernière mission. Jamais de note ni de classement.",
-    empty: "Aucun freelance payé pour l'instant.",
+    lead: "Les freelances que votre entreprise a déjà payés, et ceux qui ont accepté son invitation, par des faits : missions payées, jours, dernière mission, date d'entrée. Jamais de note ni de classement.",
+    empty: "Aucun freelance pour l'instant. Invitez ceux avec qui vous travaillez déjà depuis la page Invitations.",
+    invited: (d: string) => `entré par invitation le ${d}`,
     facts: (missions: number, days: number) => `${missions} mission${missions > 1 ? "s" : ""} payée${missions > 1 ? "s" : ""} · ${days} jour${days > 1 ? "s" : ""}`,
     last: "dernière mission le",
     write: "Écrire",

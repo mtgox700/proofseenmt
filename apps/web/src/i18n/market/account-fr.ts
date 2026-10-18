@@ -58,6 +58,7 @@ export const accountFr = {
       account_notice: "Une décision de Proofseen sur votre compte ou vos contenus",
       profile_match: "Une recherche enregistrée trouve de nouveaux profils",
       availability_reminder: "Votre disponibilité est à reconfirmer",
+      invitation_accepted: "Une personne que vous avez invitée accepte",
     },
     save: "Enregistrer mes choix",
     saved: "Préférences enregistrées.",

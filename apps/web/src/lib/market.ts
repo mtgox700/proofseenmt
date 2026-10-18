@@ -46,6 +46,17 @@ export const actionMarket = async (lang: Lang): Promise<Market> => {
 };
 
 /**
+ * For the answer to an invitation (C23): the same context, but a person who has not chosen a side yet is let through,
+ * since accepting an invitation chooses it. Signed out, the person is sent to sign in.
+ */
+export const answerMarket = async (lang: Lang): Promise<Market> => {
+  const state = await session();
+  if (state.kind !== "signed-in" || !hasDatabase() || state.person.email === "") redirect(`/${lang}/connexion`);
+  const db = getDb();
+  return { person: state.person, actor: await actorOf(db, state.person, lang), db };
+};
+
+/**
  * The company the person acts for: the one chosen in the settings (a cookie, honoured only while they are still a
  * member: the list comes from their memberships), else the first one they own, else the first one they belong to.
  */

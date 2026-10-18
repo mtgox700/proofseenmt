@@ -28,8 +28,9 @@ export const teamEn: TeamDictionary = {
   },
   pool: {
     title: "Talent pool",
-    lead: "Freelancers your company already paid, by facts: paid missions, days, last mission. Never a score or a ranking.",
-    empty: "No freelancer paid yet.",
+    lead: "Freelancers your company already paid, and those who accepted its invitation, by facts: paid missions, days, last mission, date joined. Never a score or a ranking.",
+    empty: "No freelancer yet. Invite those you already work with from the Invitations page.",
+    invited: (d: string) => `joined by invitation on ${d}`,
     facts: (missions: number, days: number) => `${missions} paid mission${missions > 1 ? "s" : ""} · ${days} day${days > 1 ? "s" : ""}`,
     last: "last mission on",
     write: "Write",

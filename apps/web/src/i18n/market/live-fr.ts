@@ -49,6 +49,7 @@ export const liveFr = {
       post_share: "L'une de vos publications a été partagée.",
       new_follower: "De nouvelles personnes suivent votre profil.",
       availability_reminder: "Votre disponibilité est-elle toujours à jour ? Confirmez-la en un clic.",
+      invitation_accepted: "Une de vos invitations a été acceptée.",
     },
     statuses: {
       shortlisted: "Votre candidature est retenue pour la suite.",
@@ -65,6 +66,8 @@ export const liveFr = {
       timesheet_submitted: "Un relevé mensuel attend votre validation.",
       timesheet_approved: "Votre relevé mensuel est validé.",
       timesheet_rejected: "Votre relevé mensuel est à corriger.",
+      pool: "Un freelance que vous avez invité a rejoint votre vivier.",
+      client: "Une entreprise que vous avez invitée est rattachée à votre invitation.",
     } as Readonly<Record<string, string>>,
     digest: {
       title: "Résumé quotidien par e-mail",
