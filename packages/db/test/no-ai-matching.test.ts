@@ -18,11 +18,20 @@ const ENTRIES = ["matching.ts", "matching-criteria.ts"];
 
 /** Les seuls paquets extérieurs qu'un fichier atteint peut importer : zod et le client de base de données. */
 const ALLOWED_PACKAGES = new Set(["zod", "@prisma/client", "@prisma/adapter-pg", "pg"]);
-const MODEL_CALL = /\bfetch\s*\(|\bnew\s+(?:OpenAI|Anthropic|Mistral)\b|\.messages\.create\b|\bcompletions?\b|\bembeddings?\b/;
+const MODEL_CALL =
+  /\bfetch\s*\(|\bnew\s+(?:OpenAI|Anthropic|Mistral)\b|\.messages\.create\b|\bcompletions?\b|\bembeddings?\b|\baxios\b|\bgot\s*\(|\bundici\b|\bnode:(?:https?|net|tls)\b|\bXMLHttpRequest\b|\bWebSocket\b/;
+/** Une importation dont le nom est calculé : on ne sait pas ce qu'elle charge, elle est refusée. */
+const COMPUTED_IMPORT = /\b(?:import|require)\s*\(\s*[^"'\s)]/;
 
-/** Les importations de valeurs d'un source (les `import type` n'emportent aucun code). */
-const valueImports = (source: string): readonly string[] =>
-  [...source.matchAll(/^(?:import|export)\s+(?!type\b)[^;]*?from\s+["']([^"']+)["']/gms)].map((m) => m[1] ?? "");
+/**
+ * Les importations de valeurs d'un source (les `import type` n'emportent aucun code) : statiques, sans liaison
+ * (`import "x"`), dynamiques (`import("x")`) et `require("x")` (relecture sécurité C22, matching B2).
+ */
+const valueImports = (source: string): readonly string[] => [
+  ...[...source.matchAll(/^(?:import|export)\s+(?!type\b)[^;]*?from\s+["']([^"']+)["']/gms)].map((m) => m[1] ?? ""),
+  ...[...source.matchAll(/^import\s+["']([^"']+)["']/gm)].map((m) => m[1] ?? ""),
+  ...[...source.matchAll(/\b(?:import|require)\s*\(\s*["']([^"']+)["']/g)].map((m) => m[1] ?? ""),
+];
 
 interface Closure {
   readonly files: ReadonlyMap<string, string>;
@@ -56,10 +65,25 @@ const closure = (read: (file: string) => string): Closure => {
 
 const fromDisk = (file: string): string => readFileSync(file, "utf8");
 
+const withoutComments = (source: string): string => source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+
+/** Le source appelle le réseau ou un modèle, ou charge un module dont le nom est calculé. */
+const callsOut = (source: string): boolean => {
+  const code = withoutComments(source);
+  return MODEL_CALL.test(code) || COMPUTED_IMPORT.test(code);
+};
+
+/**
+ * Les fichiers qui montrent le rapprochement hors de packages/db : ils importent légitimement d'autres paquets
+ * Proofseen, mais jamais packages/engines ni un SDK d'IA, et n'appellent ni le réseau ni un modèle.
+ */
+const SHOWN_IN = ["../../../apps/web/src/lib/matching.ts", "../../../apps/web/src/data/nearby.ts", "../../hub/src/nearby.ts"].map((f) => resolve(here, f));
+const AI_PACKAGE = /engines|openai|anthropic|ai-sdk|^ai$|langchain|mistral|perplexity|ollama|transformers/i;
+
 const offending = (c: Closure): readonly string[] => [
   ...[...c.packages].filter((p) => !ALLOWED_PACKAGES.has(p)),
   ...c.outside,
-  ...[...c.files].filter(([, source]) => MODEL_CALL.test(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ""))).map(([file]) => file),
+  ...[...c.files].filter(([, source]) => callsOut(source)).map(([file]) => file),
 ];
 
 describe("rapprochement : aucun modèle d'IA", () => {
@@ -81,6 +105,25 @@ describe("rapprochement : aucun modèle d'IA", () => {
     expect(offending(closure(relative)).some((f) => f.split(sep).join("/").includes("/engines/"))).toBe(true);
     const calling = (file: string): string => (file.endsWith("matching.ts") ? `${fromDisk(file)}\nconst y = await fetch("https://api.example/v1/chat");` : fromDisk(file));
     expect(offending(closure(calling)).some((f) => f.endsWith("matching.ts"))).toBe(true);
+  });
+
+  it("échoue sur une importation dynamique, sans liaison ou calculée, et sur un autre client réseau", () => {
+    const withLine = (line: string) => (file: string): string => (file.endsWith("matching.ts") ? `${fromDisk(file)}
+${line}` : fromDisk(file));
+    expect(offending(closure(withLine('const e = await import("@proofseen/engines");')))).toContain("@proofseen/engines");
+    expect(offending(closure(withLine('import "openai/shims/node";')))).toContain("openai/shims/node");
+    expect(offending(closure(withLine('const m = require("@anthropic-ai/sdk");')))).toContain("@anthropic-ai/sdk");
+    for (const line of ["const n = await import(name);", 'await axios.post("https://x");', "const r = got(url);"]) {
+      expect(offending(closure(withLine(line))).some((f) => f.endsWith("matching.ts"))).toBe(true);
+    }
+  });
+
+  it("les fichiers qui affichent le rapprochement n'atteignent ni un modèle d'IA ni le réseau", () => {
+    for (const file of SHOWN_IN) {
+      const source = fromDisk(file);
+      expect(valueImports(source).filter((spec) => AI_PACKAGE.test(spec)), file).toEqual([]);
+      expect(callsOut(source), file).toBe(false);
+    }
   });
 
   it("le paquet de base de données ne dépend pas de packages/engines", () => {

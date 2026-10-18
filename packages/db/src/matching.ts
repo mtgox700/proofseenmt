@@ -277,7 +277,8 @@ export const matching = (db: Db): Matching => ({
   async profilesForMission(actor, missionId, options, now = new Date()) {
     if (!Uuid.safeParse(missionId).success) return null;
     const row = await db.jobPost.findFirst({
-      where: { id: missionId, status: { in: ["draft", "open"] }, organisation: { members: { some: { userId: actor.userId } } } },
+      // Une entreprise suspendue par l’opérateur n’a plus de missions en service : pas de suggestions non plus (relecture C22, B3).
+      where: { id: missionId, status: { in: ["draft", "open"] }, organisation: { suspendedAt: null, members: { some: { userId: actor.userId } } } },
       select: MISSION_SELECT,
     });
     if (row === null) return null;

@@ -153,6 +153,11 @@ describe("Profils qui correspondent", () => {
     expect(await matching(t.db).profilesForMission({ userId: stranger.ownerId }, mission)).toBeNull();
     expect(await matching(t.db).profilesForMission({ userId: named.userId }, mission)).toBeNull();
     expect(await matching(t.db).profilesForMission({ userId: company.ownerId }, "pas-un-id")).toBeNull();
+
+    // Une entreprise suspendue par l'opérateur n'a plus de suggestions (relecture sécurité C22, B3).
+    await t.db.organisation.update({ where: { id: company.organisationId }, data: { suspendedAt: new Date(), suspensionReason: "Test" } });
+    expect(await matching(t.db).profilesForMission({ userId: company.ownerId }, mission)).toBeNull();
+    await t.db.organisation.update({ where: { id: company.organisationId }, data: { suspendedAt: null, suspensionReason: null } });
   });
 
   it("aucun champ de score, de pourcentage ni de rang dans ce qui sort", async () => {

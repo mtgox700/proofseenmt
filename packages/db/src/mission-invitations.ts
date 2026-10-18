@@ -74,7 +74,7 @@ export const missionInvitations = (db: Db): MissionInvitations => ({
     const reference = ProfileReferenceSchema.safeParse(rawReference);
     if (!reference.success) return { kind: "unknown_profile" };
     const mission = await db.jobPost.findFirst({
-      where: { id: missionId, status: "open", moderatedAt: null, organisation: { members: { some: { userId: actor.userId } } } },
+      where: { id: missionId, status: "open", moderatedAt: null, organisation: { suspendedAt: null, members: { some: { userId: actor.userId } } } },
       select: { organisationId: true },
     });
     if (mission === null) return { kind: "absent" };
