@@ -62,3 +62,18 @@ Après la bascule, les projets Vercel peuvent être supprimés.
 
 Après la bascule : soumission IndexNow des pages publiques, puis une mesure de conquête à J+30 (2026-11-19) pour suivre
 la part de citations de proofseen.com face à Malt et LinkedIn.
+
+## Services branchés (2026-10-18)
+
+| Service | État | Où sont les clés |
+|---|---|---|
+| E-mails (Resend, domaine `proofseen.com` vérifié) | actif, expéditeur `Proofseen <contact@proofseen.com>` | `RESEND_API_KEY`, `NOTIFY_FROM` |
+| Connexion (Clerk production, `clerk.proofseen.com`) | actif, code par e-mail ; Google désactivé | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (pk_live, intégrée au build), `CLERK_SECRET_KEY` |
+| Mesures de visibilité | OpenAI, Anthropic, Perplexity | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PERPLEXITY_API_KEY` |
+| Notifications poussées | clés VAPID générées sur le serveur | `PROOFSEEN_VAPID_*` |
+
+Les clés vivent dans le `.env` racine du poste du founder et dans `/root/proofseen/app/.env.production` (copiées de machine à
+machine, jamais affichées). Changer `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` impose un rebuild de l'image.
+
+**Caddy de DEMOMEA** : fichier monté en lecture seule par inode ; le réécrire sur place, jamais `sed -i` (voir TEAM_MEMORY
+2026-10-18).
