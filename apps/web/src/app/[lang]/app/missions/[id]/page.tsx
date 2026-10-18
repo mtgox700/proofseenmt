@@ -4,6 +4,7 @@ import { applications, missionInvitations, missions } from "@proofseen/db";
 import { ApplicantsBoard } from "@/components/market/ApplicantsBoard";
 import { InvitePanel, MissionTools } from "@/components/market/MissionCompanyTools";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { ProfilesForMission } from "@/components/market/ProfilesForMission";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
@@ -11,13 +12,14 @@ import { day, money } from "@/lib/format";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { closeMission, decideApplication, publishMission } from "../actions";
 import { duplicateMission, inviteFreelancer, saveTemplate } from "../company-actions";
+import { addSuggestedToList } from "../matching-actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string; ordre?: string; invitation?: string; modele?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; ordre?: string; invitation?: string; modele?: string; liste?: string }>;
 }
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
@@ -34,7 +36,7 @@ export default async function MissionPage({ params, searchParams }: PageProps) {
   const organisation = await currentOrganisation(market);
   const mission = organisation === null ? undefined : (await missions(market.db).listForOrganisation(market.actor, organisation.id))?.find((item) => item.id === id);
   if (mission === undefined) notFound();
-  const { erreur, ordre, invitation, modele } = await searchParams;
+  const { erreur, ordre, invitation, modele, liste } = await searchParams;
   const newest = ordre === "recentes";
   const [applicants, sent] = await Promise.all([
     applications(market.db).listForMission(market.actor, id, newest ? "newest" : "oldest"),
@@ -156,6 +158,9 @@ export default async function MissionPage({ params, searchParams }: PageProps) {
         </section>
       )}
 
+      {mission.status === "closed" ? null : (
+        <ProfilesForMission lang={lang} market={market} missionId={mission.id} organisationId={mission.organisationId} open={mission.status === "open"} notice={liste} invite={inviteFreelancer} addToList={addSuggestedToList} />
+      )}
       {mission.status === "open" ? <InvitePanel lang={lang} s={s} missionId={mission.id} sent={sent ?? []} notice={invitation} action={inviteFreelancer} /> : null}
       <MissionTools lang={lang} s={s} missionId={mission.id} title={mission.title} notice={modele} duplicate={duplicateMission} saveTemplate={saveTemplate} />
     </>

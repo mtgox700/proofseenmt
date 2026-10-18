@@ -4,6 +4,7 @@ import { billingFr } from "./billing-fr";
 import { confirmationsFr } from "./confirmations-fr";
 import { dealsFr } from "./deals-fr";
 import { liveFr } from "./live-fr";
+import { matchingFr } from "./matching-fr";
 import { insightsFr } from "./insights-fr";
 import { missionsFr } from "./missions-fr";
 import { missionsSpaceFr } from "./missions-space-fr";
@@ -42,6 +43,7 @@ export const marketFr = {
   confirmations: confirmationsFr,
   deals: dealsFr,
   live: liveFr,
+  matching: matchingFr,
   insights: insightsFr,
   missions: missionsFr,
   missionsSpace: missionsSpaceFr,

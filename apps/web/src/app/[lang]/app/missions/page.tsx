@@ -4,6 +4,7 @@ import { applications, missionInvitations, missions } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StandingNotice } from "@/components/market/StandingNotice";
+import { MissionsForYou } from "@/components/market/MissionsForYou";
 import { MyInvitations } from "@/components/market/MyInvitations";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang, type Lang } from "@/i18n";
@@ -93,6 +94,7 @@ async function MyApplications({ lang, market }: { readonly lang: Lang; readonly 
         </p>
       </header>
       <MyInvitations lang={lang} m={m} s={s} invitations={invitations} dismiss={dismissInvitation} />
+      <MissionsForYou lang={lang} market={market} />
       {mine.length === 0 ? (
         <EmptyState title={m.mine.empty} headingLevel={2}>
           <p>{m.mine.emptyText}</p>

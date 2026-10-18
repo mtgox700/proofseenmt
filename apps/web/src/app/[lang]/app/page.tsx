@@ -12,6 +12,7 @@ import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { CompanyHomeBoard } from "@/components/insights/CompanyHomeBoard";
 import { FreelanceHomeBoard } from "@/components/insights/FreelanceHomeBoard";
+import { FreelanceMissionsForYou } from "@/components/market/MissionsForYou";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { createOrganisation } from "./actions";
@@ -167,6 +168,7 @@ async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonl
         )}
       </header>
       <FreelanceHomeBoard lang={lang} />
+      <FreelanceMissionsForYou lang={lang} />
       {view === null ? (
         <p className="muted small">
           <Link href={`/${lang}/inscription`}>{marketDictionary(lang).profile.homeAudit}</Link>

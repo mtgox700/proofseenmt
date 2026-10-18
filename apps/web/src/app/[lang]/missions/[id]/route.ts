@@ -1,6 +1,7 @@
 import { getDb, missions } from "@proofseen/db";
 import { renderJobPage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
+import { nearbyMissionsFor } from "@/data/nearby";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
 
@@ -31,7 +32,7 @@ export async function GET(request: Request, context: Context): Promise<Response>
     if (mission === null || mission.publishedAt === null) return html(NOT_FOUND, 404, "public, max-age=60");
     const page = renderJobPage(
       { ...mission, publishedAt: mission.publishedAt },
-      { baseUrl: publicBaseUrl(request), lang, applyHref: `/${lang}/app/missions/${mission.id}/postuler` },
+      { baseUrl: publicBaseUrl(request), lang, applyHref: `/${lang}/app/missions/${mission.id}/postuler`, nearby: await nearbyMissionsFor(mission.id, lang) },
     );
     // Five minutes at the edge: an edit or a closure shows within minutes, and a crawl burst does not reach the database.
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
