@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { matching, type MatchCriterion } from "@proofseen/db";
+import { matching, profiles, type MatchCriterion } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { NextSteps } from "@/components/NextSteps";
 import { ConsideredNote, MissionSuggestionList } from "@/components/market/MissionsForYou";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { MatchingDictionary } from "@/i18n/market/matching-fr";
 import { FOR_YOU_CRITERIA, matchOptionsFromQuery, queryOf } from "@/lib/matching";
 import { pageMarket } from "@/lib/market";
+import { nextSteps } from "@/lib/next-steps";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -71,6 +73,8 @@ export default async function MissionsForYouPage({ params, searchParams }: PageP
   const suggestions = await matching(market.db).missionsForProfile(market.actor, options);
   const counted = new Set<MatchCriterion>(options.counted ?? FOR_YOU_CRITERIA);
   const required = new Set<MatchCriterion>(options.required ?? []);
+  // Only for the empty state: an unpublished profile is told to publish first (C23).
+  const published = suggestions !== null && suggestions.items.length === 0 ? (await profiles(market.db).findMine(market.actor))?.visibility !== "private" : true;
 
   return (
     <>
@@ -94,6 +98,7 @@ export default async function MissionsForYouPage({ params, searchParams }: PageP
       ) : suggestions.items.length === 0 ? (
         <EmptyState title={m.forYou.empty} headingLevel={2}>
           <ConsideredNote lang={lang} suggestions={suggestions} />
+          <NextSteps n={dict.nextSteps} steps={nextSteps(lang, "missions_for_you", "freelance", published)} />
         </EmptyState>
       ) : (
         <section className="ws-block" aria-labelledby="for-you-list">

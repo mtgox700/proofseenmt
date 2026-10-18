@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { companyUrl } from "./company-page";
-import { avatarTone, DIRECTORY_STYLES, monogram } from "./directory-cards";
+import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { longDate, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
 
@@ -73,6 +73,12 @@ const LABELS = {
     order: (sort: string) => `Ordre choisi : ${sort}. Des faits, jamais une note.`,
     empty: "Aucune entreprise ne correspond à ces filtres.",
     none: "Aucune entreprise n'a encore ouvert de page publique.",
+    nextTitle: "Que faire maintenant",
+    nextNone: [
+      ["Vous recrutez : créez votre compte et ouvrez la page de votre entreprise", "creer-un-compte"],
+      ["Vous êtes freelance : voir les freelances publiés", "freelances"],
+    ],
+    nextFiltered: [["Retirer les filtres", "entreprises"]],
     next: "Page suivante",
     previous: "Page précédente",
     registryFact: (d: string) => `Entreprise active au répertoire officiel (vérifié le ${d})`,
@@ -99,6 +105,12 @@ const LABELS = {
     order: (sort: string) => `Chosen order: ${sort}. Facts, never a rating.`,
     empty: "No company matches these filters.",
     none: "No company has opened a public page yet.",
+    nextTitle: "What to do now",
+    nextNone: [
+      ["Hiring: create your account and open your company page", "creer-un-compte"],
+      ["Freelancer: see published freelancers", "freelances"],
+    ],
+    nextFiltered: [["Clear the filters", "entreprises"]],
     next: "Next page",
     previous: "Previous page",
     registryFact: (d: string) => `Business active in the official register (checked on ${d})`,
@@ -185,6 +197,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
   const base = o.baseUrl.replace(/\/$/, "");
   const path = `/${o.lang}/entreprises`;
   const filtered = companyDirectoryQueryString(f, f.page) !== "";
+  const next = linksUnder(o.lang, filtered ? l.nextFiltered : l.nextNone);
   const pager = [
     f.page > 1 ? `<a class="crumb" href="${path}${e(companyDirectoryQueryString(f, f.page - 1))}" rel="prev">← ${l.previous}</a>` : "<span></span>",
     o.hasMore ? `<a class="crumb" href="${path}${e(companyDirectoryQueryString(f, f.page + 1))}" rel="next">${l.next} →</a>` : "<span></span>",
@@ -228,7 +241,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     filtersForm(o.lang, f, o.facets, path),
     "<section>",
     `<div class="res-head"><h2>${l.results(o.facets.total)}</h2><p class="muted">${l.order(l.sorts[f.sort])}</p></div>`,
-    items.length === 0 ? `<p class="muted">${filtered ? l.empty : l.none}</p>` : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
+    items.length === 0 ? `<p class="muted">${filtered ? l.empty : l.none}</p>${nextLinks(l.nextTitle, next)}` : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
     `<nav class="pager">${pager}</nav>`,
     "</section>",
     "</div>",

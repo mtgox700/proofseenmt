@@ -7,6 +7,7 @@ import { Composer } from "@/components/community/Composer";
 import { PostCard } from "@/components/community/PostCard";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { NextSteps } from "@/components/NextSteps";
 import { countedHeaders } from "@/data/audience";
 import { countPostSightings, speakerOf } from "@/data/community";
 import { isLang } from "@/i18n";
@@ -14,6 +15,7 @@ import { marketDictionary } from "@/i18n/market";
 import type { CommunityDictionary } from "@/i18n/market/community-fr";
 import { isCommunityError } from "@/lib/community";
 import { pageMarket } from "@/lib/market";
+import { nextSteps } from "@/lib/next-steps";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -85,6 +87,7 @@ export default async function FeedPage({ params, searchParams }: PageProps) {
       {page.items.length === 0 ? (
         <EmptyState title={c.tabs[tab]} headingLevel={2}>
           <p>{tab === "discover" ? c.emptyDiscover : c.empty}</p>
+          <NextSteps n={dict.nextSteps} steps={nextSteps(lang, tab === "discover" ? "feed_discover" : "feed_following", role)} />
         </EmptyState>
       ) : (
         <ol className="feed">

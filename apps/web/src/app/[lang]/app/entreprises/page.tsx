@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { companyDirectory, type CompanyCard, type CompanyFacets } from "@proofseen/db";
 import { COMPANY_DIRECTORY_SORTS, companyDirectoryQueryString, type CompanyDirectoryFilters } from "@proofseen/hub";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { NextSteps } from "@/components/NextSteps";
 import { AutoSubmit } from "@/components/search/AutoSubmit";
 import { Avatar } from "@/components/search/Avatar";
 import { throttled } from "@/data/throttle";
@@ -13,6 +14,7 @@ import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { companyDirectoryQuery, companySearch } from "@/lib/company-directory-filters";
 import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { nextSteps } from "@/lib/next-steps";
 import { followFromDirectory, unfollowFromDirectory } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -201,6 +203,7 @@ export default async function CompaniesPage({ params, searchParams }: PageProps)
   const back = companyDirectoryQueryString(filters, filters.page).replace(/^\?/, "");
   const ok = (n: Notice): boolean => n === "followed" || n === "already" || n === "unfollowed";
   const noticeText = (n: Notice): string => (n === "trop" ? c.notices.tooMany : c.notices[n]);
+  const unfiltered = filters.city === "" && filters.kind === "" && !filters.hiringOnly && !filters.registryActiveOnly;
 
   return (
     <>
@@ -222,7 +225,10 @@ export default async function CompaniesPage({ params, searchParams }: PageProps)
             <p className="muted small">{c.order(c.sorts[filters.sort])}</p>
           </div>
           {page.items.length === 0 ? (
-            <p className="muted">{filters.city === "" && filters.kind === "" && !filters.hiringOnly && !filters.registryActiveOnly ? c.none : c.empty}</p>
+            <>
+              <p className="muted">{unfiltered ? c.none : c.empty}</p>
+              <NextSteps n={m.nextSteps} steps={nextSteps(lang, unfiltered ? "companies_none" : "companies_filtered", market.person.role === "company" ? "company" : "freelance")} />
+            </>
           ) : (
             <ul className="result-grid">
               {page.items.map((company) => (

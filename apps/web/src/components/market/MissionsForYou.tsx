@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { matching, type MatchOptions, type SuggestedMission, type Suggestions } from "@proofseen/db";
+import { NextSteps } from "@/components/NextSteps";
 import type { Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { day, money } from "@/lib/format";
 import { pageMarket, type Market } from "@/lib/market";
+import { nextSteps } from "@/lib/next-steps";
 import { MatchReasons } from "./MatchReasons";
 
 const rateOf = (item: SuggestedMission, lang: Lang): string | null =>
@@ -60,7 +62,10 @@ export async function MissionsForYou({ lang, market, options }: { readonly lang:
       {suggestions === null ? (
         <p className="muted">{f.noProfile}</p>
       ) : suggestions.items.length === 0 ? (
-        <p className="muted">{f.empty}</p>
+        <>
+          <p className="muted">{f.empty}</p>
+          <NextSteps n={marketDictionary(lang).nextSteps} steps={nextSteps(lang, "missions_for_you", "freelance")} />
+        </>
       ) : (
         <>
           <p className="muted small">{f.rule}</p>

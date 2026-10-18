@@ -124,6 +124,32 @@ describe("annuaire public des freelances", () => {
     expect(empty({ ...NO_DIRECTORY_FILTERS, skills: ["Rust"] })).toContain("No published profile matches these filters.");
   });
 
+  it("dit quoi faire d'un annuaire vide, par de simples liens, les mêmes pour tous et sans invitation (C23)", () => {
+    const empty = (filters: DirectoryFilters, lang: "fr" | "en" = "fr"): string => renderProfileDirectory([], { baseUrl: "https://proofseen.com", lang, filters, hasMore: false });
+    const none = empty(NO_DIRECTORY_FILTERS);
+    expect(none).toContain('<a href="/fr/app/profil">Vous êtes freelance : publiez votre profil</a>');
+    expect(none).toContain('<a href="/fr/app/missions/nouvelle">Vous recrutez : publiez une mission</a>');
+    expect(none).toContain('<a href="/fr/creer-un-compte">');
+    expect(none).not.toContain("invitations");
+    expect(scriptsOutsideJsonLd(none)).toBe(0);
+    expect(empty(NO_DIRECTORY_FILTERS)).toBe(none);
+    const filtered = empty({ ...NO_DIRECTORY_FILTERS, skills: ["Rust"] }, "en");
+    expect(filtered).toContain('<a href="/en/freelances">Clear the filters</a>');
+    // Des résultats : aucun lien « que faire maintenant ».
+    expect(render()).not.toContain("Que faire maintenant");
+  });
+
+  it("dit « disponibilité non confirmée » au-delà de 30 jours, avec la date de la dernière confirmation (C23)", () => {
+    const [first] = CARDS;
+    if (first === undefined) throw new Error("carte absente");
+    const stale: DirectoryCardView = { ...first, availability: "unconfirmed" };
+    const html = renderProfileDirectory([stale], { baseUrl: "https://proofseen.com", lang: "fr", filters: NO_DIRECTORY_FILTERS, hasMore: false });
+    expect(html).toContain('<span class="badge off"><i aria-hidden="true"></i>Disponibilité non confirmée</span>');
+    expect(html).toContain("dernière confirmation le 10 octobre 2026");
+    expect(html).not.toMatch(/badge now/);
+    expect(html).toContain("Développeuse Rust embarqué");
+  });
+
   it("existe en anglais avec le menu public", () => {
     const html = render(NO_DIRECTORY_FILTERS, false, "en");
     expect(html).toContain("Freelancers published on Proofseen");

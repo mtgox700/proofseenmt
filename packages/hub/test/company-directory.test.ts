@@ -69,6 +69,11 @@ describe("annuaire public des entreprises", () => {
   it("distingue l'annuaire vide d'une recherche sans résultat, et existe en anglais", () => {
     expect(render(NO_COMPANY_FILTERS, "fr", [])).toContain("Aucune entreprise n'a encore ouvert de page publique.");
     expect(render({ ...NO_COMPANY_FILTERS, hiringOnly: true }, "fr", [])).toContain("Aucune entreprise ne correspond à ces filtres.");
+    // C23 : que faire ensuite, en liens simples et sans invitation (inviter se fait depuis l'espace connecté).
+    const none = render(NO_COMPANY_FILTERS, "fr", []);
+    expect(none).toContain('<a href="/fr/creer-un-compte">Vous recrutez : créez votre compte et ouvrez la page de votre entreprise</a>');
+    expect(none).not.toContain("invitations");
+    expect(render({ ...NO_COMPANY_FILTERS, hiringOnly: true }, "fr", [])).toContain('<a href="/fr/entreprises">Retirer les filtres</a>');
     const en = render(NO_COMPANY_FILTERS, "en");
     expect(en).toContain("Companies on Proofseen");
     expect(en).toContain('<a href="/en/entreprises" aria-current="page">Companies</a>');

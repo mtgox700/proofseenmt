@@ -1,5 +1,5 @@
 import { FAVICON } from "./pages";
-import { avatarTone, DIRECTORY_STYLES, monogram } from "./directory-cards";
+import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { longDate, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
@@ -56,7 +56,8 @@ export interface DirectoryCardView {
   readonly workMode: DirectoryWorkMode;
   readonly dailyRateCents?: number | null;
   readonly currency?: string;
-  readonly availability?: "available" | "available_from" | "unavailable";
+  /** « unconfirmed » : déclarée il y a plus de 30 jours sans confirmation (règle de la base, C23), jamais « disponible ». */
+  readonly availability?: "available" | "available_from" | "unavailable" | "unconfirmed";
   readonly availableFrom?: Date | null;
   readonly availabilityAt?: Date;
   readonly skills: readonly string[];
@@ -105,6 +106,16 @@ const LABELS = {
     results: "Profils",
     empty: "Aucun profil publié ne correspond à ces filtres.",
     none: "Aucun profil n'est encore publié.",
+    nextTitle: "Que faire maintenant",
+    nextNone: [
+      ["Vous êtes freelance : publiez votre profil", "app/profil"],
+      ["Vous recrutez : publiez une mission", "app/missions/nouvelle"],
+      ["Pas encore de compte : en créer un", "creer-un-compte"],
+    ],
+    nextFiltered: [
+      ["Retirer les filtres", "freelances"],
+      ["Voir les missions ouvertes", "missions"],
+    ],
     next: "Page suivante",
     previous: "Page précédente",
     pseudonym: (ref: string) => `Freelance ${ref}`,
@@ -114,7 +125,9 @@ const LABELS = {
     available: "Disponible",
     from: (d: string) => `À partir du ${d}`,
     unavailable: "Indisponible",
+    unconfirmed: "Disponibilité non confirmée",
     confirmed: (d: string) => `confirmée le ${d}`,
+    lastConfirmed: (d: string) => `dernière confirmation le ${d}`,
     native: "langue maternelle",
     more: (n: number) => `+${n}`,
     updated: (d: string) => `Profil mis à jour le ${d}`,
@@ -150,6 +163,16 @@ const LABELS = {
     results: "Profiles",
     empty: "No published profile matches these filters.",
     none: "No profile is published yet.",
+    nextTitle: "What to do now",
+    nextNone: [
+      ["Freelancer: publish your profile", "app/profil"],
+      ["Hiring: post a mission", "app/missions/nouvelle"],
+      ["No account yet: create one", "creer-un-compte"],
+    ],
+    nextFiltered: [
+      ["Clear the filters", "freelances"],
+      ["See open missions", "missions"],
+    ],
     next: "Next page",
     previous: "Previous page",
     pseudonym: (ref: string) => `Freelancer ${ref}`,
@@ -159,7 +182,9 @@ const LABELS = {
     available: "Available",
     from: (d: string) => `From ${d}`,
     unavailable: "Unavailable",
+    unconfirmed: "Availability not confirmed",
     confirmed: (d: string) => `confirmed on ${d}`,
+    lastConfirmed: (d: string) => `last confirmed on ${d}`,
     native: "native",
     more: (n: number) => `+${n}`,
     updated: (d: string) => `Profile updated on ${d}`,
@@ -217,10 +242,17 @@ const avatar = (c: DirectoryCardView, lang: Lang): string =>
 const availabilityBadge = (c: DirectoryCardView, lang: Lang): string => {
   const l = LABELS[lang];
   if (c.availability === undefined) return "";
-  const text =
-    c.availability === "available" ? l.available : c.availability === "available_from" && c.availableFrom != null ? l.from(longDate(c.availableFrom, lang)) : l.unavailable;
+  const unconfirmed = c.availability === "unconfirmed";
+  const text = unconfirmed
+    ? l.unconfirmed
+    : c.availability === "available"
+      ? l.available
+      : c.availability === "available_from" && c.availableFrom != null
+        ? l.from(longDate(c.availableFrom, lang))
+        : l.unavailable;
   const tone = c.availability === "available" ? "now" : c.availability === "available_from" ? "later" : "off";
-  const confirmed = c.availabilityAt === undefined ? "" : ` <span class="pc-ref">${e(l.confirmed(longDate(c.availabilityAt, lang)))}</span>`;
+  const when = c.availabilityAt === undefined ? null : longDate(c.availabilityAt, lang);
+  const confirmed = when === null ? "" : ` <span class="pc-ref">${e(unconfirmed ? l.lastConfirmed(when) : l.confirmed(when))}</span>`;
   return `<p class="avail"><span class="badge ${tone}"><i aria-hidden="true"></i>${e(text)}</span>${confirmed}</p>`;
 };
 
@@ -304,6 +336,7 @@ export const renderProfileDirectory = (
     },
   };
   const empty = filtered ? l.empty : l.none;
+  const next = linksUnder(o.lang, filtered ? l.nextFiltered : l.nextNone);
 
   return [
     "<!doctype html>",
@@ -331,7 +364,7 @@ export const renderProfileDirectory = (
     filtersForm(o.lang, f, o.jobTitles ?? []),
     "<section>",
     `<div class="res-head"><h2>${l.results}</h2><p class="muted">${l.order}</p></div>`,
-    items.length === 0 ? `<p class="muted">${empty}</p>` : `<ul class="grid">${items.map((c) => card(c, o.lang)).join("")}</ul>`,
+    items.length === 0 ? `<p class="muted">${empty}</p>${nextLinks(l.nextTitle, next)}` : `<ul class="grid">${items.map((c) => card(c, o.lang)).join("")}</ul>`,
     `<nav class="pager">${pager}</nav>`,
     "</section>",
     "</div>",

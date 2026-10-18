@@ -9,6 +9,7 @@ import { liveFr } from "./live-fr";
 import { matchingFr } from "./matching-fr";
 import { insightsFr } from "./insights-fr";
 import { missionsFr } from "./missions-fr";
+import { nextStepsFr } from "./next-steps-fr";
 import { missionsSpaceFr } from "./missions-space-fr";
 import { operatorFr } from "./operator-fr";
 import { profileFr } from "./profile-fr";
@@ -49,6 +50,7 @@ export const marketFr = {
   live: liveFr,
   matching: matchingFr,
   insights: insightsFr,
+  nextSteps: nextStepsFr,
   missions: missionsFr,
   missionsSpace: missionsSpaceFr,
   operator: operatorFr,

@@ -1,3 +1,5 @@
+import { escapeHtml as e } from "./html";
+
 /*
  * Ce que les annuaires publics (freelances, entreprises) partagent : la grille de cartes, l'avatar, les badges, le
  * panneau de filtres. Du HTML et du CSS seulement : aucune page de ces annuaires ne demande de JavaScript.
@@ -84,4 +86,22 @@ export const DIRECTORY_STYLES =
   ".pcard .verified li{display:flex;gap:.45rem;align-items:baseline}.pcard .verified li::before{content:\"✓\";flex:none;color:var(--accent);font-weight:700}" +
   ".pc-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding-top:.75rem;border-top:1px solid var(--line);font:500 .76rem/1.3 var(--mono);color:var(--muted)}" +
   ".pc-foot .go{position:relative;z-index:1;color:var(--accent);text-decoration:none;white-space:nowrap}" +
-  ".pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}";
+  ".pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}" +
+  ".next{list-style:none;margin:.75rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.6rem}" +
+  ".next a{display:inline-block;padding:.45rem .9rem;border:1px solid var(--line);border-radius:999px;text-decoration:none}";
+
+/** Un lien proposé par un annuaire vide (C23) : un texte écrit par nous et une adresse du site, jamais une donnée saisie. */
+export interface NextLink {
+  readonly text: string;
+  readonly href: string;
+}
+
+/** Des paires (texte, chemin sous la langue) écrites dans les libellés, en liens du site. */
+export const linksUnder = (lang: string, pairs: readonly (readonly [string, string])[]): readonly NextLink[] => pairs.map(([text, path]) => ({ text, href: `/${lang}/${path}` }));
+
+/**
+ * Ce que propose un annuaire vide : de simples liens, les mêmes pour chaque visiteur et chaque robot, sans JavaScript.
+ * Jamais un lien d'invitation : inviter se fait depuis l'espace connecté.
+ */
+export const nextLinks = (title: string, links: readonly NextLink[]): string =>
+  links.length === 0 ? "" : `<p class="muted">${e(title)}</p><ul class="next">${links.map((l) => `<li><a href="${e(l.href)}">${e(l.text)}</a></li>`).join("")}</ul>`;

@@ -10,6 +10,7 @@ import { discoveryEn } from "./discovery-en";
 import { liveEn } from "./live-en";
 import { matchingEn } from "./matching-en";
 import { insightsEn } from "./insights-en";
+import { nextStepsEn } from "./next-steps-en";
 import { missionsEn } from "./missions-en";
 import { missionsSpaceEn } from "./missions-space-en";
 import { operatorEn } from "./operator-en";
@@ -33,6 +34,7 @@ export const marketEn: MarketDictionary = {
   live: liveEn,
   matching: matchingEn,
   insights: insightsEn,
+  nextSteps: nextStepsEn,
   missions: missionsEn,
   missionsSpace: missionsSpaceEn,
   operator: operatorEn,
