@@ -2,6 +2,7 @@ import type { ProfileCard } from "@proofseen/db";
 import { languageName } from "@proofseen/hub";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
+import { availabilityDisplay } from "@/lib/availability-display";
 import { day, money } from "@/lib/format";
 import { Avatar } from "./Avatar";
 
@@ -11,26 +12,35 @@ interface ProfileResultCardProps {
   readonly card: ProfileCard;
   /** Actions at the foot of the card: contact, add to a list. */
   readonly children?: React.ReactNode;
+  /** The instant the 30-day freshness rule is read at; the request time by default. */
+  readonly now?: Date;
 }
 
 const MAX_SKILLS = 6;
 
-/** The availability the freelancer declared, with the day they last confirmed it. */
-function Availability({ lang, m, card }: Omit<ProfileResultCardProps, "children">) {
+/**
+ * The availability the freelancer declared, with the day they last confirmed it. Past 30 days without a confirmation it
+ * reads "not confirmed" (the database rule, `shownAvailability`), never "available"; the profile itself stays listed.
+ */
+function Availability({ lang, m, card, now = new Date() }: Omit<ProfileResultCardProps, "children">) {
   const c = m.discovery.card;
-  const [tone, text] =
-    card.availability === "available"
-      ? ["now", c.available]
-      : card.availability === "available_from" && card.availableFrom !== null
-        ? ["later", c.from(day(card.availableFrom, lang))]
-        : ["off", c.unavailable];
+  const { shown, tone } = availabilityDisplay(card.availability, card.availabilityAt, now);
+  const text =
+    shown === "unconfirmed"
+      ? c.unconfirmed
+      : shown === "available"
+        ? c.available
+        : shown === "available_from" && card.availableFrom !== null
+          ? c.from(day(card.availableFrom, lang))
+          : c.unavailable;
+  const when = day(card.availabilityAt, lang);
   return (
     <p className="avail">
       <span className={`badge ${tone}`}>
         <i aria-hidden="true" />
         {text}
       </span>
-      <span className="pc-ref">{c.confirmed(day(card.availabilityAt, lang))}</span>
+      <span className="pc-ref">{shown === "unconfirmed" ? c.lastConfirmed(when) : c.confirmed(when)}</span>
     </p>
   );
 }
@@ -50,7 +60,7 @@ const verifiedBadges = (card: ProfileCard, m: MarketDictionary): readonly string
  * One freelancer in the company search, by public facts only: name and photo for a named profile, the reference and a
  * monogram otherwise. The number of verified facts is a count of named facts listed right under it, never a score.
  */
-export function ProfileResultCard({ lang, m, card, children }: ProfileResultCardProps) {
+export function ProfileResultCard({ lang, m, card, children, now }: ProfileResultCardProps) {
   const c = m.discovery.card;
   const title = card.displayName ?? m.search.card.pseudonym(card.reference);
   const headingId = `card-${card.id}`;
@@ -72,7 +82,7 @@ export function ProfileResultCard({ lang, m, card, children }: ProfileResultCard
           </p>
         </div>
       </div>
-      <Availability lang={lang} m={m} card={card} />
+      <Availability lang={lang} m={m} card={card} {...(now === undefined ? {} : { now })} />
       {card.headline === null ? null : <p className="pc-headline">{card.headline}</p>}
       <p className="pc-meta">
         <span>{m.missions.workModes[card.workMode]}</span>

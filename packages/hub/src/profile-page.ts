@@ -25,7 +25,11 @@ export interface PublicProfile {
   readonly summary: string;
   readonly city: string;
   readonly workMode: "onsite" | "hybrid" | "remote";
-  readonly availability: "available" | "available_from" | "unavailable";
+  /**
+   * La disponibilité affichée. « unconfirmed » : déclarée il y a plus de 30 jours sans confirmation (règle de la base,
+   * C23) ; la page le dit au lieu d'annoncer « disponible », et le profil reste publié.
+   */
+  readonly availability: "available" | "available_from" | "unavailable" | "unconfirmed";
   readonly availableFrom: Date | null;
   readonly dailyRateCents: number | null;
   readonly currency: string;
@@ -63,6 +67,7 @@ const LABELS = {
     available: "Disponible",
     availableFrom: (d: string) => `Disponible à partir du ${d}`,
     unavailable: "Indisponible",
+    unconfirmed: "Disponibilité non confirmée",
     rate: "TJM",
     notGiven: "Non affiché",
     perDay: "/ jour",
@@ -86,6 +91,7 @@ const LABELS = {
       kind === "client_confirmation" ? (contact ? `Confirmée par un contact chez le client le ${d}` : `Confirmée par le client le ${d}`) : kind === "paid_on_platform" ? `Payée sur Proofseen, vérifiée le ${d}` : `Vérifiée le ${d}`,
     pseudonym: (ref: string) => `Freelance ${ref}`,
     confirmed: "Disponibilité confirmée le",
+    lastConfirmed: "Dernière confirmation le",
     photo: (name: string) => `Photo de ${name}`,
   },
   en: {
@@ -93,6 +99,7 @@ const LABELS = {
     available: "Available",
     availableFrom: (d: string) => `Available from ${d}`,
     unavailable: "Unavailable",
+    unconfirmed: "Availability not confirmed",
     rate: "Day rate",
     notGiven: "Not shown",
     perDay: "/ day",
@@ -116,6 +123,7 @@ const LABELS = {
       kind === "client_confirmation" ? (contact ? `Confirmed by a contact at the client on ${d}` : `Confirmed by the client on ${d}`) : kind === "paid_on_platform" ? `Paid on Proofseen, verified on ${d}` : `Verified on ${d}`,
     pseudonym: (ref: string) => `Freelancer ${ref}`,
     confirmed: "Availability confirmed on",
+    lastConfirmed: "Last confirmed on",
     photo: (name: string) => `Photo of ${name}`,
   },
 } as const;
@@ -140,6 +148,15 @@ const missionItem = (m: PublicProfile["missions"][number], lang: Lang): string =
   const how = m.evidenceKind in l.evidenceKinds ? ` · ${l.evidence} : ${e(pick(l.evidenceKinds, m.evidenceKind))}` : "";
   const summary = m.summary.trim() === "" ? "" : `<p>${e(m.summary)}</p>`;
   return `<li class="card"><h3>${e(m.role)}</h3><p class="when">${e(client)} · ${e(l.months(m.durationMonths))} · ${e(l.verifiedOn(m.evidenceKind, date(m.verifiedAt, lang), m.confirmedBy === "contact"))}${how}</p>${summary}</li>`;
+};
+
+/** La disponibilité en toutes lettres ; jamais « disponible » pour une déclaration que la personne n'a pas reconfirmée. */
+export const availabilityLabel = (p: Pick<PublicProfile, "availability" | "availableFrom">, lang: Lang): string => {
+  const l = LABELS[lang];
+  if (p.availability === "available") return l.available;
+  if (p.availability === "unavailable") return l.unavailable;
+  if (p.availability === "unconfirmed") return l.unconfirmed;
+  return l.availableFrom(p.availableFrom === null ? "" : date(p.availableFrom, lang));
 };
 
 /** Le nom sous lequel la page désigne la personne : son nom si elle l'a choisi, sa référence sinon. */
@@ -171,13 +188,13 @@ export const renderProfilePage = (
   const l = LABELS[o.lang];
   const other: Lang = o.lang === "fr" ? "en" : "fr";
   const name = profileName(p, o.lang);
-  const availability =
-    p.availability === "available" ? l.available : p.availability === "unavailable" ? l.unavailable : l.availableFrom(p.availableFrom === null ? "" : date(p.availableFrom, o.lang));
+  const availability = availabilityLabel(p, o.lang);
+  const confirmedLabel = p.availability === "unconfirmed" ? l.lastConfirmed : l.confirmed;
   const context = [
     [l.rate, p.dailyRateCents === null ? l.notGiven : `${money(p.dailyRateCents, p.currency, o.lang)} ${l.perDay}`],
     [o.lang === "fr" ? "Lieu" : "Location", `${p.city} · ${l.modes[p.workMode]}`],
     [o.lang === "fr" ? "Disponibilité" : "Availability", availability],
-    ...(p.availabilityConfirmedAt === undefined || p.availabilityConfirmedAt === null ? [] : [[l.confirmed, date(p.availabilityConfirmedAt, o.lang)]]),
+    ...(p.availabilityConfirmedAt === undefined || p.availabilityConfirmedAt === null ? [] : [[confirmedLabel, date(p.availabilityConfirmedAt, o.lang)]]),
   ]
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");

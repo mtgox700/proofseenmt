@@ -1,3 +1,4 @@
+import { shownAvailability, type ShownAvailability } from "./availability";
 import type { Db } from "./client";
 import { containsContact } from "./contact-detection";
 import { directoryPage, type DirectoryCard, type DirectorySearch } from "./public-directory";
@@ -11,7 +12,7 @@ const vigilanceShown = (v: { readonly issuedOn: Date; readonly verifiedAt: Date 
   const until = vigilanceExpiresOn(v.issuedOn);
   return until.getTime() > now.getTime() ? until : null;
 };
-import type { AvailabilityStatus, ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
+import type { ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
 import { LISTED_PROFILE } from "./public-visibility";
 
 /*
@@ -53,7 +54,8 @@ export interface PublicProfilePage {
   readonly summary: string;
   readonly city: string;
   readonly workMode: WorkMode;
-  readonly availability: AvailabilityStatus;
+  /** La disponibilité affichée : « non confirmée » au-delà de 30 jours sans confirmation (availability.ts). */
+  readonly availability: ShownAvailability;
   readonly availableFrom: Date | null;
   readonly dailyRateCents: number | null;
   readonly currency: string;
@@ -142,7 +144,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       summary: row.summary,
       city: row.city,
       workMode: row.workMode,
-      availability: row.availability,
+      availability: shownAvailability(row.availability, row.availabilityAt, now),
       availableFrom: row.availableFrom,
       dailyRateCents: row.dailyRateCents,
       currency: row.currency,

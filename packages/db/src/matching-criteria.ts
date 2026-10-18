@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AVAILABILITY_FRESH_DAYS, isAvailabilityFresh } from "./availability";
 import type { AvailabilityStatus, WorkMode } from "./generated/enums";
 
 /*
@@ -86,8 +87,8 @@ export interface MatchProfile {
 }
 
 const DAY_MS = 86_400_000;
-/** Une disponibilité déclarée il y a plus de 30 jours n'est plus tenue pour vraie (même règle que la recherche). */
-export const MATCH_FRESH_DAYS = 30;
+/** Une disponibilité déclarée il y a plus de 30 jours n'est plus tenue pour vraie : la règle de `availability.ts`, la même que la recherche. */
+export const MATCH_FRESH_DAYS = AVAILABILITY_FRESH_DAYS;
 /**
  * Une mission n'a pas de date de début en base : elle est ouverte maintenant. Un profil est « disponible » pour elle
  * s'il l'est déjà, ou à partir d'une date dans les 30 jours.
@@ -148,8 +149,7 @@ const ratesClose = (a: number | null, b: number | null): Outcome => {
 };
 
 const availabilityOutcome = (p: MatchProfile, now: Date): Outcome => {
-  const fresh = p.availabilityAt.getTime() >= now.getTime() - MATCH_FRESH_DAYS * DAY_MS;
-  if (!fresh || p.availability === "unavailable") return "missing";
+  if (!isAvailabilityFresh(p.availabilityAt, now) || p.availability === "unavailable") return "missing";
   if (p.availability === "available") return { kind: "availability", from: null };
   if (p.availableFrom === null || p.availableFrom.getTime() > now.getTime() + AVAILABILITY_WINDOW_DAYS * DAY_MS) return "missing";
   return { kind: "availability", from: p.availableFrom };

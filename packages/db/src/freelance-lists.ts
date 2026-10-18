@@ -62,6 +62,8 @@ export interface ListedProfile {
   readonly currency: string;
   readonly availability: AvailabilityStatus | null;
   readonly availableFrom: Date | null;
+  /** Dernière confirmation de la disponibilité : au-delà de 30 jours, l'écran l'affiche « non confirmée » (C23). */
+  readonly availabilityAt: Date | null;
   readonly skills: readonly string[];
   readonly note: string | null;
   readonly addedByName: string | null;
@@ -112,6 +114,7 @@ const ITEM_SELECT = {
       currency: true,
       availability: true,
       availableFrom: true,
+      availabilityAt: true,
       moderatedAt: true,
       user: { select: { displayName: true, suspendedAt: true } },
       skills: { select: { skill: { select: { label: true } } } },
@@ -143,6 +146,7 @@ const toListed = (row: ItemRow, userId: string): ListedProfile => {
     currency: p.currency,
     availability: published ? p.availability : null,
     availableFrom: published ? p.availableFrom : null,
+    availabilityAt: published ? p.availabilityAt : null,
     skills: published ? p.skills.map((s) => s.skill.label).sort((a, b) => a.localeCompare(b, "fr")) : [],
     note: row.note,
     addedByName: row.addedBy?.displayName ?? null,

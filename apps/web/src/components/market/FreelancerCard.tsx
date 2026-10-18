@@ -2,6 +2,7 @@ import type { AvailabilityStatus, LanguageLevelValue, WorkMode } from "@proofsee
 import { languageName } from "@proofseen/hub";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
+import { availabilityDisplay } from "@/lib/availability-display";
 import { date, day, money } from "@/lib/format";
 
 /** The public facts a card shows, from a search result or a list line. Never a note, a score or a rank. */
@@ -16,6 +17,8 @@ export interface CardFacts {
   readonly currency: string;
   readonly availability: AvailabilityStatus | null;
   readonly availableFrom: Date | null;
+  /** Last confirmation of the availability; past 30 days the card reads "not confirmed" (C23). */
+  readonly availabilityAt?: Date | null;
   readonly skills: readonly string[];
   readonly verifiedUrls?: number;
   readonly verifiedMissions?: number;
@@ -33,19 +36,23 @@ interface FreelancerCardProps {
   readonly headingId: string;
   /** Actions under the facts: add to a list, note, thumbs. */
   readonly children?: React.ReactNode;
+  /** The instant the 30-day freshness rule is read at; the request time by default. */
+  readonly now?: Date;
 }
 
-const availabilityText = (facts: CardFacts, m: MarketDictionary, lang: Lang): string | null => {
+const availabilityText = (facts: CardFacts, m: MarketDictionary, lang: Lang, now: Date): string | null => {
   if (facts.availability === null) return null;
+  const confirmedAt = facts.availabilityAt ?? null;
+  if (confirmedAt !== null && availabilityDisplay(facts.availability, confirmedAt, now).shown === "unconfirmed") return m.discovery.card.unconfirmed;
   if (facts.availability === "available_from" && facts.availableFrom !== null) return m.search.card.availableFrom(date(facts.availableFrom.toISOString(), lang));
   return m.profile.availabilities[facts.availability];
 };
 
 /** One freelancer, by public facts: the name only for a named profile, the reference otherwise. */
-export function FreelancerCard({ lang, m, facts, headingId, children }: FreelancerCardProps) {
+export function FreelancerCard({ lang, m, facts, headingId, children, now = new Date() }: FreelancerCardProps) {
   const c = m.search.card;
   const title = facts.displayName ?? c.pseudonym(facts.reference);
-  const availability = availabilityText(facts, m, lang);
+  const availability = availabilityText(facts, m, lang, now);
   const verified = [
     ...(facts.verifiedUrls === undefined || facts.verifiedUrls === 0 ? [] : [c.proven(facts.verifiedUrls)]),
     ...(facts.verifiedMissions === undefined || facts.verifiedMissions === 0 ? [] : [c.missions(facts.verifiedMissions)]),

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
-import type { AvailabilityStatus, LanguageLevel, WorkMode } from "./generated/enums";
+import { shownAvailability, type ShownAvailability } from "./availability";
+import type { LanguageLevel, WorkMode } from "./generated/enums";
 import { jobTitleByKey } from "./job-titles";
 import { searchProfiles, type ProfileCard } from "./profile-search";
 
@@ -48,7 +49,8 @@ export interface DirectoryCard {
   readonly workMode: WorkMode;
   readonly dailyRateCents: number | null;
   readonly currency: string;
-  readonly availability: AvailabilityStatus;
+  /** La disponibilité affichée : « non confirmée » au-delà de 30 jours sans confirmation (availability.ts). */
+  readonly availability: ShownAvailability;
   readonly availableFrom: Date | null;
   readonly availabilityAt: Date;
   readonly skills: readonly string[];
@@ -64,7 +66,7 @@ export interface DirectoryCard {
   readonly updatedAt: Date;
 }
 
-const toDirectoryCard = (c: ProfileCard): DirectoryCard[] =>
+const toDirectoryCard = (c: ProfileCard, now: Date): DirectoryCard[] =>
   c.slug === null || c.headline === null || c.city === null
     ? []
     : [
@@ -78,7 +80,7 @@ const toDirectoryCard = (c: ProfileCard): DirectoryCard[] =>
           workMode: c.workMode,
           dailyRateCents: c.dailyRateCents,
           currency: c.currency,
-          availability: c.availability,
+          availability: shownAvailability(c.availability, c.availabilityAt, now),
           availableFrom: c.availableFrom,
           availabilityAt: c.availabilityAt,
           skills: c.skills,
@@ -116,5 +118,5 @@ export const directoryPage = async (db: Db, search: DirectorySearch, now: Date):
     },
     now,
   );
-  return { items: page.items.flatMap(toDirectoryCard), hasMore: page.hasMore };
+  return { items: page.items.flatMap((c) => toDirectoryCard(c, now)), hasMore: page.hasMore };
 };

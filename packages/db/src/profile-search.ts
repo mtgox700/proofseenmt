@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { availabilityFreshSince } from "./availability";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { LanguageLevel } from "./generated/enums";
@@ -26,11 +27,9 @@ const MAX_RATE_CENTS = 10_000_000;
 /**
  * Une disponibilité déclarée ou confirmée il y a plus de 30 jours n'est plus tenue pour vraie : les filtres de
  * disponibilité ne retiennent pas le profil (l'écran de recherche le dit). Le profil reste trouvable sans ces filtres.
+ * La règle et son seuil vivent dans `availability.ts`, la seule source (C23).
  */
-export const AVAILABILITY_FRESH_DAYS = 30;
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-export const availabilityFreshSince = (now: Date): Date => new Date(now.getTime() - AVAILABILITY_FRESH_DAYS * DAY_MS);
+export { AVAILABILITY_FRESH_DAYS, availabilityFreshSince } from "./availability";
 
 /** C22 : « nombre de faits vérifiés » s'ajoute, un compte de faits nommés que chaque carte affiche (voir profile-search-ids). */
 export const PROFILE_SORTS = ["recent", "rate_asc", "rate_desc", "availability", "verified_facts"] as const;

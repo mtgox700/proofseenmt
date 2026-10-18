@@ -41,6 +41,21 @@ describe("page publique d'un profil", () => {
   });
 
 
+  it("dit « disponibilité non confirmée » après 30 jours, jamais « disponible », sans masquer le profil (C23)", () => {
+    const confirmedAt = new Date("2026-09-01T00:00:00Z");
+    const html = renderProfilePage({ ...PROFILE, availability: "unconfirmed", availabilityConfirmedAt: confirmedAt }, OPTIONS);
+    expect(html).toContain("<dt>Disponibilité</dt><dd>Disponibilité non confirmée</dd>");
+    expect(html).toContain("<dt>Dernière confirmation le</dt><dd>1 septembre 2026</dd>");
+    expect(html).toContain('content="Développeuse Rust · Lyon · Disponibilité non confirmée"');
+    expect(html).not.toMatch(/<dd>Disponible/);
+    expect(html).toContain("Lead Rust");
+    // Les données structurées n'affirment aucune disponibilité.
+    expect(JSON.stringify(jsonLdOf(html))).not.toMatch(/availab|disponib/i);
+    const en = renderProfilePage({ ...PROFILE, availability: "unconfirmed", availabilityConfirmedAt: confirmedAt }, { ...OPTIONS, lang: "en" });
+    expect(en).toContain("<dd>Availability not confirmed</dd>");
+    expect(renderProfilePage({ ...PROFILE, availabilityConfirmedAt: confirmedAt }, OPTIONS)).toContain("<dt>Disponibilité confirmée le</dt>");
+  });
+
   it("se lit sans JavaScript et porte des faits vérifiés", () => {
     const html = renderProfilePage(PROFILE, OPTIONS);
     expect(html.match(/<script/g)).toHaveLength(1);
