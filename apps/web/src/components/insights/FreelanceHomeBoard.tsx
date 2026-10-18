@@ -9,6 +9,7 @@ import { marketDictionary } from "@/i18n/market";
 import { pageMarket } from "@/lib/market";
 import { AiCitations } from "./AiCitations";
 import { AudienceSection } from "./AudienceSection";
+import { AvailabilityCheck } from "./AvailabilityCheck";
 import { CountsTable, statusRows } from "./CountsTable";
 import { FreelanceMoney } from "./FreelanceMoney";
 import { StageBlock } from "./StageBlock";
@@ -28,17 +29,19 @@ export async function FreelanceHomeBoard({ lang }: { readonly lang: Lang }) {
   const d = dict.insights;
   const market = await pageMarket(lang, ["freelance"]);
   if (market === "unconfigured") return null;
+  const now = new Date();
   const [profile, board, invitations, saved, insights, waves] = await Promise.all([
     profiles(market.db).findMine(market.actor),
     dashboards(market.db).freelance(market.actor),
     missionInvitations(market.db).countPending(market.actor),
     savedMissions(market.db).countOpen(market.actor),
-    freelanceInsights(market.db).forFreelance(market.actor, new Date()),
+    freelanceInsights(market.db).forFreelance(market.actor, now),
     visibility(market.db).mine(market.actor, CITATION_WAVES),
   ]);
   return (
     <>
-      <StageBlock lang={lang} d={d} board={board} />
+      <StageBlock lang={lang} d={d} p={p} board={board} />
+      <AvailabilityCheck lang={lang} d={d} board={board} now={now} />
       <section className="panel" aria-labelledby="market-title">
         <h2 id="market-title">{p.homeTitle}</h2>
         {profile === null ? (

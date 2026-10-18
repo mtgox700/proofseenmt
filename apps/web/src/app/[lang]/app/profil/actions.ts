@@ -6,6 +6,7 @@ import { profiles } from "@proofseen/db";
 import { newReference } from "@proofseen/intake";
 import { notifyProfileChanged } from "@/data/indexnow";
 import { throttled } from "@/data/throttle";
+import { homeNoticeHref, returnsHome } from "@/lib/home-notice";
 import { actionMarket, langOf } from "@/lib/market";
 import { profileFromForm } from "@/lib/profile-form";
 
@@ -51,6 +52,8 @@ export async function setProfileVisibility(formData: FormData): Promise<void> {
     // Withdrawn pages are announced too: the engines come back and find them gone.
     const slug = result.profile.slug ?? before?.slug ?? null;
     if (slug !== null) notifyProfileChanged(slug);
+    // The guided publication on the home (C23) sends the same form: the person lands back home, published.
+    if (visibility !== "private" && returnsHome(formData)) redirect(homeNoticeHref(lang, "publie"));
   }
   redirect(page(lang, ""));
 }

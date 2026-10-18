@@ -7,15 +7,30 @@ const plural = (n: number, one: string, many: string): string => `${n} ${n > 1 ?
 export const insightsFr = {
   stage: {
     titles: { arrival: "Votre arrivée", applying: "Vos candidatures", mission: "Votre mission" },
-    arrivalLead: "Quatre étapes pour qu'une entreprise, ou un moteur d'IA, puisse vous trouver et vous croire.",
+    arrivalLead: "Ce qu'il reste à faire pour qu'une entreprise, ou un moteur d'IA, puisse vous trouver et vous croire, dans l'ordre.",
     steps: {
       create: "Créer votre profil",
-      complete: "Renseigner le titre, le résumé et la ville",
+      headline: "Écrire votre titre (votre métier et votre spécialité)",
+      summary: "Écrire votre résumé",
+      city: "Indiquer votre ville",
       publish: "Publier le profil",
       prove: "Prouver qu'une adresse en ligne est à vous",
     },
     done: "Fait",
     todo: "À faire",
+    next: "Prochaine étape",
+    publishLead: "Tout ce qu'il faut pour publier est renseigné. Choisissez comment : rien n'est publié sans votre clic.",
+    published: "Profil publié.",
+    availability: {
+      title: "Votre disponibilité est-elle toujours à jour ?",
+      lead: (day: string) => `Dernière confirmation le ${day}. Passé 30 jours sans confirmation, votre profil reste visible, mais votre disponibilité s'affiche « non confirmée ».`,
+      stillAvailable: "Toujours disponible",
+      stillRight: "Ma disponibilité est toujours à jour",
+      notAvailable: "Je ne suis plus disponible",
+      edit: "Changer la date ou le statut",
+      confirmed: "Disponibilité confirmée.",
+      unavailable: "C'est noté : votre profil indique que vous n'êtes pas disponible.",
+    },
     applyingLead: (count: number) =>
       count === 0 ? "Aucune candidature n'attend de réponse." : `${plural(count, "candidature attend", "candidatures attendent")} la réponse de l'entreprise.`,
     applyingAction: "Voir vos candidatures",

@@ -379,14 +379,14 @@ export const fr = {
       } as Record<string, string>,
     },
     freelance: {
-      title: (name: string) => `Bonjour, ${name}.`,
+      title: (name: string | null) => (name === null ? "Bonjour." : `Bonjour, ${name}.`),
       noFileTitle: "Aucun dossier n'est encore relié à ce compte.",
       noFileText: "Ouvrez votre dossier avec la même adresse e-mail que ce compte : il sera relié automatiquement.",
       openFile: "Ouvrir mon dossier",
       demo: "Voir un exemple de rapport",
     },
     company: {
-      title: (name: string) => `Bonjour, ${name}.`,
+      title: (name: string | null) => (name === null ? "Bonjour." : `Bonjour, ${name}.`),
       lead: "Cherchez des profils vérifiés. Toute prise de contact passe par Proofseen, et l'identité n'est révélée qu'avec l'accord du freelance.",
       search: "Rechercher dans l'annuaire",
     },

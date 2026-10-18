@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Db } from "./client";
-import type { ApplicationStatus, ContractStatus, JobPostStatus } from "./generated/enums";
+import type { ApplicationStatus, AvailabilityStatus, ContractStatus, JobPostStatus } from "./generated/enums";
 import { vatOf } from "./invoices";
 import type { Actor } from "./messaging";
 import { REQUIRED_TO_PUBLISH } from "./profiles";
@@ -17,7 +17,16 @@ import { SETTLED_PAYMENT } from "./reviews";
 type Counts<K extends string> = Readonly<Partial<Record<K, number>>>;
 
 export interface FreelanceDashboard {
-  readonly profile: { readonly published: boolean; readonly missing: readonly string[]; readonly verifiedUrls: number; readonly verifiedMissions: number } | null;
+  readonly profile: {
+    readonly published: boolean;
+    /** Ce qui manque pour publier, dans l'ordre de REQUIRED_TO_PUBLISH : le parcours guidé l'affiche tel quel (C23). */
+    readonly missing: readonly string[];
+    readonly verifiedUrls: number;
+    readonly verifiedMissions: number;
+    /** La disponibilité déclarée et sa dernière confirmation, pour la demande de reconfirmation de l'accueil (C23). */
+    readonly availability: AvailabilityStatus;
+    readonly availabilityAt: Date;
+  } | null;
   readonly applications: Counts<ApplicationStatus>;
   readonly contracts: Counts<ContractStatus>;
   readonly money: { readonly currency: string; readonly receivedCents: number; readonly heldCents: number } | null;
@@ -62,6 +71,8 @@ export const dashboards = (db: Db): Dashboards => ({
         headline: true,
         summary: true,
         city: true,
+        availability: true,
+        availabilityAt: true,
         _count: { select: { ownedUrls: { where: { verifiedAt: { not: null } } }, missions: true, reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } } } } },
       },
     });
@@ -82,6 +93,8 @@ export const dashboards = (db: Db): Dashboards => ({
         missing: REQUIRED_TO_PUBLISH.filter((field) => profile[field] === null),
         verifiedUrls: profile._count.ownedUrls,
         verifiedMissions: profile._count.missions,
+        availability: profile.availability,
+        availabilityAt: profile.availabilityAt,
       },
       applications: countBy(applications),
       contracts: countBy(contracts),

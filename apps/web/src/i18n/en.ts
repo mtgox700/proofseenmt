@@ -375,14 +375,14 @@ export const en: Dictionary = {
       } as Record<string, string>,
     },
     freelance: {
-      title: (name: string) => `Hello, ${name}.`,
+      title: (name: string | null) => (name === null ? "Hello." : `Hello, ${name}.`),
       noFileTitle: "No file is linked to this account yet.",
       noFileText: "Open your file with the same email address as this account: it will be linked automatically.",
       openFile: "Open my file",
       demo: "See a sample report",
     },
     company: {
-      title: (name: string) => `Hello, ${name}.`,
+      title: (name: string | null) => (name === null ? "Hello." : `Hello, ${name}.`),
       lead: "Search verified profiles. Every contact goes through Proofseen, and the identity is only shared once the freelancer agrees.",
       search: "Search the directory",
     },

@@ -11,7 +11,10 @@ import { isChosenRole, operatorEmails, resolveRole, verifiedEmails, type ChosenR
 
 export interface Person {
   readonly id: string;
+  /** Full name, or the address when the account has no name: what the database keeps as the display name. */
   readonly name: string;
+  /** The first name alone, `null` without one: what the dashboard greets by (C23), never the address. */
+  readonly firstName: string | null;
   readonly email: string;
   /** Whether Clerk has verified the primary address: only then may a database row found by that address be relinked. */
   readonly emailVerified: boolean;
@@ -34,6 +37,7 @@ export const session = async (): Promise<SessionState> => {
     person: {
       id: user.id,
       name: [user.firstName, user.lastName].filter(Boolean).join(" ") || primary,
+      firstName: user.firstName?.trim() || null,
       email: primary,
       emailVerified: primaryAddress?.verification?.status === "verified",
       role: resolveRole({ emails: verifiedEmails(user.emailAddresses), stored: user.publicMetadata.role }, operatorEmails(process.env.OPERATOR_EMAILS)),

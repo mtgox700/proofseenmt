@@ -8,6 +8,8 @@ import { getClientSource } from "@/data/client-source";
 import { operatorOverview, referenceForEmail } from "@/data/operator-source";
 import { dictionary, isLang, type Dictionary, type Lang } from "@/i18n";
 import { date } from "@/lib/format";
+import { greetingName } from "@/lib/greeting";
+import { readHomeNotice, type HomeNotice } from "@/lib/home-notice";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { CompanyHomeBoard } from "@/components/insights/CompanyHomeBoard";
@@ -22,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; avis?: string }>;
 }
 
 const KINDS = ["startup", "scaleup", "pme", "eti", "grand_groupe", "esn", "editeur_logiciel", "secteur_public", "association"] as const;
@@ -138,14 +140,27 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
   );
 }
 
-async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person }) {
+/** The sentence after a one-click action of the home (publish, availability), from a known code only. */
+function HomeNoticeLine({ lang, notice }: { readonly lang: Lang; readonly notice: HomeNotice | null }) {
+  if (notice === null) return null;
+  const s = marketDictionary(lang).insights.stage;
+  const text = notice === "publie" ? s.published : notice === "dispo-confirmee" ? s.availability.confirmed : s.availability.unavailable;
+  return (
+    <p className="form-ok" role="status">
+      {text}
+    </p>
+  );
+}
+
+async function FreelanceHome({ lang, t, person, notice }: { readonly lang: Lang; readonly t: Dictionary; readonly person: Person; readonly notice: HomeNotice | null }) {
   const f = t.app.freelance;
   const reference = await referenceForEmail(person.email);
   const view = reference === null ? null : await getClientSource().view(reference);
   return (
     <>
       <header className="app-head">
-        <h1>{f.title(view?.displayName ?? person.name)}</h1>
+        {/* The first name, else the display name, else a neutral greeting: never the e-mail address (C23). */}
+        <h1>{f.title(greetingName({ firstName: person.firstName, displayName: view?.displayName ?? person.name }))}</h1>
         {view === null ? null : (
           <dl className="meta-strip">
             <div>
@@ -167,6 +182,7 @@ async function FreelanceHome({ lang, t, person }: { readonly lang: Lang; readonl
           </dl>
         )}
       </header>
+      <HomeNoticeLine lang={lang} notice={notice} />
       <FreelanceHomeBoard lang={lang} />
       <FreelanceMissionsForYou lang={lang} />
       {view === null ? (
@@ -235,7 +251,7 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
   return (
     <>
       <header className="app-head">
-        <h1>{c.title(person.name)}</h1>
+        <h1>{c.title(greetingName({ firstName: person.firstName, displayName: person.name }))}</h1>
         {organisation === null ? null : (
           <p className="org-card">
             <strong>{organisation.name}</strong>
@@ -272,6 +288,7 @@ export default async function AppHome({ params, searchParams }: PageProps) {
   const person = await requirePerson(lang);
   if (person === null) return null;
   if (person.role === "operator") return <OperatorHome lang={lang} t={t} />;
-  if (person.role === "company") return <CompanyHome lang={lang} t={t} person={person} error={(await searchParams).erreur} />;
-  return <FreelanceHome lang={lang} t={t} person={person} />;
+  const query = await searchParams;
+  if (person.role === "company") return <CompanyHome lang={lang} t={t} person={person} error={query.erreur} />;
+  return <FreelanceHome lang={lang} t={t} person={person} notice={readHomeNotice(query.avis)} />;
 }

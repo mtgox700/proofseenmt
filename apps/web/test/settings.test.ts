@@ -4,7 +4,7 @@ import { insightsEn } from "../src/i18n/market/insights-en";
 import { insightsFr } from "../src/i18n/market/insights-fr";
 import { settingsEn } from "../src/i18n/market/settings-en";
 import { settingsFr } from "../src/i18n/market/settings-fr";
-import { applicationsInProgress, arrivalSteps, freelanceStage } from "../src/lib/freelance-stage";
+import { applicationsInProgress, ARRIVAL_STEP_KEYS, arrivalSteps, availabilityCheckDue, freelanceStage, nextArrivalStep, readyToPublish } from "../src/lib/freelance-stage";
 import { confirmationMatches, ERASE_WORDS, eraseOutcome, pickOrganisation } from "../src/lib/settings";
 
 describe("pickOrganisation", () => {
@@ -55,8 +55,12 @@ describe("erasure confirmation", () => {
   });
 });
 
+const NOW = new Date("2026-11-20T09:00:00Z");
+const DAY_MS = 86_400_000;
+const facts = { verifiedUrls: 0, verifiedMissions: 0, availability: "available" as const, availabilityAt: NOW };
+
 const board = (over: Partial<FreelanceDashboard> = {}): FreelanceDashboard => ({
-  profile: { published: true, missing: [], verifiedUrls: 1, verifiedMissions: 0 },
+  profile: { ...facts, published: true, missing: [], verifiedUrls: 1 },
   applications: {},
   contracts: {},
   money: null,
@@ -68,20 +72,49 @@ const board = (over: Partial<FreelanceDashboard> = {}): FreelanceDashboard => ({
 describe("freelanceStage", () => {
   it("is arrival until the profile is published, then applying, then mission once a contract is under way", () => {
     expect(freelanceStage(board({ profile: null }))).toBe("arrival");
-    expect(freelanceStage(board({ profile: { published: false, missing: ["summary"], verifiedUrls: 0, verifiedMissions: 0 } }))).toBe("arrival");
+    expect(freelanceStage(board({ profile: { ...facts, published: false, missing: ["summary"] } }))).toBe("arrival");
     expect(freelanceStage(board({ applications: { submitted: 2 } }))).toBe("applying");
     expect(freelanceStage(board({ contracts: { pending_signatures: 1 } }))).toBe("mission");
     expect(freelanceStage(board({ contracts: { completed: 3 } }))).toBe("applying");
   });
 
-  it("lists the arrival steps in order, each done or to do", () => {
+  it("lists what is missing to publish, field by field and in order, then publishing, then a proven address", () => {
     expect(arrivalSteps(board({ profile: null })).map((s) => [s.key, s.done])).toEqual([
       ["create", false],
-      ["complete", false],
+      ["headline", false],
+      ["summary", false],
+      ["city", false],
       ["publish", false],
       ["prove", false],
     ]);
-    expect(arrivalSteps(board({ profile: { published: false, missing: [], verifiedUrls: 0, verifiedMissions: 0 } })).map((s) => s.done)).toEqual([true, true, false, false]);
+    const halfway = arrivalSteps(board({ profile: { ...facts, published: false, missing: ["summary", "city"] } }));
+    expect(halfway.map((s) => s.done)).toEqual([true, true, false, false, false, false]);
+    expect(nextArrivalStep(halfway)).toEqual({ key: "summary", done: false, path: "profil#summary" });
+    // Each step to do links to the exact field of the profile form.
+    expect(halfway.map((s) => s.path)).toEqual(["profil", "profil#headline", "profil#summary", "profil#city", "profil#publication-title", "preuves"]);
+    expect(nextArrivalStep(arrivalSteps(board({ profile: { ...facts, published: false, missing: [] } })))?.key).toBe("publish");
+    expect(nextArrivalStep(arrivalSteps(board()))).toBeNull();
+  });
+
+  it("offers the one-click publish only once everything is filled in and the profile is still private", () => {
+    expect(readyToPublish(board({ profile: null }))).toBe(false);
+    expect(readyToPublish(board({ profile: { ...facts, published: false, missing: ["city"] } }))).toBe(false);
+    expect(readyToPublish(board({ profile: { ...facts, published: false, missing: [] } }))).toBe(true);
+    expect(readyToPublish(board())).toBe(false);
+  });
+
+  it("asks a published freelancer to reconfirm an availability 14 days old, never a private or unavailable one", () => {
+    const at = (days: number) => new Date(NOW.getTime() - days * DAY_MS);
+    expect(availabilityCheckDue(board({ profile: { ...facts, published: true, missing: [], availabilityAt: at(13) } }), NOW)).toBe(false);
+    expect(availabilityCheckDue(board({ profile: { ...facts, published: true, missing: [], availabilityAt: at(14) } }), NOW)).toBe(true);
+    expect(availabilityCheckDue(board({ profile: { ...facts, published: false, missing: [], availabilityAt: at(40) } }), NOW)).toBe(false);
+    expect(availabilityCheckDue(board({ profile: { ...facts, published: true, missing: [], availability: "unavailable", availabilityAt: at(40) } }), NOW)).toBe(false);
+  });
+
+  it("names every guided step in both languages", () => {
+    for (const dictionary of [insightsFr, insightsEn]) {
+      for (const key of ARRIVAL_STEP_KEYS) expect(dictionary.stage.steps[key].length, key).toBeGreaterThan(5);
+    }
   });
 
   it("counts applications still waiting on a company", () => {
