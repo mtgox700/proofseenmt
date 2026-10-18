@@ -25,7 +25,7 @@ export default async function SuspendedPage({ params }: PageProps) {
   const state = await session();
   if (state.kind === "signed-out") redirect(`/${lang}/connexion`);
   if (state.kind !== "signed-in" || !hasDatabase() || state.person.email === "") redirect(`/${lang}/app`);
-  const { suspension } = await accountUsers(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  const { suspension } = await accountUsers(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name, emailVerified: state.person.emailVerified });
   if (suspension === null) redirect(`/${lang}/app`);
   const s = marketDictionary(lang).standing;
 

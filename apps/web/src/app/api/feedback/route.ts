@@ -28,7 +28,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const db = getDb();
     const userId =
       state.kind === "signed-in" && state.person.email !== ""
-        ? (await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name })).userId
+        ? (await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name, emailVerified: state.person.emailVerified })).userId
         : null;
     if (userId !== null && (await throttled("feedback-user", userId, RULE, now))) return fail("trop de demandes");
     await feedback(db).submit(userId, parsed.data);

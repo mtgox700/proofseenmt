@@ -23,7 +23,7 @@ export interface Market {
 
 /** The person as a database actor; a suspended account (C19) is sent to the page that says so, never further. */
 const actorOf = async (db: Db, person: Person, lang: Lang): Promise<Actor> => {
-  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name, emailVerified: person.emailVerified });
   stopIfSuspended(lang, suspension);
   return { userId };
 };

@@ -93,7 +93,7 @@ export const caller = async (options: { readonly allowSuspended?: boolean } = {}
   const state = await session();
   if (state.kind === "unconfigured") return { kind: "refused", response: fail("non-configuré") };
   if (state.kind === "signed-out" || state.person.email === "") return { kind: "refused", response: fail("non-connecté") };
-  const { userId, suspension } = await accountUsers(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+  const { userId, suspension } = await accountUsers(getDb()).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name, emailVerified: state.person.emailVerified });
   // A suspended account (C19) keeps no access to the connected API either.
   if (suspension !== null && options.allowSuspended !== true) return { kind: "refused", response: fail("compte suspendu") };
   return { kind: "actor", actor: { userId } };

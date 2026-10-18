@@ -24,7 +24,7 @@ export async function sendAppeal(_previous: AppealState, formData: FormData): Pr
   if (typeof body !== "string" || body.trim().length < 5 || body.trim().length > 2000) return { kind: "invalid" };
   try {
     const db = getDb();
-    const { userId } = await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name });
+    const { userId } = await accountUsers(db).ensure({ clerkId: state.person.id, email: state.person.email, displayName: state.person.name, emailVerified: state.person.emailVerified });
     if (await throttled("appeal", userId, RULE, new Date())) return { kind: "too_many" };
     const side = state.person.role === "freelance" || state.person.role === "company" ? state.person.role : "visitor";
     await feedback(db).submit(userId, { kind: "other", side, page: APPEAL_PAGE, body });

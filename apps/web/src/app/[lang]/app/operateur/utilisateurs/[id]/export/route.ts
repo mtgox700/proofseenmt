@@ -35,7 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ lan
   if (!reason.success) return new Response("Reason required", { status: 422 });
   try {
     const db = getDb();
-    const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+    const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name, emailVerified: person.emailVerified });
     if (suspension !== null) return notFound();
     if (await throttled("operator:export", userId, OPERATOR_ACTION_RULE, new Date())) return new Response("Too many requests", { status: 429 });
     const exported = await userDesk(db, { role: "operator", userId }).exportFor(id, reason.data, new Date());

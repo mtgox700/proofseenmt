@@ -22,7 +22,7 @@ export interface OperatorContext {
 
 const contextOf = async (person: Person): Promise<OperatorContext> => {
   const db = getDb();
-  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+  const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name, emailVerified: person.emailVerified });
   // An operator account suspended by another operator loses the back office too, including the power to lift it.
   if (suspension !== null) notFound();
   return { person, operator: { role: "operator", userId }, db };

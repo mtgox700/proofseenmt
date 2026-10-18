@@ -12,6 +12,8 @@ export const ClerkIdentitySchema = z.object({
   clerkId: z.string().min(1).max(100),
   email: z.email().max(254).transform((email) => email.toLowerCase()),
   displayName: z.string().trim().min(1).max(120),
+  /** Vrai seulement quand Clerk certifie l'adresse (code reçu) : c'est la condition pour rattacher une ligne existante. */
+  emailVerified: z.boolean().default(false),
 });
 
 export type ClerkIdentity = z.input<typeof ClerkIdentitySchema>;
@@ -70,7 +72,14 @@ const reapplySuspension = async (db: Db, userId: string, email: string, key: str
 
 export const users = (db: Db, options: UsersOptions = {}): Users => ({
   async ensure(identity) {
-    const { clerkId, email, displayName } = ClerkIdentitySchema.parse(identity);
+    const { clerkId, email, displayName, emailVerified } = ClerkIdentitySchema.parse(identity);
+    // Changement d'instance Clerk (développement → production, 2026-10-18) : la même personne revient avec un autre
+    // identifiant. Sa ligne est retrouvée par son adresse, seulement si Clerk la certifie : ajouter l'adresse d'un autre
+    // sans la confirmer ne rattache rien, et la contrainte d'unicité refuse alors la création.
+    if (emailVerified) {
+      const known = await db.user.findUnique({ where: { clerkId }, select: { id: true } });
+      if (known === null) await db.user.updateMany({ where: { email, NOT: { clerkId } }, data: { clerkId } });
+    }
     // Une seule instruction : deux onglets ouverts en même temps ne créent pas deux lignes.
     const { id, suspendedAt, suspensionReason, createdAt } = await db.user.upsert({
       where: { clerkId },

@@ -32,6 +32,23 @@ describe("ligne d'un compte de connexion", () => {
     expect(await users(t.db).idOfSignIn("clerk_retrouve")).toBe(recreated);
     expect(await users(t.db).idOfSignIn("")).toBeNull();
   });
+
+  it("rattache la ligne existante au nouvel identifiant quand l'instance Clerk change, si l'adresse est vérifiée", async () => {
+    const { userId } = await users(t.db).ensure({ clerkId: "clerk_ancienne_instance", email: "Fondateur@test.fr", displayName: "Fondateur" });
+    // Nouvelle instance Clerk : même personne, même adresse vérifiée, autre identifiant.
+    const { userId: same } = await users(t.db).ensure({ clerkId: "clerk_nouvelle_instance", email: "fondateur@test.fr", displayName: "Fondateur", emailVerified: true });
+    expect(same).toBe(userId);
+    expect(await users(t.db).idOfSignIn("clerk_nouvelle_instance")).toBe(userId);
+    expect(await users(t.db).idOfSignIn("clerk_ancienne_instance")).toBeNull();
+  });
+
+  it("ne rattache jamais une ligne à une adresse non vérifiée : personne ne prend le compte d'un autre en ajoutant son adresse", async () => {
+    const { userId } = await users(t.db).ensure({ clerkId: "clerk_titulaire", email: "titulaire@test.fr", displayName: "Titulaire" });
+    await expect(users(t.db).ensure({ clerkId: "clerk_intrus", email: "titulaire@test.fr", displayName: "Intrus" })).rejects.toThrow();
+    await expect(users(t.db).ensure({ clerkId: "clerk_intrus", email: "titulaire@test.fr", displayName: "Intrus", emailVerified: false })).rejects.toThrow();
+    expect(await users(t.db).idOfSignIn("clerk_titulaire")).toBe(userId);
+    expect(await users(t.db).idOfSignIn("clerk_intrus")).toBeNull();
+  });
 });
 
 describe("ancienneté d'un compte", () => {

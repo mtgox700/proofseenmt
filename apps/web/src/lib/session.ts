@@ -13,6 +13,8 @@ export interface Person {
   readonly id: string;
   readonly name: string;
   readonly email: string;
+  /** Whether Clerk has verified the primary address: only then may a database row found by that address be relinked. */
+  readonly emailVerified: boolean;
   readonly role: Role | null;
 }
 
@@ -25,13 +27,15 @@ export const session = async (): Promise<SessionState> => {
   const user = await currentUser();
   if (user === null) return { kind: "signed-out" };
   const emails = user.emailAddresses.map((address) => address.emailAddress);
-  const primary = user.emailAddresses.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress ?? emails[0] ?? "";
+  const primaryAddress = user.emailAddresses.find((address) => address.id === user.primaryEmailAddressId);
+  const primary = primaryAddress?.emailAddress ?? emails[0] ?? "";
   return {
     kind: "signed-in",
     person: {
       id: user.id,
       name: [user.firstName, user.lastName].filter(Boolean).join(" ") || primary,
       email: primary,
+      emailVerified: primaryAddress?.verification?.status === "verified",
       role: resolveRole({ emails: verifiedEmails(user.emailAddresses), stored: user.publicMetadata.role }, operatorEmails(process.env.OPERATOR_EMAILS)),
     },
   };

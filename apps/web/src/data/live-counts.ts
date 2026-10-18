@@ -13,7 +13,7 @@ export const headerCounts = async (person: Person): Promise<LiveCounts | null> =
   if (!hasDatabase() || person.email === "" || person.role === null) return null;
   try {
     const db = getDb();
-    const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name });
+    const { userId, suspension } = await accountUsers(db).ensure({ clerkId: person.id, email: person.email, displayName: person.name, emailVerified: person.emailVerified });
     // A suspended account (C19) has no space to read: no counters either.
     if (suspension !== null) return null;
     return await liveAudience(db).counts(userId);
