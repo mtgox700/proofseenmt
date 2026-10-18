@@ -10,7 +10,7 @@ import { accountNoticeBody } from "./account-notice";
 
 export type Lang = "fr" | "en";
 
-export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice" | "profile_match" | "availability_reminder";
+export type NotificationKind = "contact_received" | "application_received" | "message_received" | "application_status" | "mission_match" | "contract_update" | "vigilance_expiring" | "mission_confirmation" | "application_read" | "mission_invitation" | "company_mission" | "account_notice" | "profile_match" | "availability_reminder" | "invitation_accepted";
 
 export interface NotificationInput {
   readonly kind: NotificationKind;
@@ -199,6 +199,23 @@ const body = (n: NotificationInput, base: string): Body => {
           : `${ids.length} new mission${ids.length > 1 ? "s" : ""} for your alert`,
         lines: [fr ? "Des missions correspondant à votre alerte viennent d'être publiées." : "Missions matching your alert were just published."],
         links: ids.map((id, i) => ({ label: `Mission ${i + 1}`, href: `${base}/${lang}/missions/${id}` })),
+      };
+    }
+    case "invitation_accepted": {
+      // Ni l'adresse ni le nom de la personne : l'espace des invitations dit le reste, à qui a le droit de le voir.
+      const pool = text(n.payload.status) === "pool";
+      return {
+        subject: pool ? (fr ? "Un freelance a rejoint votre vivier" : "A freelancer joined your talent pool") : fr ? "Une entreprise que vous avez invitée a rejoint Proofseen" : "A company you invited joined Proofseen",
+        lines: [
+          pool
+            ? fr
+              ? "Un freelance que vous avez invité a accepté : il fait désormais partie du vivier privé de votre entreprise."
+              : "A freelancer you invited accepted: they are now part of your company's private talent pool."
+            : fr
+              ? "La personne que vous avez invitée a accepté, et son entreprise est désormais rattachée à votre invitation."
+              : "The person you invited accepted, and their company is now linked to your invitation.",
+        ],
+        links: [{ label: COPY[lang].open, href: `${app}/invitations` }],
       };
     }
     case "profile_match": {
