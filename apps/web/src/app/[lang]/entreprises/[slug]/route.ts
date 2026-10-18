@@ -1,4 +1,4 @@
-import { companyPages, getDb } from "@proofseen/db";
+import { companyPages, getDb, postFeed } from "@proofseen/db";
 import { renderCompanyPage } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
@@ -32,7 +32,8 @@ export async function GET(request: Request, context: Context): Promise<Response>
   try {
     const page = await companyPages(getDb()).page(decoded);
     if (page === null) return html(NOT_FOUND, 404, "public, max-age=60");
-    return html(renderCompanyPage(page, { baseUrl: publicBaseUrl(request), lang }), 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
+    const posts = await postFeed(getDb()).recentFor({ companySlug: page.slug });
+    return html(renderCompanyPage({ ...page, posts }, { baseUrl: publicBaseUrl(request), lang }), 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
     logError("company page: not rendered", error);
     return html(NOT_FOUND, 500, "no-store");

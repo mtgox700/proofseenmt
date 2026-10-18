@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { getDb, publicProfiles } from "@proofseen/db";
+import { getDb, postFeed, publicProfiles } from "@proofseen/db";
 import { renderProfilePage } from "@proofseen/hub";
 import { countProfileView } from "@/data/audience";
 import { hasDatabase } from "@/data/intake-sink";
@@ -32,7 +32,8 @@ export async function GET(request: Request, context: Context): Promise<Response>
   try {
     const profile = await publicProfiles(getDb()).page(slug);
     if (profile === null) return html(NOT_FOUND, 404, "public, max-age=60");
-    const page = renderProfilePage(profile, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/app/contact/${profile.reference}`, nearby: await nearbyProfilesFor(profile.slug, lang) });
+    const posts = await postFeed(getDb()).recentFor({ reference: profile.reference });
+    const page = renderProfilePage({ ...profile, posts }, { baseUrl: publicBaseUrl(request), lang, contactHref: `/${lang}/app/contact/${profile.reference}`, nearby: await nearbyProfilesFor(profile.slug, lang) });
     after(() => countProfileView(request.headers, profile.reference));
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {

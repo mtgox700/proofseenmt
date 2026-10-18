@@ -1,5 +1,5 @@
-import { articles, getDb, jobTitlePages, skillPages } from "@proofseen/db";
-import { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsSkill } from "@proofseen/hub";
+import { articles, getDb, jobTitlePages, postFeed, skillPages } from "@proofseen/db";
+import { llmsTxt, type LlmsArticle, type LlmsJobTitle, type LlmsPost, type LlmsSkill } from "@proofseen/hub";
 import { hasDatabase } from "@/data/intake-sink";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
@@ -42,9 +42,22 @@ const publishedArticles = async (): Promise<readonly LlmsArticle[]> => {
   }
 };
 
+/** Recent public community posts (C22); none without a database or on failure. */
+const RECENT_POSTS = 50;
+
+const recentPosts = async (): Promise<readonly LlmsPost[]> => {
+  if (!hasDatabase()) return [];
+  try {
+    return await postFeed(getDb()).listPublic(RECENT_POSTS);
+  } catch (error) {
+    logError("llms.txt: community posts not listed", error);
+    return [];
+  }
+};
+
 export async function GET(request: Request): Promise<Response> {
-  const [skills, posts, titles] = await Promise.all([existingSkills(), publishedArticles(), existingJobTitles()]);
-  return new Response(llmsTxt(publicBaseUrl(request), skills, posts, titles), {
+  const [skills, posts, titles, community] = await Promise.all([existingSkills(), publishedArticles(), existingJobTitles(), recentPosts()]);
+  return new Response(llmsTxt(publicBaseUrl(request), skills, posts, titles, community), {
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600" },
   });
 }
