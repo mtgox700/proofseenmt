@@ -205,6 +205,10 @@ model User {
   appNotifications        AppNotification[]
   messageDigest           MessageDigest?
   pushSubscriptions       PushSubscription[]
+  postsWritten            Post[]                   @relation("PostAuthor")
+  postReactions           PostReaction[]
+  postComments            PostComment[]            @relation("PostCommentAuthor")
+  profilesFollowed        ProfileFollow[]
 }
 
 model Organisation {
@@ -255,6 +259,8 @@ model Organisation {
   followers            CompanyFollow[]
   statDays             OrganisationStatDay[]
   savedSearches        SavedSearch[]
+  posts                Post[]
+  postComments         PostComment[]
 }
 
 model Membership {
@@ -333,6 +339,9 @@ model FreelanceProfile {
   statKeywords   ProfileStatKeyword[]
   statSeen       ProfileStatSeen[]
   savedSearchSeen SavedSearchSeen[]
+  posts          Post[]
+  postComments   PostComment[]
+  followers      ProfileFollow[]
 
   /// Recherche publique : l'ordre est un identifiant stable, jamais un score de personne.
   @@index([workMode, availability, id], where: raw("\"visibility\" <> 'private'"), map: "FreelanceProfile_public_search_idx")
@@ -1307,6 +1316,7 @@ enum StoredFileKind {
   cv
   portfolio_image
   message_attachment
+  post_image
 }
 
 /// Niveau dans une langue : échelle du Cadre européen commun de référence (CECRL), ou langue maternelle.
@@ -1344,6 +1354,8 @@ model StoredFile {
   message     Message?          @relation(fields: [messageId], references: [id], onDelete: SetNull)
   /// Les candidatures auxquelles ce CV est joint (C21).
   applications Application[]    @relation("ApplicationCv")
+  /// La publication qui montre cette image (C22).
+  postOf       Post?            @relation("PostImage")
 
   @@index([ownerId, kind, createdAt(sort: Desc)])
   @@index([messageId], where: raw("\"messageId\" IS NOT NULL"), map: "StoredFile_messageId_idx")
@@ -1536,6 +1548,10 @@ enum AppNotificationKind {
   mission_confirmation
   contract_update
   measurement_done
+  post_comment  // un commentaire sur l'une de mes publications (C22)
+  post_reaction // des réactions à l'une de mes publications, regroupées par publication (C22)
+  post_share    // l'une de mes publications est partagée (C22)
+  new_follower  // une personne suit mon profil (C22)
 }
 
 /// Notification dans l'application, écrite avec l'e-mail correspondant (même transaction), qu'il parte ou non. Comme
@@ -1701,6 +1717,10 @@ enum OperatorActionKind {
   feedback_triaged
   organisation_hidden
   organisation_restored
+  post_hidden
+  post_restored
+  comment_hidden
+  comment_restored
 }
 
 /// Sur quoi porte l'action.
@@ -1713,6 +1733,8 @@ enum OperatorTargetType {
   owned_url
   user
   feedback
+  post
+  comment
 }
 
 /// Journal des actions d'opérateur, écrit dans la même transaction que l'action elle-même : une action sans trace ne
@@ -1766,4 +1788,152 @@ model ErasureTombstone {
   createdAt        DateTime @default(now()) @db.Timestamptz(3)
 
   @@index([createdAt])
+}
+
+// ─── Communauté (C22) ───────────────────────────────────────────────────────────────────────────────────────────────
+// Publications des freelances et des entreprises, réactions, commentaires, partages, abonnements aux profils, et leur
+// audience comptée sans pistage (même méthode que C17). Le fil est rangé par date seulement : aucun classement par
+// engagement, aucun score de personne. Le filtre des coordonnées s'applique aux publications et aux commentaires.
+
+/// Qui peut lire une publication.
+enum PostVisibility {
+  public  // tout le monde, page publique indexable
+  members // les seules personnes connectées à Proofseen
+}
+
+/// Une réaction : un mot, jamais une note.
+enum PostReactionKind {
+  like
+  insightful
+  celebrate
+  support
+}
+
+/// Une publication, au nom d'un profil freelance publié ou d'une entreprise (écrite par l'un de ses membres). Un partage
+/// est une publication qui reprend une publication publique (`sharedPostId`), avec un commentaire facultatif.
+/// Supprimer, c'est vider le texte et poser `deletedAt` (la ligne part 30 jours plus tard) ; masquer (opérateur), c'est
+/// poser `moderatedAt` avec son motif, montré à l'auteur.
+model Post {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  /// La personne qui a écrit ; nulle si elle a effacé son compte (une publication d'entreprise reste à l'entreprise).
+  authorUserId     String?        @db.Uuid
+  /// Au nom de qui : exactement l'un des deux (contrainte en base).
+  profileId        String?        @db.Uuid
+  organisationId   String?        @db.Uuid
+  /// Markdown simple, sans HTML brut ni lien (le lien a son champ) ; vide pour un partage sans commentaire.
+  body             String
+  /// Adresse https, passée au filtre des adresses de contact.
+  linkUrl          String?
+  imageFileId      String?        @unique @db.Uuid
+  visibility       PostVisibility @default(public)
+  sharedPostId     String?        @db.Uuid
+  moderatedAt      DateTime?      @db.Timestamptz(3)
+  moderationReason String?
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
+  editedAt         DateTime?      @db.Timestamptz(3)
+  deletedAt        DateTime?      @db.Timestamptz(3)
+
+  author       User?             @relation("PostAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  profile      FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  organisation Organisation?     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  image        StoredFile?       @relation("PostImage", fields: [imageFileId], references: [id], onDelete: SetNull)
+  /// Un partage part avec la publication qu'il reprend, quand elle est effacée pour de bon.
+  shared       Post?             @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
+  shares       Post[]            @relation("PostShares")
+  reactions    PostReaction[]
+  comments     PostComment[]
+  statDays     PostStatDay[]
+  statSeen     PostStatSeen[]
+
+  /// Le fil « Découvrir » : les publications vivantes, des plus récentes aux plus anciennes.
+  @@index([createdAt(sort: Desc), id(sort: Desc)], where: raw("\"deletedAt\" IS NULL AND \"moderatedAt\" IS NULL"), map: "Post_live_recent_idx")
+  @@index([profileId, createdAt(sort: Desc)])
+  @@index([organisationId, createdAt(sort: Desc)])
+  @@index([authorUserId, createdAt(sort: Desc)])
+  @@index([sharedPostId], where: raw("\"sharedPostId\" IS NOT NULL"), map: "Post_sharedPostId_idx")
+}
+
+/// La réaction d'une personne à une publication : une seule par personne et par publication.
+model PostReaction {
+  postId    String           @db.Uuid
+  userId    String           @db.Uuid
+  kind      PostReactionKind
+  createdAt DateTime         @default(now()) @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+}
+
+/// Un commentaire, ou la réponse à un commentaire (un seul niveau, vérifié par un déclencheur). Au nom d'un profil ou
+/// d'une entreprise, comme une publication. Celui d'un compte effacé reste, vidé, affiché « Compte supprimé ».
+model PostComment {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  postId           String    @db.Uuid
+  parentId         String?   @db.Uuid
+  authorUserId     String?   @db.Uuid
+  profileId        String?   @db.Uuid
+  organisationId   String?   @db.Uuid
+  body             String
+  moderatedAt      DateTime? @db.Timestamptz(3)
+  moderationReason String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  editedAt         DateTime? @db.Timestamptz(3)
+  deletedAt        DateTime? @db.Timestamptz(3)
+
+  post         Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent       PostComment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      PostComment[]     @relation("CommentReplies")
+  author       User?             @relation("PostCommentAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  profile      FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  organisation Organisation?     @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt, id])
+  @@index([authorUserId, createdAt(sort: Desc)])
+  @@index([parentId], where: raw("\"parentId\" IS NOT NULL"), map: "PostComment_parentId_idx")
+  @@index([profileId], where: raw("\"profileId\" IS NOT NULL"), map: "PostComment_profileId_idx")
+  @@index([organisationId], where: raw("\"organisationId\" IS NOT NULL"), map: "PostComment_organisationId_idx")
+}
+
+/// Une personne suit un profil freelance publié. Les entreprises suivies restent dans `CompanyFollow` (C16).
+model ProfileFollow {
+  userId    String   @db.Uuid
+  profileId String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile FreelanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([userId, profileId])
+  @@index([profileId, createdAt(sort: Desc)])
+}
+
+/// Audience d'une publication, un jour donné (calendrier de Paris) : impressions (montrée dans un fil) et vues (page de
+/// la publication ouverte). Un visiteur ne compte qu'une fois par jour et par compteur ; l'auteur ne compte pas.
+model PostStatDay {
+  postId      String   @db.Uuid
+  day         DateTime @db.Date
+  impressions Int      @default(0)
+  views       Int      @default(0)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, day])
+  @@index([day])
+}
+
+/// Empreintes du jour des publications (HMAC sous une clé du jour, jamais l'adresse) ; parties le lendemain.
+model PostStatSeen {
+  day        DateTime @db.Date
+  postId     String   @db.Uuid
+  /// `impression` ou `view`.
+  scope      String
+  viewerHash String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([day, postId, scope, viewerHash])
+  @@index([postId])
 }
