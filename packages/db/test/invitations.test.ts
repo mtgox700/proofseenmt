@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { gdpr } from "../src/gdpr";
 import { invitationAnswers } from "../src/invitation-answers";
 import { MAX_INVITATIONS_PER_MAILBOX, MAX_ORGANISATION_INVITATIONS_PER_DAY, MAX_INVITATIONS_PER_SENDER_PER_DAY } from "../src/invitation-input";
@@ -185,14 +185,14 @@ describe("plafonds", () => {
     const members = [owner];
     for (let i = 0; i < 2; i += 1) {
       const userId = await createUser(t.db);
-      await t.db.membership.create({ data: { organisationId, userId, role: "member" } });
+      await t.db.membership.create({ data: { organisationId, userId, role: "admin" } });
       members.push({ userId });
     }
     for (let i = 0; i < MAX_ORGANISATION_INVITATIONS_PER_DAY; i += 1) await invited(members[i % members.length]!, target, freshAddress());
     expect((await repo().invite(members[2]!, target, { email: freshAddress(), message: null }, link(), "fr", NOW)).kind).toBe("limit");
   });
 
-  it("plafonne une même boîte, tous expéditeurs confondus, et refuse un doublon", async () => {
+  it("plafonne une même boîte, tous expéditeurs confondus, sans le dire, et refuse un doublon", async () => {
     const address = freshAddress();
     const first = await company();
     await invited(first.owner, first.target, address);
@@ -202,7 +202,31 @@ describe("plafonds", () => {
       await invited(other.owner, other.target, address.replace("@", `+${i}@`));
     }
     const last = await company();
-    expect((await repo().invite(last.owner, last.target, { email: address, message: null }, link(), "fr", NOW)).kind).toBe("limit");
+    const l = link();
+    // La même réponse qu'un envoi : l'expéditeur n'apprend pas que d'autres ont invité cette adresse. Rien n'est écrit.
+    expect((await repo().invite(last.owner, last.target, { email: address, message: null }, l, "fr", NOW)).kind).toBe("invited");
+    expect(await t.db.invitation.count({ where: { id: l.id } })).toBe(0);
+  });
+
+  it("ne compte pas dans le plafond d'une boîte les invitations révoquées avant leur envoi", async () => {
+    const address = freshAddress();
+    const { owner, target } = await company();
+    for (let i = 0; i < MAX_INVITATIONS_PER_MAILBOX; i += 1) {
+      const l = await invited(owner, target, address.replace("@", `+r${i}@`));
+      expect(await repo().revoke(owner, l.id, NOW)).toBe("done");
+    }
+    const other = await company();
+    const fresh = await invited(other.owner, other.target, address);
+    expect(await t.db.invitation.count({ where: { id: fresh.id } })).toBe(1);
+  });
+
+  it("réserve aux propriétaires et administrateurs les invitations au nom de l'entreprise", async () => {
+    const { organisationId, target } = await company();
+    const member = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId, userId: member, role: "member" } });
+    expect((await repo().invite({ userId: member }, target, { email: freshAddress(), message: null }, link(), "fr", NOW)).kind).toBe("absent");
+    await t.db.membership.update({ where: { organisationId_userId: { organisationId, userId: member } }, data: { role: "admin" } });
+    expect((await repo().invite({ userId: member }, target, { email: freshAddress(), message: null }, link(), "fr", NOW)).kind).toBe("invited");
   });
 });
 
@@ -333,5 +357,65 @@ describe("RGPD", () => {
     expect(await gdpr(t.db).eraseUser(invitee.userId)).toBe("erased");
     expect(await t.db.invitation.count({ where: { id: { in: [l.id, pending.id] } } })).toBe(0);
     expect(await t.db.talentPoolEntry.count({ where: { organisationId } })).toBe(0);
+  });
+});
+
+describe("relecture de sécurité C23", () => {
+  it("ne relaie jamais un nom d'entreprise qui porte un lien ou un faux domaine", async () => {
+    for (const name of ["https://evil.xyz/verify", "Impots-gouv-remboursement.xyz"]) {
+      const ownerId = await createUser(t.db);
+      const { id: organisationId } = await t.db.organisation.create({ data: { name, kind: "pme", members: { create: { userId: ownerId, role: "owner" } } }, select: { id: true } });
+      const invitee = await freelance();
+      const l = await invited({ userId: ownerId }, { kind: "freelance", organisationId }, invitee.email);
+      const mail = (await invitationMail(t.db).claim(1000, NOW)).find((m) => m.id === l.id);
+      expect(mail?.inviter).toBeNull();
+      const view = (await answers().listReceived(invitee.actor, [invitee.email], NOW)).find((v) => v.id === l.id);
+      expect(view?.inviter).toBeNull();
+    }
+    // Un nom ordinaire, lui, est montré.
+    const plain = await company();
+    const l = await invited(plain.owner, plain.target, freshAddress());
+    expect((await invitationMail(t.db).claim(1000, NOW)).find((m) => m.id === l.id)?.inviter).toBe("Acme");
+  });
+
+  it("ne rattache l'entreprise qu'à sa création par la personne invitée, jamais à un ajout comme membre", async () => {
+    const sender = await freelance();
+    const clientUser = await createUser(t.db);
+    const clientEmail = await emailOf(clientUser);
+    const l = await invited(sender.actor, CLIENT, clientEmail);
+    await answers().answer({ userId: clientUser }, [clientEmail], { id: l.id, token: l.token, decision: "accept", kind: "client", organisationId: null }, NOW);
+    const host = await company();
+    expect(await organisations(t.db).addMember(host.owner, host.organisationId, clientEmail, "member")).toBe(true);
+    expect((await t.db.invitation.findUniqueOrThrow({ where: { id: l.id }, select: { clientOrganisationId: true } })).clientOrganisationId).toBeNull();
+  });
+
+  it("crée l'entreprise même si le rattachement échoue", async () => {
+    const userId = await createUser(t.db);
+    // Une base dont les transactions échouent : la création (une seule instruction) passe, le rattachement non.
+    const failing = new Proxy(t.db, { get: (target, prop) => (prop === "$transaction" ? () => Promise.reject(new Error("boom")) : Reflect.get(target, prop, target)) });
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const org = await organisations(failing).create({ userId }, { name: "Robuste SAS", kind: "pme" });
+    expect(org.role).toBe("owner");
+    expect(quiet).toHaveBeenCalledWith("organisations: client invitation link failed", "Error");
+    quiet.mockRestore();
+  });
+
+  it("révoque les invitations ouvertes d'un membre qui quitte l'entreprise", async () => {
+    const { owner, organisationId, target } = await company();
+    const admin = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId, userId: admin, role: "admin" } });
+    const l = await invited({ userId: admin }, target, freshAddress());
+    const kept = await invited(owner, target, freshAddress());
+    expect(await organisations(t.db).removeMember(owner, organisationId, admin)).toBe(true);
+    expect((await t.db.invitation.findUniqueOrThrow({ where: { id: l.id }, select: { status: true } })).status).toBe("revoked");
+    expect((await t.db.invitation.findUniqueOrThrow({ where: { id: kept.id }, select: { status: true } })).status).toBe("pending");
+  });
+
+  it("efface aussi les invitations adressées à la même boîte que l'adresse du compte", async () => {
+    const invitee = await freelance();
+    const { owner, target } = await company();
+    const l = await invited(owner, target, invitee.email.replace("@", "+pro@"));
+    expect(await gdpr(t.db).eraseUser(invitee.userId)).toBe("erased");
+    expect(await t.db.invitation.count({ where: { id: l.id } })).toBe(0);
   });
 });
