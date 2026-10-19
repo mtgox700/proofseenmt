@@ -63,7 +63,11 @@ export const nextArrivalStep = (steps: readonly ArrivalStep[]): ArrivalStep | nu
  * Everything the database requires is filled in and the profile is still private: the home page offers to publish in
  * one click, named or under the reference. It never publishes on its own.
  */
-export const readyToPublish = (board: FreelanceDashboard): boolean => board.profile !== null && !board.profile.published && board.profile.missing.length === 0;
+export const readyToPublish = (board: FreelanceDashboard): boolean =>
+  board.profile !== null && !board.profile.published && !board.profile.moderated && board.profile.missing.length === 0;
+
+/** Hidden by an operator: publishing would not make it visible, so the home points to the reason and the appeal. */
+export const profileModerated = (board: FreelanceDashboard): boolean => board.profile !== null && board.profile.moderated;
 
 /** A published profile whose declared availability was last confirmed 14 days ago or more: the home asks again. */
 export const availabilityCheckDue = (board: FreelanceDashboard, now: Date): boolean =>

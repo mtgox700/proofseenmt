@@ -21,6 +21,9 @@ export const insightsFr = {
     next: "Prochaine étape",
     publishLead: "Tout ce qu'il faut pour publier est renseigné. Choisissez comment : rien n'est publié sans votre clic.",
     published: "Profil publié.",
+    moderated: "Votre profil est masqué par l'équipe Proofseen : il n'est visible de personne, même publié.",
+    moderatedLink: "Voir le motif et le contester",
+    publishedButModerated: "Votre choix de publication est enregistré, mais votre profil reste masqué par l'équipe Proofseen.",
     availability: {
       title: "Votre disponibilité est-elle toujours à jour ?",
       lead: (day: string) => `Dernière confirmation le ${day}. Passé 30 jours sans confirmation, votre profil reste visible, mais votre disponibilité s'affiche « non confirmée ».`,

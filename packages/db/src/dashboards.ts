@@ -18,7 +18,10 @@ type Counts<K extends string> = Readonly<Partial<Record<K, number>>>;
 
 export interface FreelanceDashboard {
   readonly profile: {
+    /** Visible du public : publié et non masqué par un opérateur (C19). */
     readonly published: boolean;
+    /** Masqué par un opérateur : l'accueil le dit et ne propose pas de publier (C23). */
+    readonly moderated: boolean;
     /** Ce qui manque pour publier, dans l'ordre de REQUIRED_TO_PUBLISH : le parcours guidé l'affiche tel quel (C23). */
     readonly missing: readonly string[];
     readonly verifiedUrls: number;
@@ -68,6 +71,7 @@ export const dashboards = (db: Db): Dashboards => ({
       select: {
         id: true,
         visibility: true,
+        moderatedAt: true,
         headline: true,
         summary: true,
         city: true,
@@ -89,7 +93,8 @@ export const dashboards = (db: Db): Dashboards => ({
     const net = (p: { amountCents: number; commissionCents: number }) => p.amountCents - p.commissionCents - vatOf(p.commissionCents, 2000);
     return {
       profile: {
-        published: profile.visibility !== "private",
+        published: profile.visibility !== "private" && profile.moderatedAt === null,
+        moderated: profile.moderatedAt !== null,
         missing: REQUIRED_TO_PUBLISH.filter((field) => profile[field] === null),
         verifiedUrls: profile._count.ownedUrls,
         verifiedMissions: profile._count.missions,

@@ -4,7 +4,7 @@ import { setProfileVisibility } from "@/app/[lang]/app/profil/actions";
 import type { Lang } from "@/i18n";
 import type { InsightsDictionary } from "@/i18n/market/insights-fr";
 import type { ProfileDictionary } from "@/i18n/market/profile-fr";
-import { applicationsInProgress, arrivalSteps, freelanceStage, nextArrivalStep, readyToPublish } from "@/lib/freelance-stage";
+import { applicationsInProgress, arrivalSteps, freelanceStage, nextArrivalStep, profileModerated, readyToPublish } from "@/lib/freelance-stage";
 import { HOME_RETURN_FIELD, HOME_RETURN_VALUE } from "@/lib/home-notice";
 
 interface StageBlockProps {
@@ -59,7 +59,13 @@ function ArrivalSteps({ lang, d, p, board }: StageBlockProps) {
           </li>
         ))}
       </ol>
-      {readyToPublish(board) ? <PublishNow lang={lang} d={d} p={p} /> : null}
+      {profileModerated(board) ? (
+        <p className="form-error measure">
+          {s.moderated} <Link href={`${base}/profil`}>{s.moderatedLink}</Link>
+        </p>
+      ) : readyToPublish(board) ? (
+        <PublishNow lang={lang} d={d} p={p} />
+      ) : null}
     </>
   );
 }

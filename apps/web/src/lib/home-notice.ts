@@ -7,7 +7,8 @@
 export const HOME_RETURN_FIELD = "retour";
 export const HOME_RETURN_VALUE = "accueil";
 
-export const HOME_NOTICES = ["publie", "dispo-confirmee", "indisponible"] as const;
+/** `masque`: the publication choice is saved but an operator keeps the profile hidden; never "published" then. */
+export const HOME_NOTICES = ["publie", "masque", "dispo-confirmee", "indisponible"] as const;
 export type HomeNotice = (typeof HOME_NOTICES)[number];
 
 /** Whether the form was sent from the home page and should land back there. */

@@ -53,7 +53,7 @@ export async function setProfileVisibility(formData: FormData): Promise<void> {
     const slug = result.profile.slug ?? before?.slug ?? null;
     if (slug !== null) notifyProfileChanged(slug);
     // The guided publication on the home (C23) sends the same form: the person lands back home, published.
-    if (visibility !== "private" && returnsHome(formData)) redirect(homeNoticeHref(lang, "publie"));
+    if (visibility !== "private" && returnsHome(formData)) redirect(homeNoticeHref(lang, result.moderated ? "masque" : "publie"));
   }
   redirect(page(lang, ""));
 }

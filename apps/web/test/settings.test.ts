@@ -4,7 +4,7 @@ import { insightsEn } from "../src/i18n/market/insights-en";
 import { insightsFr } from "../src/i18n/market/insights-fr";
 import { settingsEn } from "../src/i18n/market/settings-en";
 import { settingsFr } from "../src/i18n/market/settings-fr";
-import { applicationsInProgress, ARRIVAL_STEP_KEYS, arrivalSteps, availabilityCheckDue, freelanceStage, nextArrivalStep, readyToPublish } from "../src/lib/freelance-stage";
+import { applicationsInProgress, ARRIVAL_STEP_KEYS, arrivalSteps, availabilityCheckDue, freelanceStage, nextArrivalStep, profileModerated, readyToPublish } from "../src/lib/freelance-stage";
 import { confirmationMatches, ERASE_WORDS, eraseOutcome, pickOrganisation } from "../src/lib/settings";
 
 describe("pickOrganisation", () => {
@@ -57,7 +57,7 @@ describe("erasure confirmation", () => {
 
 const NOW = new Date("2026-11-20T09:00:00Z");
 const DAY_MS = 86_400_000;
-const facts = { verifiedUrls: 0, verifiedMissions: 0, availability: "available" as const, availabilityAt: NOW };
+const facts = { verifiedUrls: 0, verifiedMissions: 0, moderated: false, availability: "available" as const, availabilityAt: NOW };
 
 const board = (over: Partial<FreelanceDashboard> = {}): FreelanceDashboard => ({
   profile: { ...facts, published: true, missing: [], verifiedUrls: 1 },
@@ -101,6 +101,17 @@ describe("freelanceStage", () => {
     expect(readyToPublish(board({ profile: { ...facts, published: false, missing: ["city"] } }))).toBe(false);
     expect(readyToPublish(board({ profile: { ...facts, published: false, missing: [] } }))).toBe(true);
     expect(readyToPublish(board())).toBe(false);
+  });
+
+  it("never offers to publish a profile hidden by an operator, and says it is hidden", () => {
+    const hidden = board({ profile: { ...facts, published: false, moderated: true, missing: [] } });
+    expect(readyToPublish(hidden)).toBe(false);
+    expect(profileModerated(hidden)).toBe(true);
+    expect(freelanceStage(hidden)).toBe("arrival");
+    expect(arrivalSteps(hidden).find((s) => s.key === "publish")?.done).toBe(false);
+    expect(availabilityCheckDue(board({ profile: { ...facts, published: false, moderated: true, missing: [], availabilityAt: new Date(NOW.getTime() - 40 * DAY_MS) } }), NOW)).toBe(false);
+    expect(profileModerated(board())).toBe(false);
+    for (const dictionary of [insightsFr, insightsEn]) expect(dictionary.stage.moderated.length).toBeGreaterThan(20);
   });
 
   it("asks a published freelancer to reconfirm an availability 14 days old, never a private or unavailable one", () => {

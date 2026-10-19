@@ -19,6 +19,9 @@ export const insightsEn: InsightsDictionary = {
     next: "Next step",
     publishLead: "Everything needed to publish is filled in. Choose how: nothing is published until you click.",
     published: "Profile published.",
+    moderated: "Your profile is hidden by the Proofseen team: nobody can see it, even published.",
+    moderatedLink: "See the reason and contest it",
+    publishedButModerated: "Your publication choice is saved, but your profile stays hidden by the Proofseen team.",
     availability: {
       title: "Is your availability still up to date?",
       lead: (day: string) => `Last confirmed on ${day}. After 30 days without a confirmation, your profile stays visible, but your availability shows as "not confirmed".`,

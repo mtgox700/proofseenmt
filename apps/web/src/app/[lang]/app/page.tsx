@@ -144,9 +144,9 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
 function HomeNoticeLine({ lang, notice }: { readonly lang: Lang; readonly notice: HomeNotice | null }) {
   if (notice === null) return null;
   const s = marketDictionary(lang).insights.stage;
-  const text = notice === "publie" ? s.published : notice === "dispo-confirmee" ? s.availability.confirmed : s.availability.unavailable;
+  const text = { publie: s.published, masque: s.publishedButModerated, "dispo-confirmee": s.availability.confirmed, indisponible: s.availability.unavailable }[notice];
   return (
-    <p className="form-ok" role="status">
+    <p className={notice === "masque" ? "form-error" : "form-ok"} role="status">
       {text}
     </p>
   );
