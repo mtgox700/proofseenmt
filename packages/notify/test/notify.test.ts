@@ -42,11 +42,14 @@ describe("contenu des e-mails", () => {
 
   it("rappelle de reconfirmer sa disponibilité, avec un lien vers l'espace connecté et non une confirmation en un clic", () => {
     const email = renderEmail({ kind: "availability_reminder", payload: {}, to: TO }, BASE);
-    expect(email.subject).toBe("Votre disponibilité est-elle toujours à jour ?");
+    expect(email.subject).toBe("Votre disponibilité est à reconfirmer");
+    // Aucune durée annoncée : le deuxième et le troisième rappel partent bien après deux semaines.
+    expect(email.text).not.toMatch(/semaine|depuis deux/);
     expect(email.text).toContain("« non confirmée »");
     expect(email.text).toContain("https://proofseen.com/fr/app/profil#disponibilite");
     expect(email.html).not.toMatch(/confirmer\?|token=|jeton=/);
-    expect(renderEmail({ kind: "availability_reminder", payload: {}, to: { ...TO, lang: "en" } }, BASE).subject).toBe("Is your availability still up to date?");
+    expect(renderEmail({ kind: "availability_reminder", payload: {}, to: { ...TO, lang: "en" } }, BASE).subject).toBe("Your availability needs reconfirming");
+    expect(renderEmail({ kind: "availability_reminder", payload: {}, to: { ...TO, lang: "en" } }, BASE).text).not.toMatch(/week/);
   });
 
   it("annonce un relevé mensuel déposé, validé ou à corriger, avec son mois", () => {

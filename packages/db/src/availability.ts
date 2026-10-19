@@ -20,11 +20,21 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const AVAILABILITY_FRESH_DAYS = 30;
 /** Un rappel de confirmation au plus par fenêtre de 14 jours, tant que la disponibilité n'est pas reconfirmée. */
 export const AVAILABILITY_REMINDER_DAYS = 14;
+/**
+ * Trois rappels au plus depuis la dernière confirmation (à 14, 28 et 42 jours), puis plus rien : au-delà, le profil
+ * affiche déjà « non confirmée », et des e-mails sans fin à quelqu'un qui ne répond plus ne seraient que du harcèlement.
+ * La borne tient sans compteur : les rappels sont espacés d'au moins 14 jours et ne partent qu'avant 4 × 14 = 56 jours
+ * sans confirmation, donc trois au plus, même si la tâche planifiée saute des passages.
+ */
+export const AVAILABILITY_MAX_REMINDERS = 3;
 
 export const availabilityFreshSince = (now: Date): Date => new Date(now.getTime() - AVAILABILITY_FRESH_DAYS * DAY_MS);
 
 /** Le moment avant lequel une confirmation, ou un rappel, est assez ancien pour qu'un nouveau rappel parte. */
 export const availabilityReminderBefore = (now: Date): Date => new Date(now.getTime() - AVAILABILITY_REMINDER_DAYS * DAY_MS);
+
+/** Avant cette date, la confirmation est trop ancienne pour un nouveau rappel : les trois rappels sont passés. */
+export const availabilityRemindersEndBefore = (now: Date): Date => new Date(now.getTime() - (AVAILABILITY_MAX_REMINDERS + 1) * AVAILABILITY_REMINDER_DAYS * DAY_MS);
 
 /** Confirmée depuis 30 jours au plus, bornes comprises (la même comparaison que le filtre `gte` de la recherche). */
 export const isAvailabilityFresh = (confirmedAt: Date, now: Date): boolean => confirmedAt.getTime() >= availabilityFreshSince(now).getTime();

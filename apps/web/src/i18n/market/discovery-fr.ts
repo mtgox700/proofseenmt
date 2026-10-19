@@ -37,7 +37,7 @@ export const discoveryFr = {
       recent: "Profil mis à jour le plus récemment d'abord.",
       tjm_croissant: "TJM le plus bas d'abord ; les profils sans TJM affiché en dernier.",
       tjm_decroissant: "TJM le plus haut d'abord ; les profils sans TJM affiché en dernier.",
-      disponibilite: "Disponibles d'abord, puis la date de disponibilité la plus proche, puis les indisponibles.",
+      disponibilite: "Disponibles d'abord, puis la date de disponibilité la plus proche, puis les disponibilités non confirmées depuis 30 jours, puis les indisponibles.",
       faits_verifies:
         "Nombre de faits vérifiés d'abord : missions vérifiées sur pièce, adresses prouvées, SIRET actif, attestation URSSAF en cours. Chacun compte pour un, et chaque carte affiche ce nombre.",
     },

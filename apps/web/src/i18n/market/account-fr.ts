@@ -57,7 +57,7 @@ export const accountFr = {
       company_mission: "Une entreprise que vous suivez publie une mission",
       account_notice: "Une décision de Proofseen sur votre compte ou vos contenus",
       profile_match: "Une recherche enregistrée trouve de nouveaux profils",
-      availability_reminder: "Votre disponibilité n'a pas été confirmée depuis deux semaines",
+      availability_reminder: "Votre disponibilité est à reconfirmer",
     },
     save: "Enregistrer mes choix",
     saved: "Préférences enregistrées.",

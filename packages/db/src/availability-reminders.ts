@@ -1,4 +1,4 @@
-import { availabilityReminderBefore } from "./availability";
+import { availabilityReminderBefore, availabilityRemindersEndBefore } from "./availability";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import { notifications } from "./notifications";
@@ -14,7 +14,8 @@ import { PUBLISHED_PROFILE } from "./profile-search-ids";
  * exécution, les disponibilités les plus anciennes d'abord : la tâche reste courte, le reste attend la prochaine.
  *
  * Seuls les profils publiés sont rappelés (la disponibilité n'est affichée que là), et jamais une disponibilité
- * déclarée « indisponible » : il n'y a rien à reconfirmer qui attire un contact.
+ * déclarée « indisponible » : il n'y a rien à reconfirmer qui attire un contact. Trois rappels au plus depuis la
+ * dernière confirmation (AVAILABILITY_MAX_REMINDERS), puis plus rien.
  */
 
 /** Profils rappelés au plus par exécution de la tâche planifiée (toutes les 5 minutes en production). */
@@ -25,12 +26,12 @@ export interface AvailabilityReminders {
   remindDue(now: Date, limit?: number): Promise<number>;
 }
 
-/** Une disponibilité à reconfirmer, dont aucun rappel n'est parti dans la fenêtre de 14 jours. */
+/** Une disponibilité à reconfirmer, sans rappel dans la fenêtre de 14 jours, et dont les trois rappels ne sont pas passés. */
 export const reminderDueWhere = (now: Date): Prisma.FreelanceProfileWhereInput => {
   const before = availabilityReminderBefore(now);
   return {
     availability: { not: "unavailable" },
-    availabilityAt: { lte: before },
+    availabilityAt: { lte: before, gt: availabilityRemindersEndBefore(now) },
     OR: [{ availabilityRemindedAt: null }, { availabilityRemindedAt: { lte: before } }],
   };
 };

@@ -67,7 +67,8 @@ export { PROFILE_SORTS, ProfileSearchSchema, type ProfileCard, type ProfileSearc
 export const REQUIRED_TO_PUBLISH = ["headline", "summary", "city"] as const;
 
 export type VisibilityResult =
-  | { readonly kind: "ok"; readonly profile: ProfileFacts }
+  /** `moderated` : masqué par un opérateur, le profil reste invisible quel que soit ce choix (C19). */
+  | { readonly kind: "ok"; readonly profile: ProfileFacts; readonly moderated: boolean }
   | { readonly kind: "incomplete"; readonly missing: readonly (typeof REQUIRED_TO_PUBLISH)[number][] }
   | { readonly kind: "absent" };
 
@@ -121,8 +122,16 @@ const columns = (p: z.output<typeof ProfileInputSchema>) => ({
   dailyRateCents: p.dailyRateCents,
   availability: p.availability,
   availableFrom: p.availableFrom,
-  availabilityAt: new Date(),
 });
+
+const isoDay = (d: Date | null): string | null => (d === null ? null : d.toISOString().slice(0, 10));
+
+/**
+ * Enregistrer le profil ne reconfirme la disponibilité que si la personne l'a changée (statut ou date) : corriger son
+ * résumé n'est pas redire « je suis disponible » (C23). La confirmation explicite passe par `confirmAvailability`.
+ */
+const availabilityChanged = (before: { readonly availability: AvailabilityStatus; readonly availableFrom: Date | null }, p: z.output<typeof ProfileInputSchema>): boolean =>
+  before.availability !== p.availability || isoDay(before.availableFrom) !== isoDay(p.availableFrom);
 
 const SLUG = /^[a-z0-9-]{3,60}$/;
 
@@ -153,17 +162,18 @@ export const profiles = (db: Db): Profiles => ({
   async update(actor, raw) {
     const input = ProfileInputSchema.parse(raw);
     return db.$transaction(async (tx) => {
-      const profile = await tx.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true } });
+      const profile = await tx.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { id: true, availability: true, availableFrom: true } });
       if (profile === null) return null;
       const skillIds = await ensureSkills(tx, input.skills);
       await tx.freelanceSkill.deleteMany({ where: { profileId: profile.id } });
       await tx.freelanceSkill.createMany({ data: skillIds.map((skillId) => ({ profileId: profile.id, skillId })) });
-      return toFacts(await tx.freelanceProfile.update({ where: { id: profile.id }, data: columns(input), select: SELECT }));
+      const data = { ...columns(input), ...(availabilityChanged(profile, input) ? { availabilityAt: new Date() } : {}) };
+      return toFacts(await tx.freelanceProfile.update({ where: { id: profile.id }, data, select: SELECT }));
     });
   },
 
   async setVisibility(actor, visibility) {
-    const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { reference: true, headline: true, summary: true, city: true } });
+    const profile = await db.freelanceProfile.findUnique({ where: { userId: actor.userId }, select: { reference: true, headline: true, summary: true, city: true, moderatedAt: true } });
     if (profile === null) return { kind: "absent" };
     if (visibility !== "private") {
       const missing = REQUIRED_TO_PUBLISH.filter((field) => profile[field] === null);
@@ -174,7 +184,7 @@ export const profiles = (db: Db): Profiles => ({
       data: { visibility, ...(visibility === "private" ? {} : { slug: profile.reference.toLowerCase() }) },
       select: SELECT,
     });
-    return { kind: "ok", profile: toFacts(row) };
+    return { kind: "ok", profile: toFacts(row), moderated: profile.moderatedAt !== null };
   },
 
   async findMine(actor) {

@@ -39,7 +39,7 @@ export const discoveryEn: DiscoveryDictionary = {
       recent: "Most recently updated profile first.",
       tjm_croissant: "Lowest day rate first; profiles without a stated rate last.",
       tjm_decroissant: "Highest day rate first; profiles without a stated rate last.",
-      disponibilite: "Available first, then the nearest availability date, then unavailable.",
+      disponibilite: "Available first, then the nearest availability date, then availability not confirmed within 30 days, then unavailable.",
       faits_verifies:
         "Most verified facts first: missions verified against a document, proven addresses, active SIRET, valid URSSAF certificate. Each counts as one, and every card shows the number.",
     },

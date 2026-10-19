@@ -42,7 +42,7 @@ export const profileSectionsFr = {
     title: "Disponibilité confirmée",
     confirmedOn: (day: string) => `Confirmée le ${day}.`,
     staleNote: "Plus de 30 jours sans confirmation : votre disponibilité s'affiche « non confirmée » et les entreprises qui filtrent sur la disponibilité ne vous retiennent plus. Votre profil reste visible.",
-    lead: "Confirmez-la au moins toutes les deux semaines : Proofseen vous le rappelle au bout de 14 jours. La date est affichée sur votre page publique ; au-delà de 30 jours sans confirmation, votre disponibilité s'affiche « non confirmée » et les filtres de disponibilité des entreprises ne vous retiennent plus. Enregistrer le formulaire du profil la confirme aussi.",
+    lead: "Confirmez-la au moins toutes les deux semaines : Proofseen vous le rappelle au bout de 14 jours. La date est affichée sur votre page publique ; au-delà de 30 jours sans confirmation, votre disponibilité s'affiche « non confirmée » et les filtres de disponibilité des entreprises ne vous retiennent plus. Changer le statut ou la date dans le formulaire du profil la confirme aussi.",
     confirm: "Je confirme ma disponibilité",
     notAvailable: "Je ne suis plus disponible",
   },

@@ -220,11 +220,12 @@ const body = (n: NotificationInput, base: string): Body => {
       // Le lien mène à l'espace connecté, jamais à une confirmation en un clic depuis l'e-mail : un lien suivi par un
       // antivirus de messagerie confirmerait à la place de la personne une disponibilité qu'elle n'a pas redite.
       return {
-        subject: fr ? "Votre disponibilité est-elle toujours à jour ?" : "Is your availability still up to date?",
+        // Le même texte pour les trois rappels : aucune durée annoncée, qui serait fausse dès le deuxième.
+        subject: fr ? "Votre disponibilité est à reconfirmer" : "Your availability needs reconfirming",
         lines: [
           fr
-            ? "Vous n'avez pas confirmé votre disponibilité depuis deux semaines. Dites en un clic si vous êtes toujours disponible ou non : passé 30 jours sans confirmation, votre profil reste visible, mais votre disponibilité s'affiche « non confirmée »."
-            : "You have not confirmed your availability for two weeks. Say in one click whether you are still available: after 30 days without a confirmation, your profile stays visible, but your availability shows as \"not confirmed\".",
+            ? "Dites en un clic si vous êtes toujours disponible ou non. Passé 30 jours sans confirmation, votre profil reste visible, mais votre disponibilité s'affiche « non confirmée »."
+            : "Say in one click whether you are still available. After 30 days without a confirmation, your profile stays visible, but your availability shows as \"not confirmed\".",
         ],
         links: [{ label: fr ? "Confirmer ma disponibilité" : "Confirm my availability", href: `${app}/profil#disponibilite` }],
       };

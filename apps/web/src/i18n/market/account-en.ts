@@ -58,7 +58,7 @@ export const accountEn: AccountDictionary = {
       company_mission: "A company you follow posts a mission",
       account_notice: "A Proofseen decision about your account or your content",
       profile_match: "A saved search finds new profiles",
-      availability_reminder: "Your availability has not been confirmed for two weeks",
+      availability_reminder: "Your availability needs reconfirming",
     },
     save: "Save my choices",
     saved: "Preferences saved.",

@@ -171,6 +171,18 @@ describe("recherche de freelances : l'ordre est un critère choisi, jamais un sc
     expect(await ids({ skills: ["prolog"], sort: "availability" })).toEqual([now, soon, later, never]);
   });
 
+  it("trie une disponibilité non confirmée depuis 30 jours après les disponibilités confirmées, avant les indisponibles (C23)", async () => {
+    const away = await make({ skills: ["Forth"], availability: "unavailable" });
+    const stale = await make({ skills: ["Forth"], availability: "available" });
+    const staleFrom = await make({ skills: ["Forth"], availability: "available_from", availableFrom: new Date("2026-12-01") });
+    const fresh = await make({ skills: ["Forth"], availability: "available" });
+    const freshFrom = await make({ skills: ["Forth"], availability: "available_from", availableFrom: new Date("2027-02-01") });
+    const old = new Date(Date.now() - 45 * 86_400_000);
+    await t.db.freelanceProfile.updateMany({ where: { id: { in: [stale, staleFrom] } }, data: { availabilityAt: old } });
+    expect(await ids({ skills: ["forth"], sort: "availability" })).toEqual([fresh, freshFrom, stale, staleFrom, away]);
+    expect(await ids({ skills: ["forth"], sort: "availability", pageSize: 2, page: 2 })).toEqual([stale, staleFrom]);
+  });
+
   it("trie par mise à jour du profil, la plus récente d'abord", async () => {
     const first = await make({ skills: ["Lisp"] });
     const second = await make({ skills: ["Lisp"] });

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { availabilityReminders } from "../src/availability-reminders";
+import { dashboards } from "../src/dashboards";
 import { profileSections } from "../src/profile-sections";
 import { profiles } from "../src/profiles";
 import { publicProfiles } from "../src/public-profiles";
@@ -71,6 +72,18 @@ describe("rappel de reconfirmer la disponibilité", () => {
     expect((await counts(p.userId)).emails).toBe(1);
     await remindOnly(day(28), p.profileId);
     expect((await counts(p.userId)).emails).toBe(2);
+    await remindOnly(day(42), p.profileId);
+    expect((await counts(p.userId)).emails).toBe(3);
+  });
+
+  it("s'arrête après trois rappels sans confirmation : pas de quatrième, même des mois plus tard", async () => {
+    const p = await freelancer();
+    for (const n of [14, 28, 42, 56, 70, 120, 365]) await remindOnly(day(n), p.profileId);
+    expect(await counts(p.userId)).toEqual({ emails: 3, inApp: 1 });
+    // Des passages sautés ne donnent pas plus de trois rappels : au plus un par fenêtre, et rien après 56 jours.
+    const late = await freelancer();
+    for (const n of [20, 34, 48, 55, 62]) await remindOnly(day(n), late.profileId);
+    expect((await counts(late.userId)).emails).toBe(3);
   });
 
   it("repart de la confirmation : rien pendant 14 jours après, puis un rappel", async () => {
@@ -116,6 +129,47 @@ describe("rappel de reconfirmer la disponibilité", () => {
     await t.db.notificationPreference.create({ data: { userId: p.userId, kind: "availability_reminder", email: false } });
     await remindOnly(day(14), p.profileId);
     expect(await counts(p.userId)).toEqual({ emails: 0, inApp: 1 });
+  });
+});
+
+describe("enregistrer le profil", () => {
+  const input = (o: { summary: string; availability: "available" | "available_from"; availableFrom?: Date }) => ({
+    headline: "Dev Elixir",
+    summary: o.summary,
+    city: "Nantes",
+    workMode: "remote" as const,
+    skills: ["Elixir"],
+    availability: o.availability,
+    ...(o.availableFrom === undefined ? {} : { availableFrom: o.availableFrom }),
+  });
+  const confirmedAt = async (profileId: string): Promise<Date> => (await t.db.freelanceProfile.findUniqueOrThrow({ where: { id: profileId }, select: { availabilityAt: true } })).availabilityAt;
+
+  it("ne reconfirme pas la disponibilité quand seul le résumé change", async () => {
+    const p = await freelancer();
+    await profiles(t.db).update({ userId: p.userId }, input({ summary: "Un autre résumé.", availability: "available" }));
+    expect(await confirmedAt(p.profileId)).toEqual(T0);
+  });
+
+  it("la reconfirme quand le statut ou la date change", async () => {
+    const p = await freelancer();
+    await profiles(t.db).update({ userId: p.userId }, input({ summary: "Résumé.", availability: "available_from", availableFrom: new Date("2027-01-04T00:00:00Z") }));
+    const moved = await confirmedAt(p.profileId);
+    expect(moved).not.toEqual(T0);
+    await t.db.freelanceProfile.update({ where: { id: p.profileId }, data: { availabilityAt: T0 } });
+    await profiles(t.db).update({ userId: p.userId }, input({ summary: "Résumé.", availability: "available_from", availableFrom: new Date("2027-01-04T00:00:00Z") }));
+    expect(await confirmedAt(p.profileId)).toEqual(T0);
+    await profiles(t.db).update({ userId: p.userId }, input({ summary: "Résumé.", availability: "available_from", availableFrom: new Date("2027-02-01T00:00:00Z") }));
+    expect(await confirmedAt(p.profileId)).not.toEqual(T0);
+  });
+});
+
+describe("profil masqué par un opérateur", () => {
+  it("n'est ni « publié » sur l'accueil, ni dit publié après un nouveau choix de publication", async () => {
+    const p = await freelancer();
+    expect((await dashboards(t.db).freelance({ userId: p.userId })).profile).toMatchObject({ published: true, moderated: false });
+    await t.db.freelanceProfile.update({ where: { id: p.profileId }, data: { moderatedAt: day(1), moderationReason: "Contenu trompeur" } });
+    expect((await dashboards(t.db).freelance({ userId: p.userId })).profile).toMatchObject({ published: false, moderated: true });
+    expect(await profiles(t.db).setVisibility({ userId: p.userId }, "named")).toMatchObject({ kind: "ok", moderated: true });
   });
 });
 

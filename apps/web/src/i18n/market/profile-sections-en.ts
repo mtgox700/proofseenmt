@@ -44,7 +44,7 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     title: "Confirmed availability",
     confirmedOn: (day: string) => `Confirmed on ${day}.`,
     staleNote: "More than 30 days without confirmation: your availability shows as \"not confirmed\" and companies filtering on availability no longer see you. Your profile stays visible.",
-    lead: "Confirm it at least every two weeks: Proofseen reminds you after 14 days. The date is shown on your public page; after 30 days without confirmation, your availability shows as \"not confirmed\" and the availability filters of companies no longer include you. Saving the profile form confirms it too.",
+    lead: "Confirm it at least every two weeks: Proofseen reminds you after 14 days. The date is shown on your public page; after 30 days without confirmation, your availability shows as \"not confirmed\" and the availability filters of companies no longer include you. Changing the status or the date in the profile form confirms it too.",
     confirm: "I confirm my availability",
     notAvailable: "I am no longer available",
   },

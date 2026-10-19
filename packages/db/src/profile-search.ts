@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { availabilityFreshSince } from "./availability";
+import { availabilityFreshSince, shownAvailability, type ShownAvailability } from "./availability";
 import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
-import type { LanguageLevel } from "./generated/enums";
+import type { AvailabilityStatus, LanguageLevel } from "./generated/enums";
 import { jobTitleByKey } from "./job-titles";
 import { LANGUAGE_CODES, LANGUAGE_LEVELS, levelsAtLeast, MAX_LANGUAGE_FILTERS } from "./profile-section-schemas";
 import { intersect, jobTitleMatches, MAX_SCAN, ProfileTextSchema, PUBLISHED_PROFILE, textMatches, verifiedFactsOrder } from "./profile-search-ids";
@@ -105,15 +105,44 @@ export interface ProfileSearchPage {
   readonly hasMore: boolean;
 }
 
-type PrismaSort = Exclude<ProfileSort, "verified_facts">;
+type PrismaSort = Exclude<ProfileSort, "verified_facts" | "availability">;
 
 const ORDER: Readonly<Record<PrismaSort, Prisma.FreelanceProfileOrderByWithRelationInput[]>> = {
   recent: [{ updatedAt: "desc" }, { id: "desc" }],
   rate_asc: [{ dailyRateCents: { sort: "asc", nulls: "last" } }, { id: "desc" }],
   rate_desc: [{ dailyRateCents: { sort: "desc", nulls: "last" } }, { id: "desc" }],
-  // Ordre de l'énumération : disponible, disponible à partir d'une date, indisponible ; puis la date la plus proche.
-  availability: [{ availability: "asc" }, { availableFrom: { sort: "asc", nulls: "first" } }, { id: "desc" }],
 };
+
+/**
+ * Tri « disponibilité » (C23) : sur la disponibilité affichée, avec la règle des 30 jours d'`availability.ts`.
+ * Disponible, puis disponible à partir d'une date (la plus proche d'abord), puis non confirmée (même ordre entre
+ * elles), puis indisponible. Une clé calculée : la base ne connaît pas la règle, l'ordre se fait donc ici, sur les
+ * MAX_SCAN profils à la disponibilité la plus récemment confirmée qui répondent aux filtres.
+ */
+const SHOWN_RANK: Readonly<Record<ShownAvailability, number>> = { available: 0, available_from: 1, unconfirmed: 2, unavailable: 3 };
+
+export interface AvailabilitySortable {
+  readonly id: string;
+  readonly availability: AvailabilityStatus;
+  readonly availableFrom: Date | null;
+  readonly availabilityAt: Date;
+}
+
+/** La date la plus proche d'abord ; sans date (« disponible » tout de suite) avant toute date. */
+const compareFrom = (a: Date | null, b: Date | null): number => {
+  if (a === null || b === null) return a === b ? 0 : a === null ? -1 : 1;
+  return a.getTime() - b.getTime();
+};
+
+export const byShownAvailability = <T extends AvailabilitySortable>(rows: readonly T[], now: Date): readonly T[] =>
+  [...rows].sort((a, b) => {
+    const rank = SHOWN_RANK[shownAvailability(a.availability, a.availabilityAt, now)] - SHOWN_RANK[shownAvailability(b.availability, b.availabilityAt, now)];
+    if (rank !== 0) return rank;
+    const from = compareFrom(a.availableFrom, b.availableFrom);
+    if (from !== 0) return from;
+    // À clé égale, l'identifiant départage, de façon stable et sans signification (comme les autres ordres).
+    return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+  });
 
 const SELECT = {
   id: true,
@@ -258,6 +287,17 @@ export const searchProfiles = async (db: Db, raw: ProfileSearch, now: Date): Pro
     // L'ordre se calcule sur les profils les plus récemment mis à jour qui répondent aux filtres, au plus MAX_SCAN.
     const candidates = await db.freelanceProfile.findMany({ where, orderBy: [{ updatedAt: "desc" }, { id: "desc" }], take: MAX_SCAN, select: { id: true } });
     const ids = await verifiedFactsOrder(db, candidates.map((c) => c.id), since, skip, f.pageSize + 1);
+    const items = await cardsInOrder(db, ids.slice(0, f.pageSize), since);
+    return { items, hasMore: ids.length > f.pageSize };
+  }
+  if (f.sort === "availability") {
+    const candidates = await db.freelanceProfile.findMany({
+      where,
+      orderBy: [{ availabilityAt: "desc" }, { id: "desc" }],
+      take: MAX_SCAN,
+      select: { id: true, availability: true, availableFrom: true, availabilityAt: true },
+    });
+    const ids = byShownAvailability(candidates, now).slice(skip, skip + f.pageSize + 1).map((c) => c.id);
     const items = await cardsInOrder(db, ids.slice(0, f.pageSize), since);
     return { items, hasMore: ids.length > f.pageSize };
   }
