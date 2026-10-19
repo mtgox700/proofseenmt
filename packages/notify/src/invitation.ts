@@ -13,7 +13,8 @@ export interface InvitationEmailInput {
   readonly lang: Lang;
   /** `freelance` : une entreprise invite un freelance dans son vivier ; `client` : un freelance invite une entreprise. */
   readonly kind: "freelance" | "client";
-  readonly inviter: string;
+  /** `null` : présenté de façon neutre (« Une entreprise »), son nom portant un lien ou une coordonnée. */
+  readonly inviter: string | null;
   readonly message: string | null;
   readonly expiresAt: Date;
   /** Lien signé, à usage unique. */
@@ -30,6 +31,7 @@ const COPY = {
   fr: {
     subject: (who: string, reminder: boolean) => `${reminder ? "Rappel : " : ""}${who} vous invite sur Proofseen`,
     hello: "Bonjour,",
+    someCompany: "Une entreprise",
     ask: {
       freelance: (who: string) =>
         `${who} travaille déjà avec vous et vous invite à rejoindre son vivier de freelances sur Proofseen. En acceptant, votre profil entre dans son vivier privé : ses membres vous retrouvent parmi les freelances avec qui l'entreprise a déjà travaillé.`,
@@ -45,6 +47,7 @@ const COPY = {
   en: {
     subject: (who: string, reminder: boolean) => `${reminder ? "Reminder: " : ""}${who} invites you to Proofseen`,
     hello: "Hello,",
+    someCompany: "A company",
     ask: {
       freelance: (who: string) =>
         `${who} already works with you and invites you to join its pool of freelancers on Proofseen. If you accept, your profile joins its private talent pool: its members find you among the freelancers the company has already worked with.`,
@@ -61,7 +64,7 @@ const COPY = {
 
 export const renderInvitation = (i: InvitationEmailInput): Email => {
   const c = COPY[i.lang];
-  const who = oneLine(i.inviter).slice(0, 200);
+  const who = i.inviter === null ? c.someCompany : oneLine(i.inviter).slice(0, 200);
   const note = i.message === null ? [] : i.message.split("\n").map((line) => line.trim());
   const expires = c.expires(day(i.expiresAt, i.lang));
   const text = [c.hello, "", c.ask[i.kind](who), ...(note.length === 0 ? [] : ["", c.note, ...note.map((line) => `> ${line}`)]), "", c.how, "", `${c.open} : ${i.link}`, expires, "", "—", c.footer(who)].join("\n");

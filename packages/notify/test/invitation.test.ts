@@ -31,6 +31,11 @@ describe("e-mail d'invitation", () => {
     expect(email.html).not.toContain("<img");
   });
 
+  it("présente de façon neutre une entreprise dont le nom porte un lien", () => {
+    expect(renderInvitation({ ...input, inviter: null }).subject).toBe("Une entreprise vous invite sur Proofseen");
+    expect(renderInvitation({ ...input, lang: "en", inviter: null }).text).toContain("A company already works with you");
+  });
+
   it("existe pour une entreprise invitée par un freelance, en anglais, et en relance", () => {
     const email = renderInvitation({ ...input, lang: "en", kind: "client", inviter: "Camille Martin", message: null, reminder: true });
     expect(email.subject).toBe("Reminder: Camille Martin invites you to Proofseen");

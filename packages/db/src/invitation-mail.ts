@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Db } from "./client";
 import type { InvitationKind } from "./generated/enums";
-import { senderLabel } from "./invitations";
+import { organisationLabel, senderLabel } from "./invitations";
 import { MAX_ATTEMPTS } from "./notifications";
 
 /*
@@ -23,7 +23,8 @@ export interface PendingInvitationEmail {
   readonly lang: "fr" | "en";
   readonly attempts: number;
   readonly kind: InvitationKind;
-  readonly inviter: string;
+  /** `null` : une entreprise dont le nom porte un lien ou une coordonnée, présentée de façon neutre. */
+  readonly inviter: string | null;
   readonly message: string | null;
   readonly expiresAt: Date;
   /** La relance unique, et non le premier envoi. */
@@ -80,7 +81,7 @@ export const invitationMail = (db: Db): InvitationMail => ({
       lang: r.lang === "en" ? ("en" as const) : ("fr" as const),
       attempts: r.emailAttempts,
       kind: r.kind,
-      inviter: r.organisation?.name ?? senderLabel(r.sender.displayName, r.sender.freelanceProfile?.reference ?? null),
+      inviter: r.organisation === null ? senderLabel(r.sender.displayName, r.sender.freelanceProfile?.reference ?? null) : organisationLabel(r.organisation.name),
       message: r.message,
       expiresAt: r.expiresAt,
       reminder: r.remindedAt !== null,

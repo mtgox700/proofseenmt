@@ -3,7 +3,7 @@ import type { Db } from "./client";
 import type { Prisma } from "./generated/client";
 import type { InvitationKind } from "./generated/enums";
 import { maskEmail, normaliseEmails } from "./invitation-input";
-import { senderLabel } from "./invitations";
+import { organisationLabel, senderLabel } from "./invitations";
 import type { Actor } from "./messaging";
 import { confirmationTokenHash, TOKEN_FORMAT } from "./mission-confirmation-input";
 import { notifications } from "./notifications";
@@ -23,8 +23,11 @@ const RECEIVED_LIMIT = 50;
 export interface InvitationView {
   readonly id: string;
   readonly kind: InvitationKind;
-  /** Qui invite : le nom de l'entreprise, ou le nom affiché du freelance (sa référence s'il contient une coordonnée). */
-  readonly inviter: string;
+  /**
+   * Qui invite : le nom de l'entreprise, ou le nom affiché du freelance (sa référence s'il contient une coordonnée) ;
+   * `null` pour une entreprise dont le nom porte un lien ou une coordonnée, présentée de façon neutre.
+   */
+  readonly inviter: string | null;
   readonly message: string | null;
   readonly expiresAt: Date;
   /** L'adresse invitée, à demi masquée : pour savoir avec quel compte se connecter. */
@@ -87,7 +90,7 @@ type ViewRow = Prisma.InvitationGetPayload<{ select: typeof VIEW_SELECT }>;
 const viewOf = (row: ViewRow): InvitationView => ({
   id: row.id,
   kind: row.kind,
-  inviter: row.organisation?.name ?? senderLabel(row.sender.displayName, row.sender.freelanceProfile?.reference ?? null),
+  inviter: row.organisation === null ? senderLabel(row.sender.displayName, row.sender.freelanceProfile?.reference ?? null) : organisationLabel(row.organisation.name),
   message: row.message,
   expiresAt: row.expiresAt,
   maskedEmail: maskEmail(row.email),
