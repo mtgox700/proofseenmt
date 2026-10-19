@@ -1,9 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { ApiKeyNameSchema, apiKeys, largeAccounts, organisations } from "@proofseen/db";
+import { ApiKeyNameSchema, apiKeys, largeAccounts, organisations, talentPool } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
-import { actionMarket, currentOrganisation, langOf } from "@/lib/market";
+import { actionMarket, currentOrganisation, langOf, uuidOf } from "@/lib/market";
 
 /*
  * Server actions of the company's administration. The company is always the person's own (`currentOrganisation`),
@@ -45,6 +45,16 @@ export async function removeMember(formData: FormData): Promise<void> {
   // Leaving one's own company ends access to it: back to the home, which offers to create one.
   if (removed && userId === market.actor.userId) redirect(`/${lang}/app`);
   redirect(page(lang, removed ? "" : "erreur=proprietaire"));
+}
+
+/** Removes from the pool a freelancer who joined by invitation; the repository checks owner or administrator rights. */
+export async function removeFromPool(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const { market, organisation } = await companyOf(lang);
+  if (await throttled("pool-remove", market.actor.userId, RULE, new Date())) redirect(page(lang, "erreur=trop"));
+  const profileId = uuidOf(formData.get("profileId"));
+  const removed = profileId === null ? false : await talentPool(market.db).remove(market.actor, organisation.id, profileId);
+  redirect(page(lang, removed ? "vivier=retire" : "erreur=invalide"));
 }
 
 export async function setApprovalLevels(formData: FormData): Promise<void> {

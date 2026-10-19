@@ -33,6 +33,9 @@ export const teamEn: TeamDictionary = {
     invited: (d: string) => `joined by invitation on ${d}`,
     facts: (missions: number, days: number) => `${missions} paid mission${missions > 1 ? "s" : ""} · ${days} day${days > 1 ? "s" : ""}`,
     last: "last mission on",
+    remove: "Remove from the pool",
+    removeLabel: (ref: string) => `Remove ${ref} from the pool`,
+    removed: "Freelancer removed from the pool. Paid missions, if any, keep them there: they are facts.",
     write: "Write",
   },
   keys: {

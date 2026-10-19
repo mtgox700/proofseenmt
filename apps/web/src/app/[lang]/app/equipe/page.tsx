@@ -7,14 +7,14 @@ import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { date, day } from "@/lib/format";
 import { currentOrganisation, pageMarket } from "@/lib/market";
-import { addMember, removeMember, revokeApiKey, setApprovalLevels } from "./actions";
+import { addMember, removeFromPool, removeMember, revokeApiKey, setApprovalLevels } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; ajoute?: string; validation?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; ajoute?: string; validation?: string; vivier?: string }>;
 }
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
@@ -101,7 +101,7 @@ function Approvals({ lang, m, levels, owner, error }: { readonly lang: Lang; rea
   );
 }
 
-function Pool({ lang, m, pool }: { readonly lang: Lang; readonly m: MarketDictionary; readonly pool: readonly PoolMember[] }) {
+function Pool({ lang, m, pool, admin }: { readonly lang: Lang; readonly m: MarketDictionary; readonly pool: readonly PoolMember[]; readonly admin: boolean }) {
   const p = m.team.pool;
   return (
     <section className="panel" aria-labelledby="pool-title">
@@ -120,6 +120,15 @@ function Pool({ lang, m, pool }: { readonly lang: Lang; readonly m: MarketDictio
               <Link className="btn" href={`/${lang}/app/contact/${freelance.reference}`}>
                 {p.write}
               </Link>
+              {admin && freelance.invitedOn !== null ? (
+                <form action={removeFromPool}>
+                  <Hidden name="lang" value={lang} />
+                  <Hidden name="profileId" value={freelance.profileId} />
+                  <button type="submit" className="btn btn-quiet" aria-label={p.removeLabel(freelance.reference)}>
+                    {p.remove}
+                  </button>
+                </form>
+              ) : null}
               <span className="thread-last muted small">
                 {freelance.lastMissionStartedOn === null ? null : (
                   <>
@@ -195,7 +204,7 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
     largeAccounts(market.db).talentPool(market.actor, organisation.id),
     admin ? apiKeys(market.db).list(market.actor, organisation.id) : Promise.resolve(null),
   ]);
-  const { erreur, ajoute, validation } = await searchParams;
+  const { erreur, ajoute, validation, vivier } = await searchParams;
   const error = erreur === undefined ? null : erreur === "trop" ? m.team.errors.tooMany : erreur === "proprietaire" ? m.team.members.lastOwner : m.team.errors.invalid;
   const approvalError = validation === "un" ? m.team.approvals.singleAdmin : validation === "proprietaire" ? m.team.approvals.ownerOnly : null;
   const e = m.team.export;
@@ -220,7 +229,12 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
       )}
       {members === null ? null : <Members lang={lang} m={m} members={members} admin={admin} />}
       {levels === null ? null : <Approvals lang={lang} m={m} levels={levels} owner={organisation.role === "owner"} error={approvalError} />}
-      <Pool lang={lang} m={m} pool={pool ?? []} />
+      {vivier === "retire" ? (
+        <p className="form-ok" role="status">
+          {m.team.pool.removed}
+        </p>
+      ) : null}
+      <Pool lang={lang} m={m} pool={pool ?? []} admin={admin} />
       {admin && keys !== null ? (
         <>
           <Keys lang={lang} m={m} keys={keys} />

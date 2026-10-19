@@ -32,6 +32,9 @@ export const teamFr = {
     invited: (d: string) => `entré par invitation le ${d}`,
     facts: (missions: number, days: number) => `${missions} mission${missions > 1 ? "s" : ""} payée${missions > 1 ? "s" : ""} · ${days} jour${days > 1 ? "s" : ""}`,
     last: "dernière mission le",
+    remove: "Retirer du vivier",
+    removeLabel: (ref: string) => `Retirer ${ref} du vivier`,
+    removed: "Freelance retiré du vivier. Ses missions payées, s'il en a, l'y gardent : elles sont des faits.",
     write: "Écrire",
   },
   keys: {

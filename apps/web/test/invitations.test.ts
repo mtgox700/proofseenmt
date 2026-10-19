@@ -127,6 +127,7 @@ describe("notices and texts", () => {
   it("only read known codes from the query", () => {
     expect(noticeOf("envoyee", undefined)).toEqual({ ok: true, key: "envoyee" });
     expect(noticeOf(undefined, "adresse")).toEqual({ ok: false, key: "adresse" });
+    expect(noticeOf("quitte", undefined)).toEqual({ ok: true, key: "quitte" });
     expect(noticeOf("<script>", "../evil")).toBeNull();
   });
 

@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
-import { invitationAnswers, invitations, type AnswerResult, type InvitationResult, type InvitationTarget, type ManageResult } from "@proofseen/db";
+import { invitationAnswers, invitations, talentPool, type AnswerResult, type InvitationResult, type InvitationTarget, type ManageResult } from "@proofseen/db";
 import { throttled } from "@/data/throttle";
 import { invitationPath, invitationSecret, invitationToken } from "@/lib/invitation-secret";
 import { requiredSide, sideAllows, invitationKindOf, type InvitationKindName } from "@/lib/invitations";
@@ -90,6 +90,16 @@ const manage = async (formData: FormData, action: "revoke" | "remind"): Promise<
   const result: ManageResult = id === null ? "absent" : action === "revoke" ? await repo.revoke(market.actor, id, new Date()) : await repo.remind(market.actor, id, new Date());
   redirect(list(lang, result === "done" ? `fait=${action === "revoke" ? "revoquee" : "relancee"}` : `erreur=${MANAGE_ERRORS[result]}`));
 };
+
+/** The freelancer leaves a pool joined by invitation: only their own entry, the actor being the person. */
+export async function leavePool(formData: FormData): Promise<void> {
+  const lang = langOf(formData.get("lang"));
+  const market = await senderMarket(lang);
+  if (await throttled("pool-leave", market.actor.userId, MANAGE_RULE, new Date())) redirect(list(lang, "erreur=trop"));
+  const organisationId = uuidOf(formData.get("organisationId"));
+  const left = organisationId === null ? false : await talentPool(market.db).leave(market.actor, organisationId);
+  redirect(list(lang, left ? "fait=quitte" : "erreur=introuvable"));
+}
 
 export async function revokeInvitation(formData: FormData): Promise<void> {
   await manage(formData, "revoke");

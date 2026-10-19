@@ -20,7 +20,7 @@ export interface Notice {
   readonly key: string;
 }
 
-const DONE = new Set(["envoyee", "revoquee", "relancee", "refusee", "acceptee-vivier", "acceptee-rattachee", "acceptee-client"]);
+const DONE = new Set(["envoyee", "revoquee", "relancee", "refusee", "quitte", "acceptee-vivier", "acceptee-rattachee", "acceptee-client"]);
 const ERRORS = new Set([
   "trop",
   "indisponible",

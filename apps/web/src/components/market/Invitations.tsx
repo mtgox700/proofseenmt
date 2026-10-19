@@ -1,4 +1,4 @@
-import { INVITATION_MESSAGE_MAX, INVITATION_TTL_DAYS, MAX_INVITATIONS_PER_SENDER_PER_DAY, type InvitationView, type SentEmailInvitation } from "@proofseen/db";
+import { INVITATION_MESSAGE_MAX, INVITATION_TTL_DAYS, MAX_INVITATIONS_PER_SENDER_PER_DAY, type InvitationView, type JoinedPool, type SentEmailInvitation } from "@proofseen/db";
 import type { Lang } from "@/i18n";
 import type { InvitationsDictionary } from "@/i18n/market/invitations-fr";
 import { day } from "@/lib/format";
@@ -18,6 +18,7 @@ export const noticeText = (d: InvitationsDictionary, notice: Notice, masked = "â
     revoquee: d.done.revoked,
     relancee: d.done.reminded,
     refusee: d.done.declined,
+    quitte: d.done.left,
     "acceptee-vivier": d.answer.acceptedText.freelance,
     "acceptee-rattachee": d.answer.acceptedText.clientLinked,
     "acceptee-client": d.answer.acceptedText.clientPending,
@@ -163,10 +164,12 @@ export function AnswerForm(props: { readonly lang: Lang; readonly d: Invitations
 }
 
 export function InvitationCard({ lang, d, invitation, children }: { readonly lang: Lang; readonly d: InvitationsDictionary; readonly invitation: InvitationView; readonly children?: React.ReactNode }) {
+  // A company whose name carries a link or contact is shown neutrally, as in the e-mail.
+  const inviter = invitation.inviter ?? d.someCompany;
   return (
     <li className="panel" aria-labelledby={`inv-${invitation.id}`}>
-      <h3 id={`inv-${invitation.id}`}>{d.from(invitation.inviter)}</h3>
-      <p className="measure">{d.answer.lead[invitation.kind](invitation.inviter)}</p>
+      <h3 id={`inv-${invitation.id}`}>{d.from(inviter)}</h3>
+      <p className="measure">{d.answer.lead[invitation.kind](inviter)}</p>
       {invitation.message === null ? null : (
         <blockquote className="measure" aria-label={d.answer.note}>
           {invitation.message}
@@ -190,6 +193,34 @@ export function ReceivedInvitations(props: { readonly lang: Lang; readonly d: In
           <InvitationCard key={invitation.id} lang={lang} d={d} invitation={invitation}>
             <AnswerForm lang={lang} d={d} invitation={invitation} token={null} action={props.action} hint={null} />
           </InvitationCard>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** The pools the freelancer joined by invitation, each with a "leave" button: the company is not told. */
+export function JoinedPools({ lang, d, pools, action }: { readonly lang: Lang; readonly d: InvitationsDictionary; readonly pools: readonly JoinedPool[]; readonly action: Action }) {
+  if (pools.length === 0) return null;
+  return (
+    <section className="panel" aria-labelledby="pools-title">
+      <h2 id="pools-title">{d.poolsTitle}</h2>
+      <p className="muted measure">{d.poolsLead}</p>
+      <ul className="threads">
+        {pools.map((pool) => (
+          <li key={pool.organisationId} className="thread-row">
+            <span className="thread-who">
+              <strong>{pool.name}</strong>
+              <span className="muted small"> Â· {d.joinedOn(day(pool.joinedAt, lang))}</span>
+            </span>
+            <form action={action}>
+              <input type="hidden" name="lang" value={lang} />
+              <input type="hidden" name="organisationId" value={pool.organisationId} />
+              <button type="submit" className="btn btn-quiet" aria-label={d.leaveLabel(pool.name)}>
+                {d.leave}
+              </button>
+            </form>
+          </li>
         ))}
       </ul>
     </section>
