@@ -53,7 +53,7 @@ export type InvitationResult =
   | { readonly kind: "message"; readonly problem: TextProblem }
   /** L'adresse est celle de l'expéditeur. */
   | { readonly kind: "self" }
-  /** Entreprise inconnue, masquée, ou dont l'expéditeur n'est pas membre. */
+  /** Entreprise inconnue, masquée, ou que l'expéditeur n'administre pas (propriétaire ou administrateur). */
   | { readonly kind: "absent" }
   /** Un freelance invite une entreprise depuis son profil : sans profil, rien à présenter. */
   | { readonly kind: "no_profile" }
@@ -92,6 +92,13 @@ export interface Invitations {
 /** Le nom sous lequel un freelance invite : son nom affiché, ou sa référence s'il contient une coordonnée. */
 export const senderLabel = (displayName: string, reference: string | null): string => (containsContact(displayName) && reference !== null ? reference : displayName);
 
+/**
+ * Le nom sous lequel une entreprise invite, ou `null` (« Une entreprise ») s'il contient un lien ou une coordonnée : un
+ * e-mail envoyé par Proofseen ne doit pas relayer « https://evil.xyz/verify » ni un faux domaine d'administration. Un
+ * nom de domaine permis comme raison sociale (« Booking.com ») devient neutre lui aussi : prudence assumée.
+ */
+export const organisationLabel = (name: string): string | null => (containsContact(name) ? null : name);
+
 /** Une invitation que l'acteur peut gérer : la sienne, ou celle d'une entreprise qu'il administre. */
 const managedBy = (userId: string): Prisma.InvitationWhereInput => ({
   OR: [{ senderUserId: userId }, { organisation: { members: { some: { userId, role: { in: [...ADMINS] } } } } }],
@@ -127,16 +134,24 @@ const sentView = (row: SentRow, manageable: boolean, now: Date): SentEmailInvita
   };
 };
 
-/** Les plafonds, comptés sous les verrous déjà pris : expéditeur, entreprise, boîte invitée. */
-const overLimit = async (tx: Prisma.TransactionClient, senderUserId: string, organisationId: string | null, mailbox: string, now: Date): Promise<boolean> => {
+/** Les plafonds de l'expéditeur et de l'entreprise, comptés sous les verrous déjà pris. */
+const overSenderLimit = async (tx: Prisma.TransactionClient, senderUserId: string, organisationId: string | null, now: Date): Promise<boolean> => {
   const day = { gt: new Date(now.getTime() - DAY_MS) };
-  const [bySender, byOrganisation, byMailbox] = await Promise.all([
+  const [bySender, byOrganisation] = await Promise.all([
     tx.invitation.count({ where: { senderUserId, createdAt: day } }),
     organisationId === null ? Promise.resolve(0) : tx.invitation.count({ where: { organisationId, createdAt: day } }),
-    tx.invitation.count({ where: { mailbox, createdAt: { gt: new Date(now.getTime() - INVITATION_TTL_DAYS * DAY_MS) } } }),
   ]);
-  return bySender >= MAX_INVITATIONS_PER_SENDER_PER_DAY || byOrganisation >= MAX_ORGANISATION_INVITATIONS_PER_DAY || byMailbox >= MAX_INVITATIONS_PER_MAILBOX;
+  return bySender >= MAX_INVITATIONS_PER_SENDER_PER_DAY || byOrganisation >= MAX_ORGANISATION_INVITATIONS_PER_DAY;
 };
+
+/**
+ * Le plafond de la boîte invitée, tous expéditeurs confondus. Une invitation révoquée avant que son e-mail parte ne
+ * compte pas : sinon trois invitations aussitôt révoquées fermeraient une adresse à tout le monde pendant 14 jours.
+ */
+const overMailboxLimit = async (tx: Prisma.TransactionClient, mailbox: string, now: Date): Promise<boolean> =>
+  (await tx.invitation.count({
+    where: { mailbox, createdAt: { gt: new Date(now.getTime() - INVITATION_TTL_DAYS * DAY_MS) }, NOT: { status: "revoked", emailSentAt: null } },
+  })) >= MAX_INVITATIONS_PER_MAILBOX;
 
 const createInvitation = async (
   tx: Prisma.TransactionClient,
@@ -154,8 +169,9 @@ const createInvitation = async (
   if (mailbox === mailboxKey(own)) return { kind: "self" };
   const organisationId = target.kind === "freelance" ? target.organisationId : null;
   if (organisationId !== null) {
-    const member = await tx.organisation.count({ where: { id: organisationId, suspendedAt: null, members: { some: { userId: actor.userId } } } });
-    if (member === 0) return { kind: "absent" };
+    // Inviter engage le vivier de l'entreprise : comme accepter un devis, c'est l'affaire de ses administrateurs.
+    const admin = await tx.organisation.count({ where: { id: organisationId, suspendedAt: null, members: { some: { userId: actor.userId, role: { in: [...ADMINS] } } } } });
+    if (admin === 0) return { kind: "absent" };
     await tx.$queryRaw`SELECT "id" FROM "Organisation" WHERE "id" = ${organisationId}::uuid FOR UPDATE`;
   } else if ((await tx.freelanceProfile.count({ where: { userId: actor.userId } })) === 0) {
     return { kind: "no_profile" };
@@ -167,7 +183,10 @@ const createInvitation = async (
     where: { kind: target.kind, mailbox, status: { in: ["pending", "declined"] }, expiresAt: { gt: now }, ...(organisationId === null ? { senderUserId: actor.userId } : { organisationId }) },
   });
   if (duplicate > 0) return { kind: "already_invited" };
-  if (await overLimit(tx, actor.userId, organisationId, mailbox, now)) return { kind: "limit" };
+  if (await overSenderLimit(tx, actor.userId, organisationId, now)) return { kind: "limit" };
+  // Boîte saturée : la même réponse qu'un envoi, et rien n'est écrit. Un refus dirait à l'expéditeur que d'autres ont
+  // invité cette adresse ; l'adresse, elle, ne reçoit rien de plus.
+  if (await overMailboxLimit(tx, mailbox, now)) return { kind: "invited", invitationId: link.id };
   await tx.invitation.create({
     data: {
       id: link.id,

@@ -6,6 +6,7 @@ import { exportMissionsSpace } from "./gdpr-missions";
 import { exportLiveMessaging } from "./gdpr-messaging";
 import { eraseCommunityComments, exportCommunity } from "./gdpr-community";
 import { exportInvitations } from "./gdpr-invitations";
+import { mailboxKey } from "./mission-confirmation-input";
 
 /*
  * Droits d'accès (RGPD art. 15 et 20) et d'effacement (art. 17) d'un utilisateur.
@@ -261,9 +262,11 @@ export const gdpr = (db: Db): Gdpr => ({
       // Les demandes de confirmation adressées à cette adresse partent aussi ; une mission déjà confirmée reste un fait
       // du profil du freelance, sans plus de lien vers la demande.
       await tx.missionConfirmationRequest.deleteMany({ where: { contactEmail: user.email } });
-      // Les invitations adressées à la personne, ou auxquelles elle a répondu, partent aussi ; celles qu'elle a
-      // envoyées partent avec son compte (C23).
-      await tx.invitation.deleteMany({ where: { OR: [{ email: user.email }, { acceptedByUserId: userId }] } });
+      // Les invitations adressées à la personne (à son adresse, ou à la même boîte : « moi+x@ », points de Gmail), ou
+      // auxquelles elle a répondu, partent aussi ; celles qu'elle a envoyées partent avec son compte (C23). Ses autres
+      // adresses vérifiées ne sont connues que de Clerk : les invitations qui leur restent échoient et sont purgées
+      // 30 jours après (`retention.ts`).
+      await tx.invitation.deleteMany({ where: { OR: [{ email: user.email }, { mailbox: mailboxKey(user.email) }, { acceptedByUserId: userId }] } });
       // Les vagues mesurées décrivent la personne : elles partent avec elle au lieu de rester détachées. Les demandes de
       // mesure partent par cascade avec le profil.
       if (user.freelanceProfile !== null) await tx.wave.deleteMany({ where: { profileId: user.freelanceProfile.id } });

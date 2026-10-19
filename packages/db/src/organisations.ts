@@ -59,8 +59,14 @@ export const organisations = (db: Db): Organisations => ({
       data: { ...input, members: { create: { userId: actor.userId, role: "owner" } } },
       select: { id: true, name: true, kind: true, siret: true },
     });
-    // Une invitation d'un freelance acceptée avant d'avoir une entreprise s'y rattache maintenant (C23).
-    await invitationAnswers(db).linkClient(actor.userId, org.id, new Date());
+    // Une invitation d'un freelance acceptée avant d'avoir une entreprise s'y rattache maintenant (C23). Au mieux :
+    // l'entreprise est déjà créée, un échec ici ne doit pas faire croire le contraire ; il est seulement journalisé, par
+    // son nom d'erreur (un message de pilote peut contenir l'hôte de la base).
+    await invitationAnswers(db)
+      .linkClient(actor.userId, org.id, new Date())
+      .catch((error: unknown) => {
+        console.error("organisations: client invitation link failed", error instanceof Error ? error.name : "unknown");
+      });
     return { ...org, role: "owner" };
   },
 
@@ -84,7 +90,6 @@ export const organisations = (db: Db): Organisations => ({
       // Ajouter quelqu'un qui est déjà propriétaire ne le rétrograde pas.
       update: {},
     });
-    await invitationAnswers(db).linkClient(user.id, organisationId, new Date());
     return true;
   },
 
@@ -96,6 +101,9 @@ export const organisations = (db: Db): Organisations => ({
       if (target === null) return false;
       if (target.role === "owner" && (await tx.membership.count({ where: { organisationId, role: "owner" } })) === 1) return false;
       await tx.membership.delete({ where: { organisationId_userId: { organisationId, userId } } });
+      // Ses invitations de freelances encore ouvertes sont révoquées : personne ne doit rejoindre le vivier sur la
+      // parole de quelqu'un qui n'est plus là, ni le prévenir ensuite (C23, relecture L7).
+      await tx.invitation.updateMany({ where: { organisationId, senderUserId: userId, status: { in: ["pending", "declined"] } }, data: { status: "revoked", decidedAt: new Date() } });
       return true;
     });
   },

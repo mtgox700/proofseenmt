@@ -524,3 +524,4 @@ export {
 export { invitations, type InvitationLink, type Invitations, type InvitationTarget, type InvitationResult, type ManageResult, type SentEmailInvitation } from "./invitations";
 export { invitationAnswers, type AnswerRequest, type AnswerResult, type InvitationAnswers, type InvitationView, type LookupResult } from "./invitation-answers";
 export { invitationMail, type InvitationMail, type PendingInvitationEmail } from "./invitation-mail";
+export { talentPool, type JoinedPool } from "./talent-pool";
