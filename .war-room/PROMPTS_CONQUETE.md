@@ -611,7 +611,7 @@ référencements et ses contrats sur Proofseen, et retrouve ses freelances par l
 | C20 | Paiement de bout en bout et application mobile | 🟡 | Application installable et notifications poussées en production le 2026-10-16 (PR #45) : manifeste et service worker limités à l'espace connecté, page hors ligne, Web Push (clés VAPID générées sur le serveur), pages publiques inchangées ; restent l'installation et une notification reçue sur un vrai téléphone, et toute la partie Stripe (décision du founder, fin de projet) |
 | C21 | Finitions de parité | 🟡 | En production le 2026-10-17 (PR #50, #51) : simulateur de revenu net sourcé sur service-public.fr (micro BNC/BIC, SASU en dividendes ; EURL écartée faute de taux officiel lisible), 26 pages par métier (dès 2 éléments réels), recherche insensible aux accents, édition des éléments du profil, filtre langues, CV joint aux candidatures lisible par la seule entreprise destinataire ; `marketplace-verify` vert ; reste le parcours connecté joué avec les comptes de test |
 | C22 | Découverte et communauté | 🟡 | En production le 2026-10-18 (PR #56, #57, #58, durcissement PR #59) : rapprochement expliqué sans note (missions pour vous, profils pour une mission, listes « proches » sur les pages publiques, garde anti-IA), recherche avancée (facettes avec effectifs, tri choisi et affiché, recherches enregistrées avec alertes), annuaires à cartes des freelances et des entreprises, fil communautaire (publications, réactions, commentaires, partages, abonnements, audience sans pistage, pages publiques, sitemap, llms.txt, modération). Relecture sécurité : aucune critique ni haute, 4 moyennes et 8 basses corrigées. Reste : parcours connecté joué dans le navigateur avec le compte du founder |
-| C23 | Amorçage et profils fiables | 🟡 | démarré le 2026-10-18 : invitations (une entreprise amène ses freelances, un freelance amène ses clients), disponibilité reconfirmée, parcours de publication guidé, accueil par le nom |
+| C23 | Amorçage et profils fiables | 🟡 | En production le 2026-10-19 (PR #61, #62 ; migrations `20261019110000_availability_reminders`, `20261019120000_invitations`) : invitations (une entreprise amène ses freelances dans son vivier privé, un freelance amène ses entreprises clientes ; aucune énumération, lien seul insuffisant, plafonds, filtre de coordonnées), disponibilité reconfirmée (règle unique de 30 jours, « non confirmée » au-delà, jamais masquée ; 3 rappels au plus), publication guidée en un clic, accueil sans adresse e-mail, états vides utiles. Relectures sécurité : aucune critique ni haute ; 5 moyennes et 9 basses corrigées. Reste : une invitation réellement envoyée et acceptée entre deux comptes |
 
 **Règles propres à ces sprints**, en plus du BLOC COMMUN :
 - Rien de démo devant un utilisateur : toute page qui lit `data/demo.ts` ou `data/profiles.json` est branchée sur la
@@ -929,8 +929,8 @@ déjà, et garde des profils dont chaque fait affiché est daté.
 </perimetre>
 
 <definition_of_done>
-- [ ] Une invitation ne révèle jamais si une adresse a déjà un compte ; jetons à usage unique et expirés, testés
-- [ ] Disponibilité : rappel, bascule « non confirmée » à 30 jours, test sur l'horloge
-- [ ] Parcours joué en production avec le compte du founder ; pages publiques inchangées pour les robots
-- [ ] Relecture sécurité sans critique ni haute ; gate complet vert
+- [x] Une invitation ne révèle jamais si une adresse a déjà un compte ; jetons à usage unique et expirés, testés
+- [x] Disponibilité : rappel, bascule « non confirmée » à 30 jours, test sur l'horloge
+- [ ] Parcours joué en production avec le compte du founder (fait en lecture : accueil, publication guidée, écran Invitations ; reste un envoi et une acceptation entre deux comptes) ; pages publiques inchangées pour les robots
+- [x] Relecture sécurité sans critique ni haute ; gate complet vert
 </definition_of_done>
