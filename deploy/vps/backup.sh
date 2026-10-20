@@ -41,5 +41,6 @@ if [ "$size" -lt 4096 ]; then
   exit 1
 fi
 
-find "$DIR" -name 'proofseen-*.dump' -type f -mtime +"$BACKUP_DAYS" -delete
+# -mtime +N keeps files up to N+1 full days old: BACKUP_DAYS - 1 makes the 14 days of the privacy policy exact.
+find "$DIR" -name 'proofseen-*.dump' -type f -mtime +"$((BACKUP_DAYS - 1))" -delete
 echo "$(date -u +%FT%TZ) backup: $name $size bytes"
