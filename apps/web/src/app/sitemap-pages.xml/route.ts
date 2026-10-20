@@ -1,11 +1,12 @@
-import { publicBaseUrl } from "@/lib/public-url";
+// Relative import: this route is imported by a vitest test, which does not resolve the "@/" alias.
+import { publicBaseUrl } from "../../lib/public-url";
 
 /**
  * The fixed pages: both home pages, the mission indexes, the freelancer and company directories, the skill and job-title indexes, the
- * net income simulator, and the pages kept from the former static site.
+ * net income simulator, the three legal pages, and the pages kept from the former static site.
  */
 
-const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/fr/freelances", "/en/freelances", "/fr/entreprises", "/en/entreprises", "/fr/metiers", "/en/metiers", "/fr/postes", "/en/postes", "/fr/simulateur", "/en/simulateur", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/p/FR-7H2XK/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/", "/en/p/FR-7H2XK/"] as const;
+const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/fr/freelances", "/en/freelances", "/fr/entreprises", "/en/entreprises", "/fr/metiers", "/en/metiers", "/fr/postes", "/en/postes", "/fr/simulateur", "/en/simulateur", "/fr/mentions-legales", "/en/mentions-legales", "/fr/confidentialite", "/en/confidentialite", "/fr/conditions", "/en/conditions", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/p/FR-7H2XK/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/", "/en/p/FR-7H2XK/"] as const;
 
 export function GET(request: Request): Response {
   const base = publicBaseUrl(request);

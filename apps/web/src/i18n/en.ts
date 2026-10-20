@@ -262,6 +262,14 @@ export const en: Dictionary = {
   footer: {
     line: "Proofseen measures your visibility in AI-assisted recruiting.",
     legal: "Terms of sale, withdrawal and refunds: on the Order page.",
+    legalNav: {
+      label: "Legal information",
+      links: [
+        { href: "/en/mentions-legales", label: "Legal notice" },
+        { href: "/en/confidentialite", label: "Privacy" },
+        { href: "/en/conditions", label: "Terms of use" },
+      ],
+    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt and GitHub are trademarks of their owners. Proofseen is not affiliated with any of them.",
   },
   directory: {

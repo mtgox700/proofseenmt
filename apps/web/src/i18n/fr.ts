@@ -266,6 +266,14 @@ export const fr = {
   footer: {
     line: "Proofseen mesure votre visibilité dans le recrutement assisté par IA.",
     legal: "Conditions de vente, rétractation et remboursement : sur la page Commander.",
+    legalNav: {
+      label: "Informations légales",
+      links: [
+        { href: "/fr/mentions-legales", label: "Mentions légales" },
+        { href: "/fr/confidentialite", label: "Confidentialité" },
+        { href: "/fr/conditions", label: "Conditions d'utilisation" },
+      ],
+    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt et GitHub sont des marques de leurs propriétaires. Proofseen n'est affilié à aucun d'entre eux.",
   },
   directory: {
