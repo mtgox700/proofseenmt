@@ -1,7 +1,7 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
 
 /*
  * Page d'une ville : ses missions ouvertes. Elle n'existe que remplie de missions réelles (la base décide du seuil) ;
@@ -155,6 +155,7 @@ export const renderCityPage = (c: CityPageView, o: { readonly baseUrl: string; r
     `<ul class="missions">${c.missions.map((m) => card(m, o.lang)).join("")}</ul>`,
     `<p class="byline"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(longDate(c.generatedAt, o.lang)))}</time></p>`,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

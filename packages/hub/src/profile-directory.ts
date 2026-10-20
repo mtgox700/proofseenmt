@@ -1,7 +1,7 @@
 import { FAVICON } from "./pages";
 import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { longDate, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
 import { languageName } from "./profile-sections";
 
@@ -369,6 +369,7 @@ export const renderProfileDirectory = (
     "</section>",
     "</div>",
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

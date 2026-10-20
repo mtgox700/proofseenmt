@@ -2,7 +2,7 @@ import { FAVICON } from "./pages";
 import { companyUrl } from "./company-page";
 import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { longDate, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
 
 /*
  * Annuaire public des entreprises (C22) : celles qui ont ouvert une page publique, et seulement elles. Chaque carte porte
@@ -246,6 +246,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     "</section>",
     "</div>",
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

@@ -1,7 +1,7 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
 
 /*
@@ -170,6 +170,7 @@ export const renderCompanyPage = (c: CompanyPageModel, o: { readonly baseUrl: st
     `<p class="muted">${l.followHint}</p>`,
     `<p class="byline"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(longDate(c.generatedAt, o.lang)))}</time></p>`,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

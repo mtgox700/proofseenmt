@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
 import { skillUrl } from "./skill-page";
 
 /*
@@ -85,6 +85,7 @@ export const renderSkillIndex = (entries: readonly SkillIndexItem[], o: { readon
     `<p class="muted">${l.order}</p>`,
     list,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

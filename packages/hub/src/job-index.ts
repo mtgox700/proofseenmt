@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, STYLES } from "./html";
-import { marketHeader, MENU_STYLES } from "./market-shell";
+import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
 import { rateText } from "./job-page";
 import type { PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
@@ -206,6 +206,7 @@ export const renderJobIndex = (
     `<nav class="pager">${pager}</nav>`,
     filtered ? "" : cityLinks(o.cities ?? [], o.baseUrl, o.lang),
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketHeader, MENU_STYLES, type Lang, type MenuItem } from "./market-shell";
+import { marketFooter, marketHeader, MENU_STYLES, type Lang, type MenuItem } from "./market-shell";
 
 /*
  * Le cadre commun des pages du blog et des baromètres : un document HTML complet, sans JavaScript (seul le JSON-LD est
@@ -72,6 +72,7 @@ export const renderFrame = (o: FrameOptions): string =>
     '<main class="wrap">',
     ...o.main,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketHeader, MENU_STYLES } from "./market-shell";
+import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
 import { nearbyProfilesSection, type NearbyProfile } from "./nearby";
 import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
@@ -255,6 +255,7 @@ export const renderProfilePage = (
     `<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p>`,
     nearbyProfilesSection(o.nearby ?? [], o.lang),
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

@@ -1,7 +1,7 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
 
 /*
@@ -179,6 +179,7 @@ export const renderSkillPage = (s: SkillPageView, o: { readonly baseUrl: string;
     `<dl class="context">${faq.map((f) => `<div><dt>${e(f.q)}</dt><dd>${e(f.a)}</dd></div>`).join("")}</dl>`,
     `<p class="byline"><time datetime="${isoDay(s.generatedAt)}">${e(l.generated(longDate(s.generatedAt, o.lang)))}</time></p>`,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

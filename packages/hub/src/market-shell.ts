@@ -35,7 +35,28 @@ export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem):
   );
 };
 
-export const longDate = (d: Date, lang: Lang): string => new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(d);
+/** Les trois pages légales, dans l'ordre du pied de page. Les chemins sont les mêmes dans les deux langues. */
+export const LEGAL_PAGES = ["mentions-legales", "confidentialite", "conditions"] as const;
+export type LegalPage = (typeof LEGAL_PAGES)[number];
+
+export const LEGAL_LABELS: Readonly<Record<Lang, { readonly nav: string } & Readonly<Record<LegalPage, string>>>> = {
+  fr: { nav: "Informations légales", "mentions-legales": "Mentions légales", confidentialite: "Confidentialité", conditions: "Conditions d'utilisation" },
+  en: { nav: "Legal information", "mentions-legales": "Legal notice", confidentialite: "Privacy", conditions: "Terms of use" },
+};
+
+const MARKS = {
+  fr: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt et GitHub sont des marques de leurs propriétaires. Proofseen n'est affilié à aucun d'entre eux.",
+  en: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt and GitHub are trademarks of their owners. Proofseen is not affiliated with any of them.",
+} as const;
+
+/** Le pied de page public : les trois pages légales, des liens simples, identiques pour chaque visiteur. */
+export const marketFooter = (lang: Lang): string => {
+  const l = LEGAL_LABELS[lang];
+  const links = LEGAL_PAGES.map((page) => `<a href="/${lang}/${page}">${e(l[page])}</a>`).join(" · ");
+  return `<footer class="foot"><div class="wrap"><nav aria-label="${e(l.nav)}">${links}</nav><p>${e(MARKS[lang])}</p></div></footer>`;
+};
+
+export const longDate =(d: Date, lang: Lang): string => new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(d);
 
 /** La date du jour seule (AAAA-MM-JJ) : un rendu reste identique d'une requête à l'autre dans la même journée. */
 export const isoDay = (d: Date): string => d.toISOString().slice(0, 10);

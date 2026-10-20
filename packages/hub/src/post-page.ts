@@ -1,5 +1,5 @@
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { isoDay, longDate, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
 import { renderMarkdown } from "./markdown";
 import { FAVICON } from "./pages";
 import { fileUrl } from "./profile-sections";
@@ -230,6 +230,7 @@ export const renderPostPage = (p: PublicPostModel, o: { readonly baseUrl: string
     `<p><a class="cta" href="${e(`/${o.lang}/app/fil/${p.id}`)}" rel="nofollow">${l.cta}</a></p>`,
     `<p class="muted">${l.ctaHint}</p>`,
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",

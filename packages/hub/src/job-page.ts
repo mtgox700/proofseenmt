@@ -1,6 +1,6 @@
 import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketHeader, MENU_STYLES } from "./market-shell";
+import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
 import { nearbyMissionsSection, type NearbyMission } from "./nearby";
@@ -137,6 +137,7 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     `<p><a class="cta" href="${e(o.applyHref)}">${l.apply}</a></p>`,
     nearbyMissionsSection(o.nearby ?? [], o.lang),
     "</main>",
+    marketFooter(o.lang),
     "</body>",
     "</html>",
     "",
