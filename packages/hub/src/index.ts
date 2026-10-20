@@ -96,3 +96,7 @@ export {
   type PublicPostOriginal,
   type RecentPostItem,
 } from "./post-page";
+export { isLegalPage, legalDocument, legalUrl, renderLegalPage, type LegalDocument, type LegalPageOptions, type LegalSection } from "./legal-page";
+export { HOSTS, LEGAL_VERSION, LEGAL_VERSION_DATE, PUBLISHER, type Host } from "./legal-facts";
+export { PROCESSORS, type Processor } from "./legal-processors";
+export { LEGAL_LABELS, LEGAL_PAGES, marketFooter, type LegalPage } from "./market-shell";
