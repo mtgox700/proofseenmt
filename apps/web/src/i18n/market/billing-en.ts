@@ -8,7 +8,7 @@ export const billingEn: BillingDictionary = {
   legalName: "Legal name",
   legalNameHint: "For a sole trader: your name followed by “EI”.",
   siret: "SIRET",
-  siretHint: "14 digits. Checked against the official register.",
+  siretHint: "14 digits. Checked against the official register. Required before any paid mission.",
   vatNumber: "EU VAT number",
   vatNumberHint: "Optional under the VAT franchise.",
   vatRate: "VAT charged",

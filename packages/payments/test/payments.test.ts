@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
-import { gatewayFromEnv, stripeGateway, StripeError, toPaymentEvent, verifyStripeSignature, verifyStripeSignatureWithAny } from "../src/index";
+import { gatewayFromEnv, paymentsSandbox, stripeGateway, StripeError, toPaymentEvent, verifyStripeSignature, verifyStripeSignatureWithAny } from "../src/index";
 
 const SECRET = "whsec_test_secret";
 const NOW_MS = Date.UTC(2026, 10, 20, 10, 0, 0);
@@ -101,5 +101,15 @@ describe("deux endpoints, deux secrets (plateforme et comptes connectés)", () =
     expect(verifyStripeSignatureWithAny(body, sign(body, NOW_S, "whsec_autre"), [SECRET, CONNECT], NOW_MS)).toEqual({ ok: false, reason: "signature" });
     expect(verifyStripeSignatureWithAny(body, sign(body, NOW_S - 3600, CONNECT), [SECRET, CONNECT], NOW_MS)).toEqual({ ok: false, reason: "expired" });
     expect(verifyStripeSignatureWithAny(body, sign(body), ["", ""], NOW_MS)).toEqual({ ok: false, reason: "signature" });
+  });
+});
+
+describe("bac à sable des paiements", () => {
+  it("une clé de test sans feu vert réel ; jamais sans clé ni avec une clé réelle", () => {
+    expect(paymentsSandbox({ STRIPE_SECRET_KEY: "rk_test_abc" })).toBe(true);
+    expect(paymentsSandbox({ STRIPE_SECRET_KEY: "sk_test_abc" })).toBe(true);
+    expect(paymentsSandbox({ STRIPE_SECRET_KEY: "sk_test_abc", PROOFSEEN_PAYMENTS_LIVE: "GO" })).toBe(false);
+    expect(paymentsSandbox({ STRIPE_SECRET_KEY: "rk_live_abc", PROOFSEEN_PAYMENTS_LIVE: "GO" })).toBe(false);
+    expect(paymentsSandbox({})).toBe(false);
   });
 });

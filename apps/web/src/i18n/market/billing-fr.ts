@@ -7,7 +7,7 @@ export const billingFr = {
   legalName: "Raison sociale ou nom légal",
   legalNameHint: "Pour une entreprise individuelle : votre nom suivi de « EI ».",
   siret: "SIRET",
-  siretHint: "14 chiffres. Vérifié au répertoire officiel.",
+  siretHint: "14 chiffres. Vérifié au répertoire officiel. Obligatoire avant toute mission payée.",
   vatNumber: "Numéro de TVA intracommunautaire",
   vatNumberHint: "Facultatif en franchise de TVA.",
   vatRate: "TVA facturée",

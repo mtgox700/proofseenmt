@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { ContractDraftSchema, contracts, getDb } from "@proofseen/db";
+import { paymentsSandbox } from "@proofseen/payments";
 import { throttled } from "@/data/throttle";
 import { caller, fail, jsonBody, ok, sameOrigin } from "@/lib/api";
 
@@ -29,7 +30,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = CreateSchema.safeParse(await jsonBody(request));
   if (!parsed.success) return fail("requête invalide");
   try {
-    const result = await contracts(getDb()).createFromQuote(who.actor, parsed.data.quoteId, {
+    const result = await contracts(getDb(), { requireSellerSiret: !paymentsSandbox(process.env) }).createFromQuote(who.actor, parsed.data.quoteId, {
       startsOn: parsed.data.draft.startsOn.toISOString().slice(0, 10),
       endsOn: parsed.data.draft.endsOn === null ? null : parsed.data.draft.endsOn.toISOString().slice(0, 10),
     });

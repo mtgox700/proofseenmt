@@ -130,7 +130,12 @@ const notifyParties = async (db: Db, tx: Prisma.TransactionClient, contractId: s
   await notifications(db).enqueue(tx, recipients, "contract_update", { contractId, status });
 };
 
-export const contracts = (db: Db): Contracts => ({
+export interface ContractsOptions {
+  /** Faux seulement en bac à sable : le SIRET du freelance est exigé pour tout contrat payé en réel. */
+  readonly requireSellerSiret?: boolean;
+}
+
+export const contracts = (db: Db, { requireSellerSiret = true }: ContractsOptions = {}): Contracts => ({
   async createFromQuote(actor, quoteId, raw, now = new Date()) {
     if (!Uuid.safeParse(quoteId).success) return { kind: "absent" };
     const draft = ContractDraftSchema.parse(raw);
@@ -148,7 +153,7 @@ export const contracts = (db: Db): Contracts => ({
         if (quote === null) return { kind: "absent" };
         const { organisationId, profileId } = quote.conversation;
         if ((await tx.contract.count({ where: { quoteId } })) > 0) return { kind: "already_exists" };
-        const seller = await freelanceSnapshot(tx, profileId);
+        const seller = await freelanceSnapshot(tx, profileId, { requireSiret: requireSellerSiret });
         if (seller === null) return { kind: "seller_identity_missing" };
         const buyer = await organisationSnapshot(tx, organisationId);
         if (buyer === null) return { kind: "buyer_identity_missing" };

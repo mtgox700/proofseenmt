@@ -119,6 +119,16 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
 };
 
 /** Le prestataire configuré par l'environnement, ou `null` : sans clé, aucun paiement ne s'ouvre. */
+/**
+ * Vrai quand les paiements tournent en bac à sable : une clé de test (`sk_test_` ou `rk_test_`) et aucun feu vert des
+ * paiements réels. Sans clé, ou avec une clé réelle, c'est faux : les règles des paiements réels s'appliquent.
+ */
+export const paymentsSandbox = (env: Readonly<Record<string, string | undefined>>): boolean => {
+  const secretKey = (env.STRIPE_SECRET_KEY ?? "").trim();
+  const test = secretKey.startsWith("sk_test_") || secretKey.startsWith("rk_test_");
+  return test && env.PROOFSEEN_PAYMENTS_LIVE !== "GO";
+};
+
 export const gatewayFromEnv = (env: Readonly<Record<string, string | undefined>>): PaymentGateway | null => {
   const secretKey = (env.STRIPE_SECRET_KEY ?? "").trim();
   if (secretKey === "") return null;

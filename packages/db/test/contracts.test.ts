@@ -115,6 +115,17 @@ describe("contrat", () => {
     ]);
   });
 
+  it("en bac à sable seulement, un contrat de test se passe du SIRET du freelance plutôt que d’en recevoir un inventé", async () => {
+    const s = await setup(false);
+    const quoteId = await acceptedQuote(s);
+    await billing(t.db).setFreelanceIdentity({ userId: s.freelanceUser }, { acceptInvoicingMandate: true, legalName: "Camille Test EI", address: ADDRESS });
+    await billing(t.db).setOrganisationIdentity({ userId: s.recruiter }, s.org, { legalName: "Acme SAS", address: ADDRESS });
+    // Par défaut (paiements réels), le SIRET reste exigé.
+    expect(await contracts(t.db).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" })).toEqual({ kind: "seller_identity_missing" });
+    const sandbox = await contracts(t.db, { requireSellerSiret: false }).createFromQuote({ userId: s.recruiter }, quoteId, { startsOn: "2026-11-02" });
+    expect(sandbox).toMatchObject({ kind: "created" });
+  });
+
   it("refuse un contrat sans identité de facturation, et le cache aux tiers", async () => {
     const s = await setup(false);
     const quoteId = await acceptedQuote(s);

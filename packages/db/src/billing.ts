@@ -71,12 +71,15 @@ export interface Billing {
   setOrganisationIdentity(actor: Actor, organisationId: string, input: BillingIdentityInput): Promise<SaveIdentityResult>;
 }
 
-/** L'identité figée d'un freelance, ou `null` s'il ne l'a pas encore renseignée. */
-export const freelanceSnapshot = async (tx: Prisma.TransactionClient, profileId: string): Promise<LegalSnapshot | null> => {
+/**
+ * L'identité figée d'un freelance, ou `null` s'il ne l'a pas encore renseignée. `requireSiret` (vrai par défaut) : en
+ * bac à sable, un contrat de test peut se passer de SIRET plutôt que d'en recevoir un inventé ; jamais en réel.
+ */
+export const freelanceSnapshot = async (tx: Prisma.TransactionClient, profileId: string, { requireSiret = true }: { readonly requireSiret?: boolean } = {}): Promise<LegalSnapshot | null> => {
   const row = await tx.billingIdentity.findUnique({ where: { profileId }, select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true, invoicingMandateAt: true } });
   if (row === null) return null;
   // Une facture sans SIRET, ou avec de la TVA mais sans numéro de TVA, n'est pas valable : pas de contrat sans eux.
-  if (row.siret === null || (row.vatRateBp > 0 && row.vatNumber === null)) return null;
+  if ((requireSiret && row.siret === null) || (row.vatRateBp > 0 && row.vatNumber === null)) return null;
   // Sans mandat de facturation accepté, Proofseen ne peut pas émettre la facture de mission au nom du freelance.
   if (row.invoicingMandateAt === null) return null;
   const address = AddressSchema.safeParse(row.address);

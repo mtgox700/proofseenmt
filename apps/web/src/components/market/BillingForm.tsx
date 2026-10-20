@@ -36,7 +36,7 @@ export function BillingForm({ lang, b, action, values, freelance, mandateAt }: B
         </div>
         <div className="field">
           <label htmlFor="siret">{b.siret}</label>
-          <input id="siret" name="siret" type="text" inputMode="numeric" required={freelance} maxLength={17} defaultValue={values?.siret ?? ""} aria-describedby="siret-hint" />
+          <input id="siret" name="siret" type="text" inputMode="numeric" maxLength={17} defaultValue={values?.siret ?? ""} aria-describedby="siret-hint" />
           <p id="siret-hint" className="field-hint">{b.siretHint}</p>
         </div>
         <div className="field">

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { ContractDraftSchema, contracts, quotes, QuoteInputSchema } from "@proofseen/db";
+import { paymentsSandbox } from "@proofseen/payments";
 import { throttled } from "@/data/throttle";
 import { actionMarket, langOf, uuidOf } from "@/lib/market";
 import { eurosToCents } from "@/lib/mission-form";
@@ -54,6 +55,6 @@ export async function createContract(formData: FormData): Promise<void> {
   // The repository parses the days itself: they are checked here only to answer with a sentence instead of an error.
   const raw = { startsOn: text(formData.get("startsOn")), endsOn: endsOn === "" ? null : endsOn };
   if (!ContractDraftSchema.safeParse(raw).success) redirect(thread(lang, conversationId, "dates"));
-  const result = await contracts(market.db).createFromQuote(market.actor, text(formData.get("quoteId")), raw, new Date());
+  const result = await contracts(market.db, { requireSellerSiret: !paymentsSandbox(process.env) }).createFromQuote(market.actor, text(formData.get("quoteId")), raw, new Date());
   redirect(result.kind === "created" ? `/${lang}/app/contrats/${result.contract.id}` : thread(lang, conversationId, result.kind));
 }
