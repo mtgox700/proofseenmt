@@ -1,13 +1,16 @@
 import { notFound } from "next/navigation";
-import { billingView, profiles, vigilance, type RegistryView } from "@proofseen/db";
+import { billingView, profiles, vigilance, type FreelanceIdentityView, type RegistryView } from "@proofseen/db";
 import { BillingForm } from "@/components/market/BillingForm";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { PayoutAccountButton } from "@/components/market/PayoutAccountButton";
 import { StandingNotice } from "@/components/market/StandingNotice";
+import { paymentsUi } from "@/data/payments-config";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { BillingDictionary } from "@/i18n/market/billing-fr";
 import { date, day } from "@/lib/format";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
+import { payoutState } from "@/lib/pay-section";
 import { declareVigilance, saveBilling } from "./actions";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -15,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; enregistre?: string; vigilance?: string }>;
+  readonly searchParams: Promise<{ erreur?: string; enregistre?: string; vigilance?: string; versement?: string }>;
 }
 
 const Feedback = ({ error, ok }: { readonly error: string | null; readonly ok: string | null }) =>
@@ -37,6 +40,43 @@ function Registry({ lang, b, registry, hasSiret }: { readonly lang: Lang; readon
       {text}
       {registry.checkedAt === null ? null : ` · ${b.registry.checkedOn} ${day(registry.checkedAt, lang)}`}
     </p>
+  );
+}
+
+/** Where the freelancer's missions are paid out: an account they open and fill in on Stripe's side, never here. */
+function PayoutAccount({ lang, b, identity, back }: { readonly lang: Lang; readonly b: BillingDictionary; readonly identity: FreelanceIdentityView | null; readonly back: string | undefined }) {
+  const p = b.payouts;
+  const ui = paymentsUi();
+  const state = payoutState(identity);
+  const label = state === "none" ? p.open : state === "incomplete" ? p.resume : p.update;
+  return (
+    <section className="panel" aria-labelledby="payout-title">
+      <h2 id="payout-title">{p.title}</h2>
+      <p className="muted measure">{p.lead}</p>
+      <p>{p.states[state]}</p>
+      {ui === null ? (
+        <p className="muted small">{p.closed}</p>
+      ) : (
+        <>
+          {ui.testMode ? (
+            <p className="form-ok" role="note">
+              {p.testMode}
+            </p>
+          ) : null}
+          {back === "retour" && state !== "ready" ? (
+            <p className="muted small" role="status">
+              {p.returned}
+            </p>
+          ) : null}
+          {back === "expire" ? (
+            <p className="form-error" role="alert">
+              {p.expired}
+            </p>
+          ) : null}
+          {identity === null ? <p className="muted small">{p.identityFirst}</p> : <PayoutAccountButton lang={lang} label={label} payouts={p} />}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -84,7 +124,7 @@ export default async function BillingPage({ params, searchParams }: PageProps) {
   const dict = marketDictionary(lang);
   if (market === "unconfigured") return <MarketUnavailable text={dict.notConfigured} />;
   const b = dict.billing;
-  const { erreur, enregistre, vigilance: vigilanceCode } = await searchParams;
+  const { erreur, enregistre, vigilance: vigilanceCode, versement } = await searchParams;
   const errors: Readonly<Record<string, string>> = { invalide: b.errors.invalid, siret: b.errors.siretTaken, profil: b.errors.noProfile, trop: b.errors.tooMany, admin: b.errors.notAdmin };
   const error = erreur === undefined ? null : (errors[erreur] ?? b.errors.invalid);
   const ok = enregistre === undefined ? null : b.saved;
@@ -121,12 +161,8 @@ export default async function BillingPage({ params, searchParams }: PageProps) {
       </header>
       <StandingNotice lang={lang} market={market} topics={["vigilance"]} />
       <Feedback error={error} ok={ok} />
-      {identity === null ? null : (
-        <>
-          <Registry lang={lang} b={b} registry={identity.registry} hasSiret={identity.siret !== null} />
-          <p className="muted small">{identity.payoutsReady ? b.payouts.ready : b.payouts.missing}</p>
-        </>
-      )}
+      {identity === null ? null : <Registry lang={lang} b={b} registry={identity.registry} hasSiret={identity.siret !== null} />}
+      <PayoutAccount lang={lang} b={b} identity={identity} back={versement} />
       <BillingForm lang={lang} b={b} action={saveBilling} values={identity} freelance mandateAt={identity?.invoicingMandateAt === null || identity === null ? null : day(identity.invoicingMandateAt, lang)} />
       <Vigilance lang={lang} b={b} market={market} code={vigilanceCode} />
     </>

@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contractView, invoices, payments, type ContractDetail } from "@proofseen/db";
+import { EscrowPayment } from "@/components/market/EscrowPayment";
 import { InvoiceList } from "@/components/market/InvoiceList";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { PaymentReturn } from "@/components/market/PaymentReturn";
 import { StatusTag } from "@/components/market/StatusTag";
+import { paymentsUi } from "@/data/payments-config";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
 import { date, day, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { redirectStatus, showPayClosed, showPayForm, type PayContext } from "@/lib/pay-section";
 import { cancelContract, completeContract, saveCostCenter, signContract, writeReview } from "../actions";
 import type { AccountDictionary } from "@/i18n/market/account-fr";
 
@@ -17,7 +21,8 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ erreur?: string; avis?: string }>;
+  /** `redirect_status` is added by Stripe when it sends the payer back here. */
+  readonly searchParams: Promise<{ erreur?: string; avis?: string; redirect_status?: string }>;
 }
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
@@ -118,11 +123,21 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
   if (contract === null) notFound();
   const [payment, allInvoices] = await Promise.all([payments(market.db).find(market.actor, id), invoices(market.db).listMine(market.actor)]);
   const mineInvoices = allInvoices.filter((invoice) => invoice.contractId === id);
-  const { erreur, avis } = await searchParams;
+  const { erreur, avis, redirect_status: stripeReturn } = await searchParams;
   const errors: Readonly<Record<string, string>> = { ...c.errors, trop: c.errors.tooMany };
   const error = erreur === undefined ? null : (errors[erreur] ?? c.errors.notAllowed);
   const admin = contract.role === "owner" || contract.role === "admin";
   const held = payment?.status === "held";
+  const ui = paymentsUi();
+  const pay: PayContext = {
+    contractStatus: contract.status,
+    side: contract.side,
+    role: contract.role,
+    billing: contract.billing,
+    paymentStatus: payment?.status ?? null,
+    checkoutOpen: ui?.checkoutOpen === true,
+  };
+  const returnedFromStripe = redirectStatus(stripeReturn) !== null && contract.side === "company";
 
   return (
     <>
@@ -180,9 +195,19 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
       {contract.status === "active" || contract.status === "completed" ? (
         <section className="panel" aria-labelledby="payment-title">
           <h2 id="payment-title">{c.payment}</h2>
-          <p>{c.paymentStatus[payment?.status ?? "none"]}</p>
+          {returnedFromStripe ? <PaymentReturn contractId={contract.id} initial={payment?.status ?? null} returned={c.pay.returned} /> : <p>{c.paymentStatus[payment?.status ?? "none"]}</p>}
           {payment?.commissionCents === null || payment === null ? null : <p className="muted small">{c.commission(money(payment.commissionCents, payment.currency, lang))}</p>}
-          {payment === null && contract.side === "company" ? <p className="muted small">{c.payClosed}</p> : null}
+          {showPayClosed(pay) ? <p className="muted small">{c.payClosed}</p> : null}
+          {ui !== null && showPayForm(pay) && !(returnedFromStripe && payment?.status === "pending") ? (
+            <div role="group" aria-labelledby="pay-title">
+              <h3 id="pay-title">{c.pay.title}</h3>
+              <p className="muted measure">{c.pay.lead}</p>
+              <p className="muted small">
+                {c.pay.amountExclVat(money(contract.totalCents, contract.currency, lang))} {c.pay.commissionRule}
+              </p>
+              <EscrowPayment lang={lang} contractId={contract.id} publishableKey={ui.publishableKey} testMode={ui.testMode} currency={contract.currency} p={c.pay.client} />
+            </div>
+          ) : null}
           {contract.status === "active" && admin ? (
             <>
               <p className="muted small">
