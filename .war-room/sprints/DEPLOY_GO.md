@@ -71,9 +71,13 @@ la part de citations de proofseen.com face à Malt et LinkedIn.
 | Connexion (Clerk production, `clerk.proofseen.com`) | actif, code par e-mail ; Google désactivé | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (pk_live, intégrée au build), `CLERK_SECRET_KEY` |
 | Mesures de visibilité | OpenAI, Anthropic, Perplexity | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PERPLEXITY_API_KEY` |
 | Notifications poussées | clés VAPID générées sur le serveur | `PROOFSEEN_VAPID_*` |
+| Paiements (Stripe, bac à sable depuis le 2026-10-20) | écrans « Payer sous séquestre » (contrat) et « Compte de versement » (facturation) visibles seulement si les quatre clés sont posées et dans le même mode (`pk_test_` avec `rk_test_`/`sk_test_`) | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (pk_test, intégrée au build comme celle de Clerk), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_WEBHOOK_SECRET`, et `PROOFSEEN_COMMISSION_BP` pour ouvrir le paiement d'un contrat |
 
 Les clés vivent dans le `.env` racine du poste du founder et dans `/root/proofseen/app/.env.production` (copiées de machine à
-machine, jamais affichées). Changer `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` impose un rebuild de l'image.
+machine, jamais affichées). Changer `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` ou `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` impose un
+rebuild de l'image : `docker compose --env-file ../../.env.production up -d --build` les passe en arguments de build
+(`deploy/vps/docker-compose.yml`). Sans clé publiable Stripe, les écrans de paiement restent fermés (« Le paiement
+sécurisé ouvre bientôt »).
 
 **Caddy de DEMOMEA** : fichier monté en lecture seule par inode ; le réécrire sur place, jamais `sed -i` (voir TEAM_MEMORY
 2026-10-18).
