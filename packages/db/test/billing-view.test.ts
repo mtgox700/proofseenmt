@@ -25,7 +25,7 @@ describe("identités de facturation relues", () => {
     await t.db.billingIdentity.update({ where: { profileId: profile }, data: { stripeAccountId: "acct_secret123" } });
 
     const view = await billingView(t.db).freelance({ userId: user });
-    expect(view).toMatchObject({ legalName: "Camille Test EI", vatRateBp: 2000, address: ADDRESS, payoutsReady: false, registry: { status: null } });
+    expect(view).toMatchObject({ legalName: "Camille Test EI", vatRateBp: 2000, address: ADDRESS, payoutsReady: false, payoutAccountOpened: true, registry: { status: null } });
     expect(view?.invoicingMandateAt).toBeInstanceOf(Date);
     expect(JSON.stringify(view)).not.toContain("acct_");
     expect(await billingView(t.db).freelance({ userId: await createUser(t.db) })).toBeNull();

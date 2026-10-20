@@ -2,6 +2,7 @@ import type { NextResponse } from "next/server";
 import { getDb, payments } from "@proofseen/db";
 import { gatewayFromEnv } from "@proofseen/payments";
 import { throttled } from "@/data/throttle";
+import { isLang } from "@/i18n";
 import { caller, fail, ok, sameOrigin } from "@/lib/api";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
@@ -10,6 +11,9 @@ import { logError } from "@/lib/log";
  * The freelancer's payout account: returns the payment provider's onboarding link, where they give their identity and
  * bank details to the provider directly — Proofseen never sees an IBAN. The account is created on first call; payouts
  * stay off until the provider confirms the account (`account.updated` webhook).
+ *
+ * Stripe sends the person back to the billing page (`?lang=en` keeps the English one): `versement=retour` when they
+ * leave the form, `versement=expire` when the link went stale and a new one must be asked for.
  */
 
 export const runtime = "nodejs";
@@ -28,9 +32,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     gateway = null;
   }
   if (gateway === null) return fail("paiements non configurés");
-  const base = publicBaseUrl(request);
+  const requested = new URL(request.url).searchParams.get("lang") ?? "fr";
+  const page = `${publicBaseUrl(request)}/${isLang(requested) ? requested : "fr"}/app/facturation`;
   try {
-    const result = await payments(getDb()).payoutAccount(who.actor, gateway, { returnUrl: `${base}/fr/app`, refreshUrl: `${base}/fr/app` });
+    const result = await payments(getDb()).payoutAccount(who.actor, gateway, { returnUrl: `${page}?versement=retour`, refreshUrl: `${page}?versement=expire` });
     if (result.kind === "identity_missing") return fail("identité de facturation requise");
     return result.kind === "link" ? ok({ url: result.url }) : fail("profil requis");
   } catch (error) {

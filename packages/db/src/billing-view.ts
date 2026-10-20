@@ -25,6 +25,8 @@ export interface FreelanceIdentityView {
   readonly vatRateBp: number;
   readonly invoicingMandateAt: Date | null;
   readonly payoutsReady: boolean;
+  /** Un compte de versement existe chez le prestataire (inscription commencée) ; son identifiant ne sort jamais. */
+  readonly payoutAccountOpened: boolean;
   readonly registry: RegistryView;
 }
 
@@ -47,7 +49,7 @@ export const billingView = (db: Db) => ({
   async freelance(actor: Actor): Promise<FreelanceIdentityView | null> {
     const row = await db.billingIdentity.findFirst({
       where: { profile: { userId: actor.userId } },
-      select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true, invoicingMandateAt: true, payoutsEnabledAt: true, registryStatus: true, registryCheckedAt: true },
+      select: { legalName: true, siret: true, vatNumber: true, address: true, vatRateBp: true, invoicingMandateAt: true, payoutsEnabledAt: true, stripeAccountId: true, registryStatus: true, registryCheckedAt: true },
     });
     const parsed = row === null ? null : address(row.address);
     if (row === null || parsed === null) return null;
@@ -59,6 +61,7 @@ export const billingView = (db: Db) => ({
       vatRateBp: row.vatRateBp,
       invoicingMandateAt: row.invoicingMandateAt,
       payoutsReady: row.payoutsEnabledAt !== null,
+      payoutAccountOpened: row.stripeAccountId !== null,
       registry: { status: row.registryStatus, checkedAt: row.registryCheckedAt },
     };
   },
