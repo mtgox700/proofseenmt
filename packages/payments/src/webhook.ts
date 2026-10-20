@@ -38,6 +38,22 @@ export const verifyStripeSignature = (rawBody: string, header: string | null, se
   }
 };
 
+/**
+ * Plusieurs endpoints, plusieurs secrets : celui de la plateforme (paiements, remboursements, litiges) et celui des
+ * comptes connectés (`account.updated` des freelances). Un événement est accepté s'il est signé par l'un d'eux ; s'il
+ * l'est mais trop ancien, il est refusé comme tel.
+ */
+export const verifyStripeSignatureWithAny = (rawBody: string, header: string | null, secrets: readonly string[], nowMs: number): VerifyResult => {
+  let refused: VerifyResult = { ok: false, reason: "signature" };
+  for (const secret of secrets) {
+    if (secret === "") continue;
+    const result = verifyStripeSignature(rawBody, header, secret, nowMs);
+    if (result.ok) return result;
+    if (result.reason !== "signature") refused = result;
+  }
+  return refused;
+};
+
 const EventSchema = z.object({
   id: z.string().min(1),
   type: z.string(),

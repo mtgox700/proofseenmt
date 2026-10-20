@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
-import { gatewayFromEnv, stripeGateway, StripeError, toPaymentEvent, verifyStripeSignature } from "../src/index";
+import { gatewayFromEnv, stripeGateway, StripeError, toPaymentEvent, verifyStripeSignature, verifyStripeSignatureWithAny } from "../src/index";
 
 const SECRET = "whsec_test_secret";
 const NOW_MS = Date.UTC(2026, 10, 20, 10, 0, 0);
@@ -85,5 +85,21 @@ describe("adaptateur Stripe", () => {
     const error = await gateway.transfer({ amountCents: 1, currency: "EUR", destination: "acct_1", contractId: "c-1", idempotencyKey: "k" }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(StripeError);
     expect(String(error)).not.toContain("détails");
+  });
+});
+
+describe("deux endpoints, deux secrets (plateforme et comptes connectés)", () => {
+  const body = JSON.stringify({ id: "evt_1", type: "account.updated", data: { object: { id: "acct_1", payouts_enabled: true } } });
+  const CONNECT = "whsec_connect";
+
+  it("accepte un événement signé par l'un ou l'autre secret", () => {
+    expect(verifyStripeSignatureWithAny(body, sign(body), [SECRET, CONNECT], NOW_MS)).toMatchObject({ ok: true });
+    expect(verifyStripeSignatureWithAny(body, sign(body, NOW_S, CONNECT), [SECRET, CONNECT], NOW_MS)).toMatchObject({ ok: true });
+  });
+
+  it("refuse un événement signé par aucun, ou trop ancien, et ignore un secret vide", () => {
+    expect(verifyStripeSignatureWithAny(body, sign(body, NOW_S, "whsec_autre"), [SECRET, CONNECT], NOW_MS)).toEqual({ ok: false, reason: "signature" });
+    expect(verifyStripeSignatureWithAny(body, sign(body, NOW_S - 3600, CONNECT), [SECRET, CONNECT], NOW_MS)).toEqual({ ok: false, reason: "expired" });
+    expect(verifyStripeSignatureWithAny(body, sign(body), ["", ""], NOW_MS)).toEqual({ ok: false, reason: "signature" });
   });
 });
