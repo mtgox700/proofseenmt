@@ -68,19 +68,7 @@ export const invalid = (issues: readonly { readonly message: string }[]): NextRe
   return fail("requête invalide");
 };
 
-/*
- * Cross-site request forgery: the Clerk session cookie is sent with any same-site request, so a write must prove it
- * comes from our own pages. Browsers always send `Origin` on a cross-origin POST; when it is present it must match.
- */
-export const sameOrigin = (request: Request): boolean => {
-  const origin = request.headers.get("origin");
-  if (origin === null) return true;
-  try {
-    return new URL(origin).host === new URL(request.url).host;
-  } catch {
-    return false;
-  }
-};
+export { sameOrigin } from "./same-origin";
 
 export type Caller = { readonly kind: "actor"; readonly actor: Actor } | { readonly kind: "refused"; readonly response: NextResponse };
 
