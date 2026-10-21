@@ -268,17 +268,8 @@ export const en: Dictionary = {
       { q: "What about my privacy?", a: "You prove that the profiles measured are yours. Raw answers are encrypted, then deleted after 72 hours." },
     ],
   },
+  // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {
-    line: "Proofseen measures your visibility in AI-assisted recruiting.",
-    legal: "Terms of sale, withdrawal and refunds: on the Order page.",
-    legalNav: {
-      label: "Legal information",
-      links: [
-        { href: "/en/mentions-legales", label: "Legal notice" },
-        { href: "/en/confidentialite", label: "Privacy" },
-        { href: "/en/conditions", label: "Terms of use" },
-      ],
-    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt and GitHub are trademarks of their owners. Proofseen is not affiliated with any of them.",
   },
   directory: {

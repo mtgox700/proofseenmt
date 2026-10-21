@@ -61,7 +61,7 @@ export default async function LandingPage({ params }: { readonly params: Promise
         <Faq t={t} />
         <Exit lang={lang} t={t} />
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

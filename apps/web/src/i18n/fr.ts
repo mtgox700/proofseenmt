@@ -272,17 +272,8 @@ export const fr = {
       { q: "Que devient ma vie privée ?", a: "Vous prouvez que les profils mesurés sont bien les vôtres. Les réponses brutes sont chiffrées puis supprimées au bout de 72 heures." },
     ],
   },
+  // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {
-    line: "Proofseen mesure votre visibilité dans le recrutement assisté par IA.",
-    legal: "Conditions de vente, rétractation et remboursement : sur la page Commander.",
-    legalNav: {
-      label: "Informations légales",
-      links: [
-        { href: "/fr/mentions-legales", label: "Mentions légales" },
-        { href: "/fr/confidentialite", label: "Confidentialité" },
-        { href: "/fr/conditions", label: "Conditions d'utilisation" },
-      ],
-    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt et GitHub sont des marques de leurs propriétaires. Proofseen n'est affilié à aucun d'entre eux.",
   },
   directory: {

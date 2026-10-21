@@ -46,7 +46,7 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
         <main id="contenu" tabIndex={-1} className="wrap auth-page">
           {state.kind === "unconfigured" ? <AuthUnavailable t={t} /> : children}
         </main>
-        <SiteFooter t={t} />
+        <SiteFooter lang={lang} t={t} />
       </>
     );
   }
