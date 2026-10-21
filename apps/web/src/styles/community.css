@@ -1,25 +1,25 @@
 /* Community feed (C22): readable posts, plain forms, built on the market tokens. Nothing is hidden by CSS. */
-.feed { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-.feed-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.feed-tabs a[aria-current] { border-color: var(--proof); color: var(--ink); }
-.post-card { display: grid; gap: var(--space-3); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) + 4px); }
-.post-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.post-head p { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; }
+.feed { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+.feed-tabs { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.feed-tabs a[aria-current] { border-color: var(--ps-proof); color: var(--ps-text); }
+.post-card { display: grid; gap: var(--ps-space-3); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.post-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ps-space-2); }
+.post-head p { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-1) var(--ps-space-2); margin: 0; }
 .post-body { overflow-wrap: anywhere; }
-.post-body p, .post-body ul, .post-body ol, .post-body blockquote { margin: 0 0 var(--space-3); }
-.post-body blockquote { padding-left: var(--space-3); border-left: 2px solid var(--line-strong); color: var(--muted); }
-.post-image { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
-.post-shared { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); }
-.post-reactions, .post-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.post-body p, .post-body ul, .post-body ol, .post-body blockquote { margin: 0 0 var(--ps-space-3); }
+.post-body blockquote { padding-left: var(--ps-space-3); border-left: 2px solid var(--ps-line-strong); color: var(--ps-muted); }
+.post-image { display: block; max-width: 100%; height: auto; border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.post-shared { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-3); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); background: var(--ps-bg); }
+.post-reactions, .post-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); align-items: center; }
 .post-reactions .btn, .post-actions .btn { min-height: 2.75rem; }
-.post-tools summary { cursor: pointer; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; display: inline-flex; align-items: center; }
-.post-tools[open] { display: grid; gap: var(--space-3); }
+.post-tools summary { cursor: pointer; color: var(--ps-muted); text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; display: inline-flex; align-items: center; }
+.post-tools[open] { display: grid; gap: var(--ps-space-3); }
 .inline-form { display: inline; }
-.stack { display: grid; gap: var(--space-3); }
-.composer textarea, .post-card textarea, .comments textarea { width: 100%; font-size: 16px; }
-.comments, .comment-replies { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.comment-replies { margin-top: var(--space-3); padding-left: var(--space-4); border-left: 2px solid var(--line); }
-.comment { display: grid; gap: var(--space-2); }
+.stack { display: grid; gap: var(--ps-space-3); }
+.composer textarea, .post-card textarea, .comments textarea { width: 100%; font-size: max(16px, var(--ps-step-0)); }
+.comments, .comment-replies { display: grid; gap: var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
+.comment-replies { margin-top: var(--ps-space-3); padding-left: var(--ps-space-4); border-left: 2px solid var(--ps-line); }
+.comment { display: grid; gap: var(--ps-space-2); }
 .comment-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.follow-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.follow-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; border-bottom: 1px solid var(--line); }
+.follow-list { display: grid; gap: var(--ps-space-2); margin: 0; padding: 0; list-style: none; }
+.follow-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--ps-space-2); padding: var(--ps-space-2) 0; border-bottom: 1px solid var(--ps-line); }

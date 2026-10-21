@@ -48,20 +48,30 @@ interface Tooltip {
 
 type Palette = Record<SourceCategory, string> & { readonly lens: string; readonly ink: string };
 
+/*
+ * The canvas needs plain colours. Tokens are read through a probe's computed `color`, so a token mixed from others
+ * (color-mix of the brand palette) reaches the canvas resolved, in the theme the reader is in.
+ */
 const readPalette = (el: Element): Palette => {
-  const styles = getComputedStyle(el);
-  const token = (name: string): string => styles.getPropertyValue(name).trim();
-  return {
-    you: token("--proof"),
+  const probe = document.createElement("span");
+  el.appendChild(probe);
+  const token = (name: string): string => {
+    probe.style.color = `var(${name})`;
+    return getComputedStyle(probe).color;
+  };
+  const palette = {
+    you: token("--ps-proof"),
     malt: token("--src-malt"),
     linkedin: token("--src-linkedin"),
     code: token("--src-code"),
     platform: token("--src-platform"),
     other: token("--src-other"),
     none: token("--src-none"),
-    lens: token("--proof"),
-    ink: token("--ink"),
+    lens: token("--ps-proof"),
+    ink: token("--ps-text"),
   };
+  probe.remove();
+  return palette;
 };
 
 export function AnswerField({ t, title, engines, offers, points }: AnswerFieldProps) {

@@ -1,26 +1,28 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { enUS, frFR } from "@clerk/localizations";
+import { FONT_STACKS, PALETTE } from "@proofseen/brand";
 import type { Lang } from "@/i18n";
 import { clerkClientConfigured } from "@/lib/auth-config";
 
 /*
  * Clerk around the app, only when its publishable key exists (see `clerkClientConfigured`). Its widgets are themed from
- * the product tokens: Clerk computes shades from colour values, so the values below mirror `:root` in styles/tokens.css (the one documented exception to
- * "no raw colour outside :root"). Change a token there, change it here.
+ * the brand palette (@proofseen/brand): Clerk computes shades from colour values, so it receives the values themselves,
+ * in the dark theme of the brand. The call to action is paper on ink, as everywhere: green is for what is verified.
  */
+const ink = PALETTE.dark;
 const appearance = {
   variables: {
-    colorPrimary: "#3fcf9c",
-    colorBackground: "#0e1626",
-    colorInputBackground: "#070b14",
-    colorInputText: "#edf1f7",
-    colorText: "#edf1f7",
-    colorTextSecondary: "#a3aec2",
-    colorTextOnPrimaryBackground: "#06110c",
-    colorNeutral: "#edf1f7",
-    colorDanger: "#f97066",
-    borderRadius: "6px",
-    fontFamily: '"Inter Variable", system-ui, sans-serif',
+    colorPrimary: ink.text,
+    colorBackground: ink.surface,
+    colorInputBackground: ink.bg,
+    colorInputText: ink.text,
+    colorText: ink.text,
+    colorTextSecondary: ink.muted,
+    colorTextOnPrimaryBackground: ink.bg,
+    colorNeutral: ink.text,
+    colorDanger: ink.danger,
+    borderRadius: "4px",
+    fontFamily: FONT_STACKS.text,
   },
 };
 

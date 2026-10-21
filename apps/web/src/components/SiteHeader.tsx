@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { publicMenu } from "@proofseen/hub";
 import type { Dictionary, Lang } from "@/i18n";
 import { LangSwitch } from "./LangSwitch";
-import { Logo } from "./Logo";
+import { Lockup } from "./Lockup";
 
 interface SiteHeaderProps {
   readonly lang: Lang;
@@ -11,34 +12,36 @@ interface SiteHeaderProps {
 }
 
 /*
- * The public menu points only at pages filled from the database (the open missions, the directory of published
- * profiles, the skill and job-title pages, the blog) or from sourced rates (the net income simulator). Plain links
- * (`<a>`) for those: they are route handlers serving raw HTML, not pages of the React tree.
+ * The header of the React pages is the header of the HTML hub (packages/hub, market-shell.ts): the same links in the
+ * same order, read from the same list, on the same CSS (@proofseen/brand/chrome.css). The public menu points only at
+ * pages filled from the database or from sourced rates. Plain links (`<a>`) for those: they are route handlers serving
+ * raw HTML, not pages of the React tree. On a phone the menu is a second row that scrolls sideways, without script.
  */
 export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
+  const menu = publicMenu(lang);
   return (
-    <header className="site-header">
-      <div className="wrap">
+    <header className={variant === "site" ? "top" : "top bare"}>
+      <div className="chrome">
         <Link className="brand" href={`/${lang}`} aria-label={t.nav.home}>
-          <Logo />
-          <span>Proofseen</span>
+          <Lockup />
         </Link>
-        <nav className="nav" aria-label={t.nav.label}>
-          {variant === "site" ? (
-            <>
-              <a className="hide-narrow" href={`/${lang}/missions`}>{t.nav.missions}</a>
-              <a className="hide-narrow" href={`/${lang}/freelances`}>{t.nav.freelancers}</a>
-              <a className="hide-narrow" href={`/${lang}/metiers`}>{t.nav.skills}</a>
-              <a className="hide-narrow" href={`/${lang}/postes`}>{t.nav.jobTitles}</a>
-              <a className="hide-narrow" href={`/${lang}/simulateur`}>{t.nav.simulator}</a>
-              <a className="hide-narrow" href={`/${lang}/blog`}>{t.nav.blog}</a>
-              <Link className="hide-narrow" href={`/${lang}/connexion`}>{t.nav.signIn}</Link>
-              <Link className="nav-cta" href={`/${lang}/creer-un-compte`}>{t.nav.signUp}</Link>
-            </>
-          ) : null}
-          <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
-        </nav>
+        {variant === "site" ? (
+          <>
+            <nav className="nav" aria-label={menu.label}>
+              {menu.items.map((item) => (
+                <a key={item.key} href={item.href}>
+                  {item.label}
+                </a>
+              ))}
+              <Link href={menu.signIn.href}>{menu.signIn.label}</Link>
+            </nav>
+            <Link className="btn btn-primary signup" href={menu.signUp.href}>
+              {menu.signUp.label}
+            </Link>
+          </>
+        ) : null}
+        <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
       </div>
     </header>
   );

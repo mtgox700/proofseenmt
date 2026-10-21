@@ -1,13 +1,15 @@
-import "@fontsource-variable/inter/wght.css";
-import "@fontsource-variable/newsreader/wght.css";
+import "@proofseen/brand/tokens.css";
+import "@proofseen/brand/chrome.css";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/landing.css";
 import "@/styles/workspace.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
+import { FONT_FILES, THEME_COLOR } from "@proofseen/brand";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { dictionary, isLang, LANGS, type Lang } from "@/i18n";
+import { BRAND_ICONS, shareMetadata, siteOrigin } from "@/lib/brand-metadata";
 
 interface LayoutProps {
   readonly children: React.ReactNode;
@@ -22,20 +24,31 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "dark",
-  // Mirrors --bg: browser chrome is configured here, outside CSS, so it cannot read the token.
-  themeColor: "#070b14",
+  // Dark is the brand; light follows the system (BRAND_BOOK.md, section 5). The browser chrome matches each.
+  colorScheme: "dark light",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
+  ],
 };
 
+/*
+ * Safe by default: every page of this segment is noindex unless it opts in. The public pages listed in the sitemap
+ * (the home page) declare `index, follow` themselves; the connected space, the signed links, sign-in and the forms
+ * keep this default.
+ */
 export async function generateMetadata({ params }: Pick<LayoutProps, "params">): Promise<Metadata> {
   const { lang } = await params;
   if (!isLang(lang)) return {};
   const t = dictionary(lang);
   return {
+    metadataBase: new URL(siteOrigin()),
     title: { default: t.meta.title, template: "%s · Proofseen" },
     description: t.meta.description,
     alternates: { languages: { fr: "/fr", en: "/en" } },
     robots: { index: false, follow: false },
+    icons: BRAND_ICONS,
+    ...shareMetadata(lang, { title: t.meta.title, description: t.meta.description }),
   };
 }
 
@@ -45,6 +58,10 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   const t = dictionary(lang);
   return (
     <html lang={lang}>
+      <head>
+        {/* The face of every title: the only font fetched before the first paint. PS Mono loads when used. */}
+        <link rel="preload" href={FONT_FILES.display} as="font" type="font/woff2" crossOrigin="" />
+      </head>
       <body>
         <a className="skip" href="#contenu">
           {t.skip}

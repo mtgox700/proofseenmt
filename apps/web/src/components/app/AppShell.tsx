@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { LiveCounts } from "@proofseen/db";
 import { LiveCount } from "@/components/live/LiveCount";
 import { LangSwitch } from "@/components/LangSwitch";
-import { Logo } from "@/components/Logo";
+import { Lockup } from "@/components/Lockup";
 import { WorkspaceNav, type NavItem } from "@/components/workspace/WorkspaceNav";
 import type { Dictionary, Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
@@ -46,8 +46,7 @@ export function AppShell({ lang, t, person, counts = null, children }: AppShellP
     <div className="app">
       <header className="app-top">
         <Link className="brand" href={`/${lang}`} aria-label={t.nav.home}>
-          <Logo />
-          <span>Proofseen</span>
+          <Lockup />
         </Link>
         <div className="app-top-right">
           {person.role === null ? null : <span className="tag tag-quiet">{t.app.roles[person.role]}</span>}
@@ -57,7 +56,7 @@ export function AppShell({ lang, t, person, counts = null, children }: AppShellP
               <LiveCount which="notifications" initial={counts?.notifications ?? 0} label={live.unreadLabel} />
             </Link>
           )}
-          <nav className="nav" aria-label={t.nav.otherLangLabel}>
+          <nav className="app-lang" aria-label={t.nav.otherLangLabel}>
             <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
           </nav>
           <UserButton />

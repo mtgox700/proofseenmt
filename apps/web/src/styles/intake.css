@@ -17,8 +17,8 @@
 }
 
 .intake > .lede {
-  color: var(--muted);
-  font-size: var(--step-1);
+  color: var(--ps-muted);
+  font-size: var(--ps-step-1);
   max-width: 34em;
   text-wrap: pretty;
 }
@@ -40,29 +40,29 @@
   font: inherit;
   width: 100%;
   padding: 0.6rem 0.75rem;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  color: var(--ps-text);
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-line);
+  border-radius: var(--ps-radius);
 }
 
 .intake-form textarea {
   resize: vertical;
   min-height: 6rem;
-  font-family: var(--mono);
-  font-size: var(--step--1);
+  font-family: var(--ps-font-mono);
+  font-size: var(--ps-step--1);
 }
 
 .intake-form :is(input, textarea):focus-visible {
-  outline: 2px solid var(--proof);
+  outline: 2px solid var(--ps-proof);
   outline-offset: 2px;
-  border-color: var(--proof);
+  border-color: var(--ps-proof);
 }
 
 /* La justification d'un champ se lit sous lui, jamais à la place du label. */
 .intake-hint {
-  color: var(--muted);
-  font-size: var(--step--1);
+  color: var(--ps-muted);
+  font-size: var(--ps-step--1);
   max-width: 60ch;
   text-wrap: pretty;
 }
@@ -86,10 +86,10 @@
   justify-self: start;
   margin-top: 1.25rem;
   padding: 0.7rem 1.4rem;
-  color: var(--on-proof);
-  background: var(--proof);
+  color: var(--ps-bg);
+  background: var(--ps-text);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--ps-radius);
   cursor: pointer;
 }
 
@@ -106,8 +106,8 @@
   display: grid;
   gap: 0.5rem;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--signal);
-  border-radius: 10px;
+  border: 1px solid var(--ps-signal);
+  border-radius: var(--ps-radius);
   background: var(--signal-wash);
 }
 
@@ -122,15 +122,15 @@
   display: grid;
   gap: 0.75rem;
   padding: 1.5rem;
-  border: 1px solid var(--proof);
-  border-radius: 10px;
-  background: var(--proof-wash);
+  border: 1px solid var(--ps-proof);
+  border-radius: var(--ps-radius);
+  background: var(--ps-proof-wash);
 }
 
 /* La référence doit pouvoir être recopiée sans erreur : elle se lit en chiffres tabulaires, assez grande. */
 .intake-ref {
-  font-family: var(--mono);
-  font-size: var(--step-2);
+  font-family: var(--ps-font-mono);
+  font-size: var(--ps-step-2);
   letter-spacing: 0.06em;
   user-select: all;
 }

@@ -17,9 +17,13 @@ const config: NextConfig = {
   // PDF text extraction (CV import) runs the PDF.js build shipped by unpdf as is, outside the server bundle.
   serverExternalPackages: ["unpdf"],
   // Les paquets du monorepo sont publiés en TypeScript source : Next les compile avec l'application.
-  transpilePackages: ["@proofseen/access", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
+  transpilePackages: ["@proofseen/access", "@proofseen/brand", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
   async redirects() {
     return [{ source: "/", destination: "/fr", permanent: false }];
+  },
+  // Browsers and crawlers ask for /favicon.ico on their own: the brand icon answers, from its single copy.
+  async rewrites() {
+    return [{ source: "/favicon.ico", destination: "/brand/favicon.ico" }];
   },
   async headers() {
     return [
@@ -32,6 +36,8 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      // The brand fonts carry their version in their name (ps-display-v1.woff2): a new cut is a new file.
+      { source: "/fonts/:file*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
       // The service worker of the installable app (C20): scope "/" allowed explicitly, and always revalidated so a new
       // version is picked up at the next visit instead of whenever a cache decides.
       {
