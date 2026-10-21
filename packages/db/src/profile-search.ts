@@ -5,7 +5,7 @@ import type { Prisma } from "./generated/client";
 import type { AvailabilityStatus, LanguageLevel } from "./generated/enums";
 import { jobTitleByKey } from "./job-titles";
 import { LANGUAGE_CODES, LANGUAGE_LEVELS, levelsAtLeast, MAX_LANGUAGE_FILTERS } from "./profile-section-schemas";
-import { intersect, jobTitleMatches, MAX_SCAN, ProfileTextSchema, PUBLISHED_PROFILE, textMatches, verifiedFactsOrder } from "./profile-search-ids";
+import { intersect, jobTitleMatches, MAX_SCAN, ProfileTextSchema, PUBLISHED_PROFILE, textMatches } from "./profile-search-ids";
 import type { ProfileFacts } from "./profiles";
 import { publicName } from "./public-profiles";
 import { SETTLED_PAYMENT } from "./reviews";
@@ -14,7 +14,7 @@ import { sixMonthsBefore } from "./vigilance";
 
 /*
  * Recherche de freelances par une entreprise : des filtres sur des faits publics, et un ordre que l'entreprise choisit
- * parmi des critères neutres et datés (mise à jour du profil, TJM, date de disponibilité, nombre de faits vérifiés),
+ * parmi des critères neutres et datés (mise à jour du profil, TJM, date de disponibilité),
  * affiché à l'écran. Jamais une pertinence, un score ni un rang de personne (AI Act). À ordre égal, l'identifiant
  * départage, de façon stable et sans signification.
  *
@@ -31,8 +31,12 @@ const MAX_RATE_CENTS = 10_000_000;
  */
 export { AVAILABILITY_FRESH_DAYS, availabilityFreshSince } from "./availability";
 
-/** C22 : « nombre de faits vérifiés » s'ajoute, un compte de faits nommés que chaque carte affiche (voir profile-search-ids). */
-export const PROFILE_SORTS = ["recent", "rate_asc", "rate_desc", "availability", "verified_facts"] as const;
+/**
+ * Les ordres que l'entreprise choisit : des faits déclarés et datés, jamais un compte de preuves. L'ordre « nombre de
+ * faits vérifiés » (C22) est retiré : additionner les preuves d'une personne pour la classer, c'est un score (AI Act,
+ * CONCEPT §5). Les faits vérifiés restent des filtres, chacun pour lui-même.
+ */
+export const PROFILE_SORTS = ["recent", "rate_asc", "rate_desc", "availability"] as const;
 export type ProfileSort = (typeof PROFILE_SORTS)[number];
 
 const JobTitleKeySchema = z.string().refine((key) => jobTitleByKey(key) !== undefined, { message: "famille de poste inconnue" });
@@ -88,11 +92,6 @@ export interface ProfileCard extends ProfileFacts {
   /** Entreprises distinctes qui ont payé au moins une mission sur Proofseen. */
   readonly payingClients: number;
   readonly hasPortfolio: boolean;
-  /**
-   * Faits vérifiés, comptés un par un : missions vérifiées, adresses prouvées, SIRET actif, attestation URSSAF en cours.
-   * Le critère de l'ordre « nombre de faits vérifiés », affiché sur la carte.
-   */
-  readonly verifiedFacts: number;
   /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
   readonly availabilityAt: Date;
   readonly updatedAt: Date;
@@ -105,7 +104,7 @@ export interface ProfileSearchPage {
   readonly hasMore: boolean;
 }
 
-type PrismaSort = Exclude<ProfileSort, "verified_facts" | "availability">;
+type PrismaSort = Exclude<ProfileSort, "availability">;
 
 const ORDER: Readonly<Record<PrismaSort, Prisma.FreelanceProfileOrderByWithRelationInput[]>> = {
   recent: [{ updatedAt: "desc" }, { id: "desc" }],
@@ -264,7 +263,6 @@ const toCard = (row: Row, since: Date): ProfileCard => {
     identityVerified: billing?.payoutsEnabledAt != null,
     payingClients: contracts.length,
     hasPortfolio: _count.portfolio > 0,
-    verifiedFacts: _count.ownedUrls + _count.missions + (registryActive ? 1 : 0) + (vigilanceOk ? 1 : 0),
   };
 };
 
@@ -283,13 +281,6 @@ export const searchProfiles = async (db: Db, raw: ProfileSearch, now: Date): Pro
   const where = await fullWhere(db, f, now);
   const since = sixMonthsBefore(now);
   const skip = (f.page - 1) * f.pageSize;
-  if (f.sort === "verified_facts") {
-    // L'ordre se calcule sur les profils les plus récemment mis à jour qui répondent aux filtres, au plus MAX_SCAN.
-    const candidates = await db.freelanceProfile.findMany({ where, orderBy: [{ updatedAt: "desc" }, { id: "desc" }], take: MAX_SCAN, select: { id: true } });
-    const ids = await verifiedFactsOrder(db, candidates.map((c) => c.id), since, skip, f.pageSize + 1);
-    const items = await cardsInOrder(db, ids.slice(0, f.pageSize), since);
-    return { items, hasMore: ids.length > f.pageSize };
-  }
   if (f.sort === "availability") {
     const candidates = await db.freelanceProfile.findMany({
       where,

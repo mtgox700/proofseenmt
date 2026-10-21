@@ -38,7 +38,6 @@ const BASE: ProfileCard = {
   identityVerified: true,
   payingClients: 1,
   hasPortfolio: true,
-  verifiedFacts: 5,
   availabilityAt: new Date("2026-10-10T08:00:00Z"),
   updatedAt: new Date("2026-10-12T08:00:00Z"),
   languages: [
@@ -68,7 +67,6 @@ const CASES: Readonly<Record<string, ProfileCard>> = {
     vigilanceValid: false,
     identityVerified: false,
     payingClients: 0,
-    verifiedFacts: 0,
   },
   // Confirmed more than 30 days ago: both surfaces read the same database rule (C23).
   "availability past the 30 days": { ...BASE, availabilityAt: new Date("2026-09-01T08:00:00Z") },

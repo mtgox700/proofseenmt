@@ -45,7 +45,6 @@ export const searchFr = {
       tjm_croissant: "TJM croissant",
       tjm_decroissant: "TJM décroissant",
       disponibilite: "Disponibilité la plus proche",
-      faits_verifies: "Nombre de faits vérifiés",
     },
     submit: "Rechercher",
     reset: "Effacer les filtres",

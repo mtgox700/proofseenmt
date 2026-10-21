@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { missionFiltersFromBrief, profileFiltersFromBrief } from "../src/brief-filters";
 import { SEARCH_SORTS } from "../src/missions";
-import { PROFILE_SORTS } from "../src/profiles";
+import { PROFILE_SORTS, ProfileSearchSchema } from "../src/profiles";
 
 /*
  * AI Act : la recherche de freelances filtre sur des faits et trie sur un critère que la personne choisit ; elle ne
@@ -25,10 +25,19 @@ const fieldsOf = (model: string): string[] => {
 describe("AI Act : aucun classement automatique de personnes", () => {
   it("les tris proposés sont des faits choisis par l'utilisateur, jamais un score", () => {
     // C14 : la date de disponibilité s'ajoute, un fait déclaré par le freelance et daté, affiché comme critère choisi.
-    // C22 : le nombre de faits vérifiés s'ajoute, un compte de faits nommés (missions vérifiées, adresses prouvées, SIRET
-    // actif, attestation URSSAF), chacun pour un, affiché sur chaque carte et choisi par l'entreprise : ni poids, ni modèle.
-    expect([...PROFILE_SORTS].sort()).toEqual(["availability", "rate_asc", "rate_desc", "recent", "verified_facts"]);
+    // Revue Kensa M4 (2026-10-21) : l'ordre « nombre de faits vérifiés » de C22 est retiré. Additionner les preuves d'une
+    // personne pour la placer devant une autre, c'est un score, même sans poids : les faits restent des filtres.
+    expect([...PROFILE_SORTS].sort()).toEqual(["availability", "rate_asc", "rate_desc", "recent"]);
     expect([...SEARCH_SORTS].sort()).toEqual(["rate_asc", "rate_desc", "recent"]);
+  });
+
+  it("aucun ordre ne compte les preuves d'une personne, et la recherche refuse qu'on le demande", () => {
+    expect(PROFILE_SORTS.filter((sort) => /fact|proof|verif|score|rank|count/i.test(sort))).toEqual([]);
+    expect(ProfileSearchSchema.safeParse({ sort: "verified_facts" }).success).toBe(false);
+    // Les faits vérifiés restent des filtres, chacun pour lui-même.
+    for (const filter of ["provenOnly", "verifiedMissionsOnly", "registryActiveOnly", "vigilanceValidOnly"]) {
+      expect(ProfileSearchSchema.parse({ [filter]: true })).toMatchObject({ [filter]: true, sort: "recent" });
+    }
   });
 
   it("aucune colonne de score, de rang ou de note agrégée sur une personne", () => {

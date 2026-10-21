@@ -7,7 +7,7 @@ import { createUser, DB_STARTUP_MS, nextSiret, openTestDatabase, verifiedVigilan
 
 /*
  * Recherche avancée (C22) : mots-clés sans accents (texte tenu par la base), famille de poste, nouveaux faits filtrés,
- * ordre « nombre de faits vérifiés », facettes comptées sur l'ensemble filtré, annuaire public élargi. Une compétence
+ * aucun ordre par compte de preuves, facettes comptées sur l'ensemble filtré, annuaire public élargi. Une compétence
  * propre à chaque test isole ses profils de ceux des autres tests du fichier.
  */
 
@@ -112,8 +112,8 @@ describe("famille de poste, faits vérifiés, photo et réalisations", () => {
   });
 });
 
-describe("ordre « nombre de faits vérifiés » : un compte affiché, jamais un score", () => {
-  it("compte chaque fait pour un et départage par l'identifiant", async () => {
+describe("aucun ordre par nombre de faits vérifiés (AI Act, revue Kensa M4) : les faits restent des filtres", () => {
+  it("refuse l'ordre par compte de preuves, ne renvoie aucun compte sur la carte, et filtre chaque fait pour lui-même", async () => {
     const none = await make({ skills: ["Racket"] });
     const two = await make({ skills: ["Racket"] });
     const three = await make({ skills: ["Racket"] });
@@ -124,12 +124,14 @@ describe("ordre « nombre de faits vérifiés » : un compte affiché, jamais un
     await t.db.billingIdentity.create({
       data: { profileId: three.id, legalName: "R EI", siret: nextSiret("552100554"), address: { line1: "1 rue", postalCode: "44000", city: "Nantes", country: "FR" }, registryStatus: "active", registryCheckedAt: new Date() },
     });
-    const page = await profiles(t.db).search({ skills: ["racket"], sort: "verified_facts" });
-    expect(page.items.map((c) => c.id)).toEqual([three.id, two.id, none.id]);
-    expect(page.items.map((c) => c.verifiedFacts)).toEqual([3, 2, 0]);
-    const paged = await profiles(t.db).search({ skills: ["racket"], sort: "verified_facts", pageSize: 2, page: 2 });
-    expect(paged.items.map((c) => c.id)).toEqual([none.id]);
-    expect(paged.hasMore).toBe(false);
+    // The old order, asked by hand, is refused by the schema rather than silently honoured.
+    await expect(profiles(t.db).search({ skills: ["racket"], sort: "verified_facts" } as unknown as Parameters<ReturnType<typeof profiles>["search"]>[0])).rejects.toThrow();
+    const page = await profiles(t.db).search({ skills: ["racket"] });
+    expect(sorted(page.items.map((c) => c.id))).toEqual(sorted([none.id, two.id, three.id]));
+    for (const card of page.items) expect(card).not.toHaveProperty("verifiedFacts");
+    expect(sorted(await ids({ skills: ["racket"], verifiedMissionsOnly: true }))).toEqual(sorted([two.id, three.id]));
+    expect(await ids({ skills: ["racket"], vigilanceValidOnly: true })).toEqual([two.id]);
+    expect(await ids({ skills: ["racket"], registryActiveOnly: true })).toEqual([three.id]);
   });
 });
 
