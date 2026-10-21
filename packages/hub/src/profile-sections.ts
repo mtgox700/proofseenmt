@@ -98,65 +98,78 @@ const forPublication = (s: PublicSectionsView, named: boolean): PublicSectionsVi
         portfolio: s.portfolio.map((x) => ({ ...x, url: null, imageFileId: null })),
       };
 
-const experiences = (s: PublicSectionsView, lang: Lang): string =>
+/** Le niveau des titres d'une section et de ses éléments. */
+interface Levels {
+  readonly section: "h2" | "h3";
+  readonly item: "h3" | "h4";
+}
+
+const heading = (tag: string, html: string): string => `<${tag}>${html}</${tag}>`;
+
+const experiences = (s: PublicSectionsView, lang: Lang, lv: Levels): string =>
   s.experiences.length === 0
     ? ""
-    : `<h2>${LABELS[lang].experiences}</h2><ul class="missions">${s.experiences
+    : `${heading(lv.section, LABELS[lang].experiences)}<ul class="missions">${s.experiences
         .map((x) => {
           const period = `${monthText(x.startMonth, lang)} – ${x.endMonth === null ? LABELS[lang].current : monthText(x.endMonth, lang)}`;
           const when = [x.company, period].filter((part): part is string => part !== null).join(" · ");
-          return `<li class="card"><h3>${e(x.title)}</h3><p class="when">${e(when)}</p>${paragraph(x.description)}${tags(x.skills)}</li>`;
+          return `<li class="card">${heading(lv.item, e(x.title))}<p class="when">${e(when)}</p>${paragraph(x.description)}${tags(x.skills)}</li>`;
         })
         .join("")}</ul>`;
 
-const educations = (s: PublicSectionsView, lang: Lang): string =>
+const educations = (s: PublicSectionsView, lang: Lang, lv: Levels): string =>
   s.educations.length === 0
     ? ""
-    : `<h2>${LABELS[lang].educations}</h2><ul class="missions">${s.educations
+    : `${heading(lv.section, LABELS[lang].educations)}<ul class="missions">${s.educations
         .map((x) => {
           // Sans école (profil pseudonyme), le diplôme devient le titre ; sans diplôme non plus, un libellé neutre.
-          const heading = x.school ?? x.degree ?? LABELS[lang].education;
+          const title = x.school ?? x.degree ?? LABELS[lang].education;
           const details = x.school === null ? [years(x.startYear, x.endYear)] : [x.degree, years(x.startYear, x.endYear)];
           const when = details.filter((part): part is string => part !== null && part !== "").join(" · ");
-          return `<li class="card"><h3>${e(heading)}</h3>${when === "" ? "" : `<p class="when">${e(when)}</p>`}</li>`;
+          return `<li class="card">${heading(lv.item, e(title))}${when === "" ? "" : `<p class="when">${e(when)}</p>`}</li>`;
         })
         .join("")}</ul>`;
 
-const certifications = (s: PublicSectionsView, lang: Lang): string =>
+const certifications = (s: PublicSectionsView, lang: Lang, lv: Levels): string =>
   s.certifications.length === 0
     ? ""
-    : `<h2>${LABELS[lang].certifications}</h2><ul class="missions">${s.certifications
+    : `${heading(lv.section, LABELS[lang].certifications)}<ul class="missions">${s.certifications
         .map((x) => {
           const when = [x.issuer, x.year === null ? null : String(x.year)].filter((part): part is string => part !== null).join(" · ");
           const link = x.credentialUrl === null ? "" : `<p><a href="${e(x.credentialUrl)}" rel="nofollow noopener ugc">${LABELS[lang].verify}</a></p>`;
-          return `<li class="card"><h3>${e(x.name)}</h3>${when === "" ? "" : `<p class="when">${e(when)}</p>`}${tags(x.skills)}${link}</li>`;
+          return `<li class="card">${heading(lv.item, e(x.name))}${when === "" ? "" : `<p class="when">${e(when)}</p>`}${tags(x.skills)}${link}</li>`;
         })
         .join("")}</ul>`;
 
-const languages = (s: PublicSectionsView, lang: Lang): string =>
+const languages = (s: PublicSectionsView, lang: Lang, lv: Levels): string =>
   s.languages.length === 0
     ? ""
-    : `<h2>${LABELS[lang].languages}</h2><ul class="tags">${s.languages.map((l) => `<li>${e(`${languageName(l.code, lang)} · ${levelText(l.level, lang)}`)}</li>`).join("")}</ul>`;
+    : `${heading(lv.section, LABELS[lang].languages)}<ul class="tags">${s.languages.map((l) => `<li>${e(`${languageName(l.code, lang)} · ${levelText(l.level, lang)}`)}</li>`).join("")}</ul>`;
 
-const portfolio = (s: PublicSectionsView, lang: Lang, baseUrl: string): string =>
+const portfolio = (s: PublicSectionsView, lang: Lang, baseUrl: string, lv: Levels): string =>
   s.portfolio.length === 0
     ? ""
-    : `<h2>${LABELS[lang].portfolio}</h2><ul class="missions">${s.portfolio
+    : `${heading(lv.section, LABELS[lang].portfolio)}<ul class="missions">${s.portfolio
         .map((x) => {
           const title = x.url === null ? e(x.title) : `<a href="${e(x.url)}" rel="nofollow noopener ugc">${e(x.title)}</a>`;
           const image = x.imageFileId === null ? "" : `<img class="shot" src="${e(fileUrl(baseUrl, x.imageFileId))}" alt="${e(x.title)}" loading="lazy" decoding="async">`;
-          return `<li class="card">${image}<h3>${title}</h3>${paragraph(x.description)}</li>`;
+          return `<li class="card">${image}${heading(lv.item, title)}${paragraph(x.description)}</li>`;
         })
         .join("")}</ul>`;
 
-/** Les sections, dans l'ordre de la page : expériences, certifications, formation, langues, réalisations. */
-export const renderSections = (sections: PublicSectionsView, o: { readonly lang: Lang; readonly baseUrl: string; readonly named: boolean }): string => {
+/**
+ * Les sections, dans l'ordre de la page : expériences, certifications, formation, langues, réalisations. `level` est le
+ * niveau de titre de chaque section (2 par défaut), ses éléments prennent le suivant. Sur la page de preuve, elles vivent
+ * sous le titre « Déclaré par le freelance » : niveau 3.
+ */
+export const renderSections = (sections: PublicSectionsView, o: { readonly lang: Lang; readonly baseUrl: string; readonly named: boolean; readonly level?: 2 | 3 }): string => {
   const s = forPublication(sections, o.named);
-  return [experiences(s, o.lang), certifications(s, o.lang), educations(s, o.lang), languages(s, o.lang), portfolio(s, o.lang, o.baseUrl)].join("");
+  const lv: Levels = o.level === 3 ? { section: "h3", item: "h4" } : { section: "h2", item: "h3" };
+  return [experiences(s, o.lang, lv), certifications(s, o.lang, lv), educations(s, o.lang, lv), languages(s, o.lang, lv), portfolio(s, o.lang, o.baseUrl, lv)].join("");
 };
 
-/** Styles des éléments propres aux sections : une photo et des aperçus d'images, rien de masqué. */
-export const SECTION_STYLES = ".avatar{width:7.5rem;height:7.5rem;border-radius:50%;object-fit:cover;border:1px solid var(--ps-line);margin-bottom:1.4rem}.shot{width:100%;max-height:16rem;object-fit:cover;border-radius:var(--ps-radius);border:1px solid var(--ps-line)}";
+/** Styles des éléments propres aux sections : une photo au format d'identité (96 puis 120 px), des aperçus d'images, rien de masqué. */
+export const SECTION_STYLES = ".avatar{flex:none;width:6rem;height:6rem;border-radius:var(--ps-radius);object-fit:cover;border:1px solid var(--ps-line)}@media (min-width:48rem){.avatar{width:7.5rem;height:7.5rem}}.shot{width:100%;max-height:16rem;object-fit:cover;border-radius:var(--ps-radius);border:1px solid var(--ps-line)}";
 
 const unique = (values: readonly string[]): string[] => [...new Set(values)];
 

@@ -116,7 +116,7 @@ describe("sections déclarées de la page publique", () => {
       expect(html).not.toContain(identifying);
     }
     // Restent le rôle, les dates, le diplôme, les compétences, l'organisme de certification.
-    for (const fact of ["Lead data engineer", "mars 2023 – aujourd&#39;hui", "<h3>Diplôme d&#39;ingénieur</h3><p class=\"when\">2014 – 2019</p>", "Spark", "Amazon Web Services · 2024", "Tableau de bord énergie"]) {
+    for (const fact of ["Lead data engineer", "mars 2023 – aujourd&#39;hui", "<h4>Diplôme d&#39;ingénieur</h4><p class=\"when\">2014 – 2019</p>", "Spark", "Amazon Web Services · 2024", "Tableau de bord énergie"]) {
       expect(html).toContain(fact);
     }
     const person = jsonLdOf(html).mainEntity;

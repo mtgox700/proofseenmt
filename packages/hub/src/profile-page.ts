@@ -4,6 +4,8 @@ import { marketFooter, marketHeader } from "./market-shell";
 import { nearbyProfilesSection, type NearbyProfile } from "./nearby";
 import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
+import { proofRegister, proofTally, type ProofFacts, type ProofMission, type ProofRegister, type ProvenAddress } from "./profile-proofs";
+import { PROFILE_STYLES } from "./profile-styles";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -36,20 +38,11 @@ export interface PublicProfile {
   readonly skills: readonly string[];
   readonly provenUrls: readonly string[];
   readonly provenUrlCount: number;
-  readonly missions: readonly {
-    readonly role: string;
-    readonly clientKind: string;
-    readonly durationMonths: number;
-    readonly summary: string;
-    readonly evidenceKind: string;
-    readonly verifiedAt: Date;
-    /** Nom du client, seulement s'il a lui-même autorisé son affichage en confirmant la mission. */
-    readonly clientName?: string | null;
-    /** Confirmation par l'entreprise inscrite, ou par un contact chez le client. */
-    readonly confirmedBy?: "company" | "contact" | null;
-  }[];
+  /** La preuve de chaque adresse (méthode, date, dernière relecture) ; l'adresse elle-même seulement si nominatif. */
+  readonly provenAddresses?: readonly ProvenAddress[];
+  readonly missions: readonly ProofMission[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
-  readonly facts: { readonly registryActiveCheckedAt: Date | null; readonly identityVerified: boolean; readonly payingClients: number; readonly vigilanceValidUntil: Date | null };
+  readonly facts: ProofFacts;
   /** Photo publiée : profil nominatif seulement (le dépôt ne la fournit jamais pour un profil pseudonyme). */
   readonly photoFileId?: string | null;
   /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
@@ -71,24 +64,17 @@ const LABELS = {
     rate: "TJM",
     notGiven: "Non affiché",
     perDay: "/ jour",
+    place: "Lieu",
+    availability: "Disponibilité",
     skills: "Compétences",
-    missions: "Missions vérifiées",
-    months: (n: number) => (n === 1 ? "1 mois" : `${n} mois`),
-    evidence: "Preuve",
-    proofs: "Adresses dont la possession est prouvée",
-    proofCount: (n: number) => (n === 0 ? "Aucune adresse prouvée pour l'instant." : n === 1 ? "1 adresse prouvée." : `${n} adresses prouvées.`),
+    declared: "Déclaré par le freelance",
+    declaredNote: "Rien de ce qui suit n'a été vérifié par un tiers.",
     reviews: "Avis de missions payées sur Proofseen",
-    facts: "Faits vérifiés",
-    registryActive: (d: string) => `Entreprise active au répertoire officiel des entreprises (vérifié le ${d})`,
-    identityVerified: "Identité vérifiée par le prestataire de paiement",
-    vigilance: (d: string) => `Attestation de vigilance URSSAF vérifiée, valable jusqu'au ${d}`,
-    payingClients: (n: number) => (n === 1 ? "Payé sur Proofseen par 1 entreprise" : `Payé sur Proofseen par ${n} entreprises différentes`),
+    reviewTrace: "mission payée sur Proofseen",
     contact: "Contacter ce freelance sur Proofseen",
     updated: "Mis à jour le",
-    clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Grand groupe", eti: "ETI", pme: "PME", secteur_public: "Secteur public", editeur_logiciel: "Éditeur de logiciel", esn: "ESN", association: "Association" },
-    evidenceKinds: { facture: "Facture", contrat: "Contrat", attestation_client: "Attestation du client", acces_depot: "Accès au dépôt de code", livrable_public: "Livrable public" },
-    verifiedOn: (kind: string, d: string, contact: boolean) =>
-      kind === "client_confirmation" ? (contact ? `Confirmée par un contact chez le client le ${d}` : `Confirmée par le client le ${d}`) : kind === "paid_on_platform" ? `Payée sur Proofseen, vérifiée le ${d}` : `Vérifiée le ${d}`,
+    reference: (ref: string, d: string) => `Profil ${ref} · mis à jour le ${d}`,
+    rail: "Contact et preuves de ce profil",
     pseudonym: (ref: string) => `Freelance ${ref}`,
     confirmed: "Disponibilité confirmée le",
     lastConfirmed: "Dernière confirmation le",
@@ -103,24 +89,17 @@ const LABELS = {
     rate: "Day rate",
     notGiven: "Not shown",
     perDay: "/ day",
+    place: "Location",
+    availability: "Availability",
     skills: "Skills",
-    missions: "Verified missions",
-    months: (n: number) => (n === 1 ? "1 month" : `${n} months`),
-    evidence: "Evidence",
-    proofs: "Addresses with proven ownership",
-    proofCount: (n: number) => (n === 0 ? "No proven address yet." : n === 1 ? "1 proven address." : `${n} proven addresses.`),
+    declared: "Declared by the freelancer",
+    declaredNote: "Nothing below has been checked by a third party.",
     reviews: "Reviews of missions paid on Proofseen",
-    facts: "Verified facts",
-    registryActive: (d: string) => `Business active in the official French company register (checked on ${d})`,
-    identityVerified: "Identity verified by the payment provider",
-    vigilance: (d: string) => `URSSAF vigilance certificate verified, valid until ${d}`,
-    payingClients: (n: number) => (n === 1 ? "Paid on Proofseen by 1 company" : `Paid on Proofseen by ${n} different companies`),
+    reviewTrace: "mission paid on Proofseen",
     contact: "Contact this freelancer on Proofseen",
     updated: "Updated on",
-    clientKinds: { startup: "Start-up", scaleup: "Scale-up", grand_groupe: "Large group", eti: "Mid-size company", pme: "SME", secteur_public: "Public sector", editeur_logiciel: "Software publisher", esn: "IT services firm", association: "Non-profit" },
-    evidenceKinds: { facture: "Invoice", contrat: "Contract", attestation_client: "Client attestation", acces_depot: "Repository access", livrable_public: "Public deliverable" },
-    verifiedOn: (kind: string, d: string, contact: boolean) =>
-      kind === "client_confirmation" ? (contact ? `Confirmed by a contact at the client on ${d}` : `Confirmed by the client on ${d}`) : kind === "paid_on_platform" ? `Paid on Proofseen, verified on ${d}` : `Verified on ${d}`,
+    reference: (ref: string, d: string) => `Profile ${ref} · updated on ${d}`,
+    rail: "Contact and evidence of this profile",
     pseudonym: (ref: string) => `Freelancer ${ref}`,
     confirmed: "Availability confirmed on",
     lastConfirmed: "Last confirmed on",
@@ -134,21 +113,6 @@ const date = (d: Date, lang: Lang): string => new Intl.DateTimeFormat(lang === "
 
 const money = (cents: number, currency: string, lang: Lang): string =>
   new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-GB", { style: "currency", currency, maximumFractionDigits: 0 }).format(cents / 100);
-
-/** Le libellé d'une valeur de vocabulaire, ou la valeur elle-même si elle est inconnue (jamais une case vide). */
-const pick = (table: Readonly<Record<string, string>>, key: string): string => table[key] ?? key;
-
-/*
- * Une mission vérifiée : un fait daté, avec la façon dont il a été vérifié. Le client est désigné par son type, sauf
- * s'il a lui-même autorisé son nom en confirmant ; aucun résumé n'est inventé quand il n'y en a pas.
- */
-const missionItem = (m: PublicProfile["missions"][number], lang: Lang): string => {
-  const l = LABELS[lang];
-  const client = m.clientName === undefined || m.clientName === null || m.clientName === "" ? pick(l.clientKinds, m.clientKind) : m.clientName;
-  const how = m.evidenceKind in l.evidenceKinds ? ` · ${l.evidence} : ${e(pick(l.evidenceKinds, m.evidenceKind))}` : "";
-  const summary = m.summary.trim() === "" ? "" : `<p>${e(m.summary)}</p>`;
-  return `<li class="card"><h3>${e(m.role)}</h3><p class="when">${e(client)} · ${e(l.months(m.durationMonths))} · ${e(l.verifiedOn(m.evidenceKind, date(m.verifiedAt, lang), m.confirmedBy === "contact"))}${how}</p>${summary}</li>`;
-};
 
 /** La disponibilité en toutes lettres ; jamais « disponible » pour une déclaration que la personne n'a pas reconfirmée. */
 export const availabilityLabel = (p: Pick<PublicProfile, "availability" | "availableFrom">, lang: Lang): string => {
@@ -180,44 +144,63 @@ export const profileJsonLd = (p: PublicProfile, o: { readonly baseUrl: string; r
   },
 });
 
-export const renderProfilePage = (
-  p: PublicProfile,
-  /** `nearby` : « Profils proches » (C22), rapprochés sur des faits, chacun avec sa raison. */
-  o: { readonly baseUrl: string; readonly lang: Lang; readonly contactHref: string; readonly nearby?: readonly NearbyProfile[] },
-): string => {
+export interface ProfilePageOptions {
+  readonly baseUrl: string;
+  readonly lang: Lang;
+  readonly contactHref: string;
+  /** « Profils proches » (C22), rapprochés sur des faits, chacun avec sa raison. */
+  readonly nearby?: readonly NearbyProfile[];
+}
+
+/*
+ * La fiche, en-tête du dossier : la ligne de trace (référence et date), la photo d'identité d'un profil nominatif et
+ * de lui seul, le nom (ou la référence), le métier, puis les faits déclarés du contexte, sans vert.
+ */
+const fiche = (p: PublicProfile, name: string, availability: string, o: ProfilePageOptions): string => {
   const l = LABELS[o.lang];
-  const other: Lang = o.lang === "fr" ? "en" : "fr";
-  const name = profileName(p, o.lang);
-  const availability = availabilityLabel(p, o.lang);
+  const photoId = p.visibility === "named" ? (p.photoFileId ?? null) : null;
+  const photo = photoId === null ? "" : `<img class="avatar" src="${e(fileUrl(o.baseUrl, photoId))}" alt="${e(l.photo(name))}" width="120" height="120">`;
   const confirmedLabel = p.availability === "unconfirmed" ? l.lastConfirmed : l.confirmed;
   const context = [
     [l.rate, p.dailyRateCents === null ? l.notGiven : `${money(p.dailyRateCents, p.currency, o.lang)} ${l.perDay}`],
-    [o.lang === "fr" ? "Lieu" : "Location", `${p.city} · ${l.modes[p.workMode]}`],
-    [o.lang === "fr" ? "Disponibilité" : "Availability", availability],
+    [l.place, `${p.city} · ${l.modes[p.workMode]}`],
+    [l.availability, availability],
     ...(p.availabilityConfirmedAt === undefined || p.availabilityConfirmedAt === null ? [] : [[confirmedLabel, date(p.availabilityConfirmedAt, o.lang)]]),
   ]
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");
-  const missions = p.missions.length === 0 ? "" : `<h2>${l.missions}</h2><ul class="missions">${p.missions.map((m) => missionItem(m, o.lang)).join("")}</ul>`;
-  const proofs =
-    p.provenUrls.length > 0
-      ? `<h2>${l.proofs}</h2><ul class="links">${p.provenUrls.map((u) => `<li><a href="${e(u)}" rel="me noopener">${e(u)}</a></li>`).join("")}</ul>`
-      : `<h2>${l.proofs}</h2><p class="muted">${e(l.proofCount(p.provenUrlCount))}</p>`;
-  const factLines = [
-    ...(p.facts.registryActiveCheckedAt === null ? [] : [l.registryActive(date(p.facts.registryActiveCheckedAt, o.lang))]),
-    ...(p.facts.identityVerified ? [l.identityVerified] : []),
-    ...(p.facts.vigilanceValidUntil === null ? [] : [l.vigilance(date(p.facts.vigilanceValidUntil, o.lang))]),
-    ...(p.facts.payingClients === 0 ? [] : [l.payingClients(p.facts.payingClients)]),
-  ];
-  const photoId = p.visibility === "named" ? (p.photoFileId ?? null) : null;
-  const photo = photoId === null ? "" : `<img class="avatar" src="${e(fileUrl(o.baseUrl, photoId))}" alt="${e(l.photo(name))}" width="120" height="120">`;
-  const facts = factLines.length === 0 ? "" : `<h2>${l.facts}</h2><ul class="links">${factLines.map((f) => `<li>${e(f)}</li>`).join("")}</ul>`;
-  const reviews =
-    p.reviews.length === 0
-      ? ""
-      : `<h2>${l.reviews}</h2><ul class="missions">${p.reviews
-          .map((r) => `<li class="card"><p class="when">${r.rating} / 5 · ${e(date(r.createdAt, o.lang))}</p><p>${e(r.body)}</p></li>`)
-          .join("")}</ul>`;
+  return (
+    `<header class="fiche"><p class="ref">${e(l.reference(p.reference, date(p.updatedAt, o.lang)))}</p>` +
+    `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline">${e(p.headline)}</p></div></div>` +
+    `<dl class="context">${context}</dl></header>`
+  );
+};
+
+/** Ce que le freelance déclare : un filet neutre, jamais de vert, et des titres un cran sous « Déclaré par le freelance ». */
+const declared = (p: PublicProfile, o: ProfilePageOptions): string => {
+  const l = LABELS[o.lang];
+  const skills = p.skills.length === 0 ? "" : `<h3>${l.skills}</h3><ul class="tags">${p.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`;
+  const sections = renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, named: p.visibility === "named", level: 3 });
+  if (skills === "" && sections === "") return "";
+  return `<section class="declared" aria-labelledby="declare"><h2 class="part" id="declare">${l.declared}</h2><p class="part-note">${e(l.declaredNote)}</p>${skills}${sections}</section>`;
+};
+
+/** Les avis, un par un, sans moyenne. Le paiement est un fait, l'avis une opinion : aucun poinçon sur une note. */
+const reviews = (p: PublicProfile, lang: Lang): string => {
+  const l = LABELS[lang];
+  if (p.reviews.length === 0) return "";
+  const items = p.reviews.map((r) => `<li class="card"><p class="when">${r.rating} / 5 · ${e(date(r.createdAt, lang))} · ${l.reviewTrace}</p><p>${e(r.body)}</p></li>`).join("");
+  return `<h2>${l.reviews}</h2><ul class="missions">${items}</ul>`;
+};
+
+export const renderProfilePage = (p: PublicProfile, o: ProfilePageOptions): string => {
+  const l = LABELS[o.lang];
+  const other: Lang = o.lang === "fr" ? "en" : "fr";
+  const name = profileName(p, o.lang);
+  const availability = availabilityLabel(p, o.lang);
+  const named = p.visibility === "named";
+  const register: ProofRegister = { named, missions: p.missions, provenUrls: p.provenUrls, provenUrlCount: p.provenUrlCount, provenAddresses: p.provenAddresses ?? [], facts: p.facts };
+  const contact = `<a class="cta" href="${e(o.contactHref)}">${l.contact}</a>`;
 
   return [
     "<!doctype html>",
@@ -227,27 +210,23 @@ export const renderProfilePage = (
     `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${SECTION_STYLES}</style>`,
+    `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
-    '<main id="contenu" class="wrap">',
-    photo,
-    `<h1 class="title">${e(name)}</h1>`,
-    `<p class="headline">${e(p.headline)}</p>`,
-    `<dl class="context">${context}</dl>`,
+    '<main id="contenu" class="dossier">',
+    fiche(p, name, availability, o),
+    `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
+    '<div class="folio">',
     `<p class="lede">${e(p.summary)}</p>`,
-    facts,
-    p.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${p.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
-    missions,
-    renderSections(p.sections ?? EMPTY_SECTIONS, { lang: o.lang, baseUrl: o.baseUrl, named: p.visibility === "named" }),
-    proofs,
-    reviews,
+    proofRegister(register, o.lang),
+    declared(p, o),
+    reviews(p, o.lang),
     recentPostsSection(p.posts, o.lang),
-    `<p><a class="cta" href="${e(o.contactHref)}">${l.contact}</a></p>`,
-    `<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p>`,
+    `<div class="closing">${contact}<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p></div>`,
     nearbyProfilesSection(o.nearby ?? [], o.lang),
+    "</div>",
     "</main>",
     marketFooter(o.lang),
     "</body>",

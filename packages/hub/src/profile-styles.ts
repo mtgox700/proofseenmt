@@ -1,0 +1,101 @@
+/*
+ * La page de preuve d'un profil (lot d de la refonte, STORYBOARD d.1 à d.5) : la fiche, le rail, le registre de ce qui
+ * est vérifié et ce que le freelance déclare. CSS pur, en jetons de la marque : aucune couleur écrite ici.
+ *
+ * La règle du vert : `--ps-proof` ne touche que le registre (cartouche, carré plein, ligne « possession prouvée »).
+ * Le déclaré porte un filet neutre. Rien n'est caché (ni display:none, ni opacité nulle) : les règles du hub tiennent.
+ */
+
+const DOSSIER = [
+  ".dossier{width:min(100% - 2*var(--ps-gutter),72rem);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
+  ".dossier>*{min-width:0}",
+  ".fiche{padding-bottom:var(--ps-space-6)}",
+  ".ref{font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}",
+  ".who{display:flex;align-items:flex-end;gap:var(--ps-space-5);margin-top:var(--ps-space-5)}",
+  ".who .title{margin-top:0;overflow-wrap:anywhere}",
+  ".who .headline{margin-top:var(--ps-space-3)}",
+  // Le contexte : des cellules séparées par des filets, deux par ligne sur un téléphone, plus de boîtes arrondies.
+  ".fiche .context{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:var(--ps-space-6) 0 0;background:none;border:0;border-top:1px solid var(--ps-line);border-radius:0;overflow:visible}",
+  ".fiche .context div{background:none;padding:var(--ps-space-3) var(--ps-space-3) var(--ps-space-3) 0;border-bottom:1px solid var(--ps-line)}",
+  ".fiche .context div:nth-child(even){padding-left:var(--ps-space-4);border-left:1px solid var(--ps-line)}",
+  ".fiche .context dd{overflow-wrap:anywhere}",
+  ".rail{display:grid;gap:var(--ps-space-2);align-content:start;padding:var(--ps-space-5) 0;border-block:1px solid var(--ps-line)}",
+  ".rail .cta{width:100%;min-height:3rem;margin:0;padding-block:var(--ps-space-2);white-space:normal;text-align:center;line-height:1.3}",
+  ".tally{display:inline-flex;align-items:center;min-height:2.75rem;font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);color:var(--ps-muted)}",
+  ".folio .lede{margin-top:var(--ps-space-6)}",
+  "h2.part{display:block;margin:var(--ps-space-4) 0 var(--ps-space-2);font:var(--ps-weight-display) var(--ps-step-3)/var(--ps-lead-3) var(--ps-font-display);letter-spacing:var(--ps-track-3);text-transform:none;color:var(--ps-text)}",
+  "h2.part::before{content:none}",
+  ".part-note{max-width:var(--ps-measure);color:var(--ps-muted);font-size:var(--ps-step--1)}",
+  "h3.group,.declared>h3{margin:var(--ps-space-6) 0 var(--ps-space-3);font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}",
+  "h4{margin:0;font:var(--ps-weight-display) var(--ps-step-1)/var(--ps-lead-1) var(--ps-font-display);letter-spacing:var(--ps-track-1);text-wrap:balance}",
+  ".closing{display:grid;justify-items:start;gap:var(--ps-space-3);margin-top:var(--ps-space-8);padding-top:var(--ps-space-5);border-top:1px solid var(--ps-line)}",
+  ".closing .cta{margin:0;white-space:normal}",
+  "@media (min-width:62rem){.dossier{grid-template-columns:minmax(0,1fr) 17rem;grid-template-areas:\"fiche rail\" \"folio rail\"}" +
+    ".fiche{grid-area:fiche}.folio{grid-area:folio}" +
+    ".rail{grid-area:rail;align-self:start;position:sticky;top:calc(4rem + var(--ps-space-5));margin-top:var(--ps-space-8);padding:var(--ps-space-5);border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-surface)}" +
+    ".fiche .context{grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr))}.fiche .context div:nth-child(n){padding-left:var(--ps-space-4);border-left:1px solid var(--ps-line)}.fiche .context div:first-child{padding-left:0;border-left:0}}",
+];
+
+/*
+ * Le registre. Une mission est une pièce : l'affirmation en haut, la ligne de preuve en bas, reliées par le fil (un
+ * filet neutre qui part d'un carré vide, l'affirmation, et finit sur le carré vert, la preuve). Le cartouche daté est
+ * la seule marque frappée ; ses coins de poinçon ne s'affichent que là où `corner-shape` existe.
+ */
+const REGISTER = [
+  ".register{margin-top:var(--ps-space-8);padding-top:var(--ps-space-2);border-top:2px solid var(--ps-text)}",
+  ".pieces,.lines,.slots{list-style:none;margin:0;padding:0}",
+  ".pieces{display:grid;gap:var(--ps-space-4)}",
+  ".piece{--pad:var(--ps-space-4);--fil:1.25rem;display:grid;gap:var(--ps-space-4);padding:var(--pad) var(--pad) var(--pad) calc(var(--pad) + var(--fil));background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius);scroll-margin-top:5rem}",
+  ".claim{position:relative;display:grid;gap:var(--ps-space-2)}",
+  ".claim .when{font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-muted)}",
+  ".claim::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil));top:.85rem;bottom:calc(-2*var(--ps-space-4) - .55rem);width:1px;background:var(--ps-line-strong);transform-origin:top}",
+  ".claim::after{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(.85rem - 4px);width:8px;height:8px;border:1px solid var(--ps-line-strong);background:var(--ps-surface)}",
+  ".proofline{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--ps-space-3) var(--ps-space-5);padding-top:var(--ps-space-4);border-top:1px dashed var(--ps-line)}",
+  ".proofline::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(var(--ps-space-4) + .55rem - 4px);width:8px;height:8px;background:var(--ps-proof)}",
+  ".trace{display:grid;gap:var(--ps-space-1);margin:0;font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);color:var(--ps-muted)}",
+  ".trace div{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-2)}",
+  ".trace dt{letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-faint)}",
+  ".trace dd{margin:0;color:var(--ps-text);overflow-wrap:anywhere}",
+  ".seal{position:relative;display:inline-flex;align-items:center;min-height:2rem;padding:var(--ps-space-1) var(--ps-space-3);border:1px solid var(--ps-proof);border-radius:var(--ps-radius);background:var(--ps-proof-wash);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.35 var(--ps-font-mono)}",
+  ".seal::after{content:\"\";position:absolute;inset:-1px;border:1px solid transparent;border-radius:inherit;pointer-events:none}",
+  "@supports (corner-shape:scoop){.seal{border-radius:var(--ps-radius-seal);corner-shape:scoop}.seal::after{corner-shape:scoop}}",
+  ".group-note{margin-bottom:var(--ps-space-3);color:var(--ps-muted);font-size:var(--ps-step--1)}",
+  ".lines{border-top:1px solid var(--ps-line)}",
+  ".line{display:grid;gap:var(--ps-space-2);padding:var(--ps-space-3) 0;border-bottom:1px solid var(--ps-line)}",
+  ".line .what{display:flex;align-items:baseline;gap:var(--ps-space-3);overflow-wrap:anywhere}",
+  ".line .what a{display:inline-flex;align-items:center;min-height:2.75rem;min-width:0}",
+  ".sq{flex:none;display:inline-block;width:8px;height:8px;background:var(--ps-proof)}",
+  ".sq.open{background:none;border:1px solid var(--ps-line-strong)}",
+  ".stamp{display:flex;align-items:baseline;gap:var(--ps-space-2);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.4 var(--ps-font-mono)}",
+  ".blank{display:grid;gap:var(--ps-space-3);margin-top:var(--ps-space-5);padding:var(--ps-space-5);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius)}",
+  ".blank-title{font:var(--ps-weight-mono) var(--ps-step--1)/1.5 var(--ps-font-mono)}",
+  ".slots li{display:flex;align-items:baseline;gap:var(--ps-space-3);padding:var(--ps-space-2) 0;border-bottom:1px dashed var(--ps-line);color:var(--ps-muted)}",
+  ".blank a{display:inline-flex;align-items:center;min-height:2.75rem}",
+  ".declared{margin-top:var(--ps-space-8);padding-top:var(--ps-space-2);border-top:1px solid var(--ps-line-strong)}",
+  ".declared .card{background:none}",
+  ".card p>a:only-child{display:inline-flex;align-items:center;min-height:2.75rem}",
+  "@media (min-width:48rem){.piece{--pad:var(--ps-space-5);--fil:1.5rem}}",
+];
+
+/*
+ * M2, « l'essai et la frappe », lié au défilement (STORYBOARD b.3 et d.3). Une plage courte de la vue de chaque pièce
+ * (entrée de 60 à 100 %) rejoue la chronologie de 1 020 ms en proportions : le fil se trace (0 à 63 %, 640 ms), le
+ * cartouche se frappe (63 à 76 %, 140 ms), revient (76 à 88 %, 120 ms), l'anneau d'encre s'étale (76 à 100 %, 240 ms).
+ * Les six premières pièces seulement. Tout part d'un état visible : le cartouche est là, légèrement levé, et l'anneau
+ * finit en bordure transparente. Sans `animation-timeline`, ou en mouvement réduit : rien ne bouge, état final.
+ */
+const STRIKE = [
+  "@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){" +
+    ".pieces>.piece:nth-child(-n+6){view-timeline:--piece block}" +
+    ".pieces>.piece:nth-child(-n+6) .claim::before{animation:ps-trace linear both;animation-timeline:--piece;animation-range:entry 60% entry 100%}" +
+    ".pieces>.piece:nth-child(-n+6) .seal{animation:ps-strike linear both;animation-timeline:--piece;animation-range:entry 60% entry 100%}" +
+    ".pieces>.piece:nth-child(-n+6) .seal::after{animation:ps-ink linear both;animation-timeline:--piece;animation-range:entry 60% entry 100%}}}",
+  "@keyframes ps-trace{0%{transform:scaleY(0);animation-timing-function:var(--ps-ease-in-out)}63%,100%{transform:scaleY(1)}}",
+  "@keyframes ps-strike{0%,63%{transform:scale(1.06);animation-timing-function:var(--ps-ease-strike)}76%{transform:scale(.97);animation-timing-function:var(--ps-ease-out)}88%,100%{transform:scale(1)}}",
+  "@keyframes ps-ink{0%,76%{transform:scale(1);border-color:var(--ps-proof);animation-timing-function:var(--ps-ease-ink)}100%{transform:scale(1.05,1.45);border-color:transparent}}",
+];
+
+/** La signature de mouvement seule : mesurée à part (budget de 1,5 Ko du storyboard). */
+export const PROFILE_STRIKE_CSS = STRIKE.join("\n");
+
+export const PROFILE_STYLES = [...DOSSIER, ...REGISTER, PROFILE_STRIKE_CSS].join("\n");
