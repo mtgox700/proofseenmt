@@ -1,3 +1,4 @@
+import { SIGNATURE_DELIMITER } from "./signature";
 import type { Email, Lang } from "./templates";
 
 /*
@@ -65,7 +66,7 @@ export const renderConfirmationRequest = (i: ConfirmationRequestInput): Email =>
   const client = oneLine(i.clientName);
   const period = c.from(month(i.startedOn, i.lang), month(i.endedOn, i.lang));
   const facts = [`${c.role} : ${oneLine(i.role)}`, `${c.period} : ${period}`];
-  const text = [c.hello, "", c.ask(who, client), "", ...facts, "", c.effect, "", `${c.open} : ${i.link}`, c.expires(day(i.expiresAt, i.lang)), "", "—", c.footer(client)].join("\n");
+  const text = [c.hello, "", c.ask(who, client), "", ...facts, "", c.effect, "", `${c.open} : ${i.link}`, c.expires(day(i.expiresAt, i.lang)), "", SIGNATURE_DELIMITER, c.footer(client)].join("\n");
   const html = [
     '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.6;color:#0e1626;max-width:560px">',
     `<p>${e(c.hello)}</p>`,

@@ -7,6 +7,7 @@
  */
 
 import { accountNoticeBody } from "./account-notice";
+import { SIGNATURE_DELIMITER } from "./signature";
 
 export type Lang = "fr" | "en";
 
@@ -255,7 +256,7 @@ export const renderEmail = (n: NotificationInput, baseUrl: string): Email => {
   const copy = COPY[n.to.lang];
   const b = body(n, base);
   const manage = `${base}/${n.to.lang}/app`;
-  const textBody = [copy.hello(n.to.displayName), "", ...b.lines, "", ...b.links.map((l) => `${l.label} : ${l.href}`), "", "—", copy.footer, `${copy.manage} : ${manage}`].join("\n");
+  const textBody = [copy.hello(n.to.displayName), "", ...b.lines, "", ...b.links.map((l) => `${l.label} : ${l.href}`), "", SIGNATURE_DELIMITER, copy.footer, `${copy.manage} : ${manage}`].join("\n");
   const html = [
     '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.6;color:#0e1626;max-width:560px">',
     `<p>${e(copy.hello(n.to.displayName))}</p>`,
