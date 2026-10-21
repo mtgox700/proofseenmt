@@ -80,7 +80,7 @@ describe("baromètre des compétences", () => {
 
   it("sous le seuil, ne publie rien et le dit", () => {
     const html = renderSkillBarometer(view, { baseUrl: BASE, lang: "fr" });
-    expect(html).toContain("Pas encore assez de données : il faut au moins 5 missions pour qu'une compétence apparaisse.");
+    expect(html).toContain("Pas encore assez de données : il faut au moins 5 missions pour qu&#39;une compétence apparaisse.");
     expect(html).not.toContain("<table");
     expect(skillCsv(view)).toBe("key,label,missions,since,computed_at\r\n");
   });
@@ -88,7 +88,8 @@ describe("baromètre des compétences", () => {
   it("liste les compétences avec leur nombre de missions, en page et en données", () => {
     const filled = { ...view, totalMissions: 9, skills: [{ key: "go", label: "Go", missions: 7 }, { key: "c#", label: "C#", missions: 5 }] };
     const html = renderSkillBarometer(filled, { baseUrl: BASE, lang: "en" });
-    expect(html).toContain('<tr><th scope="row">Go</th><td class="num">7</td></tr>');
+    // La ligne : la compétence, son n, puis sa barre (une forme sans texte, le nombre est dans la cellule voisine).
+    expect(html).toMatch(/<tr><th scope="row">Go<\/th><td class="num">7<\/td><td class="viz"><svg class="bar"[^>]*aria-hidden="true"[^>]*><rect class="fill" x="0" y="2" width="100.00" height="6"\/><\/svg><\/td><\/tr>/);
     expect(html).toContain("9 missions published over the period.");
     expect(jsonLdOf(html)).toMatchObject({ "@type": "Dataset", distribution: [{ contentUrl: "https://proofseen.com/barometre/competences.csv" }, { contentUrl: "https://proofseen.com/barometre/competences.json" }] });
     expect(skillCsv(filled)).toContain("go,Go,7,2026-07-17,");

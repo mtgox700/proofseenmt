@@ -81,9 +81,13 @@ export interface Action {
   readonly href: string;
 }
 
-/** Un état vide honnête : ce qui manque, en mono, ce qui apparaîtra ici, et des liens utiles, les mêmes pour tous. */
-export const blankState = (title: string, explanation: string, actions: readonly Action[]): string =>
+/**
+ * Un état vide honnête : ce qui manque, en mono, ce qui apparaîtra ici, et des liens utiles, les mêmes pour tous.
+ * `detail` : du HTML déjà échappé par l'appelant (une jauge, une ligne de trace), placé avant les liens.
+ */
+export const blankState = (title: string, explanation: string, actions: readonly Action[], detail = ""): string =>
   `<div class="blank"><p class="blank-title">${square(false)} ${e(title)}</p>` +
   (explanation === "" ? "" : `<p>${e(explanation)}</p>`) +
+  detail +
   (actions.length === 0 ? "" : `<ul class="acts">${actions.map((a) => `<li><a href="${e(a.href)}">${e(a.text)}</a></li>`).join("")}</ul>`) +
   "</div>";
