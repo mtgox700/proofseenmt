@@ -168,7 +168,7 @@ describe("les filtres, en GET et retirables", () => {
 
   it("fait de chaque filtre actif un lien vers la même recherche sans lui, en première page", () => {
     const html = directory([PROVEN], filters);
-    expect(html).toContain('<a href="/fr/freelances?competence=Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer&amp;missions=1" aria-label="Retirer le filtre : Compétence : Rust">Compétence : Rust <span aria-hidden="true">×</span></a>');
+    expect(html).toContain('<a href="/fr/freelances?competence=Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer&amp;missions=1" aria-label="Retirer le filtre : Compétence : Rust">Compétence\u202f: Rust <span aria-hidden="true">×</span></a>');
     expect(html).toContain('aria-label="Retirer le filtre : Ville : Lyon"');
     expect(html).toContain('aria-label="Retirer le filtre : Poste : Data engineer"');
     expect(html).toContain('href="/fr/freelances?competence=Rust%2C+Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer" aria-label="Retirer le filtre : Mission vérifiée sur pièce"');
@@ -204,7 +204,7 @@ describe("des états vides honnêtes, jamais de spécimen", () => {
     const one = directory([BARE]);
     expect(one).toContain('<p class="res-count">1 profil publié</p>');
     expect(one).toContain('<div class="few"><ul class="grid">');
-    expect(one).toContain("Ordre : du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
+    expect(one).toContain("Ordre\u202f: du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
     expect(directory([BARE], NO_DIRECTORY_FILTERS, true)).not.toContain('class="res-count"');
     expect(directory([BARE, PROVEN, { ...BARE, slug: "fr-zzzzz", reference: "FR-ZZZZZ" }])).not.toContain('class="few"');
   });

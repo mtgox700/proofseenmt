@@ -54,7 +54,9 @@ export interface PageExpectation {
 }
 
 const ENTITIES: Readonly<Record<string, string>> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
-const decode = (html: string): string => html.replace(/&(amp|lt|gt|quot|#39);/g, (m) => ENTITIES[m] ?? m);
+/** Les entités du HTML, et les espaces fines ou insécables de la typographie française ramenées à une espace (typography.ts). */
+const spaces = (text: string): string => text.replace(/[\u00a0\u202f]/g, " ");
+const decode = (html: string): string => spaces(html.replace(/&(amp|lt|gt|quot|#39);/g, (m) => ENTITIES[m] ?? m));
 
 const executableScripts = (html: string): number =>
   [...html.matchAll(/<script\b([^>]*)>/gi)].filter(([, attrs]) => !/type\s*=\s*["']application\/ld\+json["']/i.test(attrs ?? "")).length;
@@ -97,7 +99,7 @@ export const verifyMarketplace = async (input: { readonly baseUrl: string; reado
       "faits dans le HTML",
       ok.flatMap(({ page, browser }) => {
         const text = decode(browser.body);
-        const missing = page.texts.filter((t) => !text.includes(t));
+        const missing = page.texts.filter((t) => !text.includes(spaces(t)));
         return missing.length === 0 ? [] : [`${page.url} : « ${missing[0]?.slice(0, 40)} » absent`];
       }),
       "chaque fait présent sans JavaScript",

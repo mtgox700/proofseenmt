@@ -5,6 +5,7 @@ import type { PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
 import { jobCard, JOB_CARD_STYLES } from "./job-card";
 import { blankState, LEDGER_STYLES, listLegend, type Action } from "./ledger";
+import { typeset } from "./typography";
 
 /*
  * Index public des missions ouvertes : la liste, et un formulaire de filtres envoyé en GET. Sans JavaScript, la
@@ -241,32 +242,35 @@ export const renderJobIndex = (
       itemListElement: items.map((m, i) => ({ "@type": "ListItem", position: i + 1, url: `${o.baseUrl}/${o.lang}/missions/${encodeURIComponent(m.id)}` })),
     },
   };
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: `${o.baseUrl}/${o.lang}/missions` }),
-    filtered ? '<meta name="robots" content="noindex, follow">' : "",
-    `<link rel="alternate" hreflang="fr" href="${e(`${o.baseUrl}/fr/missions`)}">`,
-    `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(`${o.baseUrl}/fr/missions`)}">`,
-    `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${INDEX_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, `/${other}/missions`, "missions"),
-    '<main id="contenu" class="wrap wide">',
-    `<h1 class="title">${l.title}</h1>`,
-    `<p class="headline">${l.lead}</p>`,
-    listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((m) => m.organisationRegistryActiveCheckedAt != null) }),
-    nothingOpen
-      ? blankState(l.none, l.noneWhy, actions(o.lang, l.noneActs))
-      : `<div class="dir">${filterForm(f, o.lang)}<section aria-labelledby="resultats"><div class="res-head"><h2 id="resultats">${l.results}</h2><p class="trace">${l.order[f.sort]}</p></div>${list}</section></div>`,
-    filtered ? "" : cityLinks(o.cities ?? [], o.baseUrl, o.lang),
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: `${o.baseUrl}/${o.lang}/missions` }),
+      filtered ? '<meta name="robots" content="noindex, follow">' : "",
+      `<link rel="alternate" hreflang="fr" href="${e(`${o.baseUrl}/fr/missions`)}">`,
+      `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(`${o.baseUrl}/fr/missions`)}">`,
+      `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${INDEX_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, `/${other}/missions`, "missions"),
+      '<main id="contenu" class="wrap wide">',
+      `<h1 class="title">${l.title}</h1>`,
+      `<p class="headline">${l.lead}</p>`,
+      listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((m) => m.organisationRegistryActiveCheckedAt != null) }),
+      nothingOpen
+        ? blankState(l.none, l.noneWhy, actions(o.lang, l.noneActs))
+        : `<div class="dir">${filterForm(f, o.lang)}<section aria-labelledby="resultats"><div class="res-head"><h2 id="resultats">${l.results}</h2><p class="trace">${l.order[f.sort]}</p></div>${list}</section></div>`,
+      filtered ? "" : cityLinks(o.cities ?? [], o.baseUrl, o.lang),
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };

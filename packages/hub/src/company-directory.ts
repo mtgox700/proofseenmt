@@ -4,6 +4,7 @@ import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram } from "./directory-
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { blankState, factLine, LEDGER_STYLES, listLegend } from "./ledger";
 import { longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
+import { typeset } from "./typography";
 
 /*
  * Ce que l'annuaire des entreprises ajoute aux cartes partagées avec celui des freelances (directory-cards.ts, qui
@@ -241,37 +242,40 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
       itemListElement: items.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: companyUrl(base, o.lang, c.slug) })),
     },
   };
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: companyDirectoryUrl(base, o.lang) }),
-    filtered ? '<meta name="robots" content="noindex, follow">' : "",
-    `<link rel="alternate" hreflang="fr" href="${e(companyDirectoryUrl(base, "fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(companyDirectoryUrl(base, "en"))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(companyDirectoryUrl(base, "fr"))}">`,
-    `<style>${STYLES}${DIRECTORY_STYLES}${LEDGER_STYLES}${COMPANY_DIRECTORY_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, `/${other}/entreprises`, "companies"),
-    '<main id="contenu" class="wrap wide">',
-    `<h1 class="title">${l.title}</h1>`,
-    `<p class="headline">${l.lead}</p>`,
-    listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((c) => c.registryActiveCheckedAt !== null) }),
-    // Aucune page publique du tout : pas de filtres à régler pour rien, l'état vide dit pourquoi et propose quoi faire.
-    nobody ? '<div class="solo">' : '<div class="dir">',
-    nobody ? "" : filtersForm(o.lang, f, o.facets, path),
-    "<section>",
-    `<div class="res-head"><h2>${l.results(o.facets.total)}</h2><p class="trace">${l.order(l.sorts[f.sort])}</p></div>`,
-    items.length === 0 ? blankState(filtered ? l.empty : l.none, filtered ? l.emptyWhy : l.noneWhy, next) : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
-    `<nav class="pager">${pager}</nav>`,
-    "</section>",
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: companyDirectoryUrl(base, o.lang) }),
+      filtered ? '<meta name="robots" content="noindex, follow">' : "",
+      `<link rel="alternate" hreflang="fr" href="${e(companyDirectoryUrl(base, "fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(companyDirectoryUrl(base, "en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(companyDirectoryUrl(base, "fr"))}">`,
+      `<style>${STYLES}${DIRECTORY_STYLES}${LEDGER_STYLES}${COMPANY_DIRECTORY_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, `/${other}/entreprises`, "companies"),
+      '<main id="contenu" class="wrap wide">',
+      `<h1 class="title">${l.title}</h1>`,
+      `<p class="headline">${l.lead}</p>`,
+      listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((c) => c.registryActiveCheckedAt !== null) }),
+      // Aucune page publique du tout : pas de filtres à régler pour rien, l'état vide dit pourquoi et propose quoi faire.
+      nobody ? '<div class="solo">' : '<div class="dir">',
+      nobody ? "" : filtersForm(o.lang, f, o.facets, path),
+      "<section>",
+      `<div class="res-head"><h2>${l.results(o.facets.total)}</h2><p class="trace">${l.order(l.sorts[f.sort])}</p></div>`,
+      items.length === 0 ? blankState(filtered ? l.empty : l.none, filtered ? l.emptyWhy : l.noneWhy, next) : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
+      `<nav class="pager">${pager}</nav>`,
+      "</section>",
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };

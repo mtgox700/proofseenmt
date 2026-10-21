@@ -7,6 +7,7 @@ import { recentPostsSection, type RecentPostItem } from "./post-page";
 import { proofRegister, proofTally, type ProofFacts, type ProofMission, type ProofRegister, type ProvenAddress } from "./profile-proofs";
 import { PROFILE_STYLES } from "./profile-styles";
 import { PASSAGE_CSS, passageName } from "./profile-card";
+import { typeset } from "./typography";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -204,37 +205,40 @@ export const renderProfilePage = (p: PublicProfile, o: ProfilePageOptions): stri
   const register: ProofRegister = { named, missions: p.missions, provenUrls: p.provenUrls, provenUrlCount: p.provenUrlCount, provenAddresses: p.provenAddresses ?? [], facts: p.facts };
   const contact = `<a class="cta" href="${e(o.contactHref)}">${l.contact}</a>`;
 
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: `${name} · ${p.headline}`, description: `${p.headline} · ${p.city} · ${availability}`.slice(0, 160), canonical: profileUrl(o.baseUrl, o.lang, p.slug), type: "profile" }),
-    `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}\n${PASSAGE_CSS}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
-    '<main id="contenu" class="dossier">',
-    fiche(p, name, availability, o),
-    `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
-    '<div class="folio">',
-    `<p class="lede">${e(p.summary)}</p>`,
-    proofRegister(register, o.lang),
-    declared(p, o),
-    reviews(p, o.lang),
-    recentPostsSection(p.posts, o.lang),
-    `<div class="closing">${contact}<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p></div>`,
-    nearbyProfilesSection(o.nearby ?? [], o.lang),
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: `${name} · ${p.headline}`, description: `${p.headline} · ${p.city} · ${availability}`.slice(0, 160), canonical: profileUrl(o.baseUrl, o.lang, p.slug), type: "profile" }),
+      `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
+      `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}\n${PASSAGE_CSS}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
+      '<main id="contenu" class="dossier">',
+      fiche(p, name, availability, o),
+      `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
+      '<div class="folio">',
+      `<p class="lede">${e(p.summary)}</p>`,
+      proofRegister(register, o.lang),
+      declared(p, o),
+      reviews(p, o.lang),
+      recentPostsSection(p.posts, o.lang),
+      `<div class="closing">${contact}<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p></div>`,
+      nearbyProfilesSection(o.nearby ?? [], o.lang),
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 /** Sitemap des profils publiés, dans les deux langues. */

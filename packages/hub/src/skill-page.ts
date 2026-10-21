@@ -3,6 +3,7 @@ import { pageHead, withBrand } from "./head";
 import { missionUrl } from "./job-posting";
 import { isoDay, longDate, marketFooter, marketHeader, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
+import { typeset } from "./typography";
 
 /*
  * Page métier : les missions ouvertes et les profils publiés d'une compétence. Elle n'existe que remplie de contenu réel
@@ -150,35 +151,38 @@ export const renderSkillPage = (s: SkillPageView, o: { readonly baseUrl: string;
       },
     ],
   };
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(title), description: l.lead(s.facts.missionCount, s.facts.profileCount), canonical: url }),
-    `<link rel="alternate" hreflang="fr" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(skillUrl(o.baseUrl, "en", s.key))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
-    `<style>${STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, skillUrl(o.baseUrl, other, s.key)),
-    '<main id="contenu" class="wrap">',
-    `<h1 class="title">${e(title)}</h1>`,
-    `<p class="headline">${e(l.lead(s.facts.missionCount, s.facts.profileCount))}</p>`,
-    `<h2>${l.facts}</h2>`,
-    `<p class="lede">${paragraph.map(e).join(" ")}</p>`,
-    missionList(s, o.lang),
-    profileList(s, o.lang),
-    `<h2>${l.faq}</h2>`,
-    `<dl class="context">${faq.map((f) => `<div><dt>${e(f.q)}</dt><dd>${e(f.a)}</dd></div>`).join("")}</dl>`,
-    `<p class="byline"><time datetime="${isoDay(s.generatedAt)}">${e(l.generated(longDate(s.generatedAt, o.lang)))}</time></p>`,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(title), description: l.lead(s.facts.missionCount, s.facts.profileCount), canonical: url }),
+      `<link rel="alternate" hreflang="fr" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(skillUrl(o.baseUrl, "en", s.key))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
+      `<style>${STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, skillUrl(o.baseUrl, other, s.key)),
+      '<main id="contenu" class="wrap">',
+      `<h1 class="title">${e(title)}</h1>`,
+      `<p class="headline">${e(l.lead(s.facts.missionCount, s.facts.profileCount))}</p>`,
+      `<h2>${l.facts}</h2>`,
+      `<p class="lede">${paragraph.map(e).join(" ")}</p>`,
+      missionList(s, o.lang),
+      profileList(s, o.lang),
+      `<h2>${l.faq}</h2>`,
+      `<dl class="context">${faq.map((f) => `<div><dt>${e(f.q)}</dt><dd>${e(f.a)}</dd></div>`).join("")}</dl>`,
+      `<p class="byline"><time datetime="${isoDay(s.generatedAt)}">${e(l.generated(longDate(s.generatedAt, o.lang)))}</time></p>`,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 export const skillSitemap = (baseUrl: string, items: readonly { readonly key: string }[]): string =>

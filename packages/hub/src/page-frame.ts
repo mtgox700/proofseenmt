@@ -1,6 +1,7 @@
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { pageHead, withBrand } from "./head";
 import { marketFooter, marketHeader, type Lang, type MenuItem } from "./market-shell";
+import { typeset } from "./typography";
 
 /*
  * Le cadre commun des pages du blog et des baromètres : un document HTML complet, sans JavaScript (seul le JSON-LD est
@@ -56,24 +57,27 @@ export const READING_STYLES =
   ".note{margin-top:1.2rem;padding:1rem 1.2rem;border:1px dashed var(--ps-line-strong);border-radius:var(--ps-radius);color:var(--ps-muted)}";
 
 export const renderFrame = (o: FrameOptions): string =>
-  [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(o.title), description: o.description, canonical: o.canonical }),
-    ...(o.noindex === true ? ['<meta name="robots" content="noindex, follow">'] : []),
-    ...withDefault(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
-    ...(o.extraHead ?? []),
-    `<style>${STYLES}${READING_STYLES}${o.styles ?? ""}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(o.jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, o.otherHref, o.menu),
-    '<main id="contenu" class="wrap">',
-    ...o.main,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(o.title), description: o.description, canonical: o.canonical }),
+      ...(o.noindex === true ? ['<meta name="robots" content="noindex, follow">'] : []),
+      ...withDefault(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
+      ...(o.extraHead ?? []),
+      `<style>${STYLES}${READING_STYLES}${o.styles ?? ""}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(o.jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, o.otherHref, o.menu),
+      '<main id="contenu" class="wrap">',
+      ...o.main,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );

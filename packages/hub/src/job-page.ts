@@ -5,6 +5,7 @@ import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
 import { nearbyMissionsSection, type NearbyMission } from "./nearby";
 import { factLine, LEDGER_STYLES } from "./ledger";
+import { typeset } from "./typography";
 
 /*
  * Page publique d'une mission de la marketplace : un document HTML complet, lisible sans JavaScript, avec ses données
@@ -179,37 +180,40 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
   const description = `${m.title} · ${locationText(m, o.lang)} · ${rateText(m, o.lang)}`;
   const apply = `<a class="cta" href="${e(o.applyHref)}">${l.apply}</a>`;
 
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: `${m.title} · ${m.organisationName}`, description: description.slice(0, 160), canonical: url(o.lang) }),
-    `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
-    `<style>${STYLES}${LEDGER_STYLES}${JOB_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jobPosting(m, { baseUrl: o.baseUrl, lang: o.lang }))}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, url(other)),
-    '<main id="contenu" class="sheet">',
-    head(m, o.lang),
-    `<aside class="rail" aria-label="${l.rail}">${apply}<p class="rail-note">${l.applyNote}</p></aside>`,
-    '<div class="body">',
-    `<section aria-labelledby="mission"><h2 class="part" id="mission">${l.about}</h2>`,
-    paragraphs(m.description),
-    `<p class="trace">${l.declared}</p></section>`,
-    m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
-    company(m, o.lang),
-    `<div class="closing">${apply}<p class="trace">${l.published} ${e(longDate(m.publishedAt, o.lang))}</p></div>`,
-    nearbyMissionsSection(o.nearby ?? [], o.lang),
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: `${m.title} · ${m.organisationName}`, description: description.slice(0, 160), canonical: url(o.lang) }),
+      `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
+      `<style>${STYLES}${LEDGER_STYLES}${JOB_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jobPosting(m, { baseUrl: o.baseUrl, lang: o.lang }))}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, url(other)),
+      '<main id="contenu" class="sheet">',
+      head(m, o.lang),
+      `<aside class="rail" aria-label="${l.rail}">${apply}<p class="rail-note">${l.applyNote}</p></aside>`,
+      '<div class="body">',
+      `<section aria-labelledby="mission"><h2 class="part" id="mission">${l.about}</h2>`,
+      paragraphs(m.description),
+      `<p class="trace">${l.declared}</p></section>`,
+      m.skills.length === 0 ? "" : `<h2>${l.skills}</h2><ul class="tags">${m.skills.map((s) => `<li>${e(s)}</li>`).join("")}</ul>`,
+      company(m, o.lang),
+      `<div class="closing">${apply}<p class="trace">${l.published} ${e(longDate(m.publishedAt, o.lang))}</p></div>`,
+      nearbyMissionsSection(o.nearby ?? [], o.lang),
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 /** Sitemap des missions ouvertes, dans les deux langues. */

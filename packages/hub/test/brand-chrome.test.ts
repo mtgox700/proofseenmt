@@ -113,6 +113,14 @@ describe("the head of every public page", () => {
     expect(html).toContain('<footer class="foot">');
   });
 
+  it.each(Object.entries(PAGES).filter(([, html]) => html.includes('<html lang="fr">')))(
+    "%s: no French line starts with a colon, a semicolon, a question or exclamation mark (Kensa m6)",
+    (_name, html) => {
+      const text = html.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, "").replace(/<[^>]*>/g, "");
+      expect(text).not.toMatch(/ [:;?!]/);
+    },
+  );
+
   it("announces the share card of the page language, with the page address", () => {
     expect(head(PAGES["profile EN"]!)).toContain('<meta property="og:image" content="https://proofseen.com/brand/og-en.png">');
     expect(head(PAGES.profile!)).toContain('<meta property="og:url" content="https://proofseen.com/fr/profils/fr-abcde">');

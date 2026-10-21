@@ -43,7 +43,7 @@ describe("page d'une ville", () => {
     expect(html).toContain("Dev &lt;Rust&gt;");
     expect(html).toContain("Acme &amp; Co");
     expect(html).not.toContain("<Rust>");
-    expect(html).toContain("Ordre : date de publication, les plus récentes d'abord.");
+    expect(html).toContain("Ordre\u202f: date de publication, les plus récentes d'abord.");
     expect(html).toContain("Au 15 octobre 2026, Proofseen compte 2 missions ouvertes à Lyon.");
     expect(html).toContain(`<link rel="canonical" href="${BASE}/fr/missions/ville/lyon">`);
     expect(html).not.toContain('name="robots"');
@@ -114,7 +114,7 @@ describe("liste publique des missions : recherche et filtres", () => {
     expect(html).toContain('<option value="7" selected>7 jours</option>');
     expect(html).toContain("href=\"/fr/missions?q=rust+%3Cembarqu%C3%A9%3E&amp;tjmMin=500&amp;tjmMax=800&amp;dureeMax=6&amp;depuis=7&amp;page=2\"");
     expect(html).toContain('<meta name="robots" content="noindex, follow">');
-    expect(html).toContain("Ordre : date de publication, les plus récentes d'abord.");
+    expect(html).toContain("Ordre\u202f: date de publication, les plus récentes d'abord.");
   });
 
   it("relie les pages par ville depuis la liste nue seulement", () => {

@@ -82,7 +82,7 @@ describe("lot f : chaque chiffre d'un baromètre porte son n et sa date", () => 
     // Cobol (n = 4) et la série des missions (n = 9) sont sous le seuil de 10 ; Zig (2 missions) sous celui de 5.
     expect(rates).not.toContain("Cobol");
     expect(rates).not.toContain("(n = 9)");
-    expect(rates).toContain("Moins de 10 valeurs : aucune statistique publiée pour cette série.");
+    expect(rates).toContain("Moins de 10 valeurs\u202f: aucune statistique publiée pour cette série.");
     expect(rateCsv(RATES)).not.toContain("cobol");
     expect(rateCsv(RATES)).not.toContain("missions,all");
     expect((JSON.parse(rateJson(RATES, BASE)) as { rows: unknown[] }).rows).toHaveLength(3);

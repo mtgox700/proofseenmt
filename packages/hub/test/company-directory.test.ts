@@ -61,13 +61,13 @@ describe("annuaire public des entreprises", () => {
     expect(bare).not.toContain("noindex");
     expect(bare).toContain("<option value=\"Lyon\">Lyon (1)</option>");
     expect(bare).toContain("<option value=\"pme\">PME (1)</option>");
-    expect(bare).toContain("Ordre choisi : Nom, de A à Z.");
+    expect(bare).toContain("Ordre choisi\u202f: Nom, de A à Z.");
     const filtered = render({ ...NO_COMPANY_FILTERS, city: "Lyon", kind: "pme", hiringOnly: true, sort: "missions" });
     expect(filtered).toContain('<meta name="robots" content="noindex, follow">');
     expect(filtered).toContain('<option value="Lyon" selected>Lyon (1)</option>');
     expect(filtered).toContain('<option value="pme" selected>PME (1)</option>');
     expect(filtered).toContain('name="recrute" value="1" checked');
-    expect(filtered).toContain("Ordre choisi : Nombre de missions ouvertes.");
+    expect(filtered).toContain("Ordre choisi\u202f: Nombre de missions ouvertes.");
   });
 
   it("distingue l'annuaire vide d'une recherche sans résultat, et existe en anglais", () => {
@@ -79,7 +79,7 @@ describe("annuaire public des entreprises", () => {
     expect(render({ ...NO_COMPANY_FILTERS, hiringOnly: true }, "fr", [])).toContain("Aucune entreprise ne correspond à ces filtres.");
     // C23 : que faire ensuite, en liens simples et sans invitation (inviter se fait depuis l'espace connecté).
     const none = render(NO_COMPANY_FILTERS, "fr", []);
-    expect(none).toContain('<a href="/fr/creer-un-compte">Vous recrutez : créez votre compte et ouvrez la page de votre entreprise</a>');
+    expect(none).toContain('<a href="/fr/creer-un-compte">Vous recrutez\u202f: créez votre compte et ouvrez la page de votre entreprise</a>');
     expect(none).not.toContain("invitations");
     expect(render({ ...NO_COMPANY_FILTERS, hiringOnly: true }, "fr", [])).toContain('<a href="/fr/entreprises">Retirer les filtres</a>');
     const en = render(NO_COMPANY_FILTERS, "en");

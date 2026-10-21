@@ -6,6 +6,7 @@ import { marketFooter, marketHeader, type Lang } from "./market-shell";
 import { anyVerifiedCard, PASSAGE_CSS, profileCardHtml, profileCardLegend, type ProfileCardView } from "./profile-card";
 import { activeFilters, directoryQueryString, FILTER_STYLES, filtersForm, type DirectoryFilters, type JobTitleOption } from "./profile-directory-filters";
 import { profileUrl } from "./profile-page";
+import { typeset } from "./typography";
 
 /*
  * Annuaire public des freelances, le registre public (lot c, STORYBOARD c.1 à c.6) : la légende du registre, les
@@ -159,38 +160,41 @@ export const renderProfileDirectory = (
     },
   };
 
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: directoryUrl(base, o.lang) }),
-    filtered || f.page > 1 ? '<meta name="robots" content="noindex, follow">' : "",
-    `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(directoryUrl(base, "fr"))}">`,
-    `<style>${STYLES}${DIRECTORY_FRAME_STYLES}\n${PROFILE_CARD_CSS}\n${FILTER_STYLES}\n${PAGE_STYLES}\n${PASSAGE_CSS}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, `/${other}/freelances`, "freelancers"),
-    '<main id="contenu" class="wrap wide">',
-    `<div class="dir-head"><h1 class="title">${l.title}</h1>`,
-    `<p class="headline">${l.lead}</p>`,
-    // Revue Kensa, M5 : aucune clé sur une liste vide ; le vert de la clé seulement si une carte affichée en porte.
-    `${items.length === 0 ? "" : profileCardLegend(o.lang, { proof: anyVerifiedCard(items) })}</div>`,
-    '<div class="dir">',
-    filtersForm(o.lang, f, jobTitles),
-    '<section aria-labelledby="dir-results">',
-    `<div class="res-head"><h2 id="dir-results">${l.results}</h2>${resultsCount(items.length, filtered, f, o.hasMore, o.lang)}<p class="res-order">${l.order}</p></div>`,
-    activeFilters(o.lang, f, jobTitles),
-    results(items, o.lang, filtered || f.page > 1, sparse),
-    f.page > 1 || o.hasMore ? `<nav class="pager" aria-label="${l.pages}">${pager}</nav>` : "",
-    "</section>",
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: directoryUrl(base, o.lang) }),
+      filtered || f.page > 1 ? '<meta name="robots" content="noindex, follow">' : "",
+      `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(directoryUrl(base, "fr"))}">`,
+      `<style>${STYLES}${DIRECTORY_FRAME_STYLES}\n${PROFILE_CARD_CSS}\n${FILTER_STYLES}\n${PAGE_STYLES}\n${PASSAGE_CSS}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, `/${other}/freelances`, "freelancers"),
+      '<main id="contenu" class="wrap wide">',
+      `<div class="dir-head"><h1 class="title">${l.title}</h1>`,
+      `<p class="headline">${l.lead}</p>`,
+      // Revue Kensa, M5 : aucune clé sur une liste vide ; le vert de la clé seulement si une carte affichée en porte.
+      `${items.length === 0 ? "" : profileCardLegend(o.lang, { proof: anyVerifiedCard(items) })}</div>`,
+      '<div class="dir">',
+      filtersForm(o.lang, f, jobTitles),
+      '<section aria-labelledby="dir-results">',
+      `<div class="res-head"><h2 id="dir-results">${l.results}</h2>${resultsCount(items.length, filtered, f, o.hasMore, o.lang)}<p class="res-order">${l.order}</p></div>`,
+      activeFilters(o.lang, f, jobTitles),
+      results(items, o.lang, filtered || f.page > 1, sparse),
+      f.page > 1 || o.hasMore ? `<nav class="pager" aria-label="${l.pages}">${pager}</nav>` : "",
+      "</section>",
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
