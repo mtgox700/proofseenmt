@@ -129,12 +129,7 @@ export const fr = {
       "Ce sur quoi vous ne pouvez rien, dit clairement au lieu d'être vendu.",
       "Le modèle interrogé, la date, et l'empreinte du protocole figé avant la mesure.",
     ],
-    sampleCaption: "Captures de l'application réelle, sur notre propre mesure. Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
-    shotsLabel: "Vues de l'application",
-    shots: [
-      { key: "overview", label: "Vue d'ensemble", alt: "Espace freelance : l'étape qui bloque et le parcours E1 à E5 par moteur, avec les fourchettes." },
-      { key: "report", label: "Plan de correction", alt: "Rapport d'audit : le plan de correction, chaque action avec sa raison, son lieu, son effort et le chiffre qui la justifie." },
-    ],
+    sampleCaption: "Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
   },
   piece: {
     kicker: "La pièce",

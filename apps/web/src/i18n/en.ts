@@ -125,12 +125,7 @@ export const en: Dictionary = {
       "What you cannot change, said plainly instead of being sold.",
       "The model queried, the date, and the fingerprint of the protocol fixed before the measure.",
     ],
-    sampleCaption: "Screenshots of the real application, on our own measure. We show no client report: we do not have one yet.",
-    shotsLabel: "Application views",
-    shots: [
-      { key: "overview", label: "Overview", alt: "Freelancer space: the step that fails and the E1 to E5 path per engine, with the ranges." },
-      { key: "report", label: "Correction plan", alt: "Audit report: the correction plan, each action with its reason, place, effort and the figure behind it." },
-    ],
+    sampleCaption: "We show no client report: we do not have one yet.",
   },
   piece: {
     kicker: "The evidence",

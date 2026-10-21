@@ -242,26 +242,6 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 .rules dd { margin: 0; }
 
 /* ---------- 6. What a client receives ---------- */
-.showcase { display: grid; gap: var(--ps-space-4); margin-bottom: var(--ps-space-7); }
-.showcase-tabs { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
-.showcase-tabs button { min-height: 2.75rem; padding: 0 var(--ps-space-4); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); background: transparent; color: var(--ps-muted); font-size: var(--ps-step--1); cursor: pointer; user-select: none; -webkit-user-select: none;
-  transition: color var(--ps-dur-ui) var(--ps-ease-out), border-color var(--ps-dur-ui) var(--ps-ease-out), background-color var(--ps-dur-ui) var(--ps-ease-out); }
-.showcase-tabs button[aria-selected="true"] { color: var(--ps-text); border-color: var(--ps-text); background: var(--ps-raised); }
-@media (hover: hover) and (pointer: fine) { .showcase-tabs button:hover { color: var(--ps-text); } }
-.showcase-window { overflow: hidden; background: var(--ps-surface); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
-.showcase-bar { display: flex; align-items: center; min-height: 2.25rem; padding: 0 var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
-.showcase-path { font: var(--ps-weight-mono) var(--ps-step--2) / 1 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
-.showcase-shot { margin: 0; }
-.showcase-shot:not([data-active]) { display: none; }
-.showcase-caption { display: none; }
-.showcase-img { width: 100%; height: auto; aspect-ratio: 1440 / 900; object-fit: cover; object-position: top; }
-/* Without script the tabs cannot switch: both screenshots, stacked, each under its own label. */
-@media (scripting: none) {
-  .showcase-tabs, .showcase-bar { display: none; }
-  .showcase-view .showcase-shot { display: block; }
-  .showcase-view .showcase-shot + .showcase-shot { border-top: 1px solid var(--ps-line-strong); }
-  .showcase-caption { display: block; padding: var(--ps-space-2) var(--ps-space-4); border-bottom: 1px solid var(--ps-line); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
-}
 .deliverable-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--ps-space-4) var(--ps-space-6); margin-bottom: var(--ps-space-5); }
 
 /* ---------- 7. Companies ---------- */

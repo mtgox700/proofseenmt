@@ -53,7 +53,7 @@ export default async function LandingPage({ params }: { readonly params: Promise
         <Piece lang={lang} t={t} />
         <Journey lang={lang} t={t} />
         <Method t={t} />
-        <Deliverable lang={lang} t={t} />
+        <Deliverable t={t} />
         <Companies lang={lang} t={t} />
         <Charter t={t} />
         <Faq t={t} />
