@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { companyDirectory, type CompanyCard, type CompanyFacets } from "@proofseen/db";
 import { COMPANY_DIRECTORY_SORTS, companyDirectoryQueryString, type CompanyDirectoryFilters } from "@proofseen/hub";
+import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { NextSteps } from "@/components/NextSteps";
 import { AutoSubmit } from "@/components/search/AutoSubmit";
@@ -225,10 +226,9 @@ export default async function CompaniesPage({ params, searchParams }: PageProps)
             <p className="muted small">{c.order(c.sorts[filters.sort])}</p>
           </div>
           {page.items.length === 0 ? (
-            <>
-              <p className="muted">{unfiltered ? c.none : c.empty}</p>
+            <EmptyState title={unfiltered ? c.none : c.empty} headingLevel={3}>
               <NextSteps n={m.nextSteps} steps={nextSteps(lang, unfiltered ? "companies_none" : "companies_filtered", market.person.role === "company" ? "company" : "freelance")} />
-            </>
+            </EmptyState>
           ) : (
             <ul className="result-grid">
               {page.items.map((company) => (

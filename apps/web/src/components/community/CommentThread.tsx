@@ -1,5 +1,6 @@
 import type { CommentView } from "@proofseen/db";
 import { commentOnPost, deleteComment, editComment } from "@/app/[lang]/app/fil/actions";
+import { EmptyNote } from "@/components/EmptyState";
 import type { Lang } from "@/i18n";
 import type { CommunityDictionary } from "@/i18n/market/community-fr";
 import { day } from "@/lib/format";
@@ -103,7 +104,7 @@ export function CommentThread({ lang, c, postId, comments, canWrite }: ThreadPro
     <section className="panel" id="commentaires" aria-labelledby="comments-title">
       <h2 id="comments-title">{c.comments.title}</h2>
       {comments.length === 0 ? (
-        <p className="muted">{c.comments.empty}</p>
+        <EmptyNote>{c.comments.empty}</EmptyNote>
       ) : (
         <ul className="comments">
           {comments.map((comment) => (

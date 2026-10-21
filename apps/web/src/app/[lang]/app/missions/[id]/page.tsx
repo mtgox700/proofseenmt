@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { applications, missionInvitations, missions } from "@proofseen/db";
+import { EmptyNote } from "@/components/EmptyState";
 import { ApplicantsBoard } from "@/components/market/ApplicantsBoard";
 import { InvitePanel, MissionTools } from "@/components/market/MissionCompanyTools";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
@@ -145,7 +146,7 @@ export default async function MissionPage({ params, searchParams }: PageProps) {
         <section className="ws-block" aria-labelledby="applicants-title">
           <h2 id="applicants-title">{s.board.title}</h2>
           {applicants === null || applicants.length === 0 ? (
-            <p className="muted">{d.applicantsEmpty}</p>
+            <EmptyNote>{d.applicantsEmpty}</EmptyNote>
           ) : (
             <>
               <p className="muted small">{s.board.lead}</p>

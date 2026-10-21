@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { freelanceLists, profileFacets, profiles, savedSearches, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
+import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { ProfileResultCard } from "@/components/search/ProfileResultCard";
 import { ResultsToolbar } from "@/components/search/ResultsToolbar";
@@ -227,7 +228,7 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
               {s.results.tooMany}
             </p>
           ) : page.items.length === 0 ? (
-            <p className="muted">{s.results.none}</p>
+            <EmptyState title={s.results.none} headingLevel={3} />
           ) : (
             <ul className="result-grid">
               {page.items.map((card) => (

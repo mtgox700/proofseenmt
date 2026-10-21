@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { missionAlerts, notifications, type AlertRecord, type NotificationKind } from "@proofseen/db";
+import { EmptyNote } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
@@ -41,7 +42,7 @@ function Alerts({ lang, m, alerts, error }: { readonly lang: Lang; readonly m: M
       <h2 id="alerts-title">{a.listTitle}</h2>
       <p className="muted measure">{a.listLead}</p>
       {alerts.length === 0 ? (
-        <p className="muted">{a.empty}</p>
+        <EmptyNote>{a.empty}</EmptyNote>
       ) : (
         <ul className="plain-list">
           {alerts.map((alert) => (

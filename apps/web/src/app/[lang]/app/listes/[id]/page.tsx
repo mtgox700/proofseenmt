@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { freelanceLists, type ListedProfile, type ListReaction } from "@proofseen/db";
+import { EmptyState } from "@/components/EmptyState";
 import { FreelancerCard } from "@/components/market/FreelancerCard";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
@@ -133,7 +134,7 @@ export default async function ListPage({ params, searchParams }: PageProps) {
           <h2 id="items-title">{l.count(list.items.length)}</h2>
         </div>
         {list.items.length === 0 ? (
-          <p className="muted">{l.itemsEmpty}</p>
+          <EmptyState title={l.itemsEmpty} headingLevel={3} actions={[{ href: `/${lang}/app/recherche`, label: m.search.nav }]} />
         ) : (
           <ul className="profiles">
             {list.items.map((item) => (

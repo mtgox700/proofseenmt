@@ -1,6 +1,7 @@
 import "@/styles/community.css";
 import { notFound } from "next/navigation";
 import { peopleFollows } from "@proofseen/db";
+import { EmptyNote } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
@@ -78,7 +79,7 @@ export default async function FollowsPage({ params, searchParams }: PageProps) {
         <h2 id="following-title">{c.follows.followingTitle}</h2>
         <h3>{c.follows.profiles}</h3>
         {following.profiles.length === 0 ? (
-          <p className="muted">{c.follows.none}</p>
+          <EmptyNote>{c.follows.none}</EmptyNote>
         ) : (
           <ul className="follow-list">
             {following.profiles.map((p) => (
@@ -103,7 +104,7 @@ export default async function FollowsPage({ params, searchParams }: PageProps) {
         )}
         <h3>{c.follows.companies}</h3>
         {following.companies.length === 0 ? (
-          <p className="muted">{c.follows.none}</p>
+          <EmptyNote>{c.follows.none}</EmptyNote>
         ) : (
           <ul className="follow-list">
             {following.companies.map((company) => (

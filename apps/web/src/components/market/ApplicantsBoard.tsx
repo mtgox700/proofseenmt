@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ApplicantView } from "@proofseen/db";
+import { EmptyNote } from "@/components/EmptyState";
 import { StatusTag } from "@/components/market/StatusTag";
 import type { Lang } from "@/i18n";
 import type { MissionsDictionary } from "@/i18n/market/missions-fr";
@@ -79,7 +80,7 @@ export function ApplicantsBoard(props: BoardProps) {
               <StatusTag status={status} label={s.board.columns[status]} /> <span className="muted small">{column.length}</span>
             </h3>
             {column.length === 0 ? (
-              <p className="muted small">{s.board.empty}</p>
+              <EmptyNote>{s.board.empty}</EmptyNote>
             ) : (
               <ul className="plain-list">
                 {column.map((applicant) => (

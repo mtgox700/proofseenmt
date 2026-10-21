@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { freelanceLists } from "@proofseen/db";
+import { EmptyNote } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
@@ -56,7 +57,7 @@ export default async function ListsPage({ params, searchParams }: PageProps) {
       <section className="panel" aria-labelledby="lists-title">
         <h2 id="lists-title">{l.title}</h2>
         {lists.length === 0 ? (
-          <p className="muted">{l.empty}</p>
+          <EmptyNote>{l.empty}</EmptyNote>
         ) : (
           <ul className="plain-list">
             {lists.map((list) => (

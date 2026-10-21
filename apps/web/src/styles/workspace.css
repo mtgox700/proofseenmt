@@ -6,11 +6,7 @@
 .ci-label { font-size: var(--ps-step--1); }
 .ci-empty { color: var(--ps-muted); font-size: var(--ps-step--1); }
 
-/* ---------- Honest empty state ---------- */
-.empty { display: grid; gap: var(--ps-space-3); justify-items: start; padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px dashed var(--ps-line-strong); border-radius: var(--ps-radius); }
-.empty-mark { width: 2.2rem; height: 1rem; border-inline: 2px solid var(--ps-line-strong); background: linear-gradient(var(--ps-line-strong), var(--ps-line-strong)) center / 100% 1px no-repeat; }
-.empty-title { font-size: var(--ps-step-2); }
-.empty-body { display: grid; gap: var(--ps-space-3); color: var(--ps-muted); max-width: 62ch; }
+/* The honest empty state lives in states.css, with the other states between pages. */
 
 /* ---------- Workspace shell ---------- */
 .ws-banner { border-bottom: 1px solid var(--ps-line); background: var(--ps-surface); }
@@ -255,7 +251,6 @@
 .welcome-go { margin-top: auto; color: var(--ps-proof); font-weight: 500; }
 .welcome-choice:active { transform: scale(0.98); }
 @media (hover: hover) and (pointer: fine) { .welcome-choice:hover { border-color: var(--ps-proof); transform: translateY(-3px); } }
-.empty-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); }
 .next-steps { list-style: none; margin: var(--ps-space-2) 0 0; padding: 0; }
 
 /* ---------- Messaging ---------- */
