@@ -73,7 +73,7 @@ export const visibilityFr = {
     previous: "Avant",
     current: "Maintenant",
     change: "Écart",
-    none: "—",
+    none: "non calculable",
     kinds: { new: "Interrogé pour la première fois : pas d'écart à calculer.", dropped: "Pas interrogé lors de la dernière mesure." },
   },
   start: {

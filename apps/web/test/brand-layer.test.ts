@@ -136,6 +136,21 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
   });
 });
 
+describe("typography of the visible text (Kensa M7)", () => {
+  it("writes no em dash in any string, label or markup of the application; comments aside", () => {
+    const offenders = filesUnder(src)
+      .filter((f) => /\.tsx?$/.test(f))
+      .filter((f) =>
+        readFileSync(f, "utf8")
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|\s)\/\/.*$/gm, "$1")
+          .includes("—"),
+      )
+      .map((f) => relative(src, f).replace(/\\/g, "/"));
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe("fonts", () => {
   it("serves the two brand fonts and nothing else", () => {
     const pkg = JSON.parse(read(web, "package.json")) as { dependencies: Record<string, string> };

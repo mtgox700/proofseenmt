@@ -25,7 +25,7 @@ export const searchFr = {
     languages: "Langues",
     languagesHint: "Chaque langue choisie est exigée, au moins au niveau indiqué : le niveau déclaré par le freelance sur l'échelle européenne (CECRL). Trois au plus.",
     language: (n: number) => `Langue ${n}`,
-    noLanguage: "—",
+    noLanguage: "Aucune langue",
     minLevel: (n: number) => `Niveau minimal, langue ${n}`,
     levels: { a1: "Tout niveau", a2: "A2 ou plus", b1: "B1 ou plus", b2: "B2 ou plus", c1: "C1 ou plus", c2: "C2 ou langue maternelle", native: "Langue maternelle" },
     workModes: "Mode de travail",

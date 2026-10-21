@@ -2,7 +2,7 @@ import type { PendingAttestation, ProofDispute } from "@proofseen/db";
 import { rejectVigilance, revokeProof, verifyVigilance } from "@/app/[lang]/app/operateur/verification-actions";
 import type { Lang } from "@/i18n";
 import type { OperatorDictionary } from "@/i18n/market/operator-fr";
-import { day } from "@/lib/format";
+import { colon, day } from "@/lib/format";
 import { LangField, ReasonField } from "./OperatorParts";
 
 interface Props {
@@ -30,7 +30,9 @@ export function VerificationQueues({ lang, o, attestations, disputes }: Props) {
                   <strong>{a.reference}</strong> · {v.issuedOn} {day(a.issuedOn, lang)} · {v.expiresOn} {day(a.expiresOn, lang)} · {v.code} <code>{a.securityCode}</code>
                 </p>
                 <p className="muted small">
-                  {v.entity} : {a.legalName ?? v.noBilling} · SIRET {a.siret ?? "—"}
+                  {v.entity}
+                  {colon(lang)}
+                  {a.legalName ?? v.noBilling} · {a.siret === null ? v.noSiret : `SIRET ${a.siret}`}
                 </p>
                 <div className="op-forms">
                   <form action={verifyVigilance}>

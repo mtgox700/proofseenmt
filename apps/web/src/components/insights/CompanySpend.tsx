@@ -2,7 +2,7 @@ import type { CompanyInsights } from "@proofseen/db";
 import type { Lang } from "@/i18n";
 import type { InsightsDictionary } from "@/i18n/market/insights-fr";
 import { seriesSummary } from "@/lib/chart";
-import { money } from "@/lib/format";
+import { colon, money } from "@/lib/format";
 import { BarChart } from "./BarChart";
 import { longMonth, shortMonth } from "./labels";
 
@@ -68,10 +68,11 @@ export function CompanySpend({ lang, c, spend }: CompanySpendProps) {
       <h2 id="spend-title">{c.spendTitle}</h2>
       <p className="muted small measure">{c.spendLead}</p>
       <BarChart
+        lang={lang}
         id="spend-chart"
         title={c.spendChart}
         figure={amount(total)}
-        summary={`${c.spendChart} — ${amount(total)}${peak === null ? "" : ` (${peak.label} — ${amount(peak.value)})`}`}
+        summary={`${c.spendChart}${colon(lang)}${amount(total)}${peak === null ? "" : ` (${peak.label}${colon(lang)}${amount(peak.value)})`}`}
         points={points}
         format={amount}
         firstLabel={shortMonth(spend.months[0]?.month ?? "", lang)}

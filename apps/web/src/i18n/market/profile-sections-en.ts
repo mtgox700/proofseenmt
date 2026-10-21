@@ -103,8 +103,8 @@ export const profileSectionsEn: ProfileSectionsDictionary = {
     add: "Save the language",
     hint: "Choosing a language already listed changes its level.",
     editHint: "Choose the new level, then save.",
-    fields: { code: "Language", level: "Level" },
-    levels: { a1: "A1 — beginner", a2: "A2 — elementary", b1: "B1 — intermediate", b2: "B2 — upper intermediate", c1: "C1 — advanced", c2: "C2 — proficient", native: "Native" },
+    fields: { code: "Language", level: "Level", pick: "Choose a language" },
+    levels: { a1: "A1 (beginner)", a2: "A2 (elementary)", b1: "B1 (intermediate)", b2: "B2 (upper intermediate)", c1: "C1 (advanced)", c2: "C2 (proficient)", native: "Native" },
   },
   portfolio: {
     title: "Portfolio",

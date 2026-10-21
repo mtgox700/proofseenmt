@@ -102,6 +102,7 @@ export const insightsFr = {
     firstResponse: "Délai médian de réponse",
     firstResponseValue: (days: number, decided: number) =>
       `${days < 1 ? "moins d'un jour" : `${new Intl.NumberFormat("fr-FR").format(days)} jour${days >= 2 ? "s" : ""}`} (${plural(decided, "décision", "décisions")})`,
+    firstResponseEmpty: "non calculable",
     firstResponseNone: "Aucune décision sur les candidatures des 90 derniers jours.",
     firstResponseHint: "Entre une candidature et votre décision (retenue, déclinée ou choisie), pour les candidatures des 90 derniers jours.",
     published: "Missions publiées par mois",

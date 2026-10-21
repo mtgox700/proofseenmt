@@ -177,7 +177,7 @@ export function LanguageSection({ lang, s, notice, editing, items }: SectionProp
           <label htmlFor="lang-code">{x.fields.code}</label>
           <select id="lang-code" name="code" required defaultValue="">
             <option value="" disabled>
-              —
+              {x.fields.pick}
             </option>
             {languageOptions(lang).map((option) => (
               <option key={option.code} value={option.code}>

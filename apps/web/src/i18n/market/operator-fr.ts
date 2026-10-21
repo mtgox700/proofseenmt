@@ -163,7 +163,7 @@ export const operatorFr = {
     },
     medianHours: "Heures médianes jusqu'au premier échange",
     auditRequests: "Demandes d'audit reçues",
-    none: "—",
+    none: "aucune donnée",
   },
   measurements: {
     title: "Mesures de visibilité",
@@ -186,6 +186,7 @@ export const operatorFr = {
     from: "Depuis le",
     to: "Jusqu'au",
     deletedAccount: "compte effacé",
+    noReason: "sans motif",
     actions: {
       profile_hidden: "Profil masqué",
       profile_restored: "Profil rétabli",

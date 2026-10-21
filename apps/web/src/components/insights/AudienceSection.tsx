@@ -24,6 +24,7 @@ function SeriesChart({ lang, d, days, series }: { readonly lang: Lang; readonly 
   const label = a.series[series];
   return (
     <BarChart
+      lang={lang}
       id={`audience-${series}`}
       title={label}
       figure={count(total, lang)}

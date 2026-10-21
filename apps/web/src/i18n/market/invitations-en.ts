@@ -100,7 +100,8 @@ export const invitationsEn: InvitationsDictionary = {
     expiredText: "This invitation ran out of time without an answer. Ask the person who invited you to send it again.",
     closedTitle: "Invitation closed",
     closedText: "This invitation was already answered, or withdrawn: a link works once.",
-    mismatch: (masked: string) => `None of your account's verified addresses is the invited address (${masked}). Sign in with that address, or add it to your account and confirm it.`,
+    mismatch: (masked: string) =>
+      `None of your account's verified addresses is the invited address${masked === "" ? "" : ` (${masked})`}. Sign in with that address, or add it to your account and confirm it.`,
     self: "You cannot accept this invitation: it comes from you, or from your own company.",
     acceptedTitle: "Invitation accepted",
     acceptedText: {

@@ -30,6 +30,9 @@ export const range = (interval: Interval | null, lang: Lang): string => {
 /** A share of observed citations, with the Wilson interval of that share. `null` when nothing was counted. */
 export const shareWithRange = (successes: number, total: number): Interval | null => wilson(successes, total);
 
+/** A label and its value: a narrow no-break space before the colon in French, none in English. */
+export const colon = (lang: Lang): string => (lang === "fr" ? "\u202f: " : ": ");
+
 export const count = (value: number, lang: Lang): string => new Intl.NumberFormat(LOCALE[lang]).format(value).replace(/\u00a0/g, NARROW_NBSP);
 
 export const date = (iso: string, lang: Lang): string =>

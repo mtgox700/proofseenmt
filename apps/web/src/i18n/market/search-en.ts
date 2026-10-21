@@ -26,7 +26,7 @@ export const searchEn: SearchDictionary = {
     languages: "Languages",
     languagesHint: "Every language chosen is required, at least at the level shown: the level the freelancer declares on the European scale (CEFR). Three at most.",
     language: (n: number) => `Language ${n}`,
-    noLanguage: "—",
+    noLanguage: "No language",
     minLevel: (n: number) => `Minimum level, language ${n}`,
     levels: { a1: "Any level", a2: "A2 or above", b1: "B1 or above", b2: "B2 or above", c1: "C1 or above", c2: "C2 or native", native: "Native" },
     workModes: "Work mode",
