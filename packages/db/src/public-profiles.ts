@@ -12,7 +12,7 @@ const vigilanceShown = (v: { readonly issuedOn: Date; readonly verifiedAt: Date 
   const until = vigilanceExpiresOn(v.issuedOn);
   return until.getTime() > now.getTime() ? until : null;
 };
-import type { ClientKind, EvidenceKind, ProfileVisibility, WorkMode } from "./generated/enums";
+import type { ClientKind, EvidenceKind, ProfileVisibility, ProofMethod, WorkMode } from "./generated/enums";
 import { LISTED_PROFILE } from "./public-visibility";
 
 /*
@@ -44,6 +44,13 @@ export interface PublicMissionFact {
   readonly confirmedBy: "company" | "contact" | null;
 }
 
+export interface PublicProvenAddress {
+  readonly url: string | null;
+  readonly method: ProofMethod;
+  readonly verifiedAt: Date;
+  readonly checkedAt: Date | null;
+}
+
 export interface PublicProfilePage {
   readonly reference: string;
   readonly slug: string;
@@ -63,6 +70,11 @@ export interface PublicProfilePage {
   /** Adresses dont la possession est prouvée — vide pour un profil pseudonyme. */
   readonly provenUrls: readonly string[];
   readonly provenUrlCount: number;
+  /**
+   * La trace de chaque preuve de possession : méthode, date de la preuve, dernière relecture. L'adresse elle-même
+   * seulement pour un profil nominatif (`null` sinon) : ni la méthode ni la date ne désignent la personne.
+   */
+  readonly provenAddresses: readonly PublicProvenAddress[];
   readonly missions: readonly PublicMissionFact[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
   /**
@@ -72,6 +84,10 @@ export interface PublicProfilePage {
   readonly facts: {
     readonly registryActiveCheckedAt: Date | null;
     readonly identityVerified: boolean;
+    /** Ouverture des versements par le prestataire de paiement, qui vérifie l'identité avant : la date de ce fait. */
+    readonly identityVerifiedAt: Date | null;
+    /** Vérification de l'attestation par un opérateur ; `null` quand l'attestation n'est pas montrée. */
+    readonly vigilanceVerifiedAt: Date | null;
     /** Entreprises distinctes qui ont payé au moins une mission sur Proofseen (paiement acquis). */
     readonly payingClients: number;
     /** Attestation de vigilance URSSAF vérifiée par un opérateur et en cours de validité : sa date d'échéance. */
@@ -121,7 +137,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         updatedAt: true,
         user: { select: { displayName: true } },
         skills: { select: { skill: { select: { label: true } } } },
-        ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true } },
+        ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true, proofMethod: true, verifiedAt: true, checkedAt: true } },
         missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true, clientName: true, confirmedByDomain: true } },
         reviews: { where: { contract: { payments: { some: SETTLED_PAYMENT } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { rating: true, body: true, createdAt: true } },
         billing: { select: { registryStatus: true, registryCheckedAt: true, payoutsEnabledAt: true } },
@@ -151,6 +167,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       skills: row.skills.map((s) => s.skill.label),
       provenUrls: named ? row.ownedUrls.map((u) => u.url) : [],
       provenUrlCount: row.ownedUrls.length,
+      provenAddresses: row.ownedUrls.flatMap((u) => (u.verifiedAt === null ? [] : [{ url: named ? u.url : null, method: u.proofMethod, verifiedAt: u.verifiedAt, checkedAt: u.checkedAt }])),
       // Le domaine qui a confirmé n'est jamais publié : seulement le fait qu'il s'agit d'un contact, pas de l'entreprise.
       missions: row.missions.map(({ confirmedByDomain, ...m }) => ({
         ...m,
@@ -161,8 +178,10 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         registryActiveCheckedAt: row.billing?.registryStatus === "active" ? row.billing.registryCheckedAt : null,
         // Le prestataire de paiement n'ouvre les versements qu'après avoir vérifié l'identité du titulaire.
         identityVerified: row.billing?.payoutsEnabledAt != null,
+        identityVerifiedAt: row.billing?.payoutsEnabledAt ?? null,
         payingClients: row.contracts.length,
         vigilanceValidUntil: vigilanceShown(row.vigilance, now),
+        vigilanceVerifiedAt: vigilanceShown(row.vigilance, now) === null ? null : (row.vigilance?.verifiedAt ?? null),
       },
       photoFileId: publicPhoto(row, named),
       availabilityConfirmedAt: row.availabilityAt,

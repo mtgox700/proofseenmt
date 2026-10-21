@@ -30,11 +30,16 @@ describe("page publique d'un profil, depuis la base", () => {
     const p = await published("pseudonymous");
     const page = await publicProfiles(t.db).page(p.slug);
     expect(page).toMatchObject({ visibility: "pseudonymous", displayName: null, provenUrls: [], provenUrlCount: 1, skills: ["Rust"] });
+    // La trace de la preuve reste publique (méthode, date), jamais l'adresse.
+    expect(page?.provenAddresses).toHaveLength(1);
+    expect(page?.provenAddresses[0]).toMatchObject({ url: null, method: "dns_txt", checkedAt: null });
+    expect(page?.provenAddresses[0]?.verifiedAt).toBeInstanceOf(Date);
+    expect(JSON.stringify(page)).not.toContain(".dev");
   });
 
   it("lit les faits vérifiés : répertoire, identité, missions payées — une mission remboursée ne compte pas", async () => {
     const p = await published("pseudonymous");
-    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: null, identityVerified: false, payingClients: 0, vigilanceValidUntil: null });
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: null, identityVerified: false, identityVerifiedAt: null, payingClients: 0, vigilanceValidUntil: null, vigilanceVerifiedAt: null });
 
     const { id: profileId } = await t.db.freelanceProfile.findUniqueOrThrow({ where: { userId: p.userId }, select: { id: true } });
     const checkedAt = new Date("2026-10-05T00:00:00Z");
@@ -51,7 +56,7 @@ describe("page publique d'un profil, depuis la base", () => {
       });
       await t.db.payment.create({ data: { contractId, amountCents: 100_000, commissionCents: 10_000, refundedCents, currency: "EUR", stripeIntentId: `pi_${contractId}`, status: "released", transferId: `tr_${contractId}`, releasedAt: checkedAt } });
     }
-    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: checkedAt, identityVerified: true, payingClients: 1, vigilanceValidUntil: null });
+    expect((await publicProfiles(t.db).page(p.slug))?.facts).toEqual({ registryActiveCheckedAt: checkedAt, identityVerified: true, identityVerifiedAt: checkedAt, payingClients: 1, vigilanceValidUntil: null, vigilanceVerifiedAt: null });
 
     await t.db.billingIdentity.update({ where: { profileId }, data: { registryStatus: "ceased" } });
     expect((await publicProfiles(t.db).page(p.slug))?.facts.registryActiveCheckedAt).toBeNull();
@@ -62,6 +67,7 @@ describe("page publique d'un profil, depuis la base", () => {
     const page = await publicProfiles(t.db).page(p.slug);
     expect(page?.displayName).toMatch(/^User \d+$/);
     expect(page?.provenUrls).toHaveLength(1);
+    expect(page?.provenAddresses[0]).toMatchObject({ url: page?.provenUrls[0], method: "dns_txt" });
   });
 
   it("ne sert aucune page pour un profil privé, retiré ou inconnu", async () => {
