@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categorise, layoutAnswers, SOURCE_CATEGORIES } from "../src/lib/answers";
+import { categorise, SOURCE_CATEGORIES } from "../src/lib/answers";
 
 const cited = (platform: Record<string, number>, other = 0, client = 0) => ({ platform, other, client });
 
@@ -24,22 +24,5 @@ describe("categorise", () => {
 
   it("exposes a closed list of categories: no domain can become a category by itself", () => {
     expect(SOURCE_CATEGORIES).toEqual(["you", "malt", "linkedin", "code", "platform", "other", "none"]);
-  });
-});
-
-describe("layoutAnswers", () => {
-  const answers = Array.from({ length: 12 }, (_, i) => ({ engine: i % 3, category: i % 2 === 0 ? "malt" : "none" }) as const);
-
-  it("places every answer exactly once, in one column per engine", () => {
-    const cells = layoutAnswers(answers, 3, 2);
-    expect(cells).toHaveLength(12);
-    expect(new Set(cells.map((c) => `${c.column}:${c.row}:${c.col}`)).size).toBe(12);
-    expect(cells.filter((c) => c.column === 1)).toHaveLength(4);
-  });
-
-  it("groups a column by category, so the share of each source reads as a block", () => {
-    const column = layoutAnswers(answers, 3, 2).filter((c) => c.column === 0);
-    const order = column.sort((a, b) => a.row - b.row || a.col - b.col).map((c) => answers[c.index]?.category);
-    expect(order).toEqual([...order].sort((a, b) => SOURCE_CATEGORIES.indexOf(a!) - SOURCE_CATEGORIES.indexOf(b!)));
   });
 });

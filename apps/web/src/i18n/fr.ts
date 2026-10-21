@@ -6,9 +6,9 @@
 
 export const fr = {
   meta: {
-    title: "Proofseen : quand un recruteur cherche avec l'IA, êtes-vous trouvé ?",
+    title: "Proofseen : la preuve de ce qu'un freelance a vraiment livré",
     description:
-      "Proofseen mesure si un freelance tech apparaît quand un recruteur cherche avec une IA, explique à quelle étape il décroche, aide à corriger honnêtement, puis re-mesure.",
+      "Des missions de freelances tech vérifiées sur pièce et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
   },
   skip: "Aller au contenu",
   nav: {
@@ -26,22 +26,19 @@ export const fr = {
     home: "Proofseen, accueil",
   },
   hero: {
-    title: "Quand un recruteur cherche avec l'IA, êtes-vous trouvé ?",
-    titleStart: "Quand un recruteur cherche avec l'IA, êtes-vous",
-    titleEmphasis: "trouvé ?",
-    lead: "Nous posons aux IA les questions de vos recruteurs, des centaines de fois, puis nous comptons où vous apparaissez.",
+    title: "La preuve de ce qu'un freelance a vraiment livré.",
+    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'après l'examen d'une pièce, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
     primary: "Faire mesurer ma visibilité",
-    secondary: "Voir les missions ouvertes",
+    secondary: "Voir les freelances",
   },
   field: {
     engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" } as Record<string, string>,
-    title: "Les 780 réponses de notre propre mesure",
-    titleClient: "Vos {n} réponses, une par point",
-    caption: "Chaque point est une vraie réponse d'IA à une question de recruteur, colorée par la source qu'elle cite. Vague J0, 23 et 24 septembre 2026.",
-    you: "Vous",
-    youCount: "0 sur 780",
-    silent: "90,8 % sans aucune source",
-    searching: "Recherche du profil mesuré",
+    title: "{n} réponses d'IA, une case chacune.",
+    trace: "Vague J0 · 23 et 24 septembre 2026 · OpenAI, Anthropic, Perplexity",
+    noSource: "{pct} sans source",
+    key: "Une ligne par offre : {targets} offres cibles, puis {controls} offres témoins sous le filet. Une case par réponse ; sa hauteur dit la source citée.",
+    founder: "Notre fondateur :",
+    founderCount: "cité {hits} fois sur {n}",
     categories: {
       you: "Vous",
       malt: "malt.fr",
@@ -53,10 +50,9 @@ export const fr = {
     } as Record<string, string>,
     filter: "Isoler une source",
     all: "Toutes",
-    target: "offre cible",
-    control: "offre témoin",
-    otherDomains: "{n} autre(s) domaine(s)",
-    noSource: "aucune source citée",
+    table: "Lire le relevé en tableau",
+    tableSource: "Source citée",
+    tableTotal: "Total",
     summary:
       "780 réponses réelles, réparties entre OpenAI, Anthropic et Perplexity. Les sources les plus citées sont malt.fr et linkedin.com. 90,8 % des réponses d'Anthropic ne citent aucune source. Notre fondateur n'apparaît dans aucune.",
   },
@@ -140,34 +136,52 @@ export const fr = {
       { key: "report", label: "Plan de correction", alt: "Rapport d'audit : le plan de correction, chaque action avec sa raison, son lieu, son effort et le chiffre qui la justifie." },
     ],
   },
-  offers: {
-    title: "Commencez par savoir où vous en êtes.",
-    list: [
-      {
-        name: "Audit complet",
-        price: "49 €",
-        unit: "paiement unique",
-        items: ["3 offres de votre choix, plus 1 offre témoin", "Rapport complet, avec les fourchettes", "Carte des sources citées", "Plan de correction, 8 actions au plus"],
-        cta: "Commander l'audit",
-      },
-      {
-        name: "Clé en main",
-        price: "490 €",
-        unit: "paiement unique",
-        items: ["L'audit complet, en mesure de départ", "Vos pages, lisibles par les IA", "Textes LinkedIn, Malt et GitHub : vous publiez vous-même", "Nouvelle mesure 45 jours après la livraison"],
-        cta: "Commander la clé en main",
-      },
+  piece: {
+    kicker: "La pièce",
+    title: "Une mission n'est vérifiée que sur pièce.",
+    lead: "Le freelance déclare. Un tiers vérifie la pièce. Alors seulement, la mission porte sa marque, avec sa date.",
+    evidenceTitle: "Ce qui peut faire preuve",
+    evidence: ["Facture", "Contrat", "Attestation du client", "Accès au dépôt de code", "Livrable public"],
+    confirmTitle: "Qui peut confirmer",
+    confirm: ["Le client, depuis son compte", "Un contact chez le client, par lien signé, sans compte", "Le paiement de la mission sur Proofseen"],
+    factsTitle: "Les faits vérifiés d'un profil",
+    facts: [
+      "Entreprise active au répertoire officiel : le SIRET est contrôlé, jamais publié",
+      "Identité vérifiée par le prestataire de paiement",
+      "Attestation de vigilance URSSAF",
+      "Payé sur Proofseen par une ou plusieurs entreprises",
     ],
-    cta2: "Voir le détail et commander",
-    recommended: "Le plus complet",
-    legal:
-      "Livraison au plus tard le 31 décembre 2026, rétractation de 14 jours, remboursement intégral si le service n'est pas lancé le 27 novembre 2026. Aucune garantie de résultat.",
+    rule: "Nous montrons la méthode de vérification, jamais le document.",
+    link: "Voir les profils publiés",
+    replay: "Rejouer la frappe",
+    specimen: {
+      label: "Spécimen. Exemple illustratif, données fictives.",
+      role: "Lead développeur TypeScript",
+      context: "PME · logistique · 6 mois",
+      summary: "Refonte de l'API de suivi des colis et reprise de la couverture de tests.",
+      evidence: "Pièce : facture",
+      stamp: "Vérifiée le 12 octobre 2026 · facture",
+    },
   },
   companies: {
     title: "Recrutez des freelances dont les missions sont vérifiées.",
     text: "Des profils pseudonymes, des missions contrôlées sur pièce, une méthode publique. Aucun score, aucun classement de personnes : l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
     points: ["Possession des profils prouvée", "Méthode de vérification affichée, jamais le document", "Disponibilité datée", "Identité communiquée après accord du freelance"],
     cta: "Voir les freelances",
+    publish: "Publier une mission",
+  },
+  exit: {
+    label: "Par où commencer",
+    freelance: {
+      title: "Vous êtes freelance",
+      text: "Publiez vos missions, faites vérifier vos pièces, et sachez si une IA vous cite quand un recruteur la questionne.",
+      cta: "Faire mesurer ma visibilité",
+    },
+    company: {
+      title: "Vous recrutez",
+      text: "Parcourez les profils publiés, sans score ni classement : ils sont rangés par date de mise à jour.",
+      cta: "Voir les freelances",
+    },
   },
   charter: {
     title: "Notre charte d'honnêteté.",

@@ -1,8 +1,11 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  // apps/web keeps `jsx: preserve` for Next; tests that render a React component need the JSX compiled here.
+  // apps/web keeps `jsx: preserve` for Next; tests that render a React component need the JSX compiled here, and the
+  // storefront test resolves the "@/" alias of apps/web/tsconfig.json (no other workspace uses it).
   oxc: { jsx: { runtime: "automatic" } },
+  resolve: { alias: [{ find: /^@\//, replacement: fileURLToPath(new URL("./apps/web/src/", import.meta.url)) }] },
   test: {
     pool: "forks",
     // End-to-end CLI tests write dozens of encrypted files; Windows + coverage instrumentation needs headroom.

@@ -1,16 +1,12 @@
-import { CountUp } from "@/components/motion/CountUp";
-import { InView } from "@/components/motion/InView";
-import type { Dictionary, Lang } from "@/i18n";
-
-const LOCALE: Readonly<Record<Lang, string>> = { fr: "fr-FR", en: "en-GB" };
+import type { Dictionary } from "@/i18n";
 
 /*
- * Measured on ourselves first. Only the J0 figures approved by the founder appear here, each with its source and its
- * limit. The figures count up once when seen; the source shares grow from zero to their observed proportion.
+ * The legend of the register, in figures (STORYBOARD b.2). Only the J0 figures approved by the founder appear here,
+ * each with its source and its limit. Figures are written, never counted up from zero: a register has no spinning
+ * digits. The source shares are drawn at their real length from the first paint.
  */
-export function Study({ lang, t }: { readonly lang: Lang; readonly t: Dictionary }) {
+export function Study({ t }: { readonly t: Dictionary }) {
   const f = t.study.facts;
-  const pctSuffix = lang === "fr" ? " %" : "%";
   return (
     <section className="section study" id="mesure" aria-labelledby="study-title">
       <div className="wrap">
@@ -31,29 +27,19 @@ export function Study({ lang, t }: { readonly lang: Lang; readonly t: Dictionary
           </div>
 
           <dl className="study-facts">
-            <div>
-              <dt>
-                <CountUp display={f.answers.value} to={780} locale={LOCALE[lang]} />
-              </dt>
-              <dd className="muted">{f.answers.label}</dd>
-            </div>
-            <div>
-              <dt>
-                <CountUp display={f.silent.value} to={90.8} decimals={1} locale={LOCALE[lang]} suffix={pctSuffix} />
-              </dt>
-              <dd className="muted">{f.silent.label}</dd>
-            </div>
-            <div>
-              <dt className="num">{f.agreement.value}</dt>
-              <dd className="muted">{f.agreement.label}</dd>
-            </div>
+            {[f.answers, f.silent, f.agreement].map((fact) => (
+              <div key={fact.value}>
+                <dt className="num">{fact.value}</dt>
+                <dd className="muted">{fact.label}</dd>
+              </div>
+            ))}
           </dl>
 
-          <InView as="figure" className="study-shares">
+          <figure className="study-shares">
             <figcaption className="muted small">{f.sources.label}</figcaption>
             <ul>
-              {t.study.shares.map((share, i) => (
-                <li key={share.domain} style={{ "--i": i } as React.CSSProperties}>
+              {t.study.shares.map((share) => (
+                <li key={share.domain}>
                   <code>{share.domain}</code>
                   <span className="share-bar" aria-hidden="true">
                     <span style={{ "--w": share.width } as React.CSSProperties} />
@@ -62,10 +48,10 @@ export function Study({ lang, t }: { readonly lang: Lang; readonly t: Dictionary
                 </li>
               ))}
             </ul>
-          </InView>
+          </figure>
         </div>
 
-        <p className="small muted measure study-source">{t.study.source}</p>
+        <p className="study-source">{t.study.source}</p>
         <p className="small muted measure">{t.study.limits}</p>
       </div>
     </section>

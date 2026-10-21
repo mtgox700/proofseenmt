@@ -4,9 +4,9 @@ import type { Dictionary } from "./fr";
 
 export const en: Dictionary = {
   meta: {
-    title: "Proofseen: when a recruiter searches with AI, are you found?",
+    title: "Proofseen: proof of what a freelancer actually delivered",
     description:
-      "Proofseen measures whether a tech freelancer shows up when a recruiter searches with an AI assistant, shows the step where they drop out, helps fix it honestly, then measures again.",
+      "Tech freelance missions verified against evidence and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
   },
   skip: "Skip to content",
   nav: {
@@ -24,22 +24,19 @@ export const en: Dictionary = {
     home: "Proofseen, home",
   },
   hero: {
-    title: "When a recruiter searches with AI, are you found?",
-    titleStart: "When a recruiter searches with AI, are you",
-    titleEmphasis: "found?",
-    lead: "We ask AI assistants your recruiters' questions, hundreds of times, then count where you appear.",
+    title: "Proof of what a freelancer actually delivered.",
+    lead: "On Proofseen, a mission is marked verified only once a document has been checked, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
     primary: "Get my visibility measured",
-    secondary: "See the open missions",
+    secondary: "See the freelancers",
   },
   field: {
     engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" } as Record<string, string>,
-    title: "The 780 answers of our own measure",
-    titleClient: "Your {n} answers, one per dot",
-    caption: "Each dot is a real AI answer to a recruiter's question, coloured by the source it cites. Wave J0, 23 and 24 September 2026.",
-    you: "You",
-    youCount: "0 of 780",
-    silent: "90.8% with no source at all",
-    searching: "Looking for the measured profile",
+    title: "{n} AI answers, one slot each.",
+    trace: "Wave J0 · 23 and 24 September 2026 · OpenAI, Anthropic, Perplexity",
+    noSource: "{pct} with no source",
+    key: "One row per job: {targets} target jobs, then {controls} control jobs under the rule. One slot per answer; its height tells the source cited.",
+    founder: "Our founder:",
+    founderCount: "cited {hits} times out of {n}",
     categories: {
       you: "You",
       malt: "malt.fr",
@@ -51,10 +48,9 @@ export const en: Dictionary = {
     } as Record<string, string>,
     filter: "Isolate a source",
     all: "All",
-    target: "target job",
-    control: "control job",
-    otherDomains: "{n} other domain(s)",
-    noSource: "no source cited",
+    table: "Read the tally as a table",
+    tableSource: "Source cited",
+    tableTotal: "Total",
     summary:
       "780 real answers, split between OpenAI, Anthropic and Perplexity. The most cited sources are malt.fr and linkedin.com. 90.8% of Anthropic's answers cite no source. Our founder appears in none of them.",
   },
@@ -136,34 +132,52 @@ export const en: Dictionary = {
       { key: "report", label: "Correction plan", alt: "Audit report: the correction plan, each action with its reason, place, effort and the figure behind it." },
     ],
   },
-  offers: {
-    title: "Start by knowing where you stand.",
-    list: [
-      {
-        name: "Full audit",
-        price: "€49",
-        unit: "one-off payment",
-        items: ["3 jobs of your choice, plus 1 control job", "Full report, with the ranges", "Map of the cited sources", "Correction plan, 8 actions at most"],
-        cta: "Order the audit",
-      },
-      {
-        name: "Done for you",
-        price: "€490",
-        unit: "one-off payment",
-        items: ["The full audit, as the baseline", "Your pages, readable by AI assistants", "LinkedIn, Malt and GitHub texts: you publish them yourself", "A new measure 45 days after delivery"],
-        cta: "Order done for you",
-      },
+  piece: {
+    kicker: "The evidence",
+    title: "A mission is verified against evidence, or not at all.",
+    lead: "The freelancer declares. A third party checks the evidence. Only then does the mission carry its mark, with its date.",
+    evidenceTitle: "What counts as evidence",
+    evidence: ["Invoice", "Contract", "Client attestation", "Repository access", "Public deliverable"],
+    confirmTitle: "Who can confirm",
+    confirm: ["The client, from their account", "A contact at the client, through a signed link, without an account", "Payment of the mission on Proofseen"],
+    factsTitle: "The verified facts of a profile",
+    facts: [
+      "Business active in the official French company register: the SIRET is checked, never published",
+      "Identity verified by the payment provider",
+      "URSSAF vigilance certificate",
+      "Paid on Proofseen by one or more companies",
     ],
-    cta2: "See the details and order",
-    recommended: "The most complete",
-    legal:
-      "Delivery by 31 December 2026 at the latest, 14-day withdrawal right, full refund if the service is not launched on 27 November 2026. No guaranteed result.",
+    rule: "We show how it was verified, never the document.",
+    link: "See the published profiles",
+    replay: "Replay the stamp",
+    specimen: {
+      label: "Specimen. Illustrative example, fictitious data.",
+      role: "TypeScript lead developer",
+      context: "SME · logistics · 6 months",
+      summary: "Rebuild of the parcel tracking API and recovery of the test coverage.",
+      evidence: "Evidence: invoice",
+      stamp: "Verified on 12 October 2026 · invoice",
+    },
   },
   companies: {
     title: "Hire freelancers whose missions are verified.",
     text: "Pseudonymous profiles, missions checked against a document, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
     points: ["Profile ownership proven", "Verification method shown, never the document", "Dated availability", "Identity shared once the freelancer agrees"],
     cta: "See the freelancers",
+    publish: "Post a mission",
+  },
+  exit: {
+    label: "Where to start",
+    freelance: {
+      title: "You are a freelancer",
+      text: "Publish your missions, have your evidence checked, and find out whether an AI cites you when a recruiter asks it.",
+      cta: "Get my visibility measured",
+    },
+    company: {
+      title: "You are hiring",
+      text: "Browse the published profiles, with no score and no ranking: they are listed by date of update.",
+      cta: "See the freelancers",
+    },
   },
   charter: {
     title: "Our honesty charter.",
