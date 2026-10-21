@@ -201,3 +201,19 @@ describe("recherche de freelances : l'ordre est un critère choisi, jamais un sc
     await expect(profiles(t.db).search({ sort: "relevance" as never })).rejects.toThrow();
   });
 });
+
+describe("recherche de freelances : la carte garde l'ordre déclaré des compétences (revue Kensa, M3)", () => {
+  it("rend les compétences dans l'ordre où le freelance les a écrites, à la création comme après une modification", async () => {
+    const declared = ["Zig", "Ada", "Nim", "Crystal", "Vala", "Odin", "Gleam", "Bend"];
+    const userId = await createUser(t.db);
+    const created = await profiles(t.db).create({ userId }, { ...BASE, skills: declared }, nextReference);
+    if (created === null) throw new Error("profil non créé");
+    await profiles(t.db).setVisibility({ userId }, "pseudonymous");
+    const card = async () => (await profiles(t.db).search({ skills: ["zig"] })).items.find((p) => p.id === created.id);
+    expect((await card())?.skills).toEqual(declared);
+
+    const reordered = ["Odin", "Zig", "Gleam", "Ada"];
+    await profiles(t.db).update({ userId }, { ...BASE, skills: reordered });
+    expect((await card())?.skills).toEqual(reordered);
+  });
+});

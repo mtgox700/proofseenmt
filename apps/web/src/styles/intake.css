@@ -54,9 +54,9 @@
 }
 
 .intake-form :is(input, textarea):focus-visible {
-  outline: 2px solid var(--ps-proof);
+  outline: var(--ps-ring) solid var(--ps-focus);
   outline-offset: 2px;
-  border-color: var(--ps-proof);
+  border-color: var(--ps-focus);
 }
 
 /* La justification d'un champ se lit sous lui, jamais à la place du label. */
@@ -122,9 +122,9 @@
   display: grid;
   gap: 0.75rem;
   padding: 1.5rem;
-  border: 1px solid var(--ps-proof);
+  border: 1px solid var(--ps-line-strong);
   border-radius: var(--ps-radius);
-  background: var(--ps-proof-wash);
+  background: var(--ps-surface);
 }
 
 /* La référence doit pouvoir être recopiée sans erreur : elle se lit en chiffres tabulaires, assez grande. */

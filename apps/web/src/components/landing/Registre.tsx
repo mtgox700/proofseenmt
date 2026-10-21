@@ -97,7 +97,8 @@ export function Registre({ lang, t, answers }: RegistreProps) {
 
       <details className="rg-table">
         <summary>{t.table}</summary>
-        <div className="rg-scroll">
+        {/* A region that scrolls sideways on a phone: it takes the keyboard focus and carries a name. */}
+        <div className="rg-scroll" role="region" tabIndex={0} aria-label={t.table}>
           <table>
             <caption>{t.summary}</caption>
             <thead>

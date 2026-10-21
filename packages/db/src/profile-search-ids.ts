@@ -10,11 +10,10 @@ import { foldText } from "./search-text";
  * principale reprend (`id IN …`) :
  *  - les mots-clés, en plein texte sur le texte plié du profil (`searchText`, tenu par la base) ;
  *  - la famille de poste (job-titles.ts), reconnue dans le titre du profil par l'application, comme sur les pages
- *    publiques par poste : la même règle partout ;
- *  - l'ordre « nombre de faits vérifiés », compté sur des faits nommés et affichés sur chaque carte.
+ *    publiques par poste : la même règle partout.
  *
- * Chaque liste est bornée. Ce sont des filtres et un ordre choisi par l'entreprise : jamais un ts_rank, une pertinence
- * ni une note de personne (AI Act).
+ * Chaque liste est bornée. Ce sont des filtres : jamais un ts_rank, une pertinence, une somme de preuves ni une note de
+ * personne (AI Act). L'ancien ordre « nombre de faits vérifiés » a été retiré pour cette raison.
  */
 
 export const ProfileTextSchema = z.string().trim().min(1).max(200);
@@ -76,25 +75,4 @@ export const intersect = (a: readonly string[] | null, b: readonly string[] | nu
   if (b === null) return a;
   const kept = new Set(b);
   return a.filter((id) => kept.has(id));
-};
-
-/**
- * Une page de profils dans l'ordre « nombre de faits vérifiés » : missions vérifiées sur pièce, adresses dont la
- * possession est prouvée, SIRET actif au répertoire, attestation URSSAF vérifiée et en cours. Chacun compte pour un, et
- * chaque carte affiche ce nombre et ces faits : l'ordre se lit, il ne se devine pas. À nombre égal, l'identifiant
- * départage, de façon stable et sans signification.
- */
-export const verifiedFactsOrder = async (db: Db, ids: readonly string[], vigilanceSince: Date, skip: number, take: number): Promise<readonly string[]> => {
-  if (ids.length === 0) return [];
-  const rows = await db.$queryRaw<{ id: string }[]>`
-    SELECT p."id" FROM "FreelanceProfile" p
-    WHERE p."id" = ANY(${[...ids]}::uuid[])
-    ORDER BY (
-      (SELECT count(*) FROM "VerifiedMission" m WHERE m."profileId" = p."id")
-      + (SELECT count(*) FROM "OwnedUrl" o WHERE o."profileId" = p."id" AND o."verifiedAt" IS NOT NULL)
-      + (CASE WHEN EXISTS (SELECT 1 FROM "BillingIdentity" b WHERE b."profileId" = p."id" AND b."registryStatus" = 'active') THEN 1 ELSE 0 END)
-      + (CASE WHEN EXISTS (SELECT 1 FROM "VigilanceAttestation" v WHERE v."profileId" = p."id" AND v."verifiedAt" IS NOT NULL AND v."issuedOn" > ${vigilanceSince}) THEN 1 ELSE 0 END)
-    ) DESC, p."id" DESC
-    OFFSET ${skip} LIMIT ${take}`;
-  return rows.map((row) => row.id);
 };

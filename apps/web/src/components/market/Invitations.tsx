@@ -12,7 +12,7 @@ import type { Notice } from "@/lib/invitations";
 type Action = (formData: FormData) => Promise<void>;
 
 /** The sentence of a notice, on the list page or on the link's page (`masked`: the invited address, half hidden). */
-export const noticeText = (d: InvitationsDictionary, notice: Notice, masked = "—"): string => {
+export const noticeText = (d: InvitationsDictionary, notice: Notice, masked = ""): string => {
   const texts: Readonly<Record<string, string>> = {
     envoyee: d.done.sent,
     revoquee: d.done.revoked,

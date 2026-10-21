@@ -1,6 +1,9 @@
+import type { Lang } from "@/i18n";
 import { barChart, type ChartPoint } from "@/lib/chart";
+import { colon } from "@/lib/format";
 
 interface BarChartProps {
+  readonly lang: Lang;
   /** Unique on the page: ties the figure's caption and description to the drawing. */
   readonly id: string;
   readonly title: string;
@@ -14,14 +17,15 @@ interface BarChartProps {
   readonly lastLabel: string;
   /** A short figure next to the title, such as the total. */
   readonly figure?: string;
-  readonly tone?: "proof" | "info" | "signal";
+  /** Neutral inks only: a count of views or clicks is not a verified fact, it never takes the proof green. */
+  readonly tone?: "ink" | "muted" | "faint";
 }
 
 const WIDTH = 640;
 const HEIGHT = 160;
 
 /** A server-drawn SVG bar chart: no script, no library; each bar carries its own tooltip. */
-export function BarChart({ id, title, summary, points, format, firstLabel, lastLabel, figure, tone = "proof" }: BarChartProps) {
+export function BarChart({ lang, id, title, summary, points, format, firstLabel, lastLabel, figure, tone = "ink" }: BarChartProps) {
   const g = barChart(points, { width: WIDTH, height: HEIGHT, gap: points.length > 40 ? 0.25 : 0.3 });
   return (
     <figure className="chart">
@@ -41,7 +45,7 @@ export function BarChart({ id, title, summary, points, format, firstLabel, lastL
         ))}
         {g.bars.map((bar) => (
           <rect key={bar.label} className="chart-bar" x={bar.x} y={bar.y} width={bar.width} height={Math.max(bar.height, bar.value > 0 ? 1 : 0)} rx={1}>
-            <title>{`${bar.label} — ${format(bar.value)}`}</title>
+            <title>{`${bar.label}${colon(lang)}${format(bar.value)}`}</title>
           </rect>
         ))}
         <text className="chart-axis" x={g.plotLeft} y={g.height - 4}>

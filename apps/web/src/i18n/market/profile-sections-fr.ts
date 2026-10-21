@@ -101,8 +101,8 @@ export const profileSectionsFr = {
     add: "Enregistrer la langue",
     hint: "Choisir une langue déjà listée change son niveau.",
     editHint: "Choisissez le nouveau niveau, puis enregistrez.",
-    fields: { code: "Langue", level: "Niveau" },
-    levels: { a1: "A1 — découverte", a2: "A2 — intermédiaire", b1: "B1 — seuil", b2: "B2 — avancé", c1: "C1 — autonome", c2: "C2 — maîtrise", native: "Langue maternelle" },
+    fields: { code: "Langue", level: "Niveau", pick: "Choisir une langue" },
+    levels: { a1: "A1 (découverte)", a2: "A2 (intermédiaire)", b1: "B1 (seuil)", b2: "B2 (avancé)", c1: "C1 (autonome)", c2: "C2 (maîtrise)", native: "Langue maternelle" },
   },
   portfolio: {
     title: "Réalisations",

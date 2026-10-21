@@ -104,7 +104,7 @@ export default async function OrderPage({ params }: PageProps) {
           </ul>
         </section>
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

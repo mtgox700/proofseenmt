@@ -2,6 +2,7 @@ import { MONOGRAM_SMALL_PATH, PALETTE, THEME_COLOR } from "@proofseen/brand";
 import { escapeHtml as e, safeJsonLd, STANDALONE_STYLES } from "./html";
 import { availabilityText, formatDate, formatMonth, LABELS } from "./i18n";
 import type { HubProfile, Locale, Mission } from "./schema";
+import { typeset } from "./typography";
 
 const OTHER: Readonly<Record<Locale, Locale>> = { fr: "en", en: "fr" };
 
@@ -35,38 +36,41 @@ interface LayoutInput {
 const layout = ({ profile, locale, slug, title, description, body, jsonLd }: LayoutInput): string => {
   const url = (l: Locale) => `${profile.baseUrl}${pagePath(l, slug)}`;
   const other = OTHER[locale];
-  return [
-    "<!doctype html>",
-    `<html lang="${locale}">`,
-    "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-    '<meta name="color-scheme" content="dark light">',
-    `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`,
-    `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(title)}</title>`,
-    `<meta name="description" content="${e(description)}">`,
-    `<link rel="canonical" href="${e(url(locale))}">`,
-    `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
-    `<style>${STANDALONE_STYLES}.top .brand{font:var(--ps-weight-display) var(--ps-step-1)/1 var(--ps-font-display)}</style>`,
-    jsonLd === null ? "" : `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    `<a class="skip" href="#contenu">${SKIP[locale]}</a>`,
-    `<header class="top bare"><div class="chrome"><a class="brand" href="${e(pagePath(locale, null))}">${e(profile.person.name)}</a>` +
-      `<a class="lang" href="${e(pagePath(other, slug))}" hreflang="${other}" lang="${other}">${LABELS[locale].otherLang}</a></div></header>`,
-    '<main id="contenu" class="wrap">',
-    body,
-    "</main>",
-    `<footer class="foot"><div class="chrome"><p>${e(profile.person.name)} · ${e(profile.person.headline[locale])}</p>` +
-      `<p>${e(LABELS[locale].updated(formatDate(profile.availability.updatedAt, locale)))}</p></div></footer>`,
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    locale,
+    [
+      "<!doctype html>",
+      `<html lang="${locale}">`,
+      "<head>",
+      '<meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+      '<meta name="color-scheme" content="dark light">',
+      `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`,
+      `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
+      `<link rel="icon" href="${FAVICON}">`,
+      `<title>${e(title)}</title>`,
+      `<meta name="description" content="${e(description)}">`,
+      `<link rel="canonical" href="${e(url(locale))}">`,
+      `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
+      `<style>${STANDALONE_STYLES}.top .brand{font:var(--ps-weight-display) var(--ps-step-1)/1 var(--ps-font-display)}</style>`,
+      jsonLd === null ? "" : `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      `<a class="skip" href="#contenu">${SKIP[locale]}</a>`,
+      `<header class="top bare"><div class="chrome"><a class="brand" href="${e(pagePath(locale, null))}">${e(profile.person.name)}</a>` +
+        `<a class="lang" href="${e(pagePath(other, slug))}" hreflang="${other}" lang="${other}">${LABELS[locale].otherLang}</a></div></header>`,
+      '<main id="contenu" class="wrap">',
+      body,
+      "</main>",
+      `<footer class="foot"><div class="chrome"><p>${e(profile.person.name)} · ${e(profile.person.headline[locale])}</p>` +
+        `<p>${e(LABELS[locale].updated(formatDate(profile.availability.updatedAt, locale)))}</p></div></footer>`,
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 const tags = (items: readonly string[]): string => `<ul class="tags">${items.map((i) => `<li>${e(i)}</li>`).join("")}</ul>`;

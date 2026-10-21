@@ -28,12 +28,13 @@ const jsonLdOf = (html: string): Record<string, unknown> => JSON.parse(/<script 
 describe("baromètre des TJM", () => {
   it("sous le seuil, dit qu'il manque des données et n'affiche aucune statistique", () => {
     const html = renderRateBarometer(EMPTY, { baseUrl: BASE, lang: "fr" });
-    expect(html).toContain("Pas encore assez de données : il faut au moins 10 profils ou missions par groupe.");
+    expect(html).toContain("Pas encore assez de données\u202f: il faut au moins 10 profils ou missions par groupe.");
     expect(html).not.toContain("<table");
     expect(html).not.toMatch(/médiane \d/i);
     expect(html).toContain("aucun groupe de moins de 10 valeurs n'est publié");
     expect(scripts(html).every((attrs) => /application\/ld\+json/.test(attrs))).toBe(true);
     expect(html).toContain('<link rel="canonical" href="https://proofseen.com/fr/barometre/tjm">');
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://proofseen.com/fr/barometre/tjm">');
   });
 
   it("publie chaque groupe avec n, médiane et quartiles, la méthode et la date", () => {
@@ -80,7 +81,7 @@ describe("baromètre des compétences", () => {
 
   it("sous le seuil, ne publie rien et le dit", () => {
     const html = renderSkillBarometer(view, { baseUrl: BASE, lang: "fr" });
-    expect(html).toContain("Pas encore assez de données : il faut au moins 5 missions pour qu&#39;une compétence apparaisse.");
+    expect(html).toContain("Pas encore assez de données\u202f: il faut au moins 5 missions pour qu&#39;une compétence apparaisse.");
     expect(html).not.toContain("<table");
     expect(skillCsv(view)).toBe("key,label,missions,since,computed_at\r\n");
   });

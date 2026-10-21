@@ -24,6 +24,7 @@ function SeriesChart({ lang, d, days, series }: { readonly lang: Lang; readonly 
   const label = a.series[series];
   return (
     <BarChart
+      lang={lang}
       id={`audience-${series}`}
       title={label}
       figure={count(total, lang)}
@@ -32,7 +33,7 @@ function SeriesChart({ lang, d, days, series }: { readonly lang: Lang; readonly 
       format={(value) => count(value, lang)}
       firstLabel={shortDay(days[0]?.day ?? "", lang)}
       lastLabel={shortDay(days.at(-1)?.day ?? "", lang)}
-      tone={series === "views" ? "proof" : series === "listAdds" ? "signal" : "info"}
+      tone={series === "views" ? "ink" : series === "listAdds" ? "muted" : "faint"}
     />
   );
 }

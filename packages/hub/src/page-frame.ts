@@ -1,6 +1,7 @@
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { pageHead, withBrand } from "./head";
 import { marketFooter, marketHeader, type Lang, type MenuItem } from "./market-shell";
+import { typeset } from "./typography";
 
 /*
  * Le cadre commun des pages du blog et des baromètres : un document HTML complet, sans JavaScript (seul le JSON-LD est
@@ -26,6 +27,12 @@ export interface FrameOptions {
   readonly main: readonly string[];
 }
 
+/** Une page qui existe dans les deux langues désigne la française pour les autres lecteurs (x-default). */
+const withDefault = (alternates: Readonly<Partial<Record<Lang, string>>>): ReadonlyArray<readonly [string, string]> => {
+  const pairs = Object.entries(alternates).filter((pair): pair is [string, string] => pair[1] !== undefined);
+  return alternates.fr !== undefined && alternates.en !== undefined ? [...pairs, ["x-default", alternates.fr]] : pairs;
+};
+
 /** Styles partagés : le texte d'un article et les tableaux des baromètres. */
 export const READING_STYLES =
   ".prose{max-width:44rem;margin-top:2.4rem}.prose h2{margin:2.6rem 0 1rem}.prose h3{margin:2rem 0 .8rem}" +
@@ -50,24 +57,27 @@ export const READING_STYLES =
   ".note{margin-top:1.2rem;padding:1rem 1.2rem;border:1px dashed var(--ps-line-strong);border-radius:var(--ps-radius);color:var(--ps-muted)}";
 
 export const renderFrame = (o: FrameOptions): string =>
-  [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(o.title), description: o.description, canonical: o.canonical }),
-    ...(o.noindex === true ? ['<meta name="robots" content="noindex, follow">'] : []),
-    ...Object.entries(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
-    ...(o.extraHead ?? []),
-    `<style>${STYLES}${READING_STYLES}${o.styles ?? ""}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(o.jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, o.otherHref, o.menu),
-    '<main id="contenu" class="wrap">',
-    ...o.main,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(o.title), description: o.description, canonical: o.canonical }),
+      ...(o.noindex === true ? ['<meta name="robots" content="noindex, follow">'] : []),
+      ...withDefault(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
+      ...(o.extraHead ?? []),
+      `<style>${STYLES}${READING_STYLES}${o.styles ?? ""}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(o.jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, o.otherHref, o.menu),
+      '<main id="contenu" class="wrap">',
+      ...o.main,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );

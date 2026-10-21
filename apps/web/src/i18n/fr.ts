@@ -8,7 +8,7 @@ export const fr = {
   meta: {
     title: "Proofseen : la preuve de ce qu'un freelance a vraiment livré",
     description:
-      "Des missions de freelances tech vérifiées sur pièce et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
+      "Des missions de freelances tech confirmées par leur client ou payées sur Proofseen, et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
   },
   skip: "Aller au contenu",
   nav: {
@@ -27,7 +27,7 @@ export const fr = {
   },
   hero: {
     title: "La preuve de ce qu'un freelance a vraiment livré.",
-    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'après l'examen d'une pièce, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
+    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'une fois confirmée par son client ou payée sur la plateforme, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
     primary: "Faire mesurer ma visibilité",
     secondary: "Voir les freelances",
   },
@@ -70,8 +70,9 @@ export const fr = {
     intro: "Voici cinq profils qui correspondent à votre recherche :",
     masked: "nom masqué",
     rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    verdict: "Vous : absent de cette réponse",
-    appear: "Vous apparaissez",
+    // The replay is the founder's measure, not the visitor's: it names him, never "vous".
+    verdict: "Notre fondateur : absent de cette réponse",
+    appear: "Notre fondateur apparaît",
     interval: "Fourchette du taux réel",
     times: "{hits} fois sur {n}",
     same: "Même compte sur les trois moteurs mesurés.",
@@ -105,15 +106,14 @@ export const fr = {
     facts: {
       answers: { value: "780", label: "réponses d'IA analysées, pour 15,79 $ de coût de mesure" },
       zero: { value: "0 %", range: "[0 % ; 1,9 %]", label: "de citations du fondateur, fourchette à 95 % sur chaque moteur" },
-      sources: { label: "part des citations observées, par domaine" },
+      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
+      sources: {
+        label: "Part des {total} citations relevées dans les {answers} réponses, par domaine. Vague J0, 23 et 24 septembre 2026.",
+        count: "{hits} citations sur {total}",
+      },
       silent: { value: "90,8 %", label: "des réponses d'Anthropic ne consultent aucune source : être vu dépend du moteur" },
       agreement: { value: "20/20", label: "d'accord entre nos mesures par API et les applications grand public" },
     },
-    shares: [
-      { domain: "malt.fr", value: "39 %", width: 0.39 },
-      { domain: "linkedin.com", value: "26,5 %", width: 0.265 },
-      { domain: "github.com", value: "2,9 %", width: 0.029 },
-    ],
     source: "Vague J0, 23 et 24 septembre 2026. Protocole figé avant la mesure, empreinte 1bc9f85f. Réponses brutes supprimées après analyse.",
     limits:
       "Ces chiffres décrivent un profil, ces offres, ces moteurs, à cette date. Ils ne prédisent pas vos résultats. Nous les publions parce qu'un vendeur qui ne se mesure pas lui-même ne prouve rien.",
@@ -129,19 +129,14 @@ export const fr = {
       "Ce sur quoi vous ne pouvez rien, dit clairement au lieu d'être vendu.",
       "Le modèle interrogé, la date, et l'empreinte du protocole figé avant la mesure.",
     ],
-    sampleCaption: "Captures de l'application réelle, sur notre propre mesure. Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
-    shotsLabel: "Vues de l'application",
-    shots: [
-      { key: "overview", label: "Vue d'ensemble", alt: "Espace freelance : l'étape qui bloque et le parcours E1 à E5 par moteur, avec les fourchettes." },
-      { key: "report", label: "Plan de correction", alt: "Rapport d'audit : le plan de correction, chaque action avec sa raison, son lieu, son effort et le chiffre qui la justifie." },
-    ],
+    sampleCaption: "Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
   },
   piece: {
-    kicker: "La pièce",
-    title: "Une mission n'est vérifiée que sur pièce.",
-    lead: "Le freelance déclare. Un tiers vérifie la pièce. Alors seulement, la mission porte sa marque, avec sa date.",
-    evidenceTitle: "Ce qui peut faire preuve",
-    evidence: ["Facture", "Contrat", "Attestation du client", "Accès au dépôt de code", "Livrable public"],
+    kicker: "La preuve",
+    title: "Une mission n'est vérifiée que par un tiers.",
+    lead: "Le freelance déclare. Son client confirme, ou la mission est payée sur Proofseen. Alors seulement, elle porte sa marque, avec sa date.",
+    evidenceTitle: "Ce qui reste déclaré",
+    evidence: ["Une mission sans confirmation ni paiement", "Les compétences et le TJM", "Tout ce qui ne cite pas sa source"],
     confirmTitle: "Qui peut confirmer",
     confirm: ["Le client, depuis son compte", "Un contact chez le client, par lien signé, sans compte", "Le paiement de la mission sur Proofseen"],
     factsTitle: "Les faits vérifiés d'un profil",
@@ -151,7 +146,7 @@ export const fr = {
       "Attestation de vigilance URSSAF",
       "Payé sur Proofseen par une ou plusieurs entreprises",
     ],
-    rule: "Nous montrons la méthode de vérification, jamais le document.",
+    rule: "Chaque mission vérifiée dit qui l'a confirmée et quand ; le nom du client n'apparaît que s'il l'a autorisé.",
     link: "Voir les profils publiés",
     replay: "Rejouer la frappe",
     specimen: {
@@ -159,14 +154,14 @@ export const fr = {
       role: "Lead développeur TypeScript",
       context: "PME · logistique · 6 mois",
       summary: "Refonte de l'API de suivi des colis et reprise de la couverture de tests.",
-      evidence: "Pièce : facture",
-      stamp: "Vérifiée le 12 octobre 2026 · facture",
+      evidence: "Preuve : le client a confirmé depuis son compte",
+      stamp: "Vérifiée le 12 octobre 2026",
     },
   },
   companies: {
     title: "Recrutez des freelances dont les missions sont vérifiées.",
-    text: "Des profils pseudonymes, des missions contrôlées sur pièce, une méthode publique. Aucun score, aucun classement de personnes : l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
-    points: ["Possession des profils prouvée", "Méthode de vérification affichée, jamais le document", "Disponibilité datée", "Identité communiquée après accord du freelance"],
+    text: "Des profils pseudonymes, des missions confirmées par leur client ou payées sur Proofseen, une méthode publique. Aucun score, aucun classement de personnes : l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
+    points: ["Possession des profils prouvée", "Méthode de vérification affichée pour chaque mission", "Disponibilité datée", "Identité communiquée après accord du freelance"],
     cta: "Voir les freelances",
     publish: "Publier une mission",
   },
@@ -174,7 +169,7 @@ export const fr = {
     label: "Par où commencer",
     freelance: {
       title: "Vous êtes freelance",
-      text: "Publiez vos missions, faites vérifier vos pièces, et sachez si une IA vous cite quand un recruteur la questionne.",
+      text: "Publiez vos missions, faites-les confirmer par vos clients, et sachez si une IA vous cite quand un recruteur la questionne.",
       cta: "Faire mesurer ma visibilité",
     },
     company: {
@@ -277,17 +272,8 @@ export const fr = {
       { q: "Que devient ma vie privée ?", a: "Vous prouvez que les profils mesurés sont bien les vôtres. Les réponses brutes sont chiffrées puis supprimées au bout de 72 heures." },
     ],
   },
+  // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {
-    line: "Proofseen mesure votre visibilité dans le recrutement assisté par IA.",
-    legal: "Conditions de vente, rétractation et remboursement : sur la page Commander.",
-    legalNav: {
-      label: "Informations légales",
-      links: [
-        { href: "/fr/mentions-legales", label: "Mentions légales" },
-        { href: "/fr/confidentialite", label: "Confidentialité" },
-        { href: "/fr/conditions", label: "Conditions d'utilisation" },
-      ],
-    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt et GitHub sont des marques de leurs propriétaires. Proofseen n'est affilié à aucun d'entre eux.",
   },
   directory: {
@@ -364,7 +350,7 @@ export const fr = {
       title: "Bienvenue. Vous êtes…",
       lead: "Ce choix décide de votre espace. Il ne se change pas seul : écrivez-nous en cas d'erreur.",
       freelance: { title: "Freelance", text: "Je veux savoir si les IA me trouvent quand un recruteur cherche, et corriger ce qui bloque." },
-      company: { title: "Entreprise", text: "Je cherche des freelances dont les missions sont vérifiées sur pièce." },
+      company: { title: "Entreprise", text: "Je cherche des freelances dont les missions sont confirmées par leurs clients." },
       choose: "Choisir",
     },
     operator: {

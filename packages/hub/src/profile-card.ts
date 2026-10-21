@@ -68,11 +68,11 @@ const LABELS = {
     more: (n: number) => `+${n}`,
     portfolio: "Réalisations présentées sur le profil",
     see: "Voir le profil",
-    noProof: "Pas encore de pièce vérifiée.",
+    noProof: "Pas encore de fait vérifié.",
     registry: "Entreprise active au répertoire officiel",
     identity: "Identité vérifiée par le prestataire de paiement",
     vigilance: "Attestation de vigilance URSSAF en cours de validité",
-    missions: (n: number) => (n === 1 ? "1 mission vérifiée sur pièce" : `${n} missions vérifiées sur pièce`),
+    missions: (n: number) => (n === 1 ? "1 mission vérifiée" : `${n} missions vérifiées`),
     provenUrls: (n: number) => (n === 1 ? "1 adresse web dont la possession est prouvée" : `${n} adresses web dont la possession est prouvée`),
     paying: (n: number) => (n === 1 ? "Payé sur Proofseen par 1 entreprise" : `Payé sur Proofseen par ${n} entreprises différentes`),
     legend: "Légende des cartes",
@@ -95,11 +95,11 @@ const LABELS = {
     more: (n: number) => `+${n}`,
     portfolio: "Work samples shown on the profile",
     see: "See the profile",
-    noProof: "No verified document yet.",
+    noProof: "No verified fact yet.",
     registry: "Business active in the official company register",
     identity: "Identity verified by the payment provider",
     vigilance: "Valid URSSAF vigilance certificate",
-    missions: (n: number) => (n === 1 ? "1 mission verified against a document" : `${n} missions verified against a document`),
+    missions: (n: number) => (n === 1 ? "1 verified mission" : `${n} verified missions`),
     provenUrls: (n: number) => (n === 1 ? "1 web address with proven ownership" : `${n} web addresses with proven ownership`),
     paying: (n: number) => (n === 1 ? "Paid on Proofseen by 1 company" : `Paid on Proofseen by ${n} different companies`),
     legend: "Card legend",
@@ -122,7 +122,7 @@ export interface ProfileCardFields {
   readonly context: readonly string[];
   readonly rate: string | null;
   readonly availability: { readonly state: string; readonly tone: AvailabilityTone; readonly when: string | null } | null;
-  /** Les faits vérifiés, chacun nommé et compté ; vide : « pas encore de pièce vérifiée ». */
+  /** Les faits vérifiés, chacun nommé et compté ; vide : « pas encore de fait vérifié ». */
   readonly verified: readonly string[];
   readonly skills: readonly string[];
   readonly moreSkills: string | null;
@@ -244,8 +244,15 @@ export const profileCardHtml = (c: ProfileCardView & { readonly slug: string }, 
   );
 };
 
-/** La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré. */
-export const profileCardLegend = (lang: Lang): string => {
+/**
+ * La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré.
+ * `proof: false` (revue Kensa, M5) : aucune carte affichée ne porte de fait vérifié, la clé n'a donc pas de vert.
+ */
+export const profileCardLegend = (lang: Lang, o: { readonly proof?: boolean } = {}): string => {
   const l = LABELS[lang];
-  return `<ul class="ps-legend" aria-label="${e(l.legend)}"><li class="k-proof">${l.legendProof}</li><li class="k-decl">${l.legendDeclared}</li></ul>`;
+  const proof = o.proof === false ? "" : `<li class="k-proof">${l.legendProof}</li>`;
+  return `<ul class="ps-legend" aria-label="${e(l.legend)}">${proof}<li class="k-decl">${l.legendDeclared}</li></ul>`;
 };
+
+/** Au moins une de ces cartes porte un fait vérifié (et donc un carré vert). */
+export const anyVerifiedCard = (cards: readonly ProfileCardView[]): boolean => cards.some((c) => verifiedLines(c, "fr").length > 0);

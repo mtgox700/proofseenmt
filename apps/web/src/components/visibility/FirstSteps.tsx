@@ -23,7 +23,7 @@ export function FirstSteps({ lang, v, steps }: Props) {
       <ol className="vis-todo">
         {steps.map((step) => (
           <li key={step.key} data-done={step.done ? "" : undefined}>
-            <span className={step.done ? "tag tag-proof" : "tag tag-signal"}>{step.done ? s.done : s.todo}</span>
+            <span className={step.done ? "tag tag-done" : "tag tag-signal"}>{step.done ? s.done : s.todo}</span>
             <div className="vis-todo-body">
               <strong>{s.steps[step.key].label}</strong>
               <span className="muted small">{s.steps[step.key].what}</span>

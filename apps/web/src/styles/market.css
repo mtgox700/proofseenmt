@@ -10,7 +10,7 @@
   border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius);
 }
 .field textarea { min-height: 7rem; line-height: 1.5; resize: vertical; }
-.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--ps-proof); outline-offset: 2px; }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
 .panel .btn { justify-self: start; }
 
 /* ---------- Buttons ---------- */
@@ -29,13 +29,13 @@
 .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); grid-column: 1 / -1; }
 .thread-row > .row-actions form { display: contents; }
 .tags { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
-.form-ok { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-proof); border-radius: var(--ps-radius); background: var(--ps-proof-wash); color: var(--ps-text); }
+.form-ok { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); background: var(--ps-surface); color: var(--ps-text); }
 
 /* ---------- Grouped fields and checkboxes ---------- */
 .fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .fieldset legend { margin-bottom: var(--ps-space-2); font-size: var(--ps-step--1); font-weight: 600; }
 .field-inline { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: var(--ps-space-3); }
-.field-inline input[type="checkbox"] { width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--ps-proof); }
+.field-inline input[type="checkbox"] { width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--ps-text); }
 .field-inline .field-hint { grid-column: 2; }
 .panel-span { grid-column: 1 / -1; }
 .plain-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
@@ -60,7 +60,7 @@
 /* ---------- Company search and shared lists ---------- */
 .profiles .row-actions { margin-top: var(--ps-space-2); }
 .profiles .row-actions select { min-height: 2.75rem; padding: 0.4rem 0.6rem; font: inherit; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); max-width: 100%; }
-.thumb[aria-pressed="true"] { border-color: var(--ps-proof); background: var(--ps-proof-wash); color: var(--ps-text); }
+.thumb[aria-pressed="true"] { border-color: var(--ps-text); background: var(--ps-raised); color: var(--ps-text); }
 
 /* ---------- Applications board: one plain section per status ---------- */
 .board { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); align-items: start; }
@@ -73,8 +73,8 @@
 .live-count { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ps-text); }
 .app-bell { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-muted); text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .app-bell:hover { color: var(--ps-text); } }
-.thread-unread { margin-left: var(--ps-space-2); color: var(--ps-proof); background: var(--ps-proof-wash); vertical-align: middle; }
-.thread-row[data-unread] { border-color: color-mix(in srgb, var(--ps-proof) 45%, var(--ps-line)); }
+.thread-unread { margin-left: var(--ps-space-2); color: var(--ps-text); vertical-align: middle; }
+.thread-row[data-unread] { border-color: var(--ps-line-strong); }
 .thread-row[data-unread] .thread-last { color: var(--ps-text); }
 .bubble-files { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
 .bubble-file { display: inline-grid; gap: var(--ps-space-1); max-width: 12rem; padding: var(--ps-space-2); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); background: var(--ps-bg); color: var(--ps-text); overflow-wrap: anywhere; }
@@ -82,6 +82,6 @@
 .bubble-read { justify-self: end; }
 .notifications { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
 .notifications > li { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
-.notifications > li[data-unread] { border-color: color-mix(in srgb, var(--ps-proof) 45%, var(--ps-line)); }
+.notifications > li[data-unread] { border-color: var(--ps-line-strong); }
 .notifications .row-actions form { display: contents; }
 .notification-text { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); }

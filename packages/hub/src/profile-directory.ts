@@ -3,9 +3,10 @@ import { DIRECTORY_FRAME_STYLES, linksUnder, nextLinks } from "./directory-cards
 import { pageHead, withBrand } from "./head";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketFooter, marketHeader, type Lang } from "./market-shell";
-import { PASSAGE_CSS, profileCardHtml, profileCardLegend, type ProfileCardView } from "./profile-card";
+import { anyVerifiedCard, PASSAGE_CSS, profileCardHtml, profileCardLegend, type ProfileCardView } from "./profile-card";
 import { activeFilters, directoryQueryString, FILTER_STYLES, filtersForm, type DirectoryFilters, type JobTitleOption } from "./profile-directory-filters";
 import { profileUrl } from "./profile-page";
+import { typeset } from "./typography";
 
 /*
  * Annuaire public des freelances, le registre public (lot c, STORYBOARD c.1 à c.6) : la légende du registre, les
@@ -46,7 +47,7 @@ const LABELS = {
     how: "Comment un profil arrive ici",
     howSteps: [
       "Le freelance publie son profil : ce qu'il écrit reste marqué comme déclaré.",
-      "Ses pièces sont vérifiées une à une par un tiers, puis datées.",
+      "Ses missions sont confirmées une à une par le client ou par un paiement sur Proofseen, puis datées.",
       "L'ordre est la date de mise à jour du profil, jamais un score.",
     ],
     next: "Page suivante",
@@ -75,7 +76,7 @@ const LABELS = {
     how: "How a profile gets here",
     howSteps: [
       "The freelancer publishes a profile: what they write stays marked as declared.",
-      "Their documents are verified one by one by a third party, then dated.",
+      "Their missions are confirmed one by one by the client or by a payment on Proofseen, then dated.",
       "The order is the date the profile was updated, never a score.",
     ],
     next: "Next page",
@@ -159,36 +160,41 @@ export const renderProfileDirectory = (
     },
   };
 
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: directoryUrl(base, o.lang) }),
-    filtered || f.page > 1 ? '<meta name="robots" content="noindex, follow">' : "",
-    `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
-    `<style>${STYLES}${DIRECTORY_FRAME_STYLES}\n${PROFILE_CARD_CSS}\n${FILTER_STYLES}\n${PAGE_STYLES}\n${PASSAGE_CSS}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, `/${other}/freelances`, "freelancers"),
-    '<main id="contenu" class="wrap wide">',
-    `<div class="dir-head"><h1 class="title">${l.title}</h1>`,
-    `<p class="headline">${l.lead}</p>`,
-    `${profileCardLegend(o.lang)}</div>`,
-    '<div class="dir">',
-    filtersForm(o.lang, f, jobTitles),
-    '<section aria-labelledby="dir-results">',
-    `<div class="res-head"><h2 id="dir-results">${l.results}</h2>${resultsCount(items.length, filtered, f, o.hasMore, o.lang)}<p class="res-order">${l.order}</p></div>`,
-    activeFilters(o.lang, f, jobTitles),
-    results(items, o.lang, filtered || f.page > 1, sparse),
-    f.page > 1 || o.hasMore ? `<nav class="pager" aria-label="${l.pages}">${pager}</nav>` : "",
-    "</section>",
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: directoryUrl(base, o.lang) }),
+      filtered || f.page > 1 ? '<meta name="robots" content="noindex, follow">' : "",
+      `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(directoryUrl(base, "fr"))}">`,
+      `<style>${STYLES}${DIRECTORY_FRAME_STYLES}\n${PROFILE_CARD_CSS}\n${FILTER_STYLES}\n${PAGE_STYLES}\n${PASSAGE_CSS}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, `/${other}/freelances`, "freelancers"),
+      '<main id="contenu" class="wrap wide">',
+      `<div class="dir-head"><h1 class="title">${l.title}</h1>`,
+      `<p class="headline">${l.lead}</p>`,
+      // Revue Kensa, M5 : aucune clé sur une liste vide ; le vert de la clé seulement si une carte affichée en porte.
+      `${items.length === 0 ? "" : profileCardLegend(o.lang, { proof: anyVerifiedCard(items) })}</div>`,
+      '<div class="dir">',
+      filtersForm(o.lang, f, jobTitles),
+      '<section aria-labelledby="dir-results">',
+      `<div class="res-head"><h2 id="dir-results">${l.results}</h2>${resultsCount(items.length, filtered, f, o.hasMore, o.lang)}<p class="res-order">${l.order}</p></div>`,
+      activeFilters(o.lang, f, jobTitles),
+      results(items, o.lang, filtered || f.page > 1, sparse),
+      f.page > 1 || o.hasMore ? `<nav class="pager" aria-label="${l.pages}">${pager}</nav>` : "",
+      "</section>",
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };

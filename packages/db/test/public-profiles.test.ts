@@ -29,7 +29,7 @@ describe("page publique d'un profil, depuis la base", () => {
   it("cache le nom et les adresses d'un profil pseudonyme, garde le nombre de preuves", async () => {
     const p = await published("pseudonymous");
     const page = await publicProfiles(t.db).page(p.slug);
-    expect(page).toMatchObject({ visibility: "pseudonymous", displayName: null, provenUrls: [], provenUrlCount: 1, skills: ["Rust"] });
+    expect(page).toMatchObject({ visibility: "pseudonymous", displayName: null, provenUrls: [], provenUrlCount: 1, skills: ["Rust"], contentLang: "fr" });
     // La trace de la preuve reste publique (méthode, date), jamais l'adresse.
     expect(page?.provenAddresses).toHaveLength(1);
     expect(page?.provenAddresses[0]).toMatchObject({ url: null, method: "dns_txt", checkedAt: null });

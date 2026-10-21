@@ -7,7 +7,7 @@
  */
 
 const DOSSIER = [
-  ".dossier{width:min(100% - 2*var(--ps-gutter),72rem);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
+  ".dossier{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
   ".dossier>*{min-width:0}",
   ".fiche{padding-bottom:var(--ps-space-6)}",
   ".ref{font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}",

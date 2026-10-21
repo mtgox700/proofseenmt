@@ -59,13 +59,14 @@ describe("le registre « Ce qui est vérifié »", () => {
     const html = renderProfilePage(BARE, OPTIONS);
     const reg = register(html);
     expect(reg).toContain('<h2 class="part" id="verifie">Ce qui est vérifié</h2>');
-    expect(reg).toContain("Aucune pièce vérifiée pour l&#39;instant. Les informations de ce profil sont déclarées par le freelance.");
-    for (const could of ["confirmée par le client", "payée sur Proofseen", "accès au dépôt de code", "possession est prouvée", "répertoire officiel", "prestataire de paiement", "URSSAF"]) expect(reg).toContain(could);
+    expect(reg).toContain("Aucun fait vérifié pour l&#39;instant. Les informations de ce profil sont déclarées par le freelance.");
+    for (const could of ["confirmée par le client", "payée sur Proofseen", "possession est prouvée", "répertoire officiel", "prestataire de paiement", "URSSAF"]) expect(reg).toContain(could);
+    expect(reg).not.toMatch(/facture|accès au dépôt de code|livrable public/);
     expect(reg).toContain('<a href="/methode/">Comment nous vérifions</a>');
     // Aucun vert quand rien n'est vérifié : le rail le dit aussi.
     expect(body(html).match(GREEN)).toBeNull();
-    expect(html).toContain('<a class="tally" href="#verifie">Aucune pièce vérifiée pour l&#39;instant.</a>');
-    expect(renderProfilePage(BARE, { ...OPTIONS, lang: "en" })).toContain("No verified evidence yet.");
+    expect(html).toContain('<a class="tally" href="#verifie">Aucun fait vérifié pour l&#39;instant.</a>');
+    expect(renderProfilePage(BARE, { ...OPTIONS, lang: "en" })).toContain("No verified fact yet.");
   });
 
   it("pose le vert sur les faits vérifiés seulement, jamais sur le déclaré", () => {

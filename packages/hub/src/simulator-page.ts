@@ -22,7 +22,10 @@ const STYLES =
   ".sim .hint{font-size:var(--ps-step--1);color:var(--ps-muted);font-weight:400}" +
   ".sim [aria-invalid]{border-color:var(--ps-signal)}.sim .bad{color:var(--ps-signal)}" +
   ".sim button{justify-self:start}" +
-  "tr.total th,tr.total td{font-weight:600;color:var(--ps-text)}tr.option th{color:var(--ps-text);padding-top:1.2rem}";
+  "tr.total th,tr.total td{font-weight:600;color:var(--ps-text)}tr.option th{color:var(--ps-text);padding-top:1.2rem}" +
+  // The page starts on the header's edge (Kensa M6): a two-column calculation stays readable at its own width, the
+  // table of rates and the questions take the page.
+  ".calc{max-width:48rem}.faq{grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))}";
 
 const option = (value: string, label: string, selected: boolean): string => `<option value="${e(value)}"${selected ? " selected" : ""}>${e(label)}</option>`;
 
@@ -62,7 +65,7 @@ const resultTable = (r: SimulatorResult, lang: Lang): string => {
       row(s.dividendTax(p(RATES.dividendIncomeTax.value)), -r.dividendIncomeTaxCents, lang),
       row(s.net, r.netCents, lang, "total"),
     ];
-    return `<div class="table"><table><tbody>${rows.join("")}</tbody></table></div>`;
+    return `<div class="table calc"><table><tbody>${rows.join("")}</tbody></table></div>`;
   }
   const m = c.micro;
   const bnc = r.status === "micro-bnc";
@@ -81,7 +84,7 @@ const resultTable = (r: SimulatorResult, lang: Lang): string => {
     row(m.afterFlatTax, r.netAfterFlatTaxCents, lang, "total"),
   ];
   const ceiling = r.aboveCeiling ? `<p class="note">${e(m.ceiling(euros(RATES.microCeilingServices.value, lang)))}</p>` : "";
-  return `${ceiling}<div class="table"><table><tbody>${rows.join("")}</tbody></table></div>`;
+  return `${ceiling}<div class="table calc"><table><tbody>${rows.join("")}</tbody></table></div>`;
 };
 
 const describe = (input: SimulatorInput, lang: Lang, example: boolean): string => {
@@ -188,7 +191,7 @@ export const renderSimulatorPage = (o: SimulatorPageOptions): string => {
       assumptions(o.lang),
       ratesSection(o.lang),
       `<h2>${e(c.faqTitle)}</h2>`,
-      `<dl class="context">${faq.map((f) => `<div><dt>${e(f.q)}</dt><dd>${e(f.a)}</dd></div>`).join("")}</dl>`,
+      `<dl class="context faq">${faq.map((f) => `<div><dt>${e(f.q)}</dt><dd>${e(f.a)}</dd></div>`).join("")}</dl>`,
     ],
   });
 };

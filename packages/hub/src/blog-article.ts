@@ -47,7 +47,7 @@ const LABELS = {
 /** La lecture : mesure de 66 caractères, interlignage ouvert, titres en PS Display au lieu des libellés mono du hub. */
 const ARTICLE_STYLES =
   "main>.crumb{display:inline-flex;align-items:center;min-height:2.75rem}" +
-  ".head .title{margin-top:var(--ps-space-3)}.head .byline{margin-top:var(--ps-space-4)}.head .byline a{color:inherit}" +
+  ".head .title{margin-top:var(--ps-space-3)}.head .byline{margin-top:var(--ps-space-4)}.head .byline a{color:inherit;padding-block:.375rem}" +
   ".prose{max-width:var(--ps-measure);margin-top:var(--ps-space-7);line-height:1.7}" +
   ".prose h2{display:block;margin:var(--ps-space-8) 0 var(--ps-space-3);font:var(--ps-weight-display) var(--ps-step-2)/var(--ps-lead-2) var(--ps-font-display);letter-spacing:var(--ps-track-2);text-transform:none;color:var(--ps-text);scroll-margin-top:5rem}" +
   ".prose h2::before{content:none}" +

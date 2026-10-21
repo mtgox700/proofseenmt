@@ -99,7 +99,8 @@ export const invitationsFr = {
     expiredText: "Cette invitation a dépassé son délai sans réponse. Demandez à la personne qui vous a invité de recommencer.",
     closedTitle: "Invitation close",
     closedText: "Cette invitation a déjà reçu une réponse, ou a été retirée : un lien ne sert qu'une fois.",
-    mismatch: (masked: string) => `Aucune adresse vérifiée de votre compte n'est l'adresse invitée (${masked}). Connectez-vous avec cette adresse, ou ajoutez-la à votre compte et confirmez-la.`,
+    mismatch: (masked: string) =>
+      `Aucune adresse vérifiée de votre compte n'est l'adresse invitée${masked === "" ? "" : ` (${masked})`}. Connectez-vous avec cette adresse, ou ajoutez-la à votre compte et confirmez-la.`,
     self: "Vous ne pouvez pas accepter cette invitation : elle vient de vous, ou de votre propre entreprise.",
     acceptedTitle: "Invitation acceptée",
     acceptedText: {

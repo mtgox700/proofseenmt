@@ -1,7 +1,7 @@
 export * from "./schema";
 export * from "./build";
 export * from "./verify";
-export { escapeHtml, safeJsonLd } from "./html";
+export { escapeHtml, safeJsonLd, STYLES as PUBLIC_STYLES } from "./html";
 export { jobPosting, missionUrl, VALIDITY_DAYS, type PublicMission } from "./job-posting";
 export { jobSitemap, rateText, renderJobPage, type JobPageOptions } from "./job-page";
 export { renderJobIndex, SINCE_DAYS, type JobIndexCity, type JobIndexFilters, type SinceDays } from "./job-index";
@@ -23,6 +23,7 @@ export {
 } from "./profile-directory";
 export { AVATAR_TONES, avatarTone, monogram } from "./directory-cards";
 export {
+  anyVerifiedCard,
   MAX_CARD_TAGS,
   passageName,
   profileCardBody,
@@ -109,5 +110,7 @@ export {
 export { isLegalPage, legalDocument, legalUrl, renderLegalPage, type LegalDocument, type LegalPageOptions, type LegalSection } from "./legal-page";
 export { HOSTS, LEGAL_VERSION, LEGAL_VERSION_DATE, PUBLISHER, type Host } from "./legal-facts";
 export { PROCESSORS, type Processor } from "./legal-processors";
-export { LEGAL_LABELS, LEGAL_PAGES, marketFooter, publicMenu, type LegalPage, type MenuItem, type PublicMenu } from "./market-shell";
+export { LEGAL_LABELS, LEGAL_PAGES, marketFooter, marketHeader, publicMenu, type LegalPage, type MenuItem, type PublicMenu } from "./market-shell";
 export { pageHead, withBrand, type PageHeadOptions } from "./head";
+export { notFoundPage, statusLang, unavailablePage, type StatusPageOptions } from "./status-pages";
+export { frenchSpacing, typeset } from "./typography";

@@ -40,7 +40,10 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 
 /* ---------- Tags, used for states that are also written in words ---------- */
 .tag { display: inline-flex; align-items: center; gap: var(--ps-space-1); padding: 0.2rem 0.55rem; border: 1px solid currentColor; border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); white-space: nowrap; }
+/* Green only for a verified fact (BRAND_BOOK section 6). A finished step, an accepted status or a switch that is on
+   reads in ink: .tag-done. */
 .tag-proof { color: var(--ps-proof); background: var(--ps-proof-wash); }
+.tag-done { color: var(--ps-text); }
 .tag-signal { color: var(--ps-signal); background: var(--signal-wash); }
 .tag-quiet { color: var(--ps-muted); }
 

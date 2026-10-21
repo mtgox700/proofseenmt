@@ -6,7 +6,7 @@ export const en: Dictionary = {
   meta: {
     title: "Proofseen: proof of what a freelancer actually delivered",
     description:
-      "Tech freelance missions verified against evidence and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
+      "Tech freelance missions confirmed by their client or paid on Proofseen, and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
   },
   skip: "Skip to content",
   nav: {
@@ -25,7 +25,7 @@ export const en: Dictionary = {
   },
   hero: {
     title: "Proof of what a freelancer actually delivered.",
-    lead: "On Proofseen, a mission is marked verified only once a document has been checked, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
+    lead: "On Proofseen, a mission is marked verified only once its client confirms it or it is paid on the platform, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
     primary: "Get my visibility measured",
     secondary: "See the freelancers",
   },
@@ -67,8 +67,9 @@ export const en: Dictionary = {
     intro: "Here are five profiles that match your search:",
     masked: "name masked",
     rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    verdict: "You: not in this answer",
-    appear: "You appear",
+    // The replay is the founder's measure, not the visitor's: it names him, never "you".
+    verdict: "Our founder: not in this answer",
+    appear: "Our founder appears",
     interval: "Range of the true rate",
     times: "{hits} times out of {n}",
     same: "Same count on all three engines measured.",
@@ -101,15 +102,14 @@ export const en: Dictionary = {
     facts: {
       answers: { value: "780", label: "AI answers analysed, for $15.79 of measurement cost" },
       zero: { value: "0%", range: "[0%, 1.9%]", label: "citations of the founder, 95% range on each engine" },
-      sources: { label: "share of the citations observed, by domain" },
+      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
+      sources: {
+        label: "Share of the {total} citations found in the {answers} answers, by domain. Wave J0, 23 and 24 September 2026.",
+        count: "{hits} of {total} citations",
+      },
       silent: { value: "90.8%", label: "of Anthropic's answers consult no source at all: being seen depends on the engine" },
       agreement: { value: "20/20", label: "agreement between our API measures and the consumer apps" },
     },
-    shares: [
-      { domain: "malt.fr", value: "39%", width: 0.39 },
-      { domain: "linkedin.com", value: "26.5%", width: 0.265 },
-      { domain: "github.com", value: "2.9%", width: 0.029 },
-    ],
     source: "Wave J0, 23 and 24 September 2026. Protocol fixed before the measure, fingerprint 1bc9f85f. Raw answers deleted after analysis.",
     limits:
       "These figures describe one profile, these jobs, these engines, on this date. They do not predict your results. We publish them because a vendor that does not measure itself proves nothing.",
@@ -125,19 +125,14 @@ export const en: Dictionary = {
       "What you cannot change, said plainly instead of being sold.",
       "The model queried, the date, and the fingerprint of the protocol fixed before the measure.",
     ],
-    sampleCaption: "Screenshots of the real application, on our own measure. We show no client report: we do not have one yet.",
-    shotsLabel: "Application views",
-    shots: [
-      { key: "overview", label: "Overview", alt: "Freelancer space: the step that fails and the E1 to E5 path per engine, with the ranges." },
-      { key: "report", label: "Correction plan", alt: "Audit report: the correction plan, each action with its reason, place, effort and the figure behind it." },
-    ],
+    sampleCaption: "We show no client report: we do not have one yet.",
   },
   piece: {
-    kicker: "The evidence",
-    title: "A mission is verified against evidence, or not at all.",
-    lead: "The freelancer declares. A third party checks the evidence. Only then does the mission carry its mark, with its date.",
-    evidenceTitle: "What counts as evidence",
-    evidence: ["Invoice", "Contract", "Client attestation", "Repository access", "Public deliverable"],
+    kicker: "The proof",
+    title: "A mission is verified by a third party, or not at all.",
+    lead: "The freelancer declares. Their client confirms, or the mission is paid on Proofseen. Only then does it carry its mark, with its date.",
+    evidenceTitle: "What stays declared",
+    evidence: ["A mission with no confirmation and no payment", "Skills and day rate", "Anything that does not cite its source"],
     confirmTitle: "Who can confirm",
     confirm: ["The client, from their account", "A contact at the client, through a signed link, without an account", "Payment of the mission on Proofseen"],
     factsTitle: "The verified facts of a profile",
@@ -147,7 +142,7 @@ export const en: Dictionary = {
       "URSSAF vigilance certificate",
       "Paid on Proofseen by one or more companies",
     ],
-    rule: "We show how it was verified, never the document.",
+    rule: "Every verified mission says who confirmed it and when; the client's name appears only if they allowed it.",
     link: "See the published profiles",
     replay: "Replay the stamp",
     specimen: {
@@ -155,14 +150,14 @@ export const en: Dictionary = {
       role: "TypeScript lead developer",
       context: "SME · logistics · 6 months",
       summary: "Rebuild of the parcel tracking API and recovery of the test coverage.",
-      evidence: "Evidence: invoice",
-      stamp: "Verified on 12 October 2026 · invoice",
+      evidence: "Proof: the client confirmed from their account",
+      stamp: "Verified on 12 October 2026",
     },
   },
   companies: {
     title: "Hire freelancers whose missions are verified.",
-    text: "Pseudonymous profiles, missions checked against a document, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
-    points: ["Profile ownership proven", "Verification method shown, never the document", "Dated availability", "Identity shared once the freelancer agrees"],
+    text: "Pseudonymous profiles, missions confirmed by their client or paid on Proofseen, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
+    points: ["Profile ownership proven", "Verification method shown for every mission", "Dated availability", "Identity shared once the freelancer agrees"],
     cta: "See the freelancers",
     publish: "Post a mission",
   },
@@ -170,7 +165,7 @@ export const en: Dictionary = {
     label: "Where to start",
     freelance: {
       title: "You are a freelancer",
-      text: "Publish your missions, have your evidence checked, and find out whether an AI cites you when a recruiter asks it.",
+      text: "Publish your missions, have your clients confirm them, and find out whether an AI cites you when a recruiter asks it.",
       cta: "Get my visibility measured",
     },
     company: {
@@ -273,17 +268,8 @@ export const en: Dictionary = {
       { q: "What about my privacy?", a: "You prove that the profiles measured are yours. Raw answers are encrypted, then deleted after 72 hours." },
     ],
   },
+  // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {
-    line: "Proofseen measures your visibility in AI-assisted recruiting.",
-    legal: "Terms of sale, withdrawal and refunds: on the Order page.",
-    legalNav: {
-      label: "Legal information",
-      links: [
-        { href: "/en/mentions-legales", label: "Legal notice" },
-        { href: "/en/confidentialite", label: "Privacy" },
-        { href: "/en/conditions", label: "Terms of use" },
-      ],
-    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt and GitHub are trademarks of their owners. Proofseen is not affiliated with any of them.",
   },
   directory: {
@@ -360,7 +346,7 @@ export const en: Dictionary = {
       title: "Welcome. You are…",
       lead: "This choice decides your space. It cannot be changed on your own: write to us if you made a mistake.",
       freelance: { title: "A freelancer", text: "I want to know whether AI assistants find me when a recruiter searches, and fix what fails." },
-      company: { title: "A company", text: "I am looking for freelancers whose missions are verified against documents." },
+      company: { title: "A company", text: "I am looking for freelancers whose missions are confirmed by their clients." },
       choose: "Choose",
     },
     operator: {

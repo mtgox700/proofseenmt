@@ -12,7 +12,7 @@ import { escapeHtml as e } from "./html";
 
 export const LEDGER_STYLES = [
   // La feuille : une colonne sur un téléphone, une colonne et un rail à partir de 62 rem.
-  ".sheet{width:min(100% - 2*var(--ps-gutter),72rem);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
+  ".sheet{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
   ".sheet>*{min-width:0}",
   ".rail{display:grid;gap:var(--ps-space-3);align-content:start;margin-top:var(--ps-space-6);padding:var(--ps-space-5) 0;border-block:1px solid var(--ps-line)}",
   ".rail .cta{width:100%;min-height:3rem;margin:0;padding-block:var(--ps-space-2);white-space:normal;text-align:center;line-height:1.3}",
@@ -75,6 +75,15 @@ export const square = (verified: boolean): string => `<span class="pin${verified
 /** Une ligne de fait, le texte d'un seul tenant (une comparaison de chaînes sur le HTML décodé le retrouve). */
 export const factLine = (text: string, verified: boolean, tag: "p" | "li" = "p"): string =>
   `<${tag} class="vline${verified ? "" : " open"}">${square(verified)}<span>${e(text)}</span></${tag}>`;
+
+/**
+ * La clé de lecture d'une liste (revue Kensa, M5) : aucune sur une liste vide, où l'état vide suffit ; le carré vert
+ * seulement si un élément affiché porte un fait vérifié. Une page sans preuve n'a pas de vert.
+ */
+export const listLegend = (verified: string, open: string, shown: { readonly items: number; readonly anyVerified: boolean }): string =>
+  shown.items === 0
+    ? ""
+    : `<p class="legend">${shown.anyVerified ? `<span class="vline">${square(true)}${e(verified)}</span>` : ""}<span class="vline">${square(false)}${e(open)}</span></p>`;
 
 export interface Action {
   readonly text: string;

@@ -99,6 +99,7 @@ export const insightsEn: InsightsDictionary = {
     firstResponse: "Median response time",
     firstResponseValue: (days: number, decided: number) =>
       `${days < 1 ? "less than a day" : `${new Intl.NumberFormat("en-GB").format(days)} day${days === 1 ? "" : "s"}`} (${plural(decided, "decision", "decisions")})`,
+    firstResponseEmpty: "not computable",
     firstResponseNone: "No decision on the applications of the last 90 days.",
     firstResponseHint: "Between an application and your decision (shortlisted, declined or hired), for applications of the last 90 days.",
     published: "Missions published per month",

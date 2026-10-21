@@ -1,12 +1,20 @@
-import type { Dictionary } from "@/i18n";
+import { J0_CITATIONS, SHOWN_SHARES } from "@/data/j0-citations";
+import type { Dictionary, Lang } from "@/i18n";
+import { count, percent } from "@/lib/format";
 
 /*
  * The legend of the register, in figures (STORYBOARD b.2). Only the J0 figures approved by the founder appear here,
  * each with its source and its limit. Figures are written, never counted up from zero: a register has no spinning
- * digits. The source shares are drawn at their real length from the first paint.
+ * digits. The source shares are drawn at their real length from the first paint, and each one carries its raw count
+ * over the same total: a percentage alone lies by omission.
  */
-export function Study({ t }: { readonly t: Dictionary }) {
+
+const fill = (template: string, values: Readonly<Record<string, string>>): string =>
+  Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, value), template);
+
+export function Study({ lang, t }: { readonly lang: Lang; readonly t: Dictionary }) {
   const f = t.study.facts;
+  const total = count(J0_CITATIONS.total, lang);
   return (
     <section className="section study" id="mesure" aria-labelledby="study-title">
       <div className="wrap">
@@ -36,17 +44,22 @@ export function Study({ t }: { readonly t: Dictionary }) {
           </dl>
 
           <figure className="study-shares">
-            <figcaption className="muted small">{f.sources.label}</figcaption>
+            <figcaption className="muted small">{fill(f.sources.label, { total, answers: count(J0_CITATIONS.answers, lang) })}</figcaption>
             <ul>
-              {t.study.shares.map((share) => (
-                <li key={share.domain}>
-                  <code>{share.domain}</code>
-                  <span className="share-bar" aria-hidden="true">
-                    <span style={{ "--w": share.width } as React.CSSProperties} />
-                  </span>
-                  <b className="num">{share.value}</b>
-                </li>
-              ))}
+              {SHOWN_SHARES.map((domain) => {
+                const hits = J0_CITATIONS.platforms[domain];
+                const share = hits / J0_CITATIONS.total;
+                return (
+                  <li key={domain}>
+                    <code>{domain}</code>
+                    <span className="share-bar" aria-hidden="true">
+                      <span style={{ "--w": share } as React.CSSProperties} />
+                    </span>
+                    <b className="num">{percent(share, lang)}</b>
+                    <small className="share-count muted num">{fill(f.sources.count, { hits: count(hits, lang), total })}</small>
+                  </li>
+                );
+              })}
             </ul>
           </figure>
         </div>

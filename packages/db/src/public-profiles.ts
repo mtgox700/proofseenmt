@@ -93,6 +93,8 @@ export interface PublicProfilePage {
     /** Attestation de vigilance URSSAF vérifiée par un opérateur et en cours de validité : sa date d'échéance. */
     readonly vigilanceValidUntil: Date | null;
   };
+  /** La langue dans laquelle le freelance écrit (celle de son compte) : la page la déclare sur son titre et son résumé. */
+  readonly contentLang: "fr" | "en";
   /** Photo publiée (profil nominatif seulement) : identifiant du fichier, servi par la route des fichiers. */
   readonly photoFileId: string | null;
   /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
@@ -135,7 +137,7 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
         dailyRateCents: true,
         currency: true,
         updatedAt: true,
-        user: { select: { displayName: true } },
+        user: { select: { displayName: true, lang: true } },
         skills: { select: { skill: { select: { label: true } } } },
         ownedUrls: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: "asc" }, select: { url: true, proofMethod: true, verifiedAt: true, checkedAt: true } },
         missions: { orderBy: { verifiedAt: "desc" }, select: { role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true, clientName: true, confirmedByDomain: true } },
@@ -158,6 +160,8 @@ export const publicProfiles = (db: Db): PublicProfiles => ({
       displayName: publicName(row.visibility, row.user.displayName),
       headline: row.headline,
       summary: row.summary,
+      // La langue de la personne (celle de ses e-mails) : celle dans laquelle elle écrit son profil.
+      contentLang: row.user.lang === "en" ? "en" : "fr",
       city: row.city,
       workMode: row.workMode,
       availability: shownAvailability(row.availability, row.availabilityAt, now),

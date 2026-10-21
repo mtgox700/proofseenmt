@@ -39,7 +39,7 @@ export default async function SignUpPage({ params }: PageProps) {
           )}
         </div>
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

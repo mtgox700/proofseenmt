@@ -11,7 +11,7 @@
 .vis-step-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); }
 .vis-step-line b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .vis-bar { position: relative; display: block; height: 0.5rem; background: var(--ps-line); border-radius: 1px; overflow: hidden; }
-.vis-bar span { position: absolute; inset: 0 auto 0 0; width: var(--share, 0%); background: var(--ps-proof); }
+.vis-bar span { position: absolute; inset: 0 auto 0 0; width: var(--share, 0%); background: var(--ps-text); }
 .vis-step[data-step="cited"] .vis-bar span { background: var(--ps-signal); }
 .vis-range { font-size: var(--ps-step--2); color: var(--ps-muted); }
 .vis-legend { margin: 0; display: grid; gap: var(--ps-space-3) var(--ps-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
@@ -21,7 +21,7 @@
 
 /* ---------- Evolution ---------- */
 .vis-delta { font-variant-numeric: tabular-nums; font-weight: 600; }
-.vis-delta[data-sign="up"] { color: var(--ps-proof); }
+.vis-delta[data-sign="up"] { color: var(--ps-text); }
 .vis-delta[data-sign="down"] { color: var(--ps-signal); }
 
 /* ---------- Ordered steps and checklists ---------- */

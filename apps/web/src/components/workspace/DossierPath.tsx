@@ -13,7 +13,7 @@ export function DossierPath({ t, action }: { readonly t: Dictionary["space"]; re
           <div className="dossier-body">
             <p className="dossier-title">
               <strong>{t.steps[step.key].title}</strong>
-              <span className={step.state === "active" ? (step.actor === "client" ? "tag tag-signal" : "tag tag-proof") : "tag tag-quiet"}>
+              <span className={step.state === "active" ? (step.actor === "client" ? "tag tag-signal" : "tag tag-done") : "tag tag-quiet"}>
                 {step.state === "done" ? t.done : step.state === "blocked" ? t.blocked : step.state === "todo" ? t.todo : step.actor === "client" ? t.yours : t.ours}
               </span>
             </p>

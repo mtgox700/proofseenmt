@@ -45,13 +45,18 @@ const HEADER = [
   ".chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}",
   ".top{position:relative;z-index:var(--ps-z-header);background:var(--ps-bg);border-bottom:var(--ps-border) solid var(--ps-line);" +
     "padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}",
-  ".top .chrome{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:\"brand signup\" \"nav lang\";align-items:center;column-gap:var(--ps-space-3)}",
-  ".top.bare .chrome{grid-template-areas:\"brand lang\"}",
+  // Three columns on a phone: the language link takes its own width, not the sign-up button's, and leaves it to the menu.
+  ".top .chrome{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:\"brand signup signup\" \"nav nav lang\";align-items:center;column-gap:var(--ps-space-3)}",
+  ".top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:\"brand lang\"}",
   ".brand{grid-area:brand;justify-self:start;display:inline-flex;align-items:center;min-height:3.5rem;text-decoration:none}",
   ".brand img{display:block;width:auto;height:1.5rem}",
   ".top .signup{grid-area:signup}",
   ".nav{grid-area:nav;display:flex;align-items:center;gap:var(--ps-space-1);min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;" +
-    "margin-left:calc(-1*var(--ps-space-3));font-size:var(--ps-step--1)}",
+    "margin-left:calc(-1*var(--ps-space-3));font-size:var(--ps-step--1);" +
+    // On a phone the menu scrolls sideways: its right edge fades so the cut reads as "more", and the end padding lets
+    // the last link scroll fully out of the fade.
+    "padding-inline-end:var(--ps-space-4);-webkit-mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent);" +
+    "mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent)}",
   ".nav::-webkit-scrollbar{width:0;height:0}",
   ".nav a{display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);text-decoration:none;white-space:nowrap}",
   ".nav a[aria-current]{color:var(--ps-text);text-decoration:underline;text-decoration-thickness:var(--ps-ring);text-underline-offset:.5em}",
@@ -62,7 +67,7 @@ const HEADER = [
   "@media (min-width:64rem){.top{position:sticky;top:0}" +
     ".top .chrome{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:\"brand nav signup lang\";min-height:4rem}" +
     ".top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:\"brand lang\"}" +
-    ".nav{overflow:visible;margin-left:var(--ps-space-5)}}",
+    ".nav{overflow:visible;margin-left:var(--ps-space-5);padding-inline-end:0;-webkit-mask-image:none;mask-image:none}}",
 ];
 
 const FOOTER = [

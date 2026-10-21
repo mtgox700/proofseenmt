@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { SavedFiltersSchema } from "@proofseen/db";
 import { companyDirectoryQuery, companySearch } from "../src/lib/company-directory-filters";
-import { activeFilterCount, EMPTY_QUERY, savedFiltersOf, searchFilters, searchHref, searchParamsOf, searchQuery } from "../src/lib/freelancer-search";
+import { activeFilterCount, EMPTY_QUERY, savedFiltersOf, searchFilters, searchHref, searchParamsOf, searchQuery, SORT_SLUGS } from "../src/lib/freelancer-search";
 import { activeChips, clearedQuery } from "../src/lib/search-chips";
 
 const parse = (query: string) => searchQuery(new URLSearchParams(query));
 
 describe("company search address (C22): keywords, job title, facts, photo, portfolio, order", () => {
   it("reads the new filters and writes them back to the same query", () => {
-    const q = parse("q=%20migration%20%20cloud%20&poste=data-engineer&maintenant=1&missions=1&photo=on&realisations=1&tri=faits_verifies");
-    expect(q).toMatchObject({ text: "migration cloud", jobTitle: "data-engineer", availableNow: true, verifiedMissionsOnly: true, photoOnly: true, portfolioOnly: true, sort: "faits_verifies" });
+    const q = parse("q=%20migration%20%20cloud%20&poste=data-engineer&maintenant=1&missions=1&photo=on&realisations=1&tri=disponibilite");
+    expect(q).toMatchObject({ text: "migration cloud", jobTitle: "data-engineer", availableNow: true, verifiedMissionsOnly: true, photoOnly: true, portfolioOnly: true, sort: "disponibilite" });
     expect(searchQuery(searchParamsOf(q))).toEqual(q);
-    expect(searchFilters(q)).toMatchObject({ text: "migration cloud", jobTitle: "data-engineer", availableNow: true, verifiedMissionsOnly: true, photoOnly: true, portfolioOnly: true, sort: "verified_facts" });
+    expect(searchFilters(q)).toMatchObject({ text: "migration cloud", jobTitle: "data-engineer", availableNow: true, verifiedMissionsOnly: true, photoOnly: true, portfolioOnly: true, sort: "availability" });
   });
 
   it("drops an unknown job title, a too long text and unknown orders", () => {
@@ -19,6 +19,10 @@ describe("company search address (C22): keywords, job title, facts, photo, portf
     expect(parse(`q=${"x".repeat(201)}`).text).toBe("");
     expect(parse("tri=score").sort).toBe("recent");
     expect(parse("tri=pertinence").sort).toBe("recent");
+    // AI Act (Kensa M4): no order counts the proofs of a person; an old address falls back to the default order.
+    expect(parse("tri=faits_verifies").sort).toBe("recent");
+    expect(Object.values(SORT_SLUGS)).not.toContain("verified_facts");
+    expect(Object.keys(SORT_SLUGS).filter((slug) => /fait|preuve|verif|score|rang/i.test(slug))).toEqual([]);
     expect(searchFilters(EMPTY_QUERY)).not.toHaveProperty("text");
     expect(searchFilters(EMPTY_QUERY)).not.toHaveProperty("jobTitle");
   });
@@ -53,7 +57,7 @@ describe("active filter chips", () => {
 
 describe("saved search filters", () => {
   it("keeps the filters without order or page, in a form the repository accepts", () => {
-    const q = parse("q=go&competences=Rust&poste=devops-sre&ville=Nantes&dispo_avant=2026-11-15&photo=1&tri=faits_verifies&page=4");
+    const q = parse("q=go&competences=Rust&poste=devops-sre&ville=Nantes&dispo_avant=2026-11-15&photo=1&tri=disponibilite&page=4");
     const saved = savedFiltersOf(q);
     expect(saved).not.toHaveProperty("sort");
     expect(saved).not.toHaveProperty("page");

@@ -3,6 +3,7 @@ import { pageHead, withBrand } from "./head";
 import { isoDay, longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 import { renderMarkdown } from "./markdown";
 import { fileUrl } from "./profile-sections";
+import { typeset } from "./typography";
 
 /*
  * Page publique d'une publication de la communauté (C22) : un document HTML complet, sans JavaScript (seul le JSON-LD
@@ -193,40 +194,44 @@ export const renderPostPage = (p: PublicPostModel, o: { readonly baseUrl: string
   const dates =
     `<time datetime="${isoDay(p.createdAt)}">${e(l.on(longDate(p.createdAt, o.lang)))}</time>` +
     (p.editedAt === null ? "" : ` · <time datetime="${isoDay(p.editedAt)}">${e(l.edited(longDate(p.editedAt, o.lang)))}</time>`);
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(title), description: cut(text === "" ? l.title(p.author.name) : text, 160), canonical: url, type: "article" }),
-    `<link rel="alternate" hreflang="fr" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(postUrl(o.baseUrl, "en", p.id))}">`,
-    `<style>${STYLES}${POST_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(postJsonLd(p, o))}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, postUrl(o.baseUrl, other, p.id)),
-    '<main id="contenu" class="wrap">',
-    `<a class="crumb" href="/${o.lang}/freelances">${l.back}</a>`,
-    "<article>",
-    `<h1 class="title">${e(l.title(p.author.name))}</h1>`,
-    `<p class="byline">${l.by} ${authorLink(p.author, o.lang)} ${dates}</p>`,
-    p.body === "" ? "" : `<div class="post-body">${renderPostBody(p.body)}</div>`,
-    linkBlock(p.linkUrl, o.lang),
-    imageBlock(p.imageFileId, p.author.name, o),
-    sharedBlock(p, o),
-    `<p class="meta">${e(l.counts(total(p.counts.reactions), p.counts.comments, p.counts.shares))}</p>`,
-    "</article>",
-    `<section aria-labelledby="post-comments"><h2 id="post-comments">${l.comments}</h2>`,
-    p.comments.length === 0 ? `<p class="muted">${l.noComments}</p>` : `<ul class="comments">${p.comments.map((c) => commentItem(c, o.lang)).join("")}</ul>`,
-    "</section>",
-    `<p><a class="cta" href="${e(`/${o.lang}/app/fil/${p.id}`)}" rel="nofollow">${l.cta}</a></p>`,
-    `<p class="muted">${l.ctaHint}</p>`,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(title), description: cut(text === "" ? l.title(p.author.name) : text, 160), canonical: url, type: "article" }),
+      `<link rel="alternate" hreflang="fr" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(postUrl(o.baseUrl, "en", p.id))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
+      `<style>${STYLES}${POST_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(postJsonLd(p, o))}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, postUrl(o.baseUrl, other, p.id)),
+      '<main id="contenu" class="wrap">',
+      `<a class="crumb" href="/${o.lang}/freelances">${l.back}</a>`,
+      "<article>",
+      `<h1 class="title">${e(l.title(p.author.name))}</h1>`,
+      `<p class="byline">${l.by} ${authorLink(p.author, o.lang)} ${dates}</p>`,
+      p.body === "" ? "" : `<div class="post-body">${renderPostBody(p.body)}</div>`,
+      linkBlock(p.linkUrl, o.lang),
+      imageBlock(p.imageFileId, p.author.name, o),
+      sharedBlock(p, o),
+      `<p class="meta">${e(l.counts(total(p.counts.reactions), p.counts.comments, p.counts.shares))}</p>`,
+      "</article>",
+      `<section aria-labelledby="post-comments"><h2 id="post-comments">${l.comments}</h2>`,
+      p.comments.length === 0 ? `<p class="muted">${l.noComments}</p>` : `<ul class="comments">${p.comments.map((c) => commentItem(c, o.lang)).join("")}</ul>`,
+      "</section>",
+      `<p><a class="cta" href="${e(`/${o.lang}/app/fil/${p.id}`)}" rel="nofollow">${l.cta}</a></p>`,
+      `<p class="muted">${l.ctaHint}</p>`,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 /** Sitemap des publications publiques, dans les deux langues. */

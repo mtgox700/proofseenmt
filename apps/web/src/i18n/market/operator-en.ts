@@ -164,7 +164,7 @@ export const operatorEn: OperatorDictionary = {
     },
     medianHours: "Median hours to the first exchange",
     auditRequests: "Audit requests received",
-    none: "—",
+    none: "no data",
   },
   measurements: {
     title: "Visibility measurements",
@@ -187,6 +187,7 @@ export const operatorEn: OperatorDictionary = {
     from: "From",
     to: "Until",
     deletedAccount: "deleted account",
+    noReason: "no reason given",
     actions: {
       profile_hidden: "Profile hidden",
       profile_restored: "Profile restored",

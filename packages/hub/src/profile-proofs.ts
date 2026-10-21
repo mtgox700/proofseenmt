@@ -59,7 +59,7 @@ export interface ProofRegister {
 export const PROOF_LABELS = {
   fr: {
     title: "Ce qui est vérifié",
-    note: "Chaque ligne porte sa source, sa date et qui l'a vérifiée. Nous montrons la méthode de vérification, jamais le document.",
+    note: "Chaque ligne porte sa source, sa date et qui l'a vérifiée. Le nom du client n'apparaît que s'il l'a autorisé.",
     missions: "Missions vérifiées",
     addresses: "Adresses dont la possession est prouvée",
     facts: "Faits vérifiés",
@@ -93,10 +93,10 @@ export const PROOF_LABELS = {
     payingClients: (n: number) => (n === 1 ? "Payé sur Proofseen par 1 entreprise" : `Payé sur Proofseen par ${n} entreprises différentes`),
     payingSource: "Paiements versés sur Proofseen",
     proofseen: "Proofseen",
-    emptyTitle: "Aucune pièce vérifiée pour l'instant. Les informations de ce profil sont déclarées par le freelance.",
+    emptyTitle: "Aucun fait vérifié pour l'instant. Les informations de ce profil sont déclarées par le freelance.",
     emptyLead: "Peut apparaître ici, avec sa source, sa date et qui l'a vérifié :",
     emptyItems: [
-      "une mission confirmée par le client, payée sur Proofseen, ou vérifiée sur pièce : facture, contrat, attestation du client, accès au dépôt de code, livrable public",
+      "une mission confirmée par le client ou payée sur Proofseen",
       "une adresse web dont la possession est prouvée",
       "l'entreprise active au répertoire officiel des entreprises",
       "l'identité vérifiée par le prestataire de paiement",
@@ -104,11 +104,11 @@ export const PROOF_LABELS = {
     ],
     method: { href: "/methode/", label: "Comment nous vérifions" },
     tally: { missions: (n: number) => (n === 1 ? "1 mission vérifiée" : `${n} missions vérifiées`), addresses: (n: number) => (n === 1 ? "1 adresse prouvée" : `${n} adresses prouvées`), facts: (n: number) => (n === 1 ? "1 fait vérifié" : `${n} faits vérifiés`) },
-    tallyNone: "Aucune pièce vérifiée pour l'instant.",
+    tallyNone: "Aucun fait vérifié pour l'instant.",
   },
   en: {
     title: "What is verified",
-    note: "Each line carries its source, its date and who verified it. We show the verification method, never the document.",
+    note: "Each line carries its source, its date and who verified it. The client's name appears only if they allowed it.",
     missions: "Verified missions",
     addresses: "Addresses with proven ownership",
     facts: "Verified facts",
@@ -142,10 +142,10 @@ export const PROOF_LABELS = {
     payingClients: (n: number) => (n === 1 ? "Paid on Proofseen by 1 company" : `Paid on Proofseen by ${n} different companies`),
     payingSource: "Payments released on Proofseen",
     proofseen: "Proofseen",
-    emptyTitle: "No verified evidence yet. The information on this profile is declared by the freelancer.",
+    emptyTitle: "No verified fact yet. The information on this profile is declared by the freelancer.",
     emptyLead: "What can appear here, with its source, its date and who verified it:",
     emptyItems: [
-      "a mission confirmed by the client, paid on Proofseen, or verified on a document: invoice, contract, client attestation, repository access, public deliverable",
+      "a mission confirmed by the client or paid on Proofseen",
       "a web address whose ownership is proven",
       "a business active in the official French company register",
       "an identity verified by the payment provider",
@@ -153,7 +153,7 @@ export const PROOF_LABELS = {
     ],
     method: { href: "/en/method/", label: "How we verify" },
     tally: { missions: (n: number) => (n === 1 ? "1 verified mission" : `${n} verified missions`), addresses: (n: number) => (n === 1 ? "1 proven address" : `${n} proven addresses`), facts: (n: number) => (n === 1 ? "1 verified fact" : `${n} verified facts`) },
-    tallyNone: "No verified evidence yet.",
+    tallyNone: "No verified fact yet.",
   },
 } as const;
 

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import LandingPage, { generateMetadata } from "../src/app/[lang]/page";
+import { J0_CITATIONS, SHOWN_SHARES } from "../src/data/j0-citations";
 import { AnswersSnapshotSchema } from "../src/data/schema";
 import { en } from "../src/i18n/en";
 import { fr } from "../src/i18n/fr";
@@ -149,6 +150,78 @@ describe("the register of the 780 answers is server SVG, under budget", () => {
   it("offers the same tally as a table, and a filter that works without script", () => {
     expect(home.fr).toMatch(/<details class="rg-table"><summary>Lire le relevé en tableau<\/summary>/);
     expect((home.fr.match(/<input[^>]*type="radio"[^>]*name="rg-source"/g) ?? []).length).toBe(7);
+  });
+});
+
+describe("the simulator replays the founder's measure and says so (Kensa M1)", () => {
+  it.each([
+    ["fr", "Notre fondateur : absent de cette réponse", "Notre fondateur apparaît"],
+    ["en", "Our founder: not in this answer", "Our founder appears"],
+  ] as const)("%s: names the founder, never the visitor", (lang, verdict, appear) => {
+    const sim = visibleText(home[lang].match(/<figure class="sim"[\s\S]*?<\/figure>/)?.[0] ?? "");
+    expect(sim).toContain(verdict);
+    expect(sim).toContain(appear);
+    // "votre recherche" is the engine speaking to the recruiter; the reading of the count never says "you".
+    expect(sim).not.toMatch(/\bVous\s*:|\bVous apparaissez|\bYou\s*:|\bYou appear/);
+  });
+
+  it("reads the same sentence to a screen reader, with the colon of each language", () => {
+    expect(home.fr).toContain('<p class="sr-only">Notre fondateur apparaît 0 fois sur 200. Fourchette du taux réel : [');
+    expect(home.en).toContain('<p class="sr-only">Our founder appears 0 times out of 200. Range of the true rate: [');
+  });
+});
+
+describe("every citation share carries its raw count, its total and its wave (Kensa M2)", () => {
+  it.each([
+    ["fr", "Part des 2 328 citations relevées dans les 780 réponses, par domaine. Vague J0, 23 et 24 septembre 2026.", ["malt.fr 39 % 908 citations sur 2 328", "linkedin.com 26,5 % 618 citations sur 2 328", "github.com 2,9 % 67 citations sur 2 328"]],
+    ["en", "Share of the 2,328 citations found in the 780 answers, by domain. Wave J0, 23 and 24 September 2026.", ["malt.fr 39% 908 of 2,328 citations", "linkedin.com 26.5% 618 of 2,328 citations", "github.com 2.9% 67 of 2,328 citations"]],
+  ] as const)("%s: no share without its count", (lang, caption, rows) => {
+    const figure = home[lang].match(/<figure class="study-shares">[\s\S]*?<\/figure>/)?.[0] ?? "";
+    const text = visibleText(figure).trim();
+    expect(text).toContain(caption);
+    for (const row of rows) expect(text).toContain(row);
+    // As many raw counts as percentages: a share never stands alone.
+    expect((text.match(/%/g) ?? []).length).toBe(SHOWN_SHARES.length);
+  });
+
+  it("holds the fixed counts against the answers snapshot of the same wave", () => {
+    expect(snapshot.waveId).toBe("J0");
+    expect(J0_CITATIONS.answers).toBe(snapshot.answers.length);
+    // The other citations are kept per answer in the snapshot: they add up to the same number.
+    expect(snapshot.answers.reduce((sum, a) => sum + a.other, 0)).toBe(J0_CITATIONS.other);
+    const platforms = Object.values(J0_CITATIONS.platforms).reduce((a, b) => a + b, 0);
+    expect(platforms + J0_CITATIONS.other).toBe(J0_CITATIONS.total);
+    // Every platform cited in an answer is listed, and none is counted fewer times than the answers that cite it.
+    const answersCiting = new Map<string, number>();
+    for (const a of snapshot.answers) for (const d of a.domains) answersCiting.set(d, (answersCiting.get(d) ?? 0) + 1);
+    expect([...answersCiting.keys()].sort()).toEqual(Object.keys(J0_CITATIONS.platforms).sort());
+    for (const [domain, n] of answersCiting) expect(J0_CITATIONS.platforms[domain as keyof typeof J0_CITATIONS.platforms]).toBeGreaterThanOrEqual(n);
+  });
+});
+
+describe("the register never widens the page on a phone (Kensa B1)", () => {
+  // The first top-level rule of a selector (a rule inside a media query follows a "{", not a "}").
+  const rule = (selector: string): string => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`).exec(styles)?.[1] ?? "";
+  };
+
+  it("gives the opening grid and the register one track that may shrink below the table's width", () => {
+    // Without it the implicit track takes the min-content width of the open table (418 px), and the page scrolls at 375.
+    for (const grid of [".hero-grid", ".registre"]) {
+      expect(rule(grid), grid).toMatch(/display:\s*grid/);
+      expect(rule(grid), grid).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    }
+    expect(rule(".rg-table")).toMatch(/min-width:\s*0/);
+    expect(rule(".rg-scroll")).toMatch(/overflow-x:\s*auto/);
+    // The caption wraps at the width of the box (measured 2026-10-21 at 375 px: page 434 px wide before, 375 after).
+    expect(rule(".rg-scroll")).toMatch(/container-type:\s*inline-size/);
+    expect(rule(".rg-table caption")).toMatch(/max-width:\s*100cqi/);
+  });
+
+  it.each(["fr", "en"] as const)("%s: the scrolling table is a named region the keyboard can reach", (lang) => {
+    const t = lang === "fr" ? fr : en;
+    expect(home[lang]).toContain(`<div class="rg-scroll" role="region" tabindex="0" aria-label="${t.field.table.replace(/'/g, "&#x27;")}"><table>`);
   });
 });
 
