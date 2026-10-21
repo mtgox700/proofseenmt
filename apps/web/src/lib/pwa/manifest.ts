@@ -1,3 +1,4 @@
+import { ICONS, THEME_COLOR } from "@proofseen/brand";
 import { pwaEn } from "../../i18n/market/pwa-en";
 import { pwaFr, type PwaDictionary } from "../../i18n/market/pwa-fr";
 import type { Lang } from "../../i18n/types";
@@ -8,14 +9,15 @@ import type { Lang } from "../../i18n/types";
  * HTML for search engines and never reference it.
  */
 
-/** Mirrors --bg in styles/tokens.css: the manifest is read by the operating system, outside CSS. */
-export const PWA_BACKGROUND = "#070b14";
+/** The page background of the brand (dark, the brand theme): the manifest is read by the operating system, outside CSS. */
+export const PWA_BACKGROUND = THEME_COLOR.dark;
 
+/** The brand icons (packages/brand, public/brand/), and the monochrome notification badge drawn from the same poincon. */
 export const PWA_ICONS = {
-  any192: "/icons/icon-192.png",
-  any512: "/icons/icon-512.png",
-  maskable192: "/icons/maskable-192.png",
-  maskable512: "/icons/maskable-512.png",
+  any192: ICONS.any192,
+  any512: ICONS.any512,
+  maskable192: ICONS.maskable192,
+  maskable512: ICONS.maskable512,
   badge: "/icons/badge-96.png",
 } as const;
 

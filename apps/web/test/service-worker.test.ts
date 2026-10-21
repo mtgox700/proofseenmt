@@ -115,7 +115,7 @@ describe("versions", () => {
     const sw = boot();
     await sw.fire("install", {});
     await sw.fire("activate", {});
-    expect([...sw.stores.keys()].sort()).toEqual(["other-app", "proofseen-v1-shell"]);
+    expect([...sw.stores.keys()].sort()).toEqual(["other-app", "proofseen-v2-shell"]);
   });
 });
 
@@ -126,7 +126,7 @@ describe("push", () => {
     const sw = boot();
     await sw.fire("push", push({ title: "Proofseen", body: "Nouveau message dans une conversation.", url: "/fr/app/messages/abc", tag: "thread-abc", lang: "fr" }));
     expect(sw.shown).toEqual([
-      { title: "Proofseen", options: { body: "Nouveau message dans une conversation.", icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", lang: "fr", data: { url: "/fr/app/messages/abc" }, tag: "thread-abc" } },
+      { title: "Proofseen", options: { body: "Nouveau message dans une conversation.", icon: "/brand/icon-192.png", badge: "/icons/badge-96.png", lang: "fr", data: { url: "/fr/app/messages/abc" }, tag: "thread-abc" } },
     ]);
   });
 

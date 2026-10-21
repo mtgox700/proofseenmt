@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ICONS, PALETTE } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import config from "../next.config";
 import { manifestPath, PWA_BACKGROUND, PWA_ICONS, webAppManifest } from "../src/lib/pwa/manifest";
@@ -12,8 +13,6 @@ import { OFFLINE_PATH, offlinePage } from "../src/lib/pwa/offline-page";
  */
 
 const web = join(dirname(fileURLToPath(import.meta.url)), "..");
-const tokens = readFileSync(join(web, "src", "styles", "tokens.css"), "utf8");
-const token = (name: string): string => new RegExp(`--${name}:\\s*(#[0-9a-f]{6});`, "i").exec(tokens)?.[1] ?? "absent";
 
 /** Width and height of a PNG, from its IHDR chunk. */
 const pngSize = (file: string): readonly [number, number] => {
@@ -34,9 +33,9 @@ describe("web app manifest", () => {
     expect(webAppManifest("en").shortcuts.map((s) => s.name)).toEqual(["Messages", "Missions", "Notifications"]);
   });
 
-  it("takes its colours from the design tokens", () => {
-    expect(PWA_BACKGROUND).toBe(token("bg"));
-    expect(webAppManifest("fr")).toMatchObject({ theme_color: token("bg"), background_color: token("bg") });
+  it("takes its colours from the brand palette (dark, the brand theme)", () => {
+    expect(PWA_BACKGROUND).toBe(PALETTE.dark.bg);
+    expect(webAppManifest("fr")).toMatchObject({ theme_color: PALETTE.dark.bg, background_color: PALETTE.dark.bg });
   });
 
   it("lists icons that exist, at the size they claim, with a maskable pair", () => {
@@ -47,8 +46,9 @@ describe("web app manifest", () => {
       const [width, height] = pngSize(join(web, "public", icon.src));
       expect(`${width}x${height}`).toBe(icon.sizes);
     }
+    expect(m.icons.every((i) => i.src.startsWith("/brand/"))).toBe(true);
     expect(pngSize(join(web, "public", PWA_ICONS.badge))).toEqual([96, 96]);
-    expect(pngSize(join(web, "src", "app", "[lang]", "app", "apple-icon.png"))).toEqual([180, 180]);
+    expect(pngSize(join(web, "public", ICONS.apple))).toEqual([180, 180]);
   });
 });
 
@@ -63,9 +63,15 @@ describe("offline page", () => {
     expect(html).toContain('<meta name="robots" content="noindex">');
   });
 
-  it("mirrors the colours of the design tokens", () => {
+  it("writes the brand palette into the page, dark by default and light when the system asks", () => {
     const html = offlinePage();
-    for (const name of ["bg", "surface", "ink", "muted", "line", "proof", "on-proof"]) expect(html).toContain(`--${name}:${token(name)}`);
+    for (const name of ["bg", "surface", "text", "muted", "line"] as const) {
+      expect(html).toContain(`--ps-${name}:${PALETTE.dark[name]};`);
+      expect(html).toContain(`--ps-${name}:${PALETTE.light[name]};`);
+    }
+    expect(html).toContain(`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${PALETTE.dark.bg}">`);
+    // The way back is paper on ink, like every call to action: green is kept for what is verified.
+    expect(html).not.toContain(PALETTE.dark.proof);
   });
 });
 

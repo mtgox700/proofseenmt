@@ -12,11 +12,11 @@
  * Bump VERSION to drop every cache of the previous version on activation.
  */
 
-const VERSION = "proofseen-v1";
+const VERSION = "proofseen-v2";
 const SHELL_CACHE = VERSION + "-shell";
 const STATIC_CACHE = VERSION + "-static";
 const OFFLINE_URL = "/offline";
-const ICON = "/icons/icon-192.png";
+const ICON = "/brand/icon-192.png";
 const BADGE = "/icons/badge-96.png";
 const SHELL = [OFFLINE_URL, ICON, BADGE];
 const STATIC_LIMIT = 300;
