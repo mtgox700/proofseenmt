@@ -60,8 +60,7 @@ describe("brand tokens", () => {
 
   it("the phone menu fades at its right edge to show it scrolls, and drops the fade once it fits", () => {
     expect(CHROME_CSS).toMatch(/\.nav\{[^}]*overflow-x:auto[^}]*mask-image:linear-gradient\(to right/);
-    expect(CHROME_CSS).toMatch(/@media \(min-width:64rem\)\{[^
-]*\.nav\{[^}]*mask-image:none/);
+    expect(CHROME_CSS).toMatch(/@media \(min-width:64rem\)\{[^\n]*\.nav\{[^}]*mask-image:none/);
   });
 
   it("profile-card.css is exactly what src/profile-card.ts renders, under the same rules as the chrome", () => {
