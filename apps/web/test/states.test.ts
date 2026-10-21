@@ -138,12 +138,13 @@ describe("error", () => {
 });
 
 describe("loading", () => {
-  it("is declared where pages read data on the server, and not on the home page", () => {
-    for (const file of [["[lang]", "app", "loading.tsx"], ["[lang]", "espace", "[reference]", "loading.tsx"], ["[lang]", "confirmer-mission", "[id]", "loading.tsx"]]) {
-      expect(existsSync(join(app, ...file)), file.join("/")).toBe(true);
+  it("is never declared where a page can redirect or answer 404: a loading boundary would stream a 200 with a meta refresh", () => {
+    // Inside a loading boundary, redirect() and notFound() run after the response started: the visitor gets a 200 page
+    // that refreshes itself instead of a 307 or a 404. The connected space redirects signed-out, suspended and
+    // role-less accounts; the client space and the mission confirmation answer 404 to an unknown link.
+    for (const file of [["[lang]", "loading.tsx"], ["[lang]", "app", "loading.tsx"], ["[lang]", "espace", "[reference]", "loading.tsx"], ["[lang]", "confirmer-mission", "[id]", "loading.tsx"]]) {
+      expect(existsSync(join(app, ...file)), file.join("/")).toBe(false);
     }
-    // A loading boundary there would wrap the home page and every raw-HTML route of the segment.
-    expect(existsSync(join(app, "[lang]", "loading.tsx"))).toBe(false);
   });
 
   it.each(["fr", "en"] as const)("announces itself once, politely, in %s, and draws a fixed number of rows", (lang) => {

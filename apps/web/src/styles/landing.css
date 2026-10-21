@@ -232,7 +232,6 @@
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq details p { padding-bottom: var(--ps-space-4); max-width: 60ch; }
 
-.not-found { padding-block: var(--ps-space-8); display: grid; gap: var(--ps-space-4); }
 
 /* ---------- Order page ---------- */
 .order { padding-block: var(--ps-space-6) var(--ps-space-8); display: grid; gap: var(--ps-space-6); }
