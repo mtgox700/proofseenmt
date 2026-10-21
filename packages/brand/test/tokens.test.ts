@@ -58,6 +58,12 @@ describe("brand tokens", () => {
     for (const rule of CHROME_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
   });
 
+  it("the phone menu fades at its right edge to show it scrolls, and drops the fade once it fits", () => {
+    expect(CHROME_CSS).toMatch(/\.nav\{[^}]*overflow-x:auto[^}]*mask-image:linear-gradient\(to right/);
+    expect(CHROME_CSS).toMatch(/@media \(min-width:64rem\)\{[^
+]*\.nav\{[^}]*mask-image:none/);
+  });
+
   it("profile-card.css is exactly what src/profile-card.ts renders, under the same rules as the chrome", () => {
     expect(readFileSync(join(root, "packages", "brand", "profile-card.css"), "utf8")).toBe(renderProfileCardCss());
     expect(PROFILE_CARD_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
