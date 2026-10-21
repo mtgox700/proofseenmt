@@ -244,8 +244,15 @@ export const profileCardHtml = (c: ProfileCardView & { readonly slug: string }, 
   );
 };
 
-/** La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré. */
-export const profileCardLegend = (lang: Lang): string => {
+/**
+ * La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré.
+ * `proof: false` (revue Kensa, M5) : aucune carte affichée ne porte de fait vérifié, la clé n'a donc pas de vert.
+ */
+export const profileCardLegend = (lang: Lang, o: { readonly proof?: boolean } = {}): string => {
   const l = LABELS[lang];
-  return `<ul class="ps-legend" aria-label="${e(l.legend)}"><li class="k-proof">${l.legendProof}</li><li class="k-decl">${l.legendDeclared}</li></ul>`;
+  const proof = o.proof === false ? "" : `<li class="k-proof">${l.legendProof}</li>`;
+  return `<ul class="ps-legend" aria-label="${e(l.legend)}">${proof}<li class="k-decl">${l.legendDeclared}</li></ul>`;
 };
+
+/** Au moins une de ces cartes porte un fait vérifié (et donc un carré vert). */
+export const anyVerifiedCard = (cards: readonly ProfileCardView[]): boolean => cards.some((c) => verifiedLines(c, "fr").length > 0);

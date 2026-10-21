@@ -76,6 +76,15 @@ export const square = (verified: boolean): string => `<span class="pin${verified
 export const factLine = (text: string, verified: boolean, tag: "p" | "li" = "p"): string =>
   `<${tag} class="vline${verified ? "" : " open"}">${square(verified)}<span>${e(text)}</span></${tag}>`;
 
+/**
+ * La clé de lecture d'une liste (revue Kensa, M5) : aucune sur une liste vide, où l'état vide suffit ; le carré vert
+ * seulement si un élément affiché porte un fait vérifié. Une page sans preuve n'a pas de vert.
+ */
+export const listLegend = (verified: string, open: string, shown: { readonly items: number; readonly anyVerified: boolean }): string =>
+  shown.items === 0
+    ? ""
+    : `<p class="legend">${shown.anyVerified ? `<span class="vline">${square(true)}${e(verified)}</span>` : ""}<span class="vline">${square(false)}${e(open)}</span></p>`;
+
 export interface Action {
   readonly text: string;
   readonly href: string;

@@ -91,6 +91,19 @@ describe("lot e : le vert ne marque que le vérifié", () => {
     }
   });
 
+  it("une liste vide n'a pas de légende, une liste sans fait vérifié n'a pas de clé verte (revue Kensa, M5)", () => {
+    for (const name of ["index, nothing open", "index, filtered, EN", "directory, nobody"]) {
+      expect(PAGES[name], name).not.toContain('<p class="legend">');
+      expect(greenMarks(PAGES[name] ?? ""), name).toEqual([]);
+    }
+    const unchecked = renderJobIndex([UNCHECKED], { baseUrl: BASE, lang: "fr", filters: PLAIN, hasMore: false });
+    expect(greenMarks(unchecked)).toEqual([]);
+    expect(unchecked).toContain('<p class="legend"><span class="vline"><span class="pin open" aria-hidden="true"></span>activité au répertoire non confirmée</span></p>');
+    const companies = renderCompanyDirectory([{ ...CARD, registryActiveCheckedAt: null }], { baseUrl: BASE, lang: "fr", filters: NO_COMPANY_FILTERS, facets: FACETS, hasMore: false });
+    expect(greenMarks(companies)).toEqual([]);
+    expect(PAGES.index).toContain('<p class="legend"><span class="vline"><span class="pin" aria-hidden="true"></span>entreprise active au répertoire officiel, date du contrôle</span>');
+  });
+
   it("le délai de réponse et l'inscription, mesurés sur Proofseen, portent un carré neutre", () => {
     expect(PAGES.company).toContain('<span class="pin open" aria-hidden="true"></span><span>Répond aux candidatures en 2 jours');
     expect(PAGES.company).toContain('<span class="pin open" aria-hidden="true"></span><span>Inscrite sur Proofseen depuis le 1 septembre 2026.');

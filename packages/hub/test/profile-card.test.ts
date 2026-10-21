@@ -117,11 +117,18 @@ describe("une seule carte de profil", () => {
 
 describe("la légende et la règle du vert", () => {
   it("met la légende du registre sous le chapeau, une fois, dans les deux langues", () => {
-    const fr = directory([BARE]);
+    const fr = directory([PROVEN, BARE]);
     expect(fr).toContain('<ul class="ps-legend" aria-label="Légende des cartes"><li class="k-proof">vérifié par un tiers</li><li class="k-decl">déclaré par le freelance</li></ul>');
     expect(fr.match(/class="ps-legend"/g)?.length).toBe(1);
     expect(fr.indexOf('class="headline"')).toBeLessThan(fr.indexOf('class="ps-legend"'));
-    expect(directory([], NO_DIRECTORY_FILTERS, false, "en")).toContain('<li class="k-proof">verified by a third party</li>');
+    expect(directory([PROVEN], NO_DIRECTORY_FILTERS, false, "en")).toContain('<li class="k-proof">verified by a third party</li>');
+  });
+
+  it("n'affiche pas de clé verte sans carte verte, ni de légende sur une liste vide (revue Kensa, M5)", () => {
+    const bare = directory([BARE]);
+    expect(bare).toContain('<ul class="ps-legend" aria-label="Légende des cartes"><li class="k-decl">déclaré par le freelance</li></ul>');
+    expect(bare).not.toContain('<li class="k-proof">');
+    expect(directory([], NO_DIRECTORY_FILTERS, false, "en")).not.toContain('<ul class="ps-legend"');
   });
 
   it("ne pose le vert que sur un fait vérifié et sur sa clé de légende", () => {

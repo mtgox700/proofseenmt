@@ -3,7 +3,7 @@ import { DIRECTORY_FRAME_STYLES, linksUnder, nextLinks } from "./directory-cards
 import { pageHead, withBrand } from "./head";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { marketFooter, marketHeader, type Lang } from "./market-shell";
-import { PASSAGE_CSS, profileCardHtml, profileCardLegend, type ProfileCardView } from "./profile-card";
+import { anyVerifiedCard, PASSAGE_CSS, profileCardHtml, profileCardLegend, type ProfileCardView } from "./profile-card";
 import { activeFilters, directoryQueryString, FILTER_STYLES, filtersForm, type DirectoryFilters, type JobTitleOption } from "./profile-directory-filters";
 import { profileUrl } from "./profile-page";
 
@@ -176,7 +176,8 @@ export const renderProfileDirectory = (
     '<main id="contenu" class="wrap wide">',
     `<div class="dir-head"><h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
-    `${profileCardLegend(o.lang)}</div>`,
+    // Revue Kensa, M5 : aucune clé sur une liste vide ; le vert de la clé seulement si une carte affichée en porte.
+    `${items.length === 0 ? "" : profileCardLegend(o.lang, { proof: anyVerifiedCard(items) })}</div>`,
     '<div class="dir">',
     filtersForm(o.lang, f, jobTitles),
     '<section aria-labelledby="dir-results">',

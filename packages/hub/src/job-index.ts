@@ -4,7 +4,7 @@ import { marketFooter, marketHeader } from "./market-shell";
 import type { PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
 import { jobCard, JOB_CARD_STYLES } from "./job-card";
-import { blankState, LEDGER_STYLES, square, type Action } from "./ledger";
+import { blankState, LEDGER_STYLES, listLegend, type Action } from "./ledger";
 
 /*
  * Index public des missions ouvertes : la liste, et un formulaire de filtres envoyé en GET. Sans JavaScript, la
@@ -258,7 +258,7 @@ export const renderJobIndex = (
     '<main id="contenu" class="wrap wide">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
-    `<p class="legend"><span class="vline">${square(true)}${l.legendVerified}</span><span class="vline">${square(false)}${l.legendOpen}</span></p>`,
+    listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((m) => m.organisationRegistryActiveCheckedAt != null) }),
     nothingOpen
       ? blankState(l.none, l.noneWhy, actions(o.lang, l.noneActs))
       : `<div class="dir">${filterForm(f, o.lang)}<section aria-labelledby="resultats"><div class="res-head"><h2 id="resultats">${l.results}</h2><p class="trace">${l.order[f.sort]}</p></div>${list}</section></div>`,

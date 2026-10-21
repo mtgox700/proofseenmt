@@ -23,6 +23,7 @@ export {
 } from "./profile-directory";
 export { AVATAR_TONES, avatarTone, monogram } from "./directory-cards";
 export {
+  anyVerifiedCard,
   MAX_CARD_TAGS,
   passageName,
   profileCardBody,

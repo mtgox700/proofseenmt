@@ -2,7 +2,7 @@ import { companyUrl } from "./company-page";
 import { pageHead, withBrand } from "./head";
 import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { blankState, factLine, LEDGER_STYLES, square } from "./ledger";
+import { blankState, factLine, LEDGER_STYLES, listLegend } from "./ledger";
 import { longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 
 /*
@@ -258,7 +258,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     '<main id="contenu" class="wrap wide">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
-    `<p class="legend"><span class="vline">${square(true)}${l.legendVerified}</span><span class="vline">${square(false)}${l.legendOpen}</span></p>`,
+    listLegend(l.legendVerified, l.legendOpen, { items: items.length, anyVerified: items.some((c) => c.registryActiveCheckedAt !== null) }),
     // Aucune page publique du tout : pas de filtres à régler pour rien, l'état vide dit pourquoi et propose quoi faire.
     nobody ? '<div class="solo">' : '<div class="dir">',
     nobody ? "" : filtersForm(o.lang, f, o.facets, path),
