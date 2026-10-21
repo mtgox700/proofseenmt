@@ -1,4 +1,4 @@
-import { escapeHtml as e, STYLES } from "./html";
+import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { pageHead, withBrand } from "./head";
 import { marketFooter, marketHeader } from "./market-shell";
 import type { PublicMission } from "./job-posting";
@@ -228,6 +228,19 @@ export const renderJobIndex = (
       ? blankState(l.empty, l.emptyWhy, actions(o.lang, [[l.reset, "missions"]]))
       : `<ul class="entries missions">${items.map((m) => jobCard(m, o.lang)).join("")}</ul><nav class="pager">${pager}</nav>`;
 
+  // The page as a collection of the missions it lists, in the order shown: never a ranking of the companies.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: l.title,
+    url: `${o.baseUrl}/${o.lang}/missions`,
+    inLanguage: o.lang,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: items.length,
+      itemListElement: items.map((m, i) => ({ "@type": "ListItem", position: i + 1, url: `${o.baseUrl}/${o.lang}/missions/${encodeURIComponent(m.id)}` })),
+    },
+  };
   return [
     "<!doctype html>",
     `<html lang="${o.lang}">`,
@@ -238,6 +251,7 @@ export const renderJobIndex = (
     `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(`${o.baseUrl}/fr/missions`)}">`,
     `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${INDEX_STYLES}</style>`,
+    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, `/${other}/missions`, "missions"),

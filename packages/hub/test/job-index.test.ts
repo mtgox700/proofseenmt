@@ -24,7 +24,12 @@ const render = (filters: JobIndexFilters, hasMore = false, items = [MISSION]) =>
 describe("index public des missions", () => {
   it("se lit et se filtre sans JavaScript", () => {
     const html = render(PLAIN);
-    expect(html).not.toContain("<script");
+    // No script but the JSON-LD: the page as a collection of the missions it lists.
+    for (const [, attrs] of html.matchAll(/<script([^>]*)>/gi)) expect(attrs).toBe(' type="application/ld+json"');
+    const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "{}") as { "@type": string; mainEntity: { numberOfItems: number; itemListElement: Array<{ url: string }> } };
+    expect(ld["@type"]).toBe("CollectionPage");
+    expect(ld.mainEntity.numberOfItems).toBe(1);
+    expect(ld.mainEntity.itemListElement[0]?.url).toBe("https://proofseen.com/fr/missions/0199a1b2-0000-7000-8000-000000000001");
     expect(html).toContain('<form class="filters" method="get" action="/fr/missions">');
     expect(html).toContain('<a href="/fr/missions/0199a1b2-0000-7000-8000-000000000001">Développeur Rust</a>');
     expect(html).toContain("Lyon · Sur site");
