@@ -13,13 +13,21 @@ const config: NextConfig = {
   // Profile uploads (photo, portfolio image, CV of 5 MB at most) and message attachments (three of 5 MB at most, C15)
   // arrive through server actions, whose default body cap is 1 MB. Each file is checked again, by size and content,
   // before anything is stored.
-  experimental: { serverActions: { bodySizeLimit: "16mb" } },
+  // globalNotFound: an address outside /fr and /en has no root layout to render in; src/app/global-not-found.tsx
+  // answers it with the 404 of the brand instead of the default page of Next.
+  experimental: { serverActions: { bodySizeLimit: "16mb" }, globalNotFound: true },
   // PDF text extraction (CV import) runs the PDF.js build shipped by unpdf as is, outside the server bundle.
   serverExternalPackages: ["unpdf"],
   // Les paquets du monorepo sont publiés en TypeScript source : Next les compile avec l'application.
   transpilePackages: ["@proofseen/access", "@proofseen/brand", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
   async redirects() {
-    return [{ source: "/", destination: "/fr", permanent: false }];
+    return [
+      { source: "/", destination: "/fr", permanent: false },
+      // The barometer has two public pages and no index: its natural address leads to the first one, the day rates,
+      // which the sitemaps, llms.txt and the blog already list. The address itself is in no sitemap.
+      { source: "/:lang(fr|en)/barometre", destination: "/:lang/barometre/tjm", permanent: true },
+      { source: "/barometre", destination: "/fr/barometre/tjm", permanent: true },
+    ];
   },
   // Browsers and crawlers ask for /favicon.ico on their own: the brand icon answers, from its single copy.
   async rewrites() {
