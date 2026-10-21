@@ -9,8 +9,9 @@ import { logError } from "@/lib/log";
 
 /*
  * The freelancer's payout account: returns the payment provider's onboarding link, where they give their identity and
- * bank details to the provider directly — Proofseen never sees an IBAN. The account is created on first call; payouts
- * stay off until the provider confirms the account (`account.updated` webhook).
+ * bank details to the provider directly — Proofseen never sees an IBAN. The account is created on first call (Stripe
+ * Accounts v2, `recipient` configuration) and the link is a v2 Account Link; payouts stay off until Stripe reports the
+ * `stripe_transfers` capability active (read back on the billing page, before each release, and on account webhooks).
  *
  * Stripe sends the person back to the billing page (`?lang=en` keeps the English one): `versement=retour` when they
  * leave the form, `versement=expire` when the link went stale and a new one must be asked for.

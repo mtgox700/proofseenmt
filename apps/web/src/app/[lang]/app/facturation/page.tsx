@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { billingView, profiles, vigilance, type FreelanceIdentityView, type RegistryView } from "@proofseen/db";
+import { billingView, payments, profiles, vigilance, type FreelanceIdentityView, type RegistryView } from "@proofseen/db";
+import { gatewayFromEnv } from "@proofseen/payments";
 import { BillingForm } from "@/components/market/BillingForm";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { PayoutAccountButton } from "@/components/market/PayoutAccountButton";
@@ -9,6 +10,7 @@ import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { BillingDictionary } from "@/i18n/market/billing-fr";
 import { date, day } from "@/lib/format";
+import { logError } from "@/lib/log";
 import { currentOrganisation, pageMarket, type Market } from "@/lib/market";
 import { payoutState } from "@/lib/pay-section";
 import { declareVigilance, saveBilling } from "./actions";
@@ -116,6 +118,21 @@ async function Vigilance({ lang, b, market, code }: { readonly lang: Lang; reado
   );
 }
 
+/**
+ * Back from Stripe's onboarding (or any later visit while the account is opened but not ready): the account is read
+ * back from Stripe, since the return URL carries no state. Stripe is only asked while the screens are open and the
+ * account is still unconfirmed; a failure leaves the stored state on screen and the webhook catches up.
+ */
+async function confirmPayouts(market: Market): Promise<void> {
+  if (paymentsUi() === null) return;
+  try {
+    const gateway = gatewayFromEnv(process.env);
+    if (gateway !== null) await payments(market.db).confirmPayoutAccount(market.actor, gateway, new Date());
+  } catch (error) {
+    logError("payout account check failed", error);
+  }
+}
+
 /** The person's billing identity: their own as a freelancer, their company's as an owner or administrator. */
 export default async function BillingPage({ params, searchParams }: PageProps) {
   const { lang } = await params;
@@ -152,6 +169,7 @@ export default async function BillingPage({ params, searchParams }: PageProps) {
     );
   }
 
+  await confirmPayouts(market);
   const identity = await view.freelance(market.actor);
   return (
     <>
