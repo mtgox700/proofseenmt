@@ -1,6 +1,8 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // apps/web keeps `jsx: preserve` for Next; tests that render a React component need the JSX compiled here.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     pool: "forks",
     // End-to-end CLI tests write dozens of encrypted files; Windows + coverage instrumentation needs headroom.
