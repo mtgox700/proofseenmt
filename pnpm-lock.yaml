@@ -216,6 +216,8 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
 
+  packages/brand: {}
+
   packages/client-store:
     dependencies:
       '@proofseen/core':
