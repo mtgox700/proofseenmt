@@ -191,3 +191,116 @@ blanche sans marque, et le lien « Comment nous vérifions » ramène à l'ancie
 9. M6 conteneur unique aligné sur l'en-tête.
 10. M7 tirets cadratins de l'espace connecté.
 11. Mineurs m1 à m12, en commençant par m1 (pied unique) et m6 (espaces insécables).
+
+---
+
+# Seconde passe (2026-10-21, branche `origin/sprint/design-legends-polish`, head 86cf707)
+
+> Même méthode : HTML brut par curl sur 37 adresses (dont 11 adresses inconnues), Playwright Chromium 1208 à 1440 et
+> 375 (sombre, JS, sans JS, mouvement réduit), images figées de M1 et M2, transition M3 aller et retour, CSS servies
+> relues, code extrait de la branche. Scripts et captures : scratchpad `kensa/` (`h2/`, `shots2/`, `crops2/`).
+> Non compté, à la demande du coordinateur : la page `/fr/commande` affiche toujours 49 € et 490 € (noindex, liée de
+> nulle part depuis que la ligne du pied a disparu). Elle reste à trancher par le founder.
+
+## État des défauts de la première passe
+
+| Défaut | État | Preuve |
+|---|---|---|
+| B1 débordement du relevé à 375 | corrigé | `/fr`, `/en`, `/fr/freelances` et 4 autres, tous les `<details>` ouverts : `scrollWidth = 375` pour 375, 0 élément hors cadre. Le tableau défile dans sa boîte (`div.rg-scroll role="region" tabindex="0" aria-label="Lire le relevé en tableau"`, 343 sur 418 px). m9 corrigé du même coup. |
+| B2 404 brutes du hub | corrigé | 11 adresses inconnues (profil, mission, entreprise, article, métier, poste, ville, publication, en fr et en) : 404, 23 807 o, `lang` de la route, viewport, `noindex`, en-tête et pied de marque, « Aucune marque frappée ici », recherche GET vers `/<lang>/missions` (champ `q` lu par `job-index.ts:154`). Capture `kensa/shots2/_fr_profils_inconnu-375-dark.png`. |
+| B3 pages héritées | corrigé | `/methode/`, `/en/method/`, `/contact/`, `/en/contact/`, `/n/ayoub-hammoudi/`, `/p/FR-7H2XK/` (et versions en) : 0 occurrence de `#070b14` ou `#3fcf9c`, 0 tiret cadratin (titre et texte), en-tête, pied et typographie de la marque, bord gauche à 112. La méthode dit maintenant les deux voies réelles (confirmation du client, paiement sur Proofseen), le nom du client « publié que s'il l'a autorisé », et « Contrôlée sur pièce : pas encore proposé ». |
+| M1 « Vous » du simulateur | corrigé | fr : « Notre fondateur : absent de cette réponse », « Notre fondateur apparaît 0 fois sur 200 » ; en : « Our founder: not in this answer ». |
+| M2 parts sans effectif | corrigé | « malt.fr 39 % 908 citations sur 2 328 », « linkedin.com 26,5 % 618 », « github.com 2,9 % 67 », avec « Vague J0, 23 et 24 septembre 2026 ». Recalculé : 908/2 328 = 39,0 %, 618/2 328 = 26,5 %, 67/2 328 = 2,9 % ; somme des domaines de `apps/web/src/data/j0-citations.ts` (1 757) + autres (571) = 2 328, conforme à `TEAM_MEMORY.md:343`. |
+| M3 TypeScript caché sur la carte | corrigé | carte de `/fr/freelances` : TypeScript, Node.js, React, Kafka, PostgreSQL, Docker, +2 (ordre déclaré). |
+| M4 tri par nombre de faits vérifiés | corrigé | plus aucune trace de `verified_facts`, `faits_verifies`, `verifiedFactsOrder` hors commentaire dans `apps/web/src` et `packages/db/src`. |
+| M5 vert hors preuve | corrigé | CSS servies (4 feuilles React + 37 pages du hub) : `--ps-proof` n'est lu que par `.proof`, `.seal`, `.stamp`, `.sq`, `.proofline`, `.pin`, `.pcard .verified`, `.fc-proof`, `.k-proof`, `.specimen-*`, `.rg-you`, `.tag-proof` et les images clés de la frappe. Plus de carré vert de légende sur `/fr/missions`, `/fr/entreprises`, ni sur l'annuaire (seule reste « déclaré par le freelance »). |
+| M6 bords gauches | corrigé | 1440 : en-tête, `main`, H1 et pied à x=112 sur les 21 pages mesurées qui portent l'en-tête (`/offline` est autonome et centrée) ; seule exception voulue, le H1 de la fiche à x=256 à cause de la photo, le premier bloc restant à 112. |
+| M7 tirets cadratins de l'espace connecté | corrigé dans `apps/web` | 0 ligne non commentée avec U+2014 dans `apps/web/src`. Il en reste ailleurs, voir N5. |
+| m1 pied unique | corrigé | même pied sur React et hub ; ligne « page Commander » et ancienne phrase retirées. |
+| m5 `lang` de la fiche en anglais | corrigé | titre et résumé en `lang="fr"` sur `/en/profils/fr-rvvua`. |
+| m6 espaces insécables | partiel | hub : 0 espace ordinaire avant « : ; ? ! » sur 24 pages fr ; vitrine React `/fr` : 23 espaces ordinaires contre 2 U+202F. |
+| m7 cibles | corrigé | lien « CSV » du blog n'est plus sous 24 px ; « 6 sources » passe à 67x27. |
+| m4 opacité nulle et `CountUp` dans l'espace connecté | non corrigé | `workspace.css:156-157,173,203-204,237`, `app/[lang]/app/page.tsx:49`. |
+
+Moments signatures revérifiés : M1 (3 `rg-descend`, règle qui descend, aucune case ne change), M2 (`pc-trace` 640 ms,
+`pc-strike` 400 ms à 500 ms, `pc-ink` 240 ms à 780 ms, images figées à 0, 560 et 900 ms, capture
+`kensa/shots2/m2-strip.png`), M3 (`pagereveal.viewTransition` vrai à 1440 et 375, aller et retour, faux sous mouvement
+réduit). Sans JS et mouvement réduit : 0 animation, fil tracé, cartouche posé, règle posée. Hub : 0 script hors
+JSON-LD, 0 opacité nulle, `visibility:hidden` ou `font-size:0` sur les 37 pages. Aucun débordement à 375 sur 24 pages.
+
+## Défauts nouveaux ou restants après les correctifs
+
+### Majeurs (vérité : la décision du Shogun n'est pas appliquée partout)
+
+- **N1. Le spécimen anglais se contredit.** `/en`, section The proof : « Proof: client confirmation » puis le
+  cartouche « Verified on 12 October 2026 · invoice ». Source : `apps/web/src/i18n/en.ts:154`
+  (`stamp: "Verified on 12 October 2026 · invoice"`), alors que `fr.ts:158` dit « confirmée par le client ».
+  Correctif : `"Verified on 12 October 2026 · confirmed by the client"`, et un test qui compare la fin du cartouche
+  à la ligne « Proof » dans les deux langues.
+- **N2. L'annuaire promet encore une vérification sur pièce, dans les deux langues.** `/fr/freelances`, encart
+  « Comment un profil arrive ici » : « Ses pièces sont vérifiées une à une par un tiers, puis datées. » ;
+  `/en/freelances` : « Their documents are verified one by one by a third party, then dated. » Sources :
+  `packages/hub/src/profile-directory.ts:50` et `:79`. C'est faux depuis la décision du Shogun (aucune mission n'est
+  vérifiée sur pièce aujourd'hui) et c'est la page où un recruteur arrive en premier.
+  Correctif : « Ses missions sont vérifiées une à une, par la confirmation de son client ou par un paiement sur
+  Proofseen, puis datées. » / « Their missions are verified one by one, by their client's confirmation or a payment
+  on Proofseen, then dated. »
+- **N3. La carte anglaise parle de document.** `/en/freelances`, carte FR-RVVUA : « No verified document yet. »,
+  alors que la carte française dit « Pas encore de fait vérifié. ». Source : `packages/hub/src/profile-card.ts:98`.
+  Correctif : `"No verified fact yet."`
+
+### Mineurs
+
+- **N4.** Fiche profil, fr et en : « Nous montrons la méthode de vérification, jamais le document. » /
+  « We show the verification method, never the document. » (`packages/hub/src/profile-proofs.ts:62` et `:111`). Ce
+  n'est pas faux, mais cela laisse entendre qu'un document existe. Proposition : « Chaque ligne dit comment elle a été
+  vérifiée ; aucun document n'est publié. »
+- **N5.** Tirets cadratins encore présents dans des textes que les utilisateurs reçoivent, hors interface web :
+  rapport d'audit client `packages/deliverable/src/report.ts` (12 lignes, dont 77 et 90 : « Votre visibilité dans les
+  réponses des IA [U+2014] ... »), `plan.ts:152,165,179`, `document.ts:100,155` ; courriels
+  `packages/notify/src/confirmation-request.ts:68`, `invitation.ts:70`, `digest.ts:52`, `templates.ts:258` ; valeur
+  vide `packages/db/src/contract-view.ts:74`. Hors de la porte de l'interface, mais à purger avant le premier rapport
+  ou courriel envoyé. Les autres occurrences (`profiles/experiment.ts`, `audit.ts`, `stats/threearm.ts`,
+  `core/protocol.ts`, `extract/judge.ts`, `profiles/verify.ts`) sont des messages internes.
+- **N6.** Espaces avant la ponctuation double : la vitrine React garde 23 espaces ordinaires (« Une ligne par offre :
+  », « Notre fondateur : cité », « Preuve : confirmation »...) quand toutes les pages du hub sont passées en U+202F.
+  Appliquer la même fonction aux dictionnaires `fr.ts` au rendu.
+- **N7.** Pages statiques `/n/ayoub-hammoudi/` et `/p/FR-7H2XK/` : « Disponible » sans date de confirmation, figé au
+  « Mis à jour le 2026-09-24 » (format ISO, alors que tout le site écrit « 20 octobre 2026 ») ; la règle des 30 jours
+  de la marketplace ne s'y applique pas. **À trancher par le founder** : ces deux pages, et la fiche `FR-RVVUA`,
+  portent le même titre, le même résumé et les mêmes compétences que la page nominative ; le profil pseudonyme se
+  ré-identifie donc en une recherche, alors que `/contact/` affirme « L'identité réelle n'est jamais publiée ».
+  C'est le profil du founder lui-même, donc pas une fuite, mais la démonstration contredit la promesse.
+- **N8.** Titre des 404 du hub : « Cette page n'existe pas. · Proofseen » (point final suivi du séparateur) ; à 375,
+  le pied laisse un « · » orphelin en fin de ligne avant « Conditions d'utilisation ».
+- **N9.** Spécimen : « Preuve : confirmation du client » puis « Vérifiée le 12 octobre 2026 · confirmée par le
+  client » répète la même chose, et les deux blocs passent sur deux lignes à 1440. Proposition : « Preuve : client
+  (PME) » à gauche, cartouche inchangé.
+- **N10.** `/contact/` répète deux fois la même phrase « L'identité réelle n'est jamais publiée... » (corps et note
+  de pied).
+- Reste de la première passe : m4 (opacité nulle et `CountUp` dans l'espace connecté), m2 (deux catégories du registre
+  distinguées par le ton seul), m3 (poids RSC de la vitrine : 189 388 o), m11, m12 non revérifiés comme corrigés.
+
+## Non vérifié en seconde passe
+
+Lighthouse (non relancé) ; Safari et Firefox ; thème clair page par page ; parcours clavier complet et lecteur
+d'écran ; espace connecté en rendu (Clerk sur l'aperçu) ; M2 du hub sur une vraie mission vérifiée (aucune en base).
+
+## Verdict de la seconde passe : FAIL
+
+Les trois bloquants et les sept majeurs de la première passe sont corrigés et prouvés, et l'œuvre tient enfin debout
+sur téléphone, sans JS et dans une seule marque. Mais le serment de vérité casse encore à trois endroits publics
+(annuaire fr et en, spécimen en anglais, carte en anglais), qui promettent une vérification sur document que le
+produit ne fait pas : trois chaînes à corriger (`en.ts:154`, `profile-directory.ts:50,79`, `profile-card.ts:98`),
+puis la porte passe.
+
+## Correctifs, dans l'ordre
+
+1. N2 `packages/hub/src/profile-directory.ts:50,79`.
+2. N1 `apps/web/src/i18n/en.ts:154`.
+3. N3 `packages/hub/src/profile-card.ts:98`.
+4. Un test de vocabulaire sur tout le HTML servi qui refuse « pièce », « document », « invoice », « facture » hors de
+   la page de méthode et de la liste « pas encore proposé ».
+5. N4, N6, N8, N9, N10 (textes et typographie).
+6. N5 avant tout envoi de rapport ou de courriel.
+7. N7 : décision du founder sur les pages statiques et la pseudonymie.

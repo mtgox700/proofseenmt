@@ -18,8 +18,9 @@
 | Lot c, annuaire et carte unique, M3 | fusionné, PR #77 | `after-c/` |
 | Vague 7, Mamori | fait, tous budgets PASS sauf BP sur l'aperçu (127.0.0.1) | `.war-room/design/MAMORI_REPORT.md` |
 | Vague 7, Kensa | FAIL : 3 bloquants, 7 majeurs | `.war-room/design/KENSA_REVIEW.md` |
-| Correctifs vague 7 | en cours | branche `sprint/design-legends-polish` ; deux Tetsu sur `-polish-a` (React) et `-polish-b` (hub, `packages/profiles`) |
-| BEFORE_AFTER | fait, à rafraîchir après les correctifs | `.war-room/design/BEFORE_AFTER.md`, captures `after/` |
+| Correctifs vague 7 | faits, seconde passe de Kensa puis 3 phrases de vérité corrigées | branche `sprint/design-legends-polish` (avec `-polish-a` et `-polish-b` fusionnées) |
+| Verdict du Shogun | porte passée pour la surface publique, restes listés | `.war-room/design/VERDICT.md` |
+| BEFORE_AFTER | fait, captures et chiffres de l'arbre final | `.war-room/design/BEFORE_AFTER.md`, captures `after/` |
 
 ## Déjà corrigé sur la branche polish
 
@@ -42,7 +43,6 @@ l'ancienne interface retirées de la vitrine, JSON-LD de l'accueil et de l'index
 
 ## Suite immédiate
 
-1. Fusionner `-polish-a` et `-polish-b` dans `sprint/design-legends-polish`, gate complet sur le VPS, aperçu.
-2. Relancer Kensa sur les bloquants et majeurs, puis verdict du Shogun.
-3. Rafraîchir `after/` et `BEFORE_AFTER.md`, PR et fusion de la branche polish, résumé au founder.
-4. Après GO DEPLOY seulement : remesurer Lighthouse en production (bonnes pratiques attendues à 1).
+1. Fusionner la PR de `sprint/design-legends-polish` (gate vert : 271 fichiers, 2 613 tests).
+2. Attendre les décisions du founder listées dans `VERDICT.md` (page Commander, page nominative) et son GO DEPLOY.
+3. Après GO DEPLOY : déployer `main`, remesurer Lighthouse en production, vérifier sitemaps, llms.txt et JSON-LD en prod.

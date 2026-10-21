@@ -8,7 +8,7 @@
 
 | Page | Avant | Après | Ce qui a changé |
 |---|---|---|---|
-| Accueil, bureau | ![](before/desktop-01-accueil.png) | ![](after/desktop-01-accueil.png) | Vitrine refaite en bureau de garantie. Le relevé des 780 réponses est un SVG serveur de 2,5 Ko (avant : 214 Ko de données envoyées au navigateur). Plus de prix public. Page indexable, avec son JSON-LD. |
+| Accueil, bureau | ![](before/desktop-01-accueil.png) | ![](after/desktop-01-accueil.png) | Vitrine refaite en bureau de garantie. Elle dit ce qui vérifie une mission aujourd'hui : la confirmation du client ou le paiement sur Proofseen. Le relevé des 780 réponses est un SVG serveur de 2,5 Ko (avant : 214 Ko de données envoyées au navigateur). Plus de prix public. Page indexable, avec son JSON-LD. |
 | Accueil, téléphone | ![](before/mobile-01-accueil.png) | ![](after/mobile-01-accueil.png) | Même ordre de lecture ; menu sur sa propre largeur, qui s'estompe là où il défile. |
 | Annuaire des freelances | ![](before/desktop-02-annuaire-freelances.png) | ![](after/desktop-02-annuaire-freelances.png) | Devient le registre public : légende vérifié / déclaré, une seule carte profil pour le hub et l'appli, ordre par date de mise à jour, jamais par score. |
 | Annuaire, téléphone | ![](before/mobile-02-annuaire-freelances.png) | ![](after/mobile-02-annuaire-freelances.png) | Filtres dans un tiroir, cibles de 44 px. |
@@ -23,13 +23,13 @@
 
 ## Les chiffres
 
-Lighthouse mobile, 3 passages par page, mesuré sur le VPS contre l'aperçu (`MAMORI_REPORT.md`). Aucun Lighthouse n'a
+Lighthouse mobile, 3 passages par page, mesuré sur le VPS contre l'aperçu : accueil et profil sur l'arbre final de la branche polish, les autres pages par Mamori avant les correctifs de la vague 7 (`MAMORI_REPORT.md`). L'accueil touche le seuil de 0,95 sur un passage sur trois. Aucun Lighthouse n'a
 été mesuré avant la refonte : on compare donc les poids, mesurés des deux côtés.
 
 | Page | Perf | Accessibilité | Bonnes pratiques | SEO | LCP | CLS |
 |---|---|---|---|---|---|---|
-| Accueil | 0,96 à 0,98 | 1 | 0,96 (aperçu) | 1 | 2,3 à 2,7 s | 0 |
-| Profil | 0,99 à 1 | 1 | 0,93 (aperçu) | 1 | 1,3 s | 0 |
+| Accueil | 0,95 à 0,98 | 1 | 0,96 (aperçu) | 1 | 2,3 à 2,8 s | 0 |
+| Profil | 0,96 à 0,98 | 1 | 0,93 (aperçu) | 1 | 1,3 s | 0,0004 |
 | Freelances | 0,99 | 1 | 1 | 1 | 1,4 s | 0,001 |
 | Missions | 0,99 | 1 | 1 | 1 | 1,4 à 1,5 s | 0,0003 |
 | Baromètre | 1 | 1 | 1 | 1 | 1,3 s | 0 |
