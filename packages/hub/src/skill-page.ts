@@ -157,6 +157,7 @@ export const renderSkillPage = (s: SkillPageView, o: { readonly baseUrl: string;
     ...pageHead({ lang: o.lang, title: withBrand(title), description: l.lead(s.facts.missionCount, s.facts.profileCount), canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
     `<link rel="alternate" hreflang="en" href="${e(skillUrl(o.baseUrl, "en", s.key))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
     `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",

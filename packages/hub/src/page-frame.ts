@@ -26,6 +26,12 @@ export interface FrameOptions {
   readonly main: readonly string[];
 }
 
+/** Une page qui existe dans les deux langues désigne la française pour les autres lecteurs (x-default). */
+const withDefault = (alternates: Readonly<Partial<Record<Lang, string>>>): ReadonlyArray<readonly [string, string]> => {
+  const pairs = Object.entries(alternates).filter((pair): pair is [string, string] => pair[1] !== undefined);
+  return alternates.fr !== undefined && alternates.en !== undefined ? [...pairs, ["x-default", alternates.fr]] : pairs;
+};
+
 /** Styles partagés : le texte d'un article et les tableaux des baromètres. */
 export const READING_STYLES =
   ".prose{max-width:44rem;margin-top:2.4rem}.prose h2{margin:2.6rem 0 1rem}.prose h3{margin:2rem 0 .8rem}" +
@@ -56,7 +62,7 @@ export const renderFrame = (o: FrameOptions): string =>
     "<head>",
     ...pageHead({ lang: o.lang, title: withBrand(o.title), description: o.description, canonical: o.canonical }),
     ...(o.noindex === true ? ['<meta name="robots" content="noindex, follow">'] : []),
-    ...Object.entries(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
+    ...withDefault(o.alternates ?? {}).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${e(href)}">`),
     ...(o.extraHead ?? []),
     `<style>${STYLES}${READING_STYLES}${o.styles ?? ""}</style>`,
     `<script type="application/ld+json">${safeJsonLd(o.jsonLd)}</script>`,

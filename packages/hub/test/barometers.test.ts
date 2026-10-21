@@ -34,6 +34,7 @@ describe("baromètre des TJM", () => {
     expect(html).toContain("aucun groupe de moins de 10 valeurs n'est publié");
     expect(scripts(html).every((attrs) => /application\/ld\+json/.test(attrs))).toBe(true);
     expect(html).toContain('<link rel="canonical" href="https://proofseen.com/fr/barometre/tjm">');
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://proofseen.com/fr/barometre/tjm">');
   });
 
   it("publie chaque groupe avec n, médiane et quartiles, la méthode et la date", () => {

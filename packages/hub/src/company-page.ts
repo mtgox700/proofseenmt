@@ -172,6 +172,7 @@ export const renderCompanyPage = (c: CompanyPageModel, o: { readonly baseUrl: st
     ...pageHead({ lang: o.lang, title: withBrand(c.name), description: `${c.name} · ${lead}`.slice(0, 160), canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(companyUrl(o.baseUrl, "en", c.slug))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
     `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${COMPANY_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(companyJsonLd(c, o))}</script>`,
     "</head>",

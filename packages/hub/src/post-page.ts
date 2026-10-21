@@ -200,6 +200,7 @@ export const renderPostPage = (p: PublicPostModel, o: { readonly baseUrl: string
     ...pageHead({ lang: o.lang, title: withBrand(title), description: cut(text === "" ? l.title(p.author.name) : text, 160), canonical: url, type: "article" }),
     `<link rel="alternate" hreflang="fr" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
     `<link rel="alternate" hreflang="en" href="${e(postUrl(o.baseUrl, "en", p.id))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
     `<style>${STYLES}${POST_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(postJsonLd(p, o))}</script>`,
     "</head>",

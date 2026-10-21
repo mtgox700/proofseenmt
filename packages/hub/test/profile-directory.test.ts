@@ -91,6 +91,7 @@ describe("annuaire public des freelances", () => {
     const bare = render();
     expect(bare).toContain('<link rel="canonical" href="https://proofseen.com/fr/freelances">');
     expect(bare).toContain('<link rel="alternate" hreflang="en" href="https://proofseen.com/en/freelances">');
+    expect(bare).toContain('<link rel="alternate" hreflang="x-default" href="https://proofseen.com/fr/freelances">');
     expect(bare).not.toContain("noindex");
     expect(bare).toContain('<details class="drawer"><summary>');
     const filtered = render({ ...NO_DIRECTORY_FILTERS, skills: ["Rust"], city: "Lyon", workModes: ["remote"], jobTitle: "data-engineer", availableNow: true, verifiedMissionsOnly: true });

@@ -236,6 +236,7 @@ export const renderJobIndex = (
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(`${o.baseUrl}/fr/missions`)}">`,
     `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(`${o.baseUrl}/fr/missions`)}">`,
     `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${INDEX_STYLES}</style>`,
     "</head>",
     "<body>",

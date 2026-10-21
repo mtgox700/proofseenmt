@@ -167,6 +167,7 @@ export const renderProfileDirectory = (
     filtered || f.page > 1 ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(directoryUrl(base, "fr"))}">`,
     `<style>${STYLES}${DIRECTORY_FRAME_STYLES}\n${PROFILE_CARD_CSS}\n${FILTER_STYLES}\n${PAGE_STYLES}\n${PASSAGE_CSS}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",

@@ -249,6 +249,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(companyDirectoryUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(companyDirectoryUrl(base, "en"))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(companyDirectoryUrl(base, "fr"))}">`,
     `<style>${STYLES}${DIRECTORY_STYLES}${LEDGER_STYLES}${COMPANY_DIRECTORY_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",

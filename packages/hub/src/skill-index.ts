@@ -67,6 +67,7 @@ export const renderSkillIndex = (entries: readonly SkillIndexItem[], o: { readon
     ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: skillIndexUrl(base, o.lang) }),
     `<link rel="alternate" hreflang="fr" href="${e(skillIndexUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(skillIndexUrl(base, "en"))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(skillIndexUrl(base, "fr"))}">`,
     `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",

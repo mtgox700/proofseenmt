@@ -113,6 +113,7 @@ export const renderCityPage = (c: CityPageView, o: { readonly baseUrl: string; r
     ...pageHead({ lang: o.lang, title: withBrand(title), description: lead, canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
     `<link rel="alternate" hreflang="en" href="${e(cityUrl(o.baseUrl, "en", c.key))}">`,
+    `<link rel="alternate" hreflang="x-default" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
     `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
