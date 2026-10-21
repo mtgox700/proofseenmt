@@ -1,7 +1,7 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { pageHead, withBrand } from "./head";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
 
 /*
@@ -154,21 +154,15 @@ export const renderSkillPage = (s: SkillPageView, o: { readonly baseUrl: string;
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(title)} — Proofseen</title>`,
-    `<meta name="description" content="${e(l.lead(s.facts.missionCount, s.facts.profileCount))}">`,
-    `<link rel="canonical" href="${e(url)}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(title), description: l.lead(s.facts.missionCount, s.facts.profileCount), canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(skillUrl(o.baseUrl, "fr", s.key))}">`,
     `<link rel="alternate" hreflang="en" href="${e(skillUrl(o.baseUrl, "en", s.key))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, skillUrl(o.baseUrl, other, s.key)),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<h1 class="title">${e(title)}</h1>`,
     `<p class="headline">${e(l.lead(s.facts.missionCount, s.facts.profileCount))}</p>`,
     `<h2>${l.facts}</h2>`,

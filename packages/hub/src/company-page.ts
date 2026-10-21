@@ -1,7 +1,7 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { pageHead, withBrand } from "./head";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
 
 /*
@@ -142,21 +142,15 @@ export const renderCompanyPage = (c: CompanyPageModel, o: { readonly baseUrl: st
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(c.name)} — Proofseen</title>`,
-    `<meta name="description" content="${e(`${c.name} · ${lead}`.slice(0, 160))}">`,
-    `<link rel="canonical" href="${e(url)}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(c.name), description: `${c.name} · ${lead}`.slice(0, 160), canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(companyUrl(o.baseUrl, "en", c.slug))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(companyJsonLd(c, o))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, companyUrl(o.baseUrl, other, c.slug)),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<a class="crumb" href="/${o.lang}/missions">← ${l.all}</a>`,
     `<h1 class="title">${e(c.name)}</h1>`,
     `<p class="headline">${e(lead)}</p>`,

@@ -40,9 +40,9 @@ const COPY = {
 
 const STYLES =
   ".legal h2{margin-top:3rem}.legal section{scroll-margin-top:1rem}" +
-  ".legal .version{margin-top:.8rem;font:500 .85rem/1.3 var(--mono);color:var(--muted)}" +
+  ".legal .version{margin-top:.8rem;font:500 var(--ps-step--1)/1.3 var(--ps-font-mono);color:var(--ps-muted)}" +
   ".legal dl{display:grid;grid-template-columns:minmax(9rem,max-content) 1fr;gap:.4rem 1.2rem;margin:0 0 1.1rem}" +
-  ".legal dt{color:var(--muted)}.legal dd{margin:0}" +
+  ".legal dt{color:var(--ps-muted)}.legal dd{margin:0}" +
   "@media (max-width:40rem){.legal dl{grid-template-columns:1fr}.legal dd{margin-bottom:.5rem}}";
 
 export const legalUrl = (baseUrl: string, lang: Lang, page: LegalPage): string => `${baseUrl}/${lang}/${page}`;

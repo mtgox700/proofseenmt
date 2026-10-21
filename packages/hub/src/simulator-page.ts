@@ -17,12 +17,12 @@ export const simulatorUrl = (baseUrl: string, lang: Lang): string => `${baseUrl.
 const STYLES =
   ".sim{display:grid;gap:1rem;max-width:36rem;margin-top:1rem}" +
   ".sim label{display:grid;gap:.35rem;font-weight:500}" +
-  ".sim input,.sim select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--strong);border-radius:10px;padding:.6rem .8rem;min-height:2.75rem;width:100%}" +
-  ".sim input:focus-visible,.sim select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}" +
-  ".sim .hint{font-size:.88rem;color:var(--muted);font-weight:400}" +
-  ".sim [aria-invalid]{border-color:var(--warn)}.sim .bad{color:var(--warn)}" +
-  ".sim button{justify-self:start;font:600 1rem/1 var(--sans);padding:.85rem 1.4rem;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer}" +
-  "tr.total th,tr.total td{font-weight:600;color:var(--ink)}tr.option th{color:var(--accent);padding-top:1.2rem}";
+  ".sim input,.sim select{font:inherit;font-size:max(16px,var(--ps-step-0));color:var(--ps-text);background:var(--ps-surface);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius);padding:.6rem .8rem;min-height:2.75rem;width:100%}" +
+  ".sim input:focus-visible,.sim select:focus-visible{outline:2px solid var(--ps-focus);outline-offset:2px}" +
+  ".sim .hint{font-size:var(--ps-step--1);color:var(--ps-muted);font-weight:400}" +
+  ".sim [aria-invalid]{border-color:var(--ps-signal)}.sim .bad{color:var(--ps-signal)}" +
+  ".sim button{justify-self:start}" +
+  "tr.total th,tr.total td{font-weight:600;color:var(--ps-text)}tr.option th{color:var(--ps-text);padding-top:1.2rem}";
 
 const option = (value: string, label: string, selected: boolean): string => `<option value="${e(value)}"${selected ? " selected" : ""}>${e(label)}</option>`;
 
@@ -38,7 +38,7 @@ const form = (lang: Lang, typed: Readonly<Record<SimulatorField, string>>, bad: 
     number("jours", 1, LIMITS.daysMax),
     `<label for="f-statut">${e(c.fields.statut)}<select id="f-statut" name="statut" aria-describedby="hint-statut"${invalid("statut")}>${SIMULATOR_STATUSES.map((s) => option(s, c.statuses[s], typed.statut === s)).join("")}</select>${hint("statut")}</label>`,
     number("frais", 0, LIMITS.expensesMax),
-    `<button type="submit">${e(c.submit)}</button>`,
+    `<button class="btn btn-primary" type="submit">${e(c.submit)}</button>`,
     "</form>",
   ].join("");
 };

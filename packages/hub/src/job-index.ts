@@ -1,6 +1,6 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, STYLES } from "./html";
-import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
+import { pageHead, withBrand } from "./head";
+import { marketFooter, marketHeader } from "./market-shell";
 import { rateText } from "./job-page";
 import type { PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
@@ -92,14 +92,13 @@ const LABELS = {
 } as const;
 
 const FORM_STYLES =
-  ".filters{display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:end;margin:2rem 0;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}" +
-  ".filters label{display:grid;gap:.3rem;font:500 .8rem/1.2 var(--mono);color:var(--muted)}" +
-  ".filters input,.filters select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--strong);border-radius:8px;padding:.45rem .6rem}" +
+  ".filters{display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:end;margin:2rem 0;padding:1rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-surface)}" +
+  ".filters label{display:grid;gap:.3rem;font:500 var(--ps-step--2)/1.2 var(--ps-font-mono);color:var(--ps-muted)}" +
+  ".filters input,.filters select{font:inherit;font-size:max(16px,var(--ps-step-0));min-height:2.75rem;color:var(--ps-text);background:var(--ps-bg);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius);padding:.45rem .6rem}" +
   ".filters input[type=number]{width:8rem}" +
   ".filters fieldset{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:center}" +
-  ".filters legend{padding:0;margin-bottom:.3rem;font:500 .8rem/1.2 var(--mono);color:var(--muted)}" +
-  ".filters fieldset label{display:flex;gap:.35rem;align-items:center;font:inherit;color:var(--ink)}" +
-  ".filters button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:.55rem 1rem;background:var(--accent);color:var(--on-accent)}" +
+  ".filters legend{padding:0;margin-bottom:.3rem;font:500 var(--ps-step--2)/1.2 var(--ps-font-mono);color:var(--ps-muted)}" +
+  ".filters fieldset label{display:flex;gap:.35rem;align-items:center;font:inherit;color:var(--ps-text)}" +
   ".pager{display:flex;justify-content:space-between;margin-top:2rem}";
 
 const amount = (value: number | null | undefined): string => (value === null || value === undefined ? "" : String(value));
@@ -153,7 +152,7 @@ const filterForm = (f: JobIndexFilters, lang: Lang): string => {
     `<label>${l.duration}<input type="number" name="dureeMax" min="1" max="600" step="1" value="${e(amount(f.maxDuration))}"></label>` +
     `<label>${l.since}<select name="depuis">${sinces}</select></label>` +
     `<label>${l.sort}<select name="tri">${sorts}</select></label>` +
-    `<button type="submit">${l.search}</button></form>`
+    `<button class="btn btn-primary" type="submit">${l.search}</button></form>`
   );
 };
 
@@ -182,21 +181,15 @@ export const renderJobIndex = (
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${l.title} — Proofseen</title>`,
-    `<meta name="description" content="${e(l.lead)}">`,
-    `<link rel="canonical" href="${e(`${o.baseUrl}/${o.lang}/missions`)}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: `${o.baseUrl}/${o.lang}/missions` }),
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(`${o.baseUrl}/fr/missions`)}">`,
     `<link rel="alternate" hreflang="en" href="${e(`${o.baseUrl}/en/missions`)}">`,
-    `<style>${STYLES}${MENU_STYLES}${FORM_STYLES}</style>`,
+    `<style>${STYLES}${FORM_STYLES}</style>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, `/${other}/missions`, "missions"),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
     filterForm(f, o.lang),

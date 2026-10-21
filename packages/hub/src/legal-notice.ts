@@ -24,7 +24,7 @@ const publisher = (lang: Lang): string => {
           ["Dénomination", `${PUBLISHER.name} (marque ${PUBLISHER.brand})`],
           ["Forme", PUBLISHER.form.fr],
           ["Siège social", PUBLISHER.address],
-          ["Immatriculation", `${PUBLISHER.registry.fr} — SIREN ${PUBLISHER.siren}`],
+          ["Immatriculation", `${PUBLISHER.registry.fr} · SIREN ${PUBLISHER.siren}`],
           ["TVA intracommunautaire", PUBLISHER.vat],
           ["Code APE", PUBLISHER.ape],
         ]
@@ -32,7 +32,7 @@ const publisher = (lang: Lang): string => {
           ["Company", `${PUBLISHER.name} (brand ${PUBLISHER.brand})`],
           ["Legal form", PUBLISHER.form.en],
           ["Registered office", PUBLISHER.address],
-          ["Registration", `${PUBLISHER.registry.en} — SIREN ${PUBLISHER.siren}`],
+          ["Registration", `${PUBLISHER.registry.en} · SIREN ${PUBLISHER.siren}`],
           ["EU VAT number", PUBLISHER.vat],
           ["APE code", PUBLISHER.ape],
         ];

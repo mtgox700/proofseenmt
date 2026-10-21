@@ -56,7 +56,9 @@ describe("page publique d'une mission", () => {
 
   it("échappe tout texte venu de l'entreprise", () => {
     const html = renderJobPage({ ...MISSION, title: '<img src=x onerror="alert(1)">', organisationName: "A&B", description: "<script>alert(1)</script>" }, OPTIONS);
-    expect(html).not.toContain("<img");
+    // The header carries the brand lockup as an <img>: what must never appear is the image injected by the company.
+    expect(html).not.toContain("<img src=x");
+    expect(html).toContain("&lt;img src=x");
     expect(html).not.toContain("<script>alert");
     expect(html).toContain("A&amp;B");
     expect(jsonLdOf(html)).toMatchObject({ title: '<img src=x onerror="alert(1)">' });

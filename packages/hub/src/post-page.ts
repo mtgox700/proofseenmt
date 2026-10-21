@@ -1,7 +1,7 @@
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { pageHead, withBrand } from "./head";
+import { isoDay, longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 import { renderMarkdown } from "./markdown";
-import { FAVICON } from "./pages";
 import { fileUrl } from "./profile-sections";
 
 /*
@@ -94,11 +94,11 @@ const LABELS = {
 
 const POST_STYLES =
   ".post-body{margin-top:1.4rem;max-width:44rem}.post-body p,.post-body ul,.post-body ol,.post-body blockquote{margin:0 0 1rem}" +
-  ".post-body blockquote{border-left:3px solid var(--accent);padding-left:1rem;color:var(--muted)}" +
-  ".post-image{display:block;max-width:100%;height:auto;margin-top:1.2rem;border:1px solid var(--line);border-radius:12px}" +
-  ".shared{margin-top:1.4rem;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:12px;background:var(--raised)}" +
+  ".post-body blockquote{border-left:3px solid var(--ps-line-strong);padding-left:1rem;color:var(--ps-muted)}" +
+  ".post-image{display:block;max-width:100%;height:auto;margin-top:1.2rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius)}" +
+  ".shared{margin-top:1.4rem;padding:1rem 1.2rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-raised)}" +
   ".comments{list-style:none;margin:0;padding:0;display:grid;gap:.9rem}.comments .replies{list-style:none;margin:.8rem 0 0 1.4rem;padding:0;display:grid;gap:.8rem}" +
-  ".comment{padding:.9rem 1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}";
+  ".comment{padding:.9rem 1rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-surface)}";
 
 export const postUrl = (baseUrl: string, lang: Lang, id: string): string => `${baseUrl.replace(/\/$/, "")}/${lang}/publications/${encodeURIComponent(id)}`;
 
@@ -197,23 +197,15 @@ export const renderPostPage = (p: PublicPostModel, o: { readonly baseUrl: string
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(title)} — Proofseen</title>`,
-    `<meta name="description" content="${e(cut(text === "" ? l.title(p.author.name) : text, 160))}">`,
-    `<link rel="canonical" href="${e(url)}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(title), description: cut(text === "" ? l.title(p.author.name) : text, 160), canonical: url, type: "article" }),
     `<link rel="alternate" hreflang="fr" href="${e(postUrl(o.baseUrl, "fr", p.id))}">`,
     `<link rel="alternate" hreflang="en" href="${e(postUrl(o.baseUrl, "en", p.id))}">`,
-    `<meta property="og:type" content="article">`,
-    `<meta property="og:title" content="${e(title)}">`,
-    `<style>${STYLES}${MENU_STYLES}${POST_STYLES}</style>`,
+    `<style>${STYLES}${POST_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(postJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, postUrl(o.baseUrl, other, p.id)),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<a class="crumb" href="/${o.lang}/freelances">${l.back}</a>`,
     "<article>",
     `<h1 class="title">${e(l.title(p.author.name))}</h1>`,

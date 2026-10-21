@@ -156,7 +156,7 @@ export const renderSections = (sections: PublicSectionsView, o: { readonly lang:
 };
 
 /** Styles des éléments propres aux sections : une photo et des aperçus d'images, rien de masqué. */
-export const SECTION_STYLES = ".avatar{width:7.5rem;height:7.5rem;border-radius:50%;object-fit:cover;border:1px solid var(--line);margin-bottom:1.4rem}.shot{width:100%;max-height:16rem;object-fit:cover;border-radius:10px;border:1px solid var(--line)}";
+export const SECTION_STYLES = ".avatar{width:7.5rem;height:7.5rem;border-radius:50%;object-fit:cover;border:1px solid var(--ps-line);margin-bottom:1.4rem}.shot{width:100%;max-height:16rem;object-fit:cover;border-radius:var(--ps-radius);border:1px solid var(--ps-line)}";
 
 const unique = (values: readonly string[]): string[] => [...new Set(values)];
 

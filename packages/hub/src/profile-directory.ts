@@ -1,7 +1,7 @@
-import { FAVICON } from "./pages";
 import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
+import { pageHead, withBrand } from "./head";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { longDate, marketFooter, marketHeader, money, type Lang } from "./market-shell";
 import { profileUrl } from "./profile-page";
 import { languageName } from "./profile-sections";
 
@@ -302,7 +302,7 @@ const filtersForm = (lang: Lang, f: DirectoryFilters, jobTitles: readonly JobTit
         `</select></label>`) +
     `<fieldset><legend>${l.availability}</legend>${check("disponible", l.availableNow, f.availableNow)}</fieldset>` +
     `<fieldset><legend>${l.facts}</legend>${check("adresse", l.proven, f.provenOnly)}${check("missions", l.missionsOnly, f.verifiedMissionsOnly)}${check("siret", l.registryOnly, f.registryActiveOnly)}${check("urssaf", l.vigilanceOnly, f.vigilanceValidOnly)}</fieldset>` +
-    `<button type="submit">${l.search}</button>` +
+    `<button class="btn btn-primary" type="submit">${l.search}</button>` +
     (active === 0 ? "" : `<a class="reset" href="/${lang}/freelances">${l.reset}</a>`) +
     `</form></details>`
   );
@@ -342,22 +342,16 @@ export const renderProfileDirectory = (
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${l.title} — Proofseen</title>`,
-    `<meta name="description" content="${e(l.lead)}">`,
-    `<link rel="canonical" href="${e(directoryUrl(base, o.lang))}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: directoryUrl(base, o.lang) }),
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(directoryUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(directoryUrl(base, "en"))}">`,
-    `<style>${STYLES}${MENU_STYLES}${DIRECTORY_STYLES}</style>`,
+    `<style>${STYLES}${DIRECTORY_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, `/${other}/freelances`, "freelancers"),
-    '<main class="wrap wide">',
+    '<main id="contenu" class="wrap wide">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
     '<div class="dir">',

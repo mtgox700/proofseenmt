@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@proofseen/brand": "workspace:*",
     "micromark": "4.0.2",
     "zod": "^4.6.5"
   }

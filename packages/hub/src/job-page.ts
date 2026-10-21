@@ -1,6 +1,6 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
+import { pageHead } from "./head";
+import { marketFooter, marketHeader } from "./market-shell";
 import { jobPosting, missionUrl, type PublicMission } from "./job-posting";
 import { cityUrl } from "./city-page";
 import { nearbyMissionsSection, type NearbyMission } from "./nearby";
@@ -110,22 +110,16 @@ export const renderJobPage = (m: PublicMission, o: JobPageOptions): string => {
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(`${m.title} — ${m.organisationName}`)}</title>`,
-    `<meta name="description" content="${e(description.slice(0, 160))}">`,
-    `<link rel="canonical" href="${e(url(o.lang))}">`,
+    ...pageHead({ lang: o.lang, title: `${m.title} · ${m.organisationName}`, description: description.slice(0, 160), canonical: url(o.lang) }),
     `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jobPosting(m, { baseUrl: o.baseUrl, lang: o.lang }))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, url(other)),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
     `<h1 class="title">${e(m.title)}</h1>`,
     `<p class="byline">${m.organisationSlug == null ? e(m.organisationName) : `<a href="${e(`/${o.lang}/entreprises/${encodeURIComponent(m.organisationSlug)}`)}">${e(m.organisationName)}</a>`} · ${l.published} ${e(published)}</p>`,

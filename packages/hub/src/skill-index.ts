@@ -1,6 +1,6 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { pageHead, withBrand } from "./head";
+import { marketFooter, marketHeader, type Lang } from "./market-shell";
 import { skillUrl } from "./skill-page";
 
 /*
@@ -64,21 +64,15 @@ export const renderSkillIndex = (entries: readonly SkillIndexItem[], o: { readon
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${l.title} — Proofseen</title>`,
-    `<meta name="description" content="${e(l.lead)}">`,
-    `<link rel="canonical" href="${e(skillIndexUrl(base, o.lang))}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: skillIndexUrl(base, o.lang) }),
     `<link rel="alternate" hreflang="fr" href="${e(skillIndexUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(skillIndexUrl(base, "en"))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, `/${other}/metiers`, "skills"),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
     `<h2>${l.list}</h2>`,

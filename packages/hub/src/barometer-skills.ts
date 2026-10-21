@@ -91,7 +91,7 @@ export const renderSkillBarometer = (b: SkillBarometerView, o: { readonly baseUr
       `<p class="lede">${e(l.methodText(b.minCount))}</p>`,
       `<h2>${l.data}</h2>`,
       `<p>${l.dataText}</p>`,
-      `<ul class="links"><li><a href="/barometre/competences.csv">CSV — ${isoDay(b.computedAt)}</a></li><li><a href="/barometre/competences.json">JSON — ${isoDay(b.computedAt)}</a></li><li><a href="${DATA_LICENSE}" rel="license noopener">${l.license}</a></li></ul>`,
+      `<ul class="links"><li><a href="/barometre/competences.csv">CSV · ${isoDay(b.computedAt)}</a></li><li><a href="/barometre/competences.json">JSON · ${isoDay(b.computedAt)}</a></li><li><a href="${DATA_LICENSE}" rel="license noopener">${l.license}</a></li></ul>`,
       `<p class="meta"><a href="/${o.lang}/barometre/tjm">${l.rates}</a></p>`,
     ],
   });

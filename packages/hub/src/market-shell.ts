@@ -1,3 +1,4 @@
+import { LOCKUP } from "@proofseen/brand";
 import { escapeHtml as e } from "./html";
 
 /*
@@ -10,28 +11,66 @@ import { escapeHtml as e } from "./html";
 export type Lang = "fr" | "en";
 
 const MENU = {
-  fr: { label: "Menu principal", missions: "Missions", freelancers: "Freelances", companies: "Entreprises", skills: "Métiers", jobTitles: "Postes", simulator: "Simulateur", blog: "Blog", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
-  en: { label: "Main menu", missions: "Missions", freelancers: "Freelancers", companies: "Companies", skills: "Skills", jobTitles: "Job titles", simulator: "Simulator", blog: "Blog", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
+  fr: { skip: "Aller au contenu", home: "Proofseen, accueil", label: "Menu principal", missions: "Missions", freelancers: "Freelances", companies: "Entreprises", skills: "Métiers", jobTitles: "Postes", simulator: "Simulateur", blog: "Blog", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
+  en: { skip: "Skip to content", home: "Proofseen, home", label: "Main menu", missions: "Missions", freelancers: "Freelancers", companies: "Companies", skills: "Skills", jobTitles: "Job titles", simulator: "Simulator", blog: "Blog", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
 } as const;
-
-export const MENU_STYLES =
-  ".top .wrap{flex-wrap:wrap;padding-block:.4rem}" +
-  ".top nav{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem 1.1rem}" +
-  ".top nav a{color:var(--muted);text-decoration:none}.top nav a:hover{color:var(--ink)}" +
-  ".top nav a[aria-current]{color:var(--ink)}";
 
 export type MenuItem = "missions" | "freelancers" | "companies" | "skills" | "jobTitles" | "simulator" | "blog";
 
-/** L'en-tête public : la marque, le menu, et le lien vers la même page dans l'autre langue. */
-export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem): string => {
+/** Les entrées du menu public, dans l'ordre, avec leur chemin sous la langue : les mêmes pour le hub et pour React. */
+export const MENU_ITEMS: readonly (readonly [MenuItem, string])[] = [
+  ["missions", "missions"],
+  ["freelancers", "freelances"],
+  ["companies", "entreprises"],
+  ["skills", "metiers"],
+  ["jobTitles", "postes"],
+  ["simulator", "simulateur"],
+  ["blog", "blog"],
+];
+
+export interface PublicMenu {
+  readonly skip: string;
+  readonly home: string;
+  readonly label: string;
+  readonly items: readonly { readonly key: MenuItem; readonly href: string; readonly label: string }[];
+  readonly signIn: { readonly href: string; readonly label: string };
+  readonly signUp: { readonly href: string; readonly label: string };
+  readonly otherLang: string;
+}
+
+/** Le menu public d'une langue, en données : React le rend avec les mêmes libellés et les mêmes adresses. */
+export const publicMenu = (lang: Lang): PublicMenu => {
   const l = MENU[lang];
+  return {
+    skip: l.skip,
+    home: l.home,
+    label: l.label,
+    items: MENU_ITEMS.map(([key, path]) => ({ key, href: `/${lang}/${path}`, label: l[key] })),
+    signIn: { href: `/${lang}/connexion`, label: l.signIn },
+    signUp: { href: `/${lang}/creer-un-compte`, label: l.signUp },
+    otherLang: l.otherLang,
+  };
+};
+
+/** Le poinçon et le mot, en image de taille fixe (aucun décalage), dans la version du thème du visiteur. */
+export const lockup = (): string =>
+  `<picture><source srcset="${LOCKUP.light}" media="(prefers-color-scheme: light)">` +
+  `<img src="${LOCKUP.dark}" width="${LOCKUP.width}" height="${LOCKUP.height}" alt="Proofseen"></picture>`;
+
+/**
+ * Le lien d'évitement et l'en-tête public : la marque, le menu, l'inscription, le lien vers la même page dans l'autre
+ * langue. Des liens simples, aucun script : sur un téléphone, le menu défile sur une seconde ligne, rien n'est replié.
+ */
+export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem): string => {
+  const m = publicMenu(lang);
   const other: Lang = lang === "fr" ? "en" : "fr";
-  const item = (key: MenuItem, path: string): string => `<a href="/${lang}/${path}"${current === key ? ' aria-current="page"' : ""}>${l[key]}</a>`;
+  const items = m.items.map((i) => `<a href="${i.href}"${current === i.key ? ' aria-current="page"' : ""}>${i.label}</a>`).join("");
   return (
-    `<header class="top"><div class="wrap"><a class="me" href="/${lang}">Proofseen</a>` +
-    `<nav aria-label="${l.label}">${item("missions", "missions")}${item("freelancers", "freelances")}${item("companies", "entreprises")}${item("skills", "metiers")}${item("jobTitles", "postes")}${item("simulator", "simulateur")}${item("blog", "blog")}` +
-    `<a href="/${lang}/connexion">${l.signIn}</a><a href="/${lang}/creer-un-compte">${l.signUp}</a>` +
-    `<a class="lang" href="${e(otherHref)}" hreflang="${other}" lang="${other}">${MENU[lang].otherLang}</a></nav></div></header>`
+    `<a class="skip" href="#contenu">${m.skip}</a>` +
+    `<header class="top"><div class="chrome"><a class="brand" href="/${lang}" aria-label="${e(m.home)}">${lockup()}</a>` +
+    `<nav class="nav" aria-label="${m.label}">${items}<a href="${m.signIn.href}">${m.signIn.label}</a></nav>` +
+    `<a class="btn btn-primary signup" href="${m.signUp.href}">${m.signUp.label}</a>` +
+    `<a class="lang" href="${e(otherHref)}" hreflang="${other}" lang="${other}">${m.otherLang}</a></div></header>`
   );
 };
 
@@ -53,10 +92,13 @@ const MARKS = {
 export const marketFooter = (lang: Lang): string => {
   const l = LEGAL_LABELS[lang];
   const links = LEGAL_PAGES.map((page) => `<a href="/${lang}/${page}">${e(l[page])}</a>`).join(" · ");
-  return `<footer class="foot"><div class="wrap"><nav aria-label="${e(l.nav)}">${links}</nav><p>${e(MARKS[lang])}</p></div></footer>`;
+  return (
+    `<footer class="foot"><div class="chrome"><p class="brand">${lockup()}</p>` +
+    `<nav aria-label="${e(l.nav)}">${links}</nav><p>${e(MARKS[lang])}</p></div></footer>`
+  );
 };
 
-export const longDate =(d: Date, lang: Lang): string => new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(d);
+export const longDate = (d: Date, lang: Lang): string => new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(d);
 
 /** La date du jour seule (AAAA-MM-JJ) : un rendu reste identique d'une requête à l'autre dans la même journée. */
 export const isoDay = (d: Date): string => d.toISOString().slice(0, 10);

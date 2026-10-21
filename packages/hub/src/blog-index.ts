@@ -95,7 +95,7 @@ export const renderBlogIndex = (items: readonly BlogCardView[], o: { readonly ba
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: `${l.title} — Proofseen`,
+    name: `${l.title} · Proofseen`,
     url: blogIndexUrl(base, o.lang),
     inLanguage: o.lang,
     publisher: { "@type": "Organization", name: "Proofseen", url: base },
@@ -111,7 +111,7 @@ export const renderBlogIndex = (items: readonly BlogCardView[], o: { readonly ba
     jsonLd,
     otherHref: `/${other}/blog`,
     menu: "blog",
-    extraHead: [`<link rel="alternate" type="application/rss+xml" title="${e(`${l.title} — Proofseen`)}" href="${e(blogFeedUrl(base, o.lang))}">`],
+    extraHead: [`<link rel="alternate" type="application/rss+xml" title="${e(`${l.title} · Proofseen`)}" href="${e(blogFeedUrl(base, o.lang))}">`],
     main: [
       `<h1 class="title">${l.title}</h1>`,
       `<p class="headline">${l.lead}</p>`,

@@ -1,8 +1,8 @@
-import { FAVICON } from "./pages";
 import { companyUrl } from "./company-page";
+import { pageHead, withBrand } from "./head";
 import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { longDate, marketFooter, marketHeader, MENU_STYLES, type Lang } from "./market-shell";
+import { longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 
 /*
  * Annuaire public des entreprises (C22) : celles qui ont ouvert une page publique, et seulement elles. Chaque carte porte
@@ -155,7 +155,7 @@ const filtersForm = (lang: Lang, f: CompanyDirectoryFilters, facets: CompanyDire
     `</select></label>` +
     `<fieldset><legend>${l.filters}</legend>${check("recrute", l.hiring, f.hiringOnly, facets.hiring)}${check("siret", l.registry, f.registryActiveOnly, facets.registryActive)}</fieldset>` +
     `<label><span class="lbl">${l.sort}</span><select name="tri">${COMPANY_DIRECTORY_SORTS.map((s) => option(s, l.sorts[s], s === f.sort)).join("")}</select></label>` +
-    `<button type="submit">${l.search}</button>` +
+    `<button class="btn btn-primary" type="submit">${l.search}</button>` +
     (active === 0 && f.sort === "name" ? "" : `<a class="reset" href="${e(action)}">${l.reset}</a>`) +
     `</form></details>`
   );
@@ -219,22 +219,16 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${l.title} — Proofseen</title>`,
-    `<meta name="description" content="${e(l.lead)}">`,
-    `<link rel="canonical" href="${e(companyDirectoryUrl(base, o.lang))}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: companyDirectoryUrl(base, o.lang) }),
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(companyDirectoryUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(companyDirectoryUrl(base, "en"))}">`,
-    `<style>${STYLES}${MENU_STYLES}${DIRECTORY_STYLES}</style>`,
+    `<style>${STYLES}${DIRECTORY_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, `/${other}/entreprises`, "companies"),
-    '<main class="wrap wide">',
+    '<main id="contenu" class="wrap wide">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
     '<div class="dir">',

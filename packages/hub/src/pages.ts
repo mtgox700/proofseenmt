@@ -1,16 +1,22 @@
-import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { MONOGRAM_SMALL_PATH, PALETTE, THEME_COLOR } from "@proofseen/brand";
+import { escapeHtml as e, safeJsonLd, STANDALONE_STYLES } from "./html";
 import { availabilityText, formatDate, formatMonth, LABELS } from "./i18n";
 import type { HubProfile, Locale, Mission } from "./schema";
 
 const OTHER: Readonly<Record<Locale, Locale>> = { fr: "en", en: "fr" };
 
-/** Inline SVG favicon (the interval glyph): no extra request, and no 404 on /favicon.ico in the console. */
+/**
+ * Inline SVG favicon (the poincon, small master, in the green of each theme): this static site is published on its own
+ * domain, without the /brand/ folder, so the icon travels in the page. No extra request, no 404 on /favicon.ico.
+ */
 export const FAVICON =
   "data:image/svg+xml," +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="9" fill="#070b14"/>' +
-      '<path d="M9 12v16M31 12v16M9 20h22" fill="none" stroke="#edf1f7" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="20" r="5" fill="#3fcf9c"/></svg>',
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:${PALETTE.light.proof}}` +
+      `@media (prefers-color-scheme:dark){path{fill:${PALETTE.dark.proof}}}</style><path fill-rule="evenodd" d="${MONOGRAM_SMALL_PATH}"/></svg>`,
   );
+
+const SKIP: Readonly<Record<Locale, string>> = { fr: "Aller au contenu", en: "Skip to content" };
 
 /** Site-relative path of a page: "/" or "/en/", "/missions/<slug>/" or "/en/missions/<slug>/". */
 export const pagePath = (locale: Locale, slug: string | null): string =>
@@ -34,9 +40,10 @@ const layout = ({ profile, locale, slug, title, description, body, jsonLd }: Lay
     `<html lang="${locale}">`,
     "<head>",
     '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    '<meta name="theme-color" content="#070b14">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+    '<meta name="color-scheme" content="dark light">',
+    `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`,
+    `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
     `<link rel="icon" href="${FAVICON}">`,
     `<title>${e(title)}</title>`,
     `<meta name="description" content="${e(description)}">`,
@@ -44,16 +51,17 @@ const layout = ({ profile, locale, slug, title, description, body, jsonLd }: Lay
     `<link rel="alternate" hreflang="fr" href="${e(url("fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(url("en"))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(url("fr"))}">`,
-    `<style>${STYLES}</style>`,
+    `<style>${STANDALONE_STYLES}.top .brand{font:var(--ps-weight-display) var(--ps-step-1)/1 var(--ps-font-display)}</style>`,
     jsonLd === null ? "" : `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
-    `<header class="top"><div class="wrap"><a class="me" href="${e(pagePath(locale, null))}">${e(profile.person.name)}</a>` +
+    `<a class="skip" href="#contenu">${SKIP[locale]}</a>`,
+    `<header class="top bare"><div class="chrome"><a class="brand" href="${e(pagePath(locale, null))}">${e(profile.person.name)}</a>` +
       `<a class="lang" href="${e(pagePath(other, slug))}" hreflang="${other}" lang="${other}">${LABELS[locale].otherLang}</a></div></header>`,
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     body,
     "</main>",
-    `<footer class="foot"><div class="wrap"><p>${e(profile.person.name)} · ${e(profile.person.headline[locale])}</p>` +
+    `<footer class="foot"><div class="chrome"><p>${e(profile.person.name)} · ${e(profile.person.headline[locale])}</p>` +
       `<p>${e(LABELS[locale].updated(formatDate(profile.availability.updatedAt, locale)))}</p></div></footer>`,
     "</body>",
     "</html>",
@@ -126,7 +134,7 @@ export const renderHome = (p: HubProfile, locale: Locale): string => {
     profile: p,
     locale,
     slug: null,
-    title: `${p.person.name} — ${p.person.headline[locale]}`,
+    title: `${p.person.name} · ${p.person.headline[locale]}`,
     description: `${p.person.headline[locale]} · ${p.person.city} · ${availabilityText(p, locale)}`,
     body,
     jsonLd: personJsonLd(p, locale),
@@ -166,7 +174,7 @@ export const renderMission = (p: HubProfile, m: Mission, locale: Locale): string
     profile: p,
     locale,
     slug: m.slug,
-    title: `${m.title[locale]} — ${p.person.name}`,
+    title: `${m.title[locale]} · ${p.person.name}`,
     description: m.summary[locale].slice(0, 160),
     body,
     jsonLd: null,

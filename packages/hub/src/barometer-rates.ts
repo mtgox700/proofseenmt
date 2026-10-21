@@ -80,7 +80,7 @@ const seriesSection = (id: string, title: string, s: RateSeriesView, min: number
   const fmt = (cents: number): string => e(money(cents, "EUR", lang));
   const overall = s.overall === null ? l.noOverall(min) : l.overall(fmt(s.overall.medianCents), fmt(s.overall.p25Cents), fmt(s.overall.p75Cents), s.overall.n);
   const groups = (rows: readonly RateStatView[], kind: "skill" | "city", heading: string): string =>
-    `<h3>${heading}</h3>` + (rows.length === 0 ? `<p class="muted">${l.noGroup(min)}</p>` : table(rows, kind, lang, `${title} — ${heading}`));
+    `<h3>${heading}</h3>` + (rows.length === 0 ? `<p class="muted">${l.noGroup(min)}</p>` : table(rows, kind, lang, `${title} · ${heading}`));
   return `<section aria-labelledby="${id}"><h2 id="${id}">${title}</h2><p>${overall}</p>${groups(s.bySkill, "skill", l.bySkill)}${groups(s.byCity, "city", l.byCity)}</section>`;
 };
 
@@ -129,7 +129,7 @@ export const renderRateBarometer = (b: RateBarometerView, o: { readonly baseUrl:
       `<p class="lede">${e(l.methodText(b.minSample, longDate(b.missionsSince, o.lang)))}</p>`,
       `<h2>${l.data}</h2>`,
       `<p>${l.dataText}</p>`,
-      `<ul class="links"><li><a href="/barometre/tjm.csv">CSV — ${isoDay(b.computedAt)}</a></li><li><a href="/barometre/tjm.json">JSON — ${isoDay(b.computedAt)}</a></li><li><a href="${DATA_LICENSE}" rel="license noopener">${l.license}</a></li></ul>`,
+      `<ul class="links"><li><a href="/barometre/tjm.csv">CSV · ${isoDay(b.computedAt)}</a></li><li><a href="/barometre/tjm.json">JSON · ${isoDay(b.computedAt)}</a></li><li><a href="${DATA_LICENSE}" rel="license noopener">${l.license}</a></li></ul>`,
       `<p class="meta"><a href="/${o.lang}/barometre/competences">${l.skills}</a></p>`,
     ],
   });

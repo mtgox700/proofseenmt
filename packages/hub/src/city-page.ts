@@ -1,7 +1,7 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { pageHead, withBrand } from "./head";
 import { missionUrl } from "./job-posting";
-import { isoDay, longDate, marketFooter, marketHeader, MENU_STYLES, money, type Lang } from "./market-shell";
+import { isoDay, longDate, marketFooter, marketHeader, money, type Lang } from "./market-shell";
 
 /*
  * Page d'une ville : ses missions ouvertes. Elle n'existe que remplie de missions réelles (la base décide du seuil) ;
@@ -130,21 +130,15 @@ export const renderCityPage = (c: CityPageView, o: { readonly baseUrl: string; r
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(title)} — Proofseen</title>`,
-    `<meta name="description" content="${e(lead)}">`,
-    `<link rel="canonical" href="${e(url)}">`,
+    ...pageHead({ lang: o.lang, title: withBrand(title), description: lead, canonical: url }),
     `<link rel="alternate" hreflang="fr" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
     `<link rel="alternate" hreflang="en" href="${e(cityUrl(o.baseUrl, "en", c.key))}">`,
-    `<style>${STYLES}${MENU_STYLES}</style>`,
+    `<style>${STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, cityUrl(o.baseUrl, other, c.key), "missions"),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     `<a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
     `<h1 class="title">${e(title)}</h1>`,
     `<p class="headline">${e(lead)}</p>`,

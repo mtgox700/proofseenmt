@@ -8,8 +8,8 @@ import { articleUrl, blogFeedUrl, blogIndexUrl, CATEGORY_LABELS, type BlogCardVi
  */
 
 const CHANNEL = {
-  fr: { title: "Proofseen — Blog et guides", description: "Guides pratiques datés et sourcés pour les freelances tech et les entreprises." },
-  en: { title: "Proofseen — Blog and guides", description: "Dated, sourced practical guides for tech freelancers and companies." },
+  fr: { title: "Proofseen · Blog et guides", description: "Guides pratiques datés et sourcés pour les freelances tech et les entreprises." },
+  en: { title: "Proofseen · Blog and guides", description: "Dated, sourced practical guides for tech freelancers and companies." },
 } as const;
 
 export const blogFeed = (baseUrl: string, lang: Lang, items: readonly BlogCardView[], now: Date): string => {

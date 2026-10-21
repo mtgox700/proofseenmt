@@ -1,6 +1,6 @@
-import { FAVICON } from "./pages";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
-import { marketFooter, marketHeader, MENU_STYLES } from "./market-shell";
+import { pageHead } from "./head";
+import { marketFooter, marketHeader } from "./market-shell";
 import { nearbyProfilesSection, type NearbyProfile } from "./nearby";
 import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd, type PublicSectionsView } from "./profile-sections";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
@@ -223,22 +223,16 @@ export const renderProfilePage = (
     "<!doctype html>",
     `<html lang="${o.lang}">`,
     "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="color-scheme" content="dark">',
-    `<link rel="icon" href="${FAVICON}">`,
-    `<title>${e(`${name} — ${p.headline}`)}</title>`,
-    `<meta name="description" content="${e(`${p.headline} · ${p.city} · ${availability}`.slice(0, 160))}">`,
-    `<link rel="canonical" href="${e(profileUrl(o.baseUrl, o.lang, p.slug))}">`,
+    ...pageHead({ lang: o.lang, title: `${name} · ${p.headline}`, description: `${p.headline} · ${p.city} · ${availability}`.slice(0, 160), canonical: profileUrl(o.baseUrl, o.lang, p.slug), type: "profile" }),
     `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${MENU_STYLES}${SECTION_STYLES}</style>`,
+    `<style>${STYLES}${SECTION_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
     marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
-    '<main class="wrap">',
+    '<main id="contenu" class="wrap">',
     photo,
     `<h1 class="title">${e(name)}</h1>`,
     `<p class="headline">${e(p.headline)}</p>`,
