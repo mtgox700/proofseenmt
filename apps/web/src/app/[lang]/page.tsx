@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Charter } from "@/components/landing/Charter";
 import { Companies } from "@/components/landing/Companies";
@@ -12,6 +13,22 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getSource } from "@/data/file-source";
 import { dictionary, isLang } from "@/i18n";
+import { shareMetadata } from "@/lib/brand-metadata";
+
+/*
+ * The home page is public and listed in sitemap-pages.xml: it opts out of the noindex default of the [lang] layout,
+ * with its canonical address and its share card.
+ */
+export async function generateMetadata({ params }: { readonly params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLang(lang)) return {};
+  const t = dictionary(lang);
+  return {
+    alternates: { canonical: `/${lang}`, languages: { fr: "/fr", en: "/en", "x-default": "/fr" } },
+    robots: { index: true, follow: true },
+    ...shareMetadata(lang, { title: t.meta.title, description: t.meta.description, path: `/${lang}` }),
+  };
+}
 
 export default async function LandingPage({ params }: { readonly params: Promise<{ lang: string }> }) {
   const { lang } = await params;
