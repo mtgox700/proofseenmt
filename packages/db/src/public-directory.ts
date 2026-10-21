@@ -55,6 +55,8 @@ export interface DirectoryCard {
   readonly availabilityAt: Date;
   readonly skills: readonly string[];
   readonly languages: readonly { readonly code: string; readonly level: LanguageLevel }[];
+  /** Au moins une réalisation déclarée, déjà publiée sur la page du profil. */
+  readonly hasPortfolio: boolean;
   readonly facts: {
     readonly registryActive: boolean;
     readonly identityVerified: boolean;
@@ -66,7 +68,11 @@ export interface DirectoryCard {
   readonly updatedAt: Date;
 }
 
-const toDirectoryCard = (c: ProfileCard, now: Date): DirectoryCard[] =>
+/**
+ * La carte de l'annuaire d'un résultat de recherche ; aucune si le profil n'a pas encore d'adresse, de métier ou de
+ * ville. Exportée : la recherche des entreprises prouve par test qu'elle montre la même carte que l'annuaire.
+ */
+export const toDirectoryCard = (c: ProfileCard, now: Date): DirectoryCard[] =>
   c.slug === null || c.headline === null || c.city === null
     ? []
     : [
@@ -85,6 +91,7 @@ const toDirectoryCard = (c: ProfileCard, now: Date): DirectoryCard[] =>
           availabilityAt: c.availabilityAt,
           skills: c.skills,
           languages: c.languages,
+          hasPortfolio: c.hasPortfolio,
           facts: {
             registryActive: c.registryActive,
             identityVerified: c.identityVerified,

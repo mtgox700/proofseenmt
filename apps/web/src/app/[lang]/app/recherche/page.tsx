@@ -1,9 +1,11 @@
 import "@/styles/discovery.css";
+import "@proofseen/brand/profile-card.css";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { freelanceLists, profileFacets, profiles, savedSearches, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
+import { profileCardLegend } from "@proofseen/hub";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { ProfileResultCard } from "@/components/search/ProfileResultCard";
@@ -230,15 +232,19 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
           ) : page.items.length === 0 ? (
             <EmptyState title={s.results.none} headingLevel={3} />
           ) : (
-            <ul className="result-grid">
-              {page.items.map((card) => (
-                <li key={card.id}>
-                  <ProfileResultCard lang={lang} m={m} card={card}>
-                    <CardActions lang={lang} m={m} card={card} lists={lists} back={back} />
-                  </ProfileResultCard>
-                </li>
-              ))}
-            </ul>
+            <>
+              {/* The key of the cards, the same as on the public directory: green verified, ruled declared. */}
+              <div dangerouslySetInnerHTML={{ __html: profileCardLegend(lang) }} />
+              <ul className="result-grid">
+                {page.items.map((card) => (
+                  <li key={card.id}>
+                    <ProfileResultCard lang={lang} card={card} now={now}>
+                      <CardActions lang={lang} m={m} card={card} lists={lists} back={back} />
+                    </ProfileResultCard>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           {page === null ? null : <Pagination lang={lang} m={m} query={query} hasMore={page.hasMore} />}
         </section>

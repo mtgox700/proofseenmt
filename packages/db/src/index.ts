@@ -249,6 +249,7 @@ export {
   type PublicProfilePage,
   type PublicProfiles,
 } from "./public-profiles";
+export { toDirectoryCard } from "./public-directory";
 export { MIN_REAL_ITEMS, MIN_STAT_SAMPLE, skillPages, type SkillIndexEntry, type SkillPage, type SkillPageFacts, type SkillPages } from "./skill-pages";
 export { plannedEnd, VALIDATION_GRACE_DAYS, validationReminders } from "./validation-reminders";
 export { funnel, type CompanyFunnel, type Cohort, type FreelanceFunnel, type Funnel } from "./funnel";

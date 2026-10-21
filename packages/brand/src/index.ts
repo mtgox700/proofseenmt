@@ -5,3 +5,4 @@ export type { TypeStep } from "./type";
 export { TOKENS_CSS, renderTokensCss } from "./tokens";
 export type { TokensCssOptions } from "./tokens";
 export { CHROME_CSS, ICONS, LOCKUP, MONOGRAM_SMALL_PATH, SHARE_CARD, renderChromeCss } from "./chrome";
+export { PROFILE_CARD_CSS, renderProfileCardCss } from "./profile-card";
