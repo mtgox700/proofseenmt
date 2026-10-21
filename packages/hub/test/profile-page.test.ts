@@ -96,3 +96,13 @@ describe("page publique d'un profil", () => {
     expect(xml.match(/<url>/g)).toHaveLength(2);
   });
 });
+
+describe("the language of what the freelancer wrote (Kensa m5)", () => {
+  it("declares the freelancer's language on the headline and summary when it differs from the page", () => {
+    const en = renderProfilePage({ ...PROFILE, contentLang: "fr" }, { baseUrl: "https://proofseen.com", lang: "en", contactHref: "/en/creer-un-compte" });
+    expect(en).toMatch(/<p class="headline" lang="fr">/);
+    expect(en).toMatch(/<p class="lede" lang="fr">/);
+    const fr = renderProfilePage({ ...PROFILE, contentLang: "fr" }, { baseUrl: "https://proofseen.com", lang: "fr", contactHref: "/fr/creer-un-compte" });
+    expect(fr).not.toMatch(/class="(headline|lede)" lang=/);
+  });
+});

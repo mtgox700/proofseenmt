@@ -45,6 +45,11 @@ export interface PublicProfile {
   readonly missions: readonly ProofMission[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
   readonly facts: ProofFacts;
+  /**
+   * La langue dans laquelle le freelance a écrit son titre et son résumé. Différente de celle de la page (une fiche
+   * française lue sous /en), elle est déclarée sur ces textes pour les lecteurs d'écran (WCAG 3.1.2, revue Kensa m5).
+   */
+  readonly contentLang?: Lang;
   /** Photo publiée : profil nominatif seulement (le dépôt ne la fournit jamais pour un profil pseudonyme). */
   readonly photoFileId?: string | null;
   /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
@@ -154,6 +159,9 @@ export interface ProfilePageOptions {
   readonly nearby?: readonly NearbyProfile[];
 }
 
+/** L'attribut `lang` d'un texte écrit par le freelance, seulement quand sa langue n'est pas celle de la page. */
+const langOf = (p: PublicProfile, page: Lang): string => (p.contentLang === undefined || p.contentLang === page ? "" : ` lang="${p.contentLang}"`);
+
 /*
  * La fiche, en-tête du dossier : la ligne de trace (référence et date), la photo d'identité d'un profil nominatif et
  * de lui seul, le nom (ou la référence), le métier, puis les faits déclarés du contexte, sans vert.
@@ -174,7 +182,7 @@ const fiche = (p: PublicProfile, name: string, availability: string, o: ProfileP
   return (
     // M3 : la carte de l'annuaire porte le même nom de transition ; arrivée de l'annuaire, elle devient cette fiche.
     `<header class="fiche" style="view-transition-name:${passageName(p.slug)}"><p class="ref">${e(l.reference(p.reference, date(p.updatedAt, o.lang)))}</p>` +
-    `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline">${e(p.headline)}</p></div></div>` +
+    `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline"${langOf(p, o.lang)}>${e(p.headline)}</p></div></div>` +
     `<dl class="context">${context}</dl></header>`
   );
 };
@@ -224,7 +232,7 @@ export const renderProfilePage = (p: PublicProfile, o: ProfilePageOptions): stri
       fiche(p, name, availability, o),
       `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
       '<div class="folio">',
-      `<p class="lede">${e(p.summary)}</p>`,
+      `<p class="lede"${langOf(p, o.lang)}>${e(p.summary)}</p>`,
       proofRegister(register, o.lang),
       declared(p, o),
       reviews(p, o.lang),
