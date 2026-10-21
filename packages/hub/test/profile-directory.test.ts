@@ -58,7 +58,7 @@ describe("annuaire public des freelances", () => {
     expect(html).toContain("Lyon · Hybride");
     expect(html).toContain("650");
     expect(html).toContain("<li>Entreprise active au répertoire officiel</li>");
-    expect(html).toContain("<li>2 missions vérifiées sur pièce</li>");
+    expect(html).toContain("<li>2 missions vérifiées</li>");
     expect(html).toContain("<li>1 adresse web dont la possession est prouvée</li>");
     expect(html).toContain("<li>Payé sur Proofseen par 1 entreprise</li>");
     // La ligne de trace, en tête de carte : la référence et la date, comme l'en-tête du profil.

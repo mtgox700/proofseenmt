@@ -88,7 +88,7 @@ describe("une seule carte de profil", () => {
   it("nomme et compte chaque fait vérifié, et dit calmement quand il n'y en a aucun", () => {
     const [proven, bare] = cards(directory([PROVEN, BARE]));
     expect(proven).toContain(
-      '<ul class="fc-proof"><li>2 missions vérifiées sur pièce</li><li>1 adresse web dont la possession est prouvée</li><li>Entreprise active au répertoire officiel</li><li>Attestation de vigilance URSSAF en cours de validité</li></ul>',
+      '<ul class="fc-proof"><li>2 missions vérifiées</li><li>1 adresse web dont la possession est prouvée</li><li>Entreprise active au répertoire officiel</li><li>Attestation de vigilance URSSAF en cours de validité</li></ul>',
     );
     expect(proven).not.toContain("fc-none");
     expect(bare).toContain('<p class="fc-none">Pas encore de pièce vérifiée.</p>');
@@ -110,7 +110,7 @@ describe("une seule carte de profil", () => {
     const view: ProfileCardView = { ...PROVEN, slug: null };
     const body = profileCardBody(view, "en", "card-1");
     expect(body).toContain('<h3 class="fc-name" id="card-1">Freelancer FR-ABCDE</h3>');
-    expect(body).toContain("2 missions verified against a document");
+    expect(body).toContain("2 verified missions");
     expect(body).not.toContain("<article");
   });
 });
@@ -171,7 +171,7 @@ describe("les filtres, en GET et retirables", () => {
     expect(html).toContain('<a href="/fr/freelances?competence=Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer&amp;missions=1" aria-label="Retirer le filtre : Compétence : Rust">Compétence\u202f: Rust <span aria-hidden="true">×</span></a>');
     expect(html).toContain('aria-label="Retirer le filtre : Ville : Lyon"');
     expect(html).toContain('aria-label="Retirer le filtre : Poste : Data engineer"');
-    expect(html).toContain('href="/fr/freelances?competence=Rust%2C+Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer" aria-label="Retirer le filtre : Mission vérifiée sur pièce"');
+    expect(html).toContain('href="/fr/freelances?competence=Rust%2C+Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer" aria-label="Retirer le filtre : Mission vérifiée"');
     expect(html).toContain('<li><a class="clear" href="/fr/freelances">Effacer les filtres</a></li>');
     expect(directory([PROVEN])).not.toContain('class="dir-chips"');
   });
