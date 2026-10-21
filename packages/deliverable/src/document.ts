@@ -42,6 +42,12 @@ export const definitions = (items: readonly { readonly term: Inline; readonly de
   items: items.map((item) => ({ term: toText(item.term), detail: toText(item.detail) })),
 });
 
+/**
+ * Entre un terme et son détail : le deux-points français, précédé d'une espace fine insécable pour qu'il ne passe
+ * jamais seul en début de ligne. Le rapport n'est rendu qu'en français (`toHtml` reçoit `lang: "fr"`).
+ */
+const TERM_SEPARATOR = "\u202f: ";
+
 const plain = (run: Run): string => (typeof run === "string" ? run : "b" in run ? run.b : run.c);
 
 /**
@@ -54,7 +60,7 @@ const escapeMd = (value: string): string =>
     .replace(/\\/g, "\\\\")
     .replace(/([`|])/g, "\\$1")
     // Les blancs sont ramenés à une espace — ce qui neutralise les sauts de ligne — mais **sans rogner les bords** :
-    // un fragment se compose avec ses voisins, et rogner ici collerait « …IA — » à « Camille Dupont ».
+    // un fragment se compose avec ses voisins, et rogner ici collerait « …IA : » à « Camille Dupont ».
     // Seuls les blancs ASCII sont visés : l'espace insécable avant « % » est de la typographie, pas un saut de ligne.
     .replace(/[ \t\r\n\f\v]+/g, " ");
 
@@ -97,7 +103,7 @@ export const toMarkdown = (document: ReportDocument): string => {
         );
         break;
       case "definitions":
-        for (const item of block.items) lines.push(`- ${mdText(item.term)} — ${mdText(item.detail)}`, "");
+        for (const item of block.items) lines.push(`- ${mdText(item.term)}${TERM_SEPARATOR}${mdText(item.detail)}`, "");
         break;
     }
   }
@@ -152,7 +158,7 @@ export const toHtml = (document: ReportDocument, options: HtmlOptions): string =
         break;
       case "definitions":
         body.push(
-          `<ul>${block.items.map((item) => `<li>${htmlText(item.term)} — ${htmlText(item.detail)}</li>`).join("")}</ul>`,
+          `<ul>${block.items.map((item) => `<li>${htmlText(item.term)}${TERM_SEPARATOR}${htmlText(item.detail)}</li>`).join("")}</ul>`,
         );
         break;
     }

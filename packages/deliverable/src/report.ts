@@ -74,7 +74,7 @@ export interface ClientReportInput {
 
 /** Une part observée qui s'arrondit à 0,0 % ne doit pas s'afficher comme un zéro : elle a bien été comptée. */
 const share = (value: number): string => (value > 0 && value * 100 < 0.05 ? `< ${pct(0.001)}` : pct(value));
-const range = (interval: Interval | null): string => (interval === null ? "—" : `[${pct(interval.low)} ; ${pct(interval.high)}]`);
+const range = (interval: Interval | null): string => (interval === null ? "non calculée" : `[${pct(interval.low)} ; ${pct(interval.high)}]`);
 const cell = (stage: StageCount, draws: number): string => `${stage.successes} fois sur ${draws} · ${range(stage.interval)}`;
 
 /** Chaque étape est nommée par la question qu'un recruteur se poserait, pas par son code interne. */
@@ -87,11 +87,11 @@ const QUESTION: Readonly<Record<Stage, string>> = {
 };
 
 const header = (input: ClientReportInput): Block[] => [
-  heading(1, "Votre visibilité dans les réponses des IA — ", input.client.displayName, input.simulated ? " — SIMULATION" : ""),
+  heading(1, "Votre visibilité dans les réponses des IA\u202f: ", input.client.displayName, input.simulated ? " (SIMULATION)" : ""),
   ...(input.simulated
     ? [
         paragraph(
-          b("⚠ SIMULATION — ce rapport ne doit pas être remis à un client."),
+          b("⚠ SIMULATION\u202f: ce rapport ne doit pas être remis à un client."),
           " La vague a été produite par un moteur simulé (", c("--dry-run"), ") : aucune IA n'a été interrogée, et les chiffres ci-dessous ne décrivent personne. Ce document sert à vérifier la chaîne de production, il ne mesure rien.",
         ),
       ]
@@ -103,7 +103,7 @@ const header = (input: ClientReportInput): Block[] => [
       ["Réponses analysées", [b(String(input.wave.draws))]],
       ...Object.entries(input.wave.models)
         .sort(([a], [z]) => a.localeCompare(z))
-        .map(([engine, model]) => [`Modèle interrogé — ${engine}`, [c(model)]] as const),
+        .map(([engine, model]) => [`Modèle interrogé (${engine})`, [c(model)]] as const),
       ["Empreinte du protocole figé", [c(input.wave.manifestDigest)]],
     ],
   ),
@@ -133,11 +133,11 @@ const jobs = (input: ClientReportInput): Block[] => [
   input.controlRetrieval === null
     ? paragraph("Votre profil n'a pas pu être compté sur les offres témoins : ce contrôle n'a rien donné pour cette vague.")
     : input.controlRetrieval.p === 0
-      ? paragraph("Sur ces offres témoins, vous n'avez été retrouvé ", b("aucune fois"), ` — fourchette ${range(input.controlRetrieval)}. C'est le résultat attendu.`)
+      ? paragraph("Sur ces offres témoins, vous n'avez été retrouvé ", b("aucune fois"), ` (fourchette ${range(input.controlRetrieval)}). C'est le résultat attendu.`)
       : paragraph(
           "⚠ Sur ces offres témoins, vous avez été retrouvé dans ",
           b(pct(input.controlRetrieval.p)),
-          ` des réponses — fourchette ${range(input.controlRetrieval)}. Les moteurs vous proposent donc aussi sur des missions qui ne vous correspondent pas : les taux ci-dessous sont à lire avec cette réserve.`,
+          ` des réponses (fourchette ${range(input.controlRetrieval)}). Les moteurs vous proposent donc aussi sur des missions qui ne vous correspondent pas : les taux ci-dessous sont à lire avec cette réserve.`,
         ),
 ];
 
@@ -152,10 +152,10 @@ const funnelSection = (input: ClientReportInput): Block[] => {
       " dans laquelle se situe le taux réel. Une fourchette large veut dire « trop peu de tirages pour trancher », pas « mauvais résultat ».",
     ),
     input.indexation === null
-      ? paragraph(b(QUESTION.E1), " — non mesuré pour cette vague.")
+      ? paragraph(b(QUESTION.E1), " Non mesuré pour cette vague.")
       : paragraph(
           b(QUESTION.E1),
-          " — ",
+          " ",
           b(`${input.indexation.pagesIndexed} page(s) indexée(s)`),
           ` sur ${input.indexation.pagesDeclared} déclarée(s), relevé du ${day(input.indexation.checkedAt)}.`,
         ),
@@ -176,10 +176,10 @@ const funnelSection = (input: ClientReportInput): Block[] => {
     blocking === null
       ? paragraph(
           b("Aucune étape ne bloque"),
-          " sur cette mesure : votre profil franchit chaque étape sur au moins un moteur. Il n'y a donc pas de correction à vous proposer — ce qui ne dit rien de ce qui se passera sur une autre offre ou à une autre date.",
+          " sur cette mesure : votre profil franchit chaque étape sur au moins un moteur. Il n'y a donc pas de correction à vous proposer. Cela ne dit rien de ce qui se passera sur une autre offre ou à une autre date.",
         )
       : paragraph(
-          b(`L'étape qui bloque : ${blocking} — ${QUESTION[blocking]}`),
+          b(`L'étape qui bloque : ${blocking} (${QUESTION[blocking]})`),
           " C'est par là qu'il faut commencer : corriger une étape plus tardive ne produit rien tant que celle-ci ne passe pas.",
         ),
   );
@@ -230,7 +230,7 @@ const comparisonSection = (comparison: Comparison): Block[] => {
         ? [
             paragraph(
               b("⚠ Les moteurs ont changé entre les deux mesures."),
-              ` Le taux des offres témoins — celles qui ne vous correspondent ni avant ni après — a bougé de ${points(drift?.delta ?? 0)}. Une partie de l'écart ci-dessous ne vient donc pas de vous, et nous ne savons pas dire laquelle. Nous ne nous en attribuons pas le mérite.`,
+              ` Le taux des offres témoins (celles qui ne vous correspondent ni avant ni après) a bougé de ${points(drift?.delta ?? 0)}. Une partie de l'écart ci-dessous ne vient donc pas de vous, et nous ne savons pas dire laquelle. Nous ne nous en attribuons pas le mérite.`,
             ),
           ]
         : comparison.verdict === "flat"
@@ -302,7 +302,7 @@ const limits = (input: ClientReportInput): Block[] => [
       b("par API"),
       ", sur de nombreux tirages. Les ",
       b("applications"),
-      " grand public (ChatGPT, Claude, Perplexity) ajoutent leurs propres réglages — historique, localisation, version du modèle — et peuvent donner un autre résultat le même jour.",
+      " grand public (ChatGPT, Claude, Perplexity) ajoutent leurs propres réglages (historique, localisation, version du modèle) et peuvent donner un autre résultat le même jour.",
     ],
     "Être cité est une propriété du couple (vous, ce moteur), à cette date. Un résultat ne se transporte ni à un autre moteur ni à un autre mois sans nouvelle mesure.",
     "Nous observons les réponses et nous les comptons. Nous ne connaissons pas le fonctionnement interne de ces systèmes et nous ne prétendons pas le connaître.",

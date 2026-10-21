@@ -149,7 +149,7 @@ const indexationActions = (indexation: IndexationFact, surface: Surface): Draft[
       stage: "E1",
       title: "Demander l'indexation des pages du profil",
       why: "Les pages sont lisibles et déclarées, mais pas encore indexées : l'indexation n'est pas automatique et demande de quelques jours à deux semaines.",
-      where: "Search Console, Inspection de l'URL, Demander l'indexation — pour chaque page de profil.",
+      where: "Dans Search Console, pour chaque page de profil\u202f: Inspection de l'URL, puis Demander l'indexation.",
       effort: "faible",
       evidence,
     });
@@ -162,7 +162,7 @@ const FUNNEL_DRAFTS: Readonly<Record<Exclude<Stage, "E1">, Omit<Draft, "evidence
     id: "E2-vocabulaire",
     title: "Aligner le vocabulaire de votre profil sur celui des offres visées",
     why: "Vos pages sont indexées mais elles ne remontent pas sur ces offres : les mots par lesquels les recruteurs décrivent la mission n'apparaissent pas dans votre profil, ou pas sous la même forme.",
-    where: "Titre, résumé et liste de compétences de votre page de profil, avec les termes exacts des offres — uniquement ceux que vous pratiquez réellement.",
+    where: "Titre, résumé et liste de compétences de votre page de profil, avec les termes exacts des offres, uniquement ceux que vous pratiquez réellement.",
     effort: "faible",
   },
   E3: {
@@ -176,7 +176,7 @@ const FUNNEL_DRAFTS: Readonly<Record<Exclude<Stage, "E1">, Omit<Draft, "evidence
     id: "E4-preuves",
     title: "Ajouter des preuves vérifiables et différenciantes",
     why: "Vous êtes nommé mais jamais dans les cinq premiers : les profils qui passent devant portent des éléments vérifiables que le vôtre ne porte pas encore.",
-    where: "Missions datées et vérifiables, contributions publiques, écrits techniques — sur la page de profil. Aucun fait que vous ne pouvez prouver.",
+    where: "Sur la page de profil\u202f: missions datées et vérifiables, contributions publiques, écrits techniques. Aucun fait que vous ne pouvez prouver.",
     effort: "élevé",
   },
   E5: {
