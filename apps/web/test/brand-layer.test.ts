@@ -144,7 +144,7 @@ describe("typography of the visible text (Kensa M7)", () => {
         readFileSync(f, "utf8")
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/(^|\s)\/\/.*$/gm, "$1")
-          .includes("—"),
+          .includes(String.fromCodePoint(0x2014)),
       )
       .map((f) => relative(src, f).replace(/\\/g, "/"));
     expect(offenders).toEqual([]);
