@@ -12,7 +12,7 @@ import { escapeHtml as e } from "./html";
 
 export const LEDGER_STYLES = [
   // La feuille : une colonne sur un téléphone, une colonne et un rail à partir de 62 rem.
-  ".sheet{width:min(100% - 2*var(--ps-gutter),72rem);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
+  ".sheet{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--ps-space-8)}",
   ".sheet>*{min-width:0}",
   ".rail{display:grid;gap:var(--ps-space-3);align-content:start;margin-top:var(--ps-space-6);padding:var(--ps-space-5) 0;border-block:1px solid var(--ps-line)}",
   ".rail .cta{width:100%;min-height:3rem;margin:0;padding-block:var(--ps-space-2);white-space:normal;text-align:center;line-height:1.3}",
