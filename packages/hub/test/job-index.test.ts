@@ -25,7 +25,7 @@ describe("index public des missions", () => {
   it("se lit et se filtre sans JavaScript", () => {
     const html = render(PLAIN);
     // No script but the JSON-LD: the page as a collection of the missions it lists.
-    for (const [, attrs] of html.matchAll(/<script([^>]*)>/gi)) expect(attrs).toBe(' type="application/ld+json"');
+    for (const [, attrs] of html.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toBe(' type="application/ld+json"');
     const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "{}") as { "@type": string; mainEntity: { numberOfItems: number; itemListElement: Array<{ url: string }> } };
     expect(ld["@type"]).toBe("CollectionPage");
     expect(ld.mainEntity.numberOfItems).toBe(1);
