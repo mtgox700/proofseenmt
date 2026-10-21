@@ -117,14 +117,15 @@ export const createOrganisation = async (db: Db, ownerId: string): Promise<strin
 
 /**
  * Prestataire de paiement simulé : identifiants stables par clé d'idempotence (comme Stripe), virements retrouvables
- * par contrat, compteur d'appels. `failNextTransfer` simule une panne au moment du virement.
+ * par contrat, compteur d'appels. `failNextTransfer` simule une panne au moment du virement ; `payoutReady` est l'état
+ * du compte de versement chez le prestataire (prêt par défaut).
  */
 export const fakeGateway = () => {
-  const calls = { intents: 0, transfers: 0, refunds: 0, accounts: 0 };
+  const calls = { intents: 0, transfers: 0, refunds: 0, accounts: 0, readiness: 0 };
   const byKey = new Map<string, string>();
   const transfersByContract = new Map<string, string>();
   const amounts: number[] = [];
-  const state = { failNextTransfer: false };
+  const state = { failNextTransfer: false, payoutReady: true };
   const stable = (prefix: string, key: string): string => {
     const known = byKey.get(key);
     if (known !== undefined) return known;
@@ -165,6 +166,10 @@ export const fakeGateway = () => {
     },
     async onboardingLink({ accountId }) {
       return { url: `https://connect.example.invalid/${accountId}` };
+    },
+    async payoutAccountReady() {
+      calls.readiness += 1;
+      return state.payoutReady;
     },
   };
   return { gateway, calls, amounts, state };

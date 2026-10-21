@@ -45,6 +45,8 @@ export interface PaymentGateway {
   createAccount(input: { email: string; country: string; idempotencyKey: string }): Promise<{ accountId: string }>;
   /** Lien d'inscription chez le prestataire, où le freelance donne lui-même son identité et son IBAN. */
   onboardingLink(input: { accountId: string; returnUrl: string; refreshUrl: string }): Promise<{ url: string }>;
+  /** Le compte peut recevoir nos virements, d'après l'état qu'en tient le prestataire à cet instant. */
+  payoutAccountReady(accountId: string): Promise<boolean>;
 }
 
 /** Événement du prestataire, normalisé. */
@@ -99,6 +101,11 @@ export interface Payments {
   refundHeld(contractId: string, gateway: PaymentGateway, now: Date): Promise<boolean>;
   /** Le lien d'inscription du freelance chez le prestataire, son compte créé au premier appel. */
   payoutAccount(actor: Actor, gateway: PaymentGateway, urls: { readonly returnUrl: string; readonly refreshUrl: string }): Promise<PayoutAccountResult>;
+  /**
+   * Au retour du freelance sur sa page de facturation : un compte ouvert mais pas encore confirmé est relu chez le
+   * prestataire. Rend `null` sans compte ouvert, sinon s'il est prêt. Un compte déjà prêt n'est pas relu.
+   */
+  confirmPayoutAccount(actor: Actor, gateway: PaymentGateway, now: Date): Promise<boolean | null>;
   /** Le paiement d'un contrat, pour ses parties. Le détail de la commission n'est montré qu'au freelance. */
   find(actor: Actor, contractId: string): Promise<{ readonly status: PaymentStatus; readonly amountCents: number; readonly commissionCents: number | null; readonly currency: string } | null>;
 }
@@ -113,6 +120,12 @@ const payer = (userId: string): Prisma.ContractWhereInput => ({
 });
 
 const commissionWithVat = (commissionCents: number): number => commissionCents + vatOf(commissionCents, 2000);
+
+/** Recopie l'état lu chez le prestataire, sans réécrire la date de première confirmation si le compte reste prêt. */
+const recordReadiness = async (db: Db, stripeAccountId: string, enabledAt: Date | null, ready: boolean, now: Date): Promise<void> => {
+  if (ready === (enabledAt !== null)) return;
+  await db.billingIdentity.update({ where: { stripeAccountId }, data: { payoutsEnabledAt: ready ? now : null } });
+};
 
 export const payments = (db: Db): Payments => {
   const releaseOne = async (contractId: string, gateway: PaymentGateway, proofseen: LegalSnapshot, now: Date): Promise<ReleaseResult> => {
@@ -138,10 +151,15 @@ export const payments = (db: Db): Payments => {
     if (payment.status !== "released") {
       if (payment.refundedCents > 0 || (payment.disputeOpenedAt !== null && payment.disputeWon !== true)) return { kind: "blocked" };
       const account = payment.contract.profile?.billing ?? null;
-      if (account?.stripeAccountId == null || account.payoutsEnabledAt === null) {
+      if (account?.stripeAccountId == null) {
         if (payment.contract.profile === null) await db.payment.update({ where: { id: payment.id }, data: { needsReviewAt: now } });
         return { kind: "account_missing" };
       }
+      // L'état qui fait foi est celui du prestataire à cet instant (capacité de réception des virements), pas le dernier
+      // événement reçu : il est relu avant chaque versement et recopié s'il a changé.
+      const ready = await gateway.payoutAccountReady(account.stripeAccountId);
+      await recordReadiness(db, account.stripeAccountId, account.payoutsEnabledAt, ready, now);
+      if (!ready) return { kind: "account_missing" };
       // Réserver : de « bloqué » à « en cours », ou reprendre une réservation interrompue. Une seule instruction.
       const stale = new Date(now.getTime() - STALE_CLAIM_MS);
       const { count } = await db.payment.updateMany({
@@ -360,6 +378,19 @@ export const payments = (db: Db): Payments => {
         await db.billingIdentity.update({ where: { profileId: profile.id }, data: { stripeAccountId: accountId } });
       }
       return { kind: "link", url: (await gateway.onboardingLink({ accountId, ...urls })).url };
+    },
+
+    async confirmPayoutAccount(actor, gateway, now) {
+      const profile = await db.freelanceProfile.findUnique({
+        where: { userId: actor.userId },
+        select: { billing: { select: { stripeAccountId: true, payoutsEnabledAt: true } } },
+      });
+      const account = profile?.billing ?? null;
+      if (account?.stripeAccountId == null) return null;
+      if (account.payoutsEnabledAt !== null) return true;
+      const ready = await gateway.payoutAccountReady(account.stripeAccountId);
+      await recordReadiness(db, account.stripeAccountId, account.payoutsEnabledAt, ready, now);
+      return ready;
     },
 
     async find(actor, contractId) {

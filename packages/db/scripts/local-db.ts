@@ -81,6 +81,7 @@ const simulated: PaymentGateway = {
   findTransfer: async () => null,
   createAccount: async () => ({ accountId: "acct_localtest" }),
   onboardingLink: async () => ({ url: "https://connect.example.invalid/acct_localtest" }),
+  payoutAccountReady: async () => false,
 };
 await payments(db).open({ userId: recruiter }, contract.contract.id, simulated, 1000);
 await db.$disconnect();

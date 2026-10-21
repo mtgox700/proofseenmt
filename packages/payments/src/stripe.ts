@@ -1,4 +1,5 @@
 import type { PaymentGateway } from "@proofseen/db";
+import { ACCOUNT_ID, onboardingLinkBody, recipientAccountBody, recipientTransfersActive, STRIPE_V2_VERSION } from "./connect";
 
 /*
  * Adaptateur Stripe (API REST, sans SDK) : intentions de paiement, virements Connect, remboursements.
@@ -8,9 +9,15 @@ import type { PaymentGateway } from "@proofseen/db";
  *
  * Chaque appel porte une clé d'idempotence : Stripe rend le même objet si la même clé revient, ce qui rend sûrs les
  * réessais après une panne réseau. L'erreur rendue est un code court, jamais la réponse de Stripe.
+ *
+ * Les comptes de versement passent par l'API v2 (JSON, `Stripe-Version`, voir `connect.ts`) ; paiements, virements et
+ * remboursements restent en v1 : `/v1/transfers` accepte un compte v2 en `destination` dès que sa capacité
+ * `stripe_balance.stripe_transfers` est active (« Enables this Account to receive /v1/transfers »,
+ * https://docs.stripe.com/api/v2/core/accounts/create).
  */
 
 const API = "https://api.stripe.com/v1";
+const API_V2 = "https://api.stripe.com/v2";
 const TIMEOUT_MS = 15_000;
 
 export class StripeError extends Error {
@@ -53,6 +60,31 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
     });
     if (!response.ok) throw new StripeError(response.status);
     return (await response.json()) as Record<string, unknown>;
+  };
+
+  const postV2 = async (path: string, body: Readonly<Record<string, unknown>>, idempotencyKey: string): Promise<Record<string, unknown>> => {
+    const response = await fetchImpl(`${API_V2}${path}`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${config.secretKey}`,
+        "content-type": "application/json",
+        "stripe-version": STRIPE_V2_VERSION,
+        "idempotency-key": idempotencyKey,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) throw new StripeError(response.status);
+    return (await response.json()) as Record<string, unknown>;
+  };
+
+  const getV2 = async (path: string): Promise<unknown> => {
+    const response = await fetchImpl(`${API_V2}${path}`, {
+      headers: { authorization: `Bearer ${config.secretKey}`, "stripe-version": STRIPE_V2_VERSION },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) throw new StripeError(response.status);
+    return (await response.json()) as unknown;
   };
 
   const id = (object: Record<string, unknown>, key = "id"): string => {
@@ -103,17 +135,19 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
     },
 
     async createAccount({ email, country, idempotencyKey }) {
-      const account = await post(
-        "/accounts",
-        { type: "express", country, email, "capabilities[transfers][requested]": "true", "business_type": "individual" },
-        idempotencyKey,
-      );
+      const account = await postV2("/core/accounts", recipientAccountBody(email, country), idempotencyKey);
       return { accountId: id(account) };
     },
 
     async onboardingLink({ accountId, returnUrl, refreshUrl }) {
-      const link = await post("/account_links", { account: accountId, return_url: returnUrl, refresh_url: refreshUrl, type: "account_onboarding" }, `link-${accountId}-${Date.now()}`);
+      const link = await postV2("/core/account_links", onboardingLinkBody(accountId, returnUrl, refreshUrl), `link-${accountId}-${Date.now()}`);
       return { url: id(link, "url") };
+    },
+
+    async payoutAccountReady(accountId) {
+      if (!ACCOUNT_ID.test(accountId)) throw new Error("compte invalide");
+      // `configuration` n'est rendu que s'il est demandé ; un tableau en paramètre de requête porte toujours son indice.
+      return recipientTransfersActive(await getV2(`/core/accounts/${accountId}?include[0]=configuration.recipient`));
     },
   };
 };

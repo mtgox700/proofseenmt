@@ -39,9 +39,10 @@ export const verifyStripeSignature = (rawBody: string, header: string | null, se
 };
 
 /**
- * Plusieurs endpoints, plusieurs secrets : celui de la plateforme (paiements, remboursements, litiges) et celui des
- * comptes connectés (`account.updated` des freelances). Un événement est accepté s'il est signé par l'un d'eux ; s'il
- * l'est mais trop ancien, il est refusé comme tel.
+ * Plusieurs destinations, plusieurs secrets : celle de la plateforme (paiements, remboursements, litiges), celle des
+ * comptes connectés (instantanés v1 `account.updated`) et celle des événements légers v2 des comptes de versement. La
+ * signature est la même pour les trois (`Stripe-Signature`, https://docs.stripe.com/webhooks). Un événement est accepté
+ * s'il est signé par l'un d'eux ; s'il l'est mais trop ancien, il est refusé comme tel.
  */
 export const verifyStripeSignatureWithAny = (rawBody: string, header: string | null, secrets: readonly string[], nowMs: number): VerifyResult => {
   let refused: VerifyResult = { ok: false, reason: "signature" };
@@ -60,15 +61,60 @@ const EventSchema = z.object({
   data: z.object({ object: z.record(z.string(), z.unknown()) }),
 });
 
+/**
+ * Événement « léger » (thin) des comptes v2 : seulement une référence vers le compte, jamais son état
+ * (https://docs.stripe.com/event-destinations). Il arrive par une destination « Your account » au format « Thin » :
+ * pour un compte v2 qui représente un compte connecté, les événements v2 sont émis dans le périmètre de la plateforme
+ * (https://docs.stripe.com/connect/accounts-v2/migrate-integration). `context` est alors nul ; un événement venu d'un
+ * autre contexte ne concerne pas nos comptes de versement et est ignoré.
+ */
+const ThinEventSchema = z.object({
+  id: z.string().min(1),
+  object: z.literal("v2.core.event"),
+  type: z.string(),
+  context: z.string().nullish(),
+  related_object: z.object({ id: z.string(), type: z.string() }).nullish(),
+});
+
+/** Les événements v2 qui signalent qu'un compte de versement a pu devenir prêt (ou cesser de l'être). */
+export const ACCOUNT_THIN_EVENTS: ReadonlySet<string> = new Set([
+  "v2.core.account[configuration.recipient].capability_status_updated",
+  "v2.core.account[configuration.recipient].updated",
+  "v2.core.account[requirements].updated",
+]);
+
+/**
+ * Un compte de versement a peut-être changé. L'événement ne porte pas l'état qui fait foi : il se relit chez Stripe
+ * (`payoutAccountReady`) avant d'être appliqué comme `account.updated`.
+ */
+export interface AccountSignal {
+  readonly id: string;
+  readonly type: "account.signal";
+  readonly accountId: string;
+}
+
+export type WebhookEvent = Exclude<PaymentEvent, { readonly type: "account.updated" }> | AccountSignal;
+
 const str = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
 
-/** L'événement Stripe traduit, ou `null` s'il ne concerne pas un paiement suivi par la plateforme. */
-export const toPaymentEvent = (payload: unknown): PaymentEvent | null => {
+const accountSignal = (id: string, accountId: string | null): AccountSignal | null =>
+  accountId !== null && /^acct_[A-Za-z0-9]+$/.test(accountId) ? { id, type: "account.signal", accountId } : null;
+
+const fromThinEvent = (payload: unknown): AccountSignal | null => {
+  const thin = ThinEventSchema.safeParse(payload);
+  if (!thin.success || !ACCOUNT_THIN_EVENTS.has(thin.data.type) || (thin.data.context ?? null) !== null) return null;
+  const related = thin.data.related_object;
+  return related?.type === "v2.core.account" ? accountSignal(thin.data.id, related.id) : null;
+};
+
+/** L'événement Stripe traduit, ou `null` s'il ne concerne pas un paiement ni un compte de versement suivis. */
+export const toPaymentEvent = (payload: unknown): WebhookEvent | null => {
+  if (typeof payload === "object" && payload !== null && (payload as { object?: unknown }).object === "v2.core.event") return fromThinEvent(payload);
   const parsed = EventSchema.safeParse(payload);
   if (!parsed.success) return null;
   const { id, type, data } = parsed.data;
   const object = data.object;
-  const simple = (t: "payment.succeeded" | "payment.failed" | "payment.canceled" | "dispute.opened", intentId: string | null): PaymentEvent | null =>
+  const simple = (t: "payment.succeeded" | "payment.failed" | "payment.canceled" | "dispute.opened", intentId: string | null): WebhookEvent | null =>
     intentId === null ? null : { id, type: t, intentId };
   switch (type) {
     case "payment_intent.succeeded":
@@ -90,10 +136,10 @@ export const toPaymentEvent = (payload: unknown): PaymentEvent | null => {
       if (intentId === null || (object.status !== "won" && object.status !== "lost")) return null;
       return { id, type: "dispute.closed", intentId, won: object.status === "won" };
     }
-    case "account.updated": {
-      const accountId = str(object.id);
-      return accountId === null ? null : { id, type: "account.updated", accountId, payoutsEnabled: object.payouts_enabled === true };
-    }
+    case "account.updated":
+      // Instantané v1 (destination « proofseen-connect ») : pour un compte v2, `payouts_enabled` n'est pas la capacité
+      // `stripe_transfers` dont dépendent nos virements. L'événement ne sert que de signal ; l'état se relit en v2.
+      return accountSignal(id, str(object.id));
     default:
       return null;
   }

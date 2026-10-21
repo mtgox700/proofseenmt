@@ -187,6 +187,45 @@ describe("scénarios de la revue de sécurité", () => {
     expect(await payments(t.db).releaseDue(fake.gateway, PROOFSEEN, NOW)).toMatchObject({ released: 1 });
   });
 
+  it("relit le compte chez le prestataire avant de verser : pas prêt, rien ne part et l'état local est corrigé", async () => {
+    const c = await activeContract();
+    const fake = fakeGateway();
+    await payAndHold(t.db, c.recruiter, c.id, fake.gateway);
+    await contracts(t.db).complete({ userId: c.recruiter }, c.id);
+    const enabledAt = () => t.db.billingIdentity.findUniqueOrThrow({ where: { profileId: c.profile }, select: { payoutsEnabledAt: true } }).then((b) => b.payoutsEnabledAt);
+
+    fake.state.payoutReady = false;
+    expect(await payments(t.db).release(c.id, fake.gateway, PROOFSEEN, NOW)).toEqual({ kind: "account_missing" });
+    expect(fake.calls.transfers).toBe(0);
+    expect((await paymentOf(c.id)).status).toBe("held");
+    expect(await enabledAt()).toBeNull();
+
+    fake.state.payoutReady = true;
+    expect(await payments(t.db).release(c.id, fake.gateway, PROOFSEEN, NOW)).toMatchObject({ kind: "released" });
+    expect(fake.calls.transfers).toBe(1);
+    expect(await enabledAt()).toEqual(NOW);
+  });
+
+  it("au retour sur la facturation, confirme un compte ouvert chez le prestataire, une seule fois", async () => {
+    const c = await activeContract({ payouts: false });
+    const fake = fakeGateway();
+    expect(await payments(t.db).confirmPayoutAccount({ userId: c.freelanceUser }, fake.gateway, NOW)).toBeNull();
+    expect(fake.calls.readiness).toBe(0);
+
+    await payments(t.db).payoutAccount({ userId: c.freelanceUser }, fake.gateway, { returnUrl: "https://x/r", refreshUrl: "https://x/f" });
+    fake.state.payoutReady = false;
+    expect(await payments(t.db).confirmPayoutAccount({ userId: c.freelanceUser }, fake.gateway, NOW)).toBe(false);
+    fake.state.payoutReady = true;
+    expect(await payments(t.db).confirmPayoutAccount({ userId: c.freelanceUser }, fake.gateway, NOW)).toBe(true);
+    const { payoutsEnabledAt } = await t.db.billingIdentity.findUniqueOrThrow({ where: { profileId: c.profile }, select: { payoutsEnabledAt: true } });
+    expect(payoutsEnabledAt).toEqual(NOW);
+    // Déjà prêt : la page ne redemande rien au prestataire.
+    expect(await payments(t.db).confirmPayoutAccount({ userId: c.freelanceUser }, fake.gateway, NOW)).toBe(true);
+    expect(fake.calls.readiness).toBe(2);
+    // Une entreprise n'a pas de compte de versement.
+    expect(await payments(t.db).confirmPayoutAccount({ userId: c.recruiter }, fake.gateway, NOW)).toBeNull();
+  });
+
   it("refuse un montant dont la commission arrondie serait nulle", async () => {
     // Un devis ne descend plus sous le plancher : le contrat minuscule est écrit directement, comme une donnée héritée.
     const c = await activeContract();

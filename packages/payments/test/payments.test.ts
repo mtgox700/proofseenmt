@@ -45,7 +45,8 @@ describe("traduction des événements", () => {
     ["charge.dispute.created", { id: "dp_1", payment_intent: "pi_1" }, { type: "dispute.opened", intentId: "pi_1" }],
     ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "lost" }, { type: "dispute.closed", intentId: "pi_1", won: false }],
     ["charge.dispute.closed", { id: "dp_1", payment_intent: "pi_1", status: "won" }, { type: "dispute.closed", intentId: "pi_1", won: true }],
-    ["account.updated", { id: "acct_1", payouts_enabled: true }, { type: "account.updated", accountId: "acct_1", payoutsEnabled: true }],
+    // Instantané v1 d'un compte : un simple signal, l'état se relit en v2 (payouts_enabled n'est pas lu).
+    ["account.updated", { id: "acct_1", payouts_enabled: true }, { type: "account.signal", accountId: "acct_1" }],
   ])("%s", (type, object, expected) => {
     expect(toPaymentEvent(JSON.parse(event(type, object)))).toEqual({ id: "evt_1", ...expected });
   });
