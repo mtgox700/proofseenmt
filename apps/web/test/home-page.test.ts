@@ -152,6 +152,29 @@ describe("the register of the 780 answers is server SVG, under budget", () => {
   });
 });
 
+describe("the register never widens the page on a phone (Kensa B1)", () => {
+  // The first top-level rule of a selector (a rule inside a media query follows a "{", not a "}").
+  const rule = (selector: string): string => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`).exec(styles)?.[1] ?? "";
+  };
+
+  it("gives the opening grid and the register one track that may shrink below the table's width", () => {
+    // Without it the implicit track takes the min-content width of the open table (418 px), and the page scrolls at 375.
+    for (const grid of [".hero-grid", ".registre"]) {
+      expect(rule(grid), grid).toMatch(/display:\s*grid/);
+      expect(rule(grid), grid).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    }
+    expect(rule(".rg-table")).toMatch(/min-width:\s*0/);
+    expect(rule(".rg-scroll")).toMatch(/overflow-x:\s*auto/);
+  });
+
+  it.each(["fr", "en"] as const)("%s: the scrolling table is a named region the keyboard can reach", (lang) => {
+    const t = lang === "fr" ? fr : en;
+    expect(home[lang]).toContain(`<div class="rg-scroll" role="region" tabindex="0" aria-label="${t.field.table.replace(/'/g, "&#x27;")}"><table>`);
+  });
+});
+
 describe("indexing", () => {
   it.each(["fr", "en"] as const)("%s: the home page says index, follow, with its canonical address", async (lang) => {
     const meta = await generateMetadata({ params: Promise.resolve({ lang }) });

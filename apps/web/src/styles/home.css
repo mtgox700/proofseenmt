@@ -11,7 +11,7 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 .section-head .kicker { margin: 0; }
 
 /* ---------- 1. Opening: the sentence, beside the register ---------- */
-.hero-grid { display: grid; gap: clamp(2.5rem, 2rem + 3vw, 4rem); padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2.5rem, 2rem + 3vw, 4rem); padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem); }
 @media (min-width: 64rem) { .hero-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; } }
 .hero-copy { display: grid; gap: var(--ps-space-5); justify-items: start; align-content: start; }
 .hero h1 { font-size: var(--ps-step-5); max-width: 13ch; }
@@ -23,7 +23,8 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 }
 
 /* ---------- The register (M1, "le relevé") ---------- */
-.registre { margin: 0; display: grid; gap: var(--ps-space-4); min-width: 0; }
+/* One track that may shrink below its content: the open table scrolls inside .rg-scroll, never the page (B1). */
+.registre { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); min-width: 0; }
 @media (min-width: 48rem) { .registre { padding: clamp(1.25rem, 0.5rem + 1.5vw, 1.75rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); } }
 .rg-head { display: grid; gap: var(--ps-space-2); }
 .rg-head strong { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); letter-spacing: var(--ps-track-1); }
@@ -85,7 +86,9 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 @supports (corner-shape: scoop) { .rg-cartouche { border-radius: 6px; corner-shape: scoop; } }
 
 .rg-table summary { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: var(--ps-step--1); text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
-.rg-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.rg-table { min-width: 0; }
+.rg-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.rg-scroll:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
 .rg-table table { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); font-variant-numeric: tabular-nums; }
 .rg-table caption { padding-bottom: var(--ps-space-3); text-align: left; color: var(--ps-muted); }
 .rg-table th, .rg-table td { padding: var(--ps-space-2) var(--ps-space-3) var(--ps-space-2) 0; border-bottom: 1px solid var(--ps-line); text-align: right; white-space: nowrap; }
