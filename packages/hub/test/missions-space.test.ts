@@ -90,7 +90,9 @@ describe("page publique d'une entreprise", () => {
 
   it("dit quand le répertoire n'a pas encore été consulté, sans inventer de délai", () => {
     const html = renderCompanyPage({ ...COMPANY, registryActiveCheckedAt: null, response: null, website: null, description: null, missions: [] }, { baseUrl: BASE, lang: "en" });
-    expect(html).toContain("Not yet checked against the official French company register.");
+    // La base ne distingue pas « pas encore contrôlée » de « contrôlée, pas active » : la page n'affirme ni l'un ni l'autre.
+    expect(html).toContain("Not confirmed as active in the official French company register.");
+    expect(html).not.toContain('<span class="pin" aria-hidden="true">');
     expect(html).not.toContain("Answers applications");
     expect(html).toContain("No open mission at the moment.");
   });

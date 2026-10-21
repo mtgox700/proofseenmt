@@ -43,9 +43,13 @@ describe("page publique d'une mission", () => {
   });
 
   it("dit l'entreprise active au répertoire seulement quand c'est vérifié, et date le fait", () => {
-    expect(renderJobPage(MISSION, OPTIONS)).not.toContain("répertoire officiel");
+    // Sans contrôle établi : ni l'affirmation, ni le vert ; une ligne neutre dit que l'activité n'est pas confirmée.
+    const unchecked = renderJobPage(MISSION, OPTIONS);
+    expect(unchecked).not.toContain("Entreprise active au répertoire officiel");
+    expect(unchecked).toContain('<p class="vline open"><span class="pin open" aria-hidden="true"></span><span>Activité au répertoire officiel des entreprises non confirmée</span></p>');
+    expect(unchecked).not.toContain('<span class="pin" aria-hidden="true">');
     const html = renderJobPage({ ...MISSION, organisationRegistryActiveCheckedAt: new Date("2026-10-07T00:00:00Z") }, OPTIONS);
-    expect(html).toContain("Entreprise active au répertoire officiel des entreprises (vérifié le 7 octobre 2026)");
+    expect(html).toContain('<span class="pin" aria-hidden="true"></span><span>Entreprise active au répertoire officiel des entreprises (vérifié le 7 octobre 2026)</span>');
   });
 
   it("donne le délai de réponse de l'entreprise comme un fait, avec sa base de calcul", () => {

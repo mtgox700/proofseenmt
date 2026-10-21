@@ -54,9 +54,23 @@ export interface RateRow extends RateStatView {
   readonly dimension: RateDimension;
 }
 
+/**
+ * Le seuil d'effectif, tenu aussi ici : la base ne renvoie aucun groupe sous `minSample`, mais si elle le faisait,
+ * ni la page ni les données n'en publieraient le chiffre. La page et les fichiers passent par cette même règle.
+ */
+export const publishedSeries = (s: RateSeriesView, minSample: number): RateSeriesView => ({
+  total: s.total,
+  overall: s.overall !== null && s.overall.n >= minSample ? s.overall : null,
+  bySkill: s.bySkill.filter((r) => r.n >= minSample),
+  byCity: s.byCity.filter((r) => r.n >= minSample),
+});
+
+/** Les compétences publiables : au moins `minCount` missions. */
+export const publishedSkills = (b: SkillBarometerView): SkillBarometerView["skills"] => b.skills.filter((s) => s.missions >= b.minCount);
+
 export const rateRows = (b: RateBarometerView): readonly RateRow[] =>
   (["profiles", "missions"] as const).flatMap((source) => {
-    const s = b[source];
+    const s = publishedSeries(b[source], b.minSample);
     return [
       ...(s.overall === null ? [] : [{ ...s.overall, source, dimension: "all" as const }]),
       ...s.bySkill.map((stat) => ({ ...stat, source, dimension: "skill" as const })),
@@ -117,7 +131,7 @@ export const SKILL_METHOD = `Number of missions published on Proofseen in the wi
 export const skillCsv = (b: SkillBarometerView): string =>
   csv(
     ["key", "label", "missions", "since", "computed_at"],
-    b.skills.map((s) => [s.key, s.label, s.missions, isoDay(b.since), b.computedAt.toISOString()]),
+    publishedSkills(b).map((s) => [s.key, s.label, s.missions, isoDay(b.since), b.computedAt.toISOString()]),
   );
 
 export const skillJson = (b: SkillBarometerView, baseUrl: string): string =>
@@ -132,7 +146,7 @@ export const skillJson = (b: SkillBarometerView, baseUrl: string): string =>
       minCount: b.minCount,
       method: SKILL_METHOD,
       totals: { missions: b.totalMissions },
-      rows: b.skills.map((s) => ({ key: s.key, label: s.label, missions: s.missions })),
+      rows: publishedSkills(b).map((s) => ({ key: s.key, label: s.label, missions: s.missions })),
     },
     null,
     2,
