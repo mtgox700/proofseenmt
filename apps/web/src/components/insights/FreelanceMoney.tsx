@@ -3,7 +3,7 @@ import type { Lang } from "@/i18n";
 import type { AccountDictionary } from "@/i18n/market/account-fr";
 import type { InsightsDictionary } from "@/i18n/market/insights-fr";
 import { seriesSummary } from "@/lib/chart";
-import { count, money } from "@/lib/format";
+import { colon, count, money } from "@/lib/format";
 import { BarChart } from "./BarChart";
 import { FactList } from "./FactList";
 import { longMonth, shortMonth } from "./labels";
@@ -22,7 +22,7 @@ export function FreelanceMoney({ lang, d, b, board, revenue }: FreelanceMoneyPro
   const facts = [
     {
       label: b.received,
-      value: board.money === null ? "—" : money(board.money.receivedCents, board.money.currency, lang),
+      value: board.money === null ? b.noMoneyValue : money(board.money.receivedCents, board.money.currency, lang),
       foot: board.money === null ? b.noMoney : `${money(board.money.heldCents, board.money.currency, lang)} ${b.held}`,
     },
     { label: m.invoices, value: count(board.invoices, lang) },
@@ -50,10 +50,11 @@ function MonthlyRevenue({ lang, d, revenue }: { readonly lang: Lang; readonly d:
   return (
     <>
       <BarChart
+        lang={lang}
         id="revenue-chart"
         title={m.chartLabel}
         figure={amount(total)}
-        summary={`${m.chartLabel} — ${amount(total)}${peak === null ? "" : ` (${peak.label} — ${amount(peak.value)})`}`}
+        summary={`${m.chartLabel}${colon(lang)}${amount(total)}${peak === null ? "" : ` (${peak.label}${colon(lang)}${amount(peak.value)})`}`}
         points={points}
         format={amount}
         firstLabel={shortMonth(revenue.months[0]?.month ?? "", lang)}

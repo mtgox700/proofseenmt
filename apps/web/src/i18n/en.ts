@@ -67,8 +67,9 @@ export const en: Dictionary = {
     intro: "Here are five profiles that match your search:",
     masked: "name masked",
     rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    verdict: "You: not in this answer",
-    appear: "You appear",
+    // The replay is the founder's measure, not the visitor's: it names him, never "you".
+    verdict: "Our founder: not in this answer",
+    appear: "Our founder appears",
     interval: "Range of the true rate",
     times: "{hits} times out of {n}",
     same: "Same count on all three engines measured.",
@@ -101,15 +102,14 @@ export const en: Dictionary = {
     facts: {
       answers: { value: "780", label: "AI answers analysed, for $15.79 of measurement cost" },
       zero: { value: "0%", range: "[0%, 1.9%]", label: "citations of the founder, 95% range on each engine" },
-      sources: { label: "share of the citations observed, by domain" },
+      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
+      sources: {
+        label: "Share of the {total} citations found in the {answers} answers, by domain. Wave J0, 23 and 24 September 2026.",
+        count: "{hits} of {total} citations",
+      },
       silent: { value: "90.8%", label: "of Anthropic's answers consult no source at all: being seen depends on the engine" },
       agreement: { value: "20/20", label: "agreement between our API measures and the consumer apps" },
     },
-    shares: [
-      { domain: "malt.fr", value: "39%", width: 0.39 },
-      { domain: "linkedin.com", value: "26.5%", width: 0.265 },
-      { domain: "github.com", value: "2.9%", width: 0.029 },
-    ],
     source: "Wave J0, 23 and 24 September 2026. Protocol fixed before the measure, fingerprint 1bc9f85f. Raw answers deleted after analysis.",
     limits:
       "These figures describe one profile, these jobs, these engines, on this date. They do not predict your results. We publish them because a vendor that does not measure itself proves nothing.",
@@ -268,17 +268,8 @@ export const en: Dictionary = {
       { q: "What about my privacy?", a: "You prove that the profiles measured are yours. Raw answers are encrypted, then deleted after 72 hours." },
     ],
   },
+  // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {
-    line: "Proofseen measures your visibility in AI-assisted recruiting.",
-    legal: "Terms of sale, withdrawal and refunds: on the Order page.",
-    legalNav: {
-      label: "Legal information",
-      links: [
-        { href: "/en/mentions-legales", label: "Legal notice" },
-        { href: "/en/confidentialite", label: "Privacy" },
-        { href: "/en/conditions", label: "Terms of use" },
-      ],
-    },
     marks: "ChatGPT, Claude, Perplexity, Gemini, Copilot, LinkedIn, Malt and GitHub are trademarks of their owners. Proofseen is not affiliated with any of them.",
   },
   directory: {

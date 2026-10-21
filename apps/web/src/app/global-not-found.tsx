@@ -62,7 +62,7 @@ export default async function GlobalNotFound() {
             </p>
           ) : null}
         </main>
-        <SiteFooter t={t} />
+        <SiteFooter lang={lang} t={t} />
       </body>
     </html>
   );

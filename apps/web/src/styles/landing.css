@@ -8,7 +8,7 @@
 .order-head h1 { font-size: var(--ps-step-5); max-width: 18ch; }
 .order-offers { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); align-items: start; scroll-margin-top: 6rem; }
 .order-offer { display: grid; gap: var(--ps-space-5); padding: clamp(1.5rem, 3vw, 2.2rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
-.order-offer[data-featured] { border-color: color-mix(in srgb, var(--ps-proof) 55%, var(--ps-line)); }
+.order-offer[data-featured] { border-color: var(--ps-line-strong); }
 .order-offer header { display: grid; gap: var(--ps-space-3); }
 .order-offer h2 { font-size: var(--ps-step-2); }
 .order-offer h3 { font-family: var(--ps-font-text); font-size: var(--ps-step--1); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ps-muted); margin-bottom: var(--ps-space-3); }
@@ -18,7 +18,7 @@
 .order-excludes li::before { content: ""; width: 0.75rem; height: 0.75rem; margin-top: 0.35em; border: 1px solid var(--ps-line-strong); border-radius: 50%; }
 .order-cta { display: grid; gap: var(--ps-space-3); justify-items: start; padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
 .order-accept { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: var(--ps-space-3); align-items: start; font-size: var(--ps-step--1); cursor: pointer; }
-.order-accept input { width: 1.2rem; height: 1.2rem; margin: 0.15rem 0 0; accent-color: var(--ps-proof); }
+.order-accept input { width: 1.2rem; height: 1.2rem; margin: 0.15rem 0 0; accent-color: var(--ps-text); }
 .order-terms { display: grid; gap: var(--ps-space-4); max-width: 48rem; padding-top: var(--ps-space-6); border-top: 1px solid var(--ps-line-strong); }
 .order-terms h2 { font-size: var(--ps-step-2); }
 .order-terms h3 { margin-top: var(--ps-space-4); font-family: var(--ps-font-text); font-size: var(--ps-step--1); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ps-muted); }

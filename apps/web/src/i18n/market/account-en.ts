@@ -12,6 +12,7 @@ export const accountEn: AccountDictionary = {
     held: "held until approval",
     paid: "Paid",
     noMoney: "No payment yet.",
+    noMoneyValue: "none",
     severalCurrencies: "Several currencies: no total, the platform does not convert.",
     invoices: "Invoices",
     reviews: "Reviews received",

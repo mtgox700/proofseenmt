@@ -29,7 +29,7 @@ export default async function InscriptionPage({ params }: PageProps) {
         <p className="lede">{t.intake.lede}</p>
         <IntakeForm t={t.intake} lang={lang} />
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

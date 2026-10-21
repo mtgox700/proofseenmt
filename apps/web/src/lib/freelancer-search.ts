@@ -6,8 +6,9 @@ import { centsToField, eurosToCents, skillsOf } from "./mission-form";
  * has its own address, so a colleague opens exactly the same results and the page needs no client script. Anything
  * malformed is dropped, field by field, rather than answered with an error: a hand-edited address always answers.
  *
- * The order is one the company picks among stated, neutral criteria (profile update, daily rate, availability date,
- * number of verified facts): never a relevance or a score of people (AI Act). A language filter keeps the profiles that
+ * The order is one the company picks among stated, neutral criteria (profile update, daily rate, availability date):
+ * never a relevance, a count of proofs or a score of people (AI Act). Verified facts are filters, never an order: an old
+ * address with `tri=faits_verifies` falls back to the default order. A language filter keeps the profiles that
  * declare that language at least at the level asked ("at least B2" keeps B2, C1, C2 and native): a filter on a
  * declaration, never a score.
  */
@@ -21,7 +22,6 @@ export const SORT_SLUGS = {
   tjm_croissant: "rate_asc",
   tjm_decroissant: "rate_desc",
   disponibilite: "availability",
-  faits_verifies: "verified_facts",
 } as const satisfies Readonly<Record<string, ProfileSort>>;
 export type SortSlug = keyof typeof SORT_SLUGS;
 const SORT_KEYS = Object.keys(SORT_SLUGS) as SortSlug[];

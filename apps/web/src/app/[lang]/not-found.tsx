@@ -17,7 +17,7 @@ function Page({ lang }: { readonly lang: Lang }) {
       <main id="contenu" tabIndex={-1} className="wrap state-page">
         <NotFoundView lang={lang} />
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

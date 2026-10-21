@@ -112,7 +112,7 @@ export default async function JournalPage({ params, searchParams }: PageProps) {
                     {typeof entry.metadata.label === "string" ? <span className="muted small"> · {entry.metadata.label}</span> : null}
                     {typeof entry.metadata.reference === "string" ? <span className="muted small"> · {entry.metadata.reference}</span> : null}
                   </td>
-                  <td>{entry.reason ?? "—"}</td>
+                  <td>{entry.reason ?? j.noReason}</td>
                   <td>{entry.operatorEmail ?? j.deletedAccount}</td>
                 </tr>
               ))}

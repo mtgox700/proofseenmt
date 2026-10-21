@@ -123,7 +123,7 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
                     <td>{view.displayName ?? <span className="muted">{o.unnamed}</span>}</td>
                     <td>{o.actions[view.action.kind] ?? view.action.kind}</td>
                     <td>
-                      <span className={view.complete ? "tag tag-quiet" : view.actor === "client" ? "tag tag-signal" : "tag tag-proof"}>
+                      <span className={view.complete ? "tag tag-quiet" : view.actor === "client" ? "tag tag-signal" : "tag tag-done"}>
                         {view.complete ? o.complete : view.actor === "client" ? t.space.yours : t.space.ours}
                       </span>
                     </td>

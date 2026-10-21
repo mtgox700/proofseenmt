@@ -73,7 +73,7 @@ export const visibilityEn: VisibilityDictionary = {
     previous: "Before",
     current: "Now",
     change: "Change",
-    none: "—",
+    none: "not computable",
     kinds: { new: "Queried for the first time: no change to compute.", dropped: "Not queried in the latest measurement." },
   },
   start: {

@@ -11,6 +11,7 @@ export const accountFr = {
     held: "bloqué en attente de validation",
     paid: "Payé",
     noMoney: "Aucun paiement pour l'instant.",
+    noMoneyValue: "aucun",
     severalCurrencies: "Plusieurs devises : pas de total, la plateforme ne convertit pas.",
     invoices: "Factures",
     reviews: "Avis reçus",

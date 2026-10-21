@@ -3,7 +3,7 @@ import { companyInsights, dashboards, type ApplicationStatus, type CompanyInsigh
 import type { Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { seriesSummary } from "@/lib/chart";
-import { count } from "@/lib/format";
+import { colon, count } from "@/lib/format";
 import type { Market } from "@/lib/market";
 import { BarChart } from "./BarChart";
 import { CompanySpend } from "./CompanySpend";
@@ -21,15 +21,16 @@ function Published({ lang, m, insights }: { readonly lang: Lang; readonly m: Mar
   return (
     <div className="insight-block">
       <BarChart
+        lang={lang}
         id="published-chart"
         title={c.published}
         figure={count(total, lang)}
-        summary={`${c.publishedCaption} — ${count(total, lang)}${peak === null ? "" : ` (${peak.label} — ${count(peak.value, lang)})`}`}
+        summary={`${c.publishedCaption}${colon(lang)}${count(total, lang)}${peak === null ? "" : ` (${peak.label}${colon(lang)}${count(peak.value, lang)})`}`}
         points={points}
         format={(value) => count(value, lang)}
         firstLabel={shortMonth(insights.publishedByMonth[0]?.month ?? "", lang)}
         lastLabel={shortMonth(insights.publishedByMonth.at(-1)?.month ?? "", lang)}
-        tone="info"
+        tone="muted"
       />
       <details className="chart-details">
         <summary>{c.publishedCaption}</summary>
@@ -77,7 +78,7 @@ export async function CompanyHomeBoard({ lang, market, organisationId }: { reado
           facts={[
             {
               label: c.firstResponse,
-              value: insights.firstResponse === null ? "—" : c.firstResponseValue(insights.firstResponse.medianDays, insights.firstResponse.decided),
+              value: insights.firstResponse === null ? c.firstResponseEmpty : c.firstResponseValue(insights.firstResponse.medianDays, insights.firstResponse.decided),
               foot: insights.firstResponse === null ? c.firstResponseNone : c.firstResponseHint,
             },
             { label: m.account.dashboard.openApplications, value: count(board.openApplications, lang) },

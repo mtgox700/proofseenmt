@@ -38,7 +38,7 @@ function Shell({ lang, t, children }: { readonly lang: Lang; readonly t: Diction
       <main id="contenu" tabIndex={-1} className="wrap space">
         {children}
       </main>
-      <SiteFooter t={t} />
+      <SiteFooter lang={lang} t={t} />
     </>
   );
 }

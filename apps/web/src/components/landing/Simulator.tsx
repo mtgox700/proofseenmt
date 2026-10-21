@@ -121,7 +121,7 @@ export function Simulator({ lang, t }: SimulatorProps) {
       </div>
 
       <p className="sr-only">
-        {fill(t.times, "0", count(total, lang))}. {t.interval} : {finalRange}. {t.same}
+        {t.appear} {fill(t.times, "0", count(total, lang))}. {t.interval}{lang === "fr" ? " :" : ":"} {finalRange}. {t.same}
       </p>
 
       <div className="sim-body" aria-hidden="true">
