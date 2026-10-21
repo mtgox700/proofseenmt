@@ -42,6 +42,8 @@ export const dealsFr = {
     status: { pending_signatures: "À signer", active: "En cours", completed: "Terminé", cancelled: "Annulé" },
     back: "Tous les contrats",
     seller: "Prestataire",
+    /** Le freelance a effacé son profil avant de signer : plus de nom à montrer. */
+    sellerUnknown: "Nom non renseigné",
     buyer: "Client",
     period: "Période",
     from: "à partir du",

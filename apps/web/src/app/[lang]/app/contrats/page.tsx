@@ -41,7 +41,7 @@ export default async function ContractsPage({ params }: PageProps) {
             <li key={contract.id}>
               <Link href={`/${lang}/app/contrats/${contract.id}`} className="thread-row">
                 <span className="thread-who">
-                  <strong>{contract.counterpart}</strong>
+                  <strong>{contract.counterpart ?? c.sellerUnknown}</strong>
                 </span>
                 <StatusTag status={contract.status} label={c.status[contract.status]} />
                 <span className="thread-last muted">{money(contract.totalCents, contract.currency, lang)} {c.exclVat}</span>
