@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FONT_FILES, SHARE_CARD } from "@proofseen/brand";
+import { contrastRatio, FONT_FILES, PALETTE, SHARE_CARD } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SITE_ORIGIN, shareMetadata, siteOrigin } from "../src/lib/brand-metadata";
 
@@ -67,6 +67,71 @@ describe("colours come from the brand tokens only", () => {
       for (const rule of css.match(/[^{}]*\{[^}]*\}/g) ?? []) {
         if (/\.btn-primary|\.cta\b|button\[type="submit"\]/.test(rule.split("{")[0] ?? "")) expect(rule, file).not.toMatch(/background(?:-color)?:\s*var\(--ps-proof\)/);
       }
+    }
+  });
+});
+
+describe("the green marks a verified fact or the poinçon, nothing else (Kensa M5)", () => {
+  // Every innermost block that reads --ps-proof (or --ps-proof-wash), named by its selector path.
+  const greenRules = (css: string): string[] => {
+    const found: string[] = [];
+    const stack: string[] = [];
+    let buffer = "";
+    for (const char of css.replace(/\/\*[\s\S]*?\*\//g, "")) {
+      if (char === "{") {
+        stack.push(buffer.trim().replace(/\s+/g, " "));
+        buffer = "";
+      } else if (char === "}") {
+        if (/--ps-proof/.test(buffer)) found.push(stack.join(" > "));
+        stack.pop();
+        buffer = "";
+      } else {
+        buffer += char;
+      }
+    }
+    return found;
+  };
+
+  it("lets only the proof tag and the storefront's verified marks read the proof colour", () => {
+    const green = styles.flatMap((file) => greenRules(read(src, "styles", file)).map((selector) => `${file}: ${selector}`));
+    expect(green.sort()).toEqual(
+      [
+        // A verified fact, written as a tag (proven address, verified mission, confirmed by the client, URSSAF, SIRET).
+        "base.css: .tag-proof",
+        // The storefront: the founder's slot of the register (empty today) and the specimen's poinçon.
+        "home.css: .rg-you",
+        "home.css: .rg-sw-you",
+        "home.css: .specimen-stamp",
+        "home.css: .specimen-dot",
+        "home.css: @keyframes pc-ink > from",
+      ].sort(),
+    );
+  });
+
+  it("puts the proof tag only on verified facts", () => {
+    const users = filesUnder(src)
+      .filter((f) => /\.tsx?$/.test(f) && readFileSync(f, "utf8").includes("tag-proof"))
+      .map((f) => relative(src, f).replace(/\\/g, "/"))
+      .sort();
+    expect(users).toEqual([
+      "app/[lang]/app/preuves/page.tsx",
+      "components/market/FreelancerCard.tsx",
+      "components/market/VerifiedMissionsPanel.tsx",
+      "components/visibility/ProfileChecklist.tsx",
+    ]);
+  });
+
+  it("draws every focus ring of a field in the focus colour, at AA contrast in both themes", () => {
+    for (const file of styles) {
+      const css = read(src, "styles", file).replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const rule of css.match(/[^{}]*:focus(?:-visible)?[^{}]*\{[^}]*\}/g) ?? []) {
+        const body = rule.slice(rule.indexOf("{"));
+        if (/outline:/.test(body) && !/outline:\s*(?:none|0)\b/.test(body)) expect(body, `${file}: ${rule.trim()}`).toMatch(/var\(--ps-focus\)/);
+      }
+    }
+    for (const theme of ["dark", "light"] as const) {
+      const p = PALETTE[theme];
+      for (const ground of [p.bg, p.surface, p.raised]) expect(contrastRatio(p.focus, ground)).toBeGreaterThanOrEqual(3);
     }
   });
 });

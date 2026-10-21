@@ -54,7 +54,7 @@ function ArrivalSteps({ lang, d, p, board }: StageBlockProps) {
       <ol className="stage-steps">
         {steps.map((step) => (
           <li key={step.key} data-done={step.done ? "" : undefined} aria-current={step.key === next?.key ? "step" : undefined}>
-            <span className={step.done ? "tag tag-proof" : "tag tag-signal"}>{step.done ? s.done : step.key === next?.key ? s.next : s.todo}</span>{" "}
+            <span className={step.done ? "tag tag-done" : "tag tag-signal"}>{step.done ? s.done : step.key === next?.key ? s.next : s.todo}</span>{" "}
             {step.done ? s.steps[step.key] : <Link href={`${base}/${step.path}`}>{s.steps[step.key]}</Link>}
           </li>
         ))}

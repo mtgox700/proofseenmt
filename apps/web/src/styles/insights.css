@@ -9,10 +9,11 @@
 .chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart-svg text { font: 400 var(--ps-step--2) / 1 var(--ps-font-text); fill: var(--ps-muted); }
 .chart-tick line { stroke: var(--ps-line); stroke-width: 1; shape-rendering: crispEdges; }
-.chart-bar { fill: var(--chart-ink, var(--ps-proof)); }
-.chart-proof { --chart-ink: var(--ps-proof); }
-.chart-info { --chart-ink: var(--ps-focus); }
-.chart-signal { --chart-ink: var(--ps-signal); }
+/* A count of views or clicks is not a proof: bars are drawn in the neutral inks, one per series. */
+.chart-bar { fill: var(--chart-ink, var(--ps-text)); }
+.chart-ink { --chart-ink: var(--ps-text); }
+.chart-muted { --chart-ink: var(--ps-muted); }
+.chart-faint { --chart-ink: var(--ps-faint); }
 .chart-details { margin-top: var(--ps-space-3); }
 .chart-details > summary { cursor: pointer; color: var(--ps-focus); font-size: var(--ps-step--1); }
 .chart-details[open] > summary { margin-bottom: var(--ps-space-3); }

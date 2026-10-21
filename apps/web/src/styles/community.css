@@ -1,7 +1,7 @@
 /* Community feed (C22): readable posts, plain forms, built on the market tokens. Nothing is hidden by CSS. */
 .feed { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
 .feed-tabs { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
-.feed-tabs a[aria-current] { border-color: var(--ps-proof); color: var(--ps-text); }
+.feed-tabs a[aria-current] { border-color: var(--ps-text); color: var(--ps-text); }
 .post-card { display: grid; gap: var(--ps-space-3); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
 .post-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ps-space-2); }
 .post-head p { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-1) var(--ps-space-2); margin: 0; }

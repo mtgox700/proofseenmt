@@ -1,14 +1,14 @@
-/** A status as a tag: green once agreed, amber while someone has to act, grey once over. */
+/** A status as a tag: ink once agreed, amber while someone has to act, grey once over. Never green: a status is not a proof. */
 const TONE: Readonly<Record<string, string>> = {
   pending: "tag-signal",
   submitted: "tag-signal",
   sent: "tag-signal",
   pending_signatures: "tag-signal",
   draft: "tag-quiet",
-  accepted: "tag-proof",
-  active: "tag-proof",
-  shortlisted: "tag-proof",
-  completed: "tag-proof",
+  accepted: "tag-done",
+  active: "tag-done",
+  shortlisted: "tag-done",
+  completed: "tag-done",
   declined: "tag-quiet",
   rejected: "tag-quiet",
   withdrawn: "tag-quiet",

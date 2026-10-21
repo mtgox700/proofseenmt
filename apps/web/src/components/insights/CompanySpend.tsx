@@ -76,7 +76,7 @@ export function CompanySpend({ lang, c, spend }: CompanySpendProps) {
         format={amount}
         firstLabel={shortMonth(spend.months[0]?.month ?? "", lang)}
         lastLabel={shortMonth(spend.months.at(-1)?.month ?? "", lang)}
-        tone="signal"
+        tone="muted"
       />
       <div className="table-scroll" tabIndex={0} role="region" aria-label={c.spendCaption}>
         <table className="ops">

@@ -41,7 +41,7 @@ export default async function CompanyPublicPageSettings({ params, searchParams }
         <h1>{c.title}</h1>
         <p className="muted measure">{c.lead}</p>
         <p className="thread-meta">
-          <span className={settings.enabled ? "tag tag-proof" : "tag tag-quiet"}>{settings.enabled ? c.enabled : c.disabled}</span>
+          <span className={settings.enabled ? "tag tag-done" : "tag tag-quiet"}>{settings.enabled ? c.enabled : c.disabled}</span>
           {settings.enabled && settings.slug !== null ? (
             <a href={`/${lang}/entreprises/${settings.slug}`}>{c.view}</a>
           ) : null}

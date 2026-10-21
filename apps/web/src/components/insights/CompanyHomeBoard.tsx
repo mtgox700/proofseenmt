@@ -29,7 +29,7 @@ function Published({ lang, m, insights }: { readonly lang: Lang; readonly m: Mar
         format={(value) => count(value, lang)}
         firstLabel={shortMonth(insights.publishedByMonth[0]?.month ?? "", lang)}
         lastLabel={shortMonth(insights.publishedByMonth.at(-1)?.month ?? "", lang)}
-        tone="info"
+        tone="muted"
       />
       <details className="chart-details">
         <summary>{c.publishedCaption}</summary>
