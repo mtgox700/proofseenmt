@@ -23,6 +23,16 @@ export {
 } from "./profile-directory";
 export { AVATAR_TONES, avatarTone, monogram } from "./directory-cards";
 export {
+  MAX_CARD_TAGS,
+  passageName,
+  profileCardBody,
+  profileCardFields,
+  profileCardLegend,
+  type CardAvailability,
+  type ProfileCardFields,
+  type ProfileCardView,
+} from "./profile-card";
+export {
   COMPANY_DIRECTORY_SORTS,
   COMPANY_KINDS,
   companyDirectoryQueryString,

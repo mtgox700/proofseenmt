@@ -61,7 +61,8 @@ describe("annuaire public des freelances", () => {
     expect(html).toContain("<li>2 missions vérifiées sur pièce</li>");
     expect(html).toContain("<li>1 adresse web dont la possession est prouvée</li>");
     expect(html).toContain("<li>Payé sur Proofseen par 1 entreprise</li>");
-    expect(html).toContain("Profil mis à jour le 12 octobre 2026");
+    // La ligne de trace, en tête de carte : la référence et la date, comme l'en-tête du profil.
+    expect(html).toContain('<p class="fc-trace">Profil FR-ABCDE · mis à jour le 12 octobre 2026</p>');
     expect(html).toContain("confirmée le 10 octobre 2026");
     expect(html).toContain("À partir du 1 décembre 2026");
     expect(html).toContain("anglais (C1) · français (langue maternelle)");
@@ -71,8 +72,8 @@ describe("annuaire public des freelances", () => {
 
   it("montre la photo d'un profil nominatif avec ses dimensions, et un monogramme sans nom pour un pseudonyme", () => {
     const html = render();
-    expect(html).toContain('<img class="avatar" src="/fichiers/0b5a6f8e-2c1d-4e3f-9a7b-1c2d3e4f5a6b" width="56" height="56" alt="Photo de Camille Martin" loading="lazy" decoding="async">');
-    expect(html).toMatch(/<span class="avatar tone-\d" aria-hidden="true">AB<\/span>/);
+    expect(html).toContain('<img class="fc-avatar" src="/fichiers/0b5a6f8e-2c1d-4e3f-9a7b-1c2d3e4f5a6b" width="56" height="56" alt="Photo de Camille Martin" loading="lazy" decoding="async">');
+    expect(html).toContain('<span class="fc-avatar" aria-hidden="true">AB</span>');
     // Une photo sur un profil pseudonyme ne sort jamais, même si la vue en portait une par erreur.
     const leaked = renderProfileDirectory([{ ...CARDS[0], photoFileId: "aaaaaaaa-2c1d-4e3f-9a7b-1c2d3e4f5a6b" } as DirectoryCardView], { baseUrl: "https://proofseen.com", lang: "fr", filters: NO_DIRECTORY_FILTERS, hasMore: false });
     expect(leaked).not.toContain("aaaaaaaa-");
@@ -144,9 +145,9 @@ describe("annuaire public des freelances", () => {
     if (first === undefined) throw new Error("carte absente");
     const stale: DirectoryCardView = { ...first, availability: "unconfirmed" };
     const html = renderProfileDirectory([stale], { baseUrl: "https://proofseen.com", lang: "fr", filters: NO_DIRECTORY_FILTERS, hasMore: false });
-    expect(html).toContain('<span class="badge off"><i aria-hidden="true"></i>Disponibilité non confirmée</span>');
+    expect(html).toContain('<span class="fc-state stale">Disponibilité non confirmée</span>');
     expect(html).toContain("dernière confirmation le 10 octobre 2026");
-    expect(html).not.toMatch(/badge now/);
+    expect(html).not.toMatch(/fc-state now/);
     expect(html).toContain("Développeuse Rust embarqué");
   });
 

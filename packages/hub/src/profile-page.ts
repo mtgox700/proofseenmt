@@ -6,6 +6,7 @@ import { EMPTY_SECTIONS, fileUrl, renderSections, SECTION_STYLES, sectionsJsonLd
 import { recentPostsSection, type RecentPostItem } from "./post-page";
 import { proofRegister, proofTally, type ProofFacts, type ProofMission, type ProofRegister, type ProvenAddress } from "./profile-proofs";
 import { PROFILE_STYLES } from "./profile-styles";
+import { PASSAGE_CSS, passageName } from "./profile-card";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -170,7 +171,8 @@ const fiche = (p: PublicProfile, name: string, availability: string, o: ProfileP
     .map(([dt, dd]) => `<div><dt>${e(dt ?? "")}</dt><dd>${e(dd ?? "")}</dd></div>`)
     .join("");
   return (
-    `<header class="fiche"><p class="ref">${e(l.reference(p.reference, date(p.updatedAt, o.lang)))}</p>` +
+    // M3 : la carte de l'annuaire porte le même nom de transition ; arrivée de l'annuaire, elle devient cette fiche.
+    `<header class="fiche" style="view-transition-name:${passageName(p.slug)}"><p class="ref">${e(l.reference(p.reference, date(p.updatedAt, o.lang)))}</p>` +
     `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline">${e(p.headline)}</p></div></div>` +
     `<dl class="context">${context}</dl></header>`
   );
@@ -210,7 +212,7 @@ export const renderProfilePage = (p: PublicProfile, o: ProfilePageOptions): stri
     `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
     `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
     `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}</style>`,
+    `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}\n${PASSAGE_CSS}</style>`,
     `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
     "</head>",
     "<body>",
