@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EVIDENCE_KINDS, PublicProfileSchema, type PublicProfile } from "../src/identity";
+import { PublicProfileSchema, type PublicProfile } from "../src/identity";
 import { ORDERING_NOTE } from "../src/order";
 import { publicApi } from "../src/query";
 import { buildProfilesSite } from "../src/site";
@@ -54,20 +54,28 @@ describe("how a mission was verified", () => {
     expect(page(files, "en/p/FR-AAAAA/index.html")).toContain("invoice + contract");
   });
 
-  it("publishes a method page that explains every kind of evidence and what verification does not guarantee", () => {
+  it("publishes a method page with the three ways a mission is verified, as the product does them (Kensa B3)", () => {
     const files = buildProfilesSite([profile("FR-AAAAA")], { baseUrl: BASE });
-    const method = page(files, "methode/index.html");
+    const text = (html: string): string => html.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, "").replace(/<[^>]*>/g, " ").replace(/&#39;/g, "'").replace(/[\u00a0\u202f]/g, " ");
+    const method = text(page(files, "methode/index.html"));
     expect(method).toContain("Comment nous vérifions");
-    expect(method).toContain("Pièces contrôlées");
+    for (const mode of ["Confirmée par le client", "Payée sur Proofseen", "Contrôlée sur pièce"]) expect(method).toContain(mode);
+    expect(method).toContain("un lien signé à usage unique");
+    expect(method).toContain("le nom du client ne l'est que s'il l'a autorisé en confirmant la mission");
+    // The two claims the code contradicted: every mission checked on a document, and a client name never published.
+    expect(method).not.toMatch(/Chaque mission publiée sur Proofseen a été contrôlée sur au moins une pièce/);
+    expect(method).not.toMatch(/Son nom n'est jamais publié/);
     expect(method).toMatch(/ne juge ni la qualité du travail/);
-    expect(method.match(/<li class="mission">/g)).toHaveLength(EVIDENCE_KINDS.length);
-    expect(page(files, "en/method/index.html")).toContain("How we verify");
+    for (const fact of ["répertoire officiel des entreprises", "prestataire de paiement", "URSSAF", "tous les 30 jours"]) expect(method).toContain(fact);
+    const en = text(page(files, "en/method/index.html"));
+    for (const mode of ["How we verify", "Confirmed by the client", "Paid on Proofseen", "Checked against a document"]) expect(en).toContain(mode);
+    expect(en).not.toMatch(/The client's name is never published/);
     expect(page(files, "sitemap.xml")).toContain(`${BASE}/methode/`);
   });
 
-  it("links the method page from every page footer", () => {
+  it("links the method page from the end of every page", () => {
     const files = buildProfilesSite([profile("FR-AAAAA")], { baseUrl: BASE });
-    for (const file of files.filter((f) => f.path.endsWith(".html"))) expect(file.content).toMatch(/<footer[^]*href="\/(en\/method|methode)\/"/);
+    for (const file of files.filter((f) => f.path.endsWith(".html"))) expect(file.content).toMatch(/<p class="page-note">[^]*href="\/(en\/method|methode)\/"/);
   });
 
   it("hands the method to agents too, through the public API", () => {

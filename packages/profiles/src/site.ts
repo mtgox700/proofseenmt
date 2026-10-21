@@ -1,6 +1,7 @@
 import { AI_SEARCH_BOTS, escapeHtml } from "@proofseen/hub";
 import type { PublicProfile } from "./identity";
 import {
+  LABELS,
   LOCALES,
   contactPath,
   homePath,
@@ -114,8 +115,8 @@ const sitemap = (baseUrl: string, paths: readonly string[], lastmod: string): st
 const fileFor = (urlPath: string): string => `${urlPath.replace(/^\//, "")}index.html`;
 
 const INTRO = {
-  fr: (count: number) => `${count} profil${count > 1 ? "s" : ""} vérifié${count > 1 ? "s" : ""}. Identité révélée uniquement après accord du freelance.`,
-  en: (count: number) => `${count} verified profile${count > 1 ? "s" : ""}. Identity revealed only after the freelancer agrees.`,
+  fr: (count: number) => `${count} profil${count > 1 ? "s" : ""} publié${count > 1 ? "s" : ""}. Identité révélée uniquement après accord du freelance.`,
+  en: (count: number) => `${count} published profile${count > 1 ? "s" : ""}. Identity revealed only after the freelancer agrees.`,
 } as const;
 
 export class RiskyProfileError extends Error {
@@ -189,7 +190,7 @@ export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl,
           baseUrl,
           path: intentPath(locale, intent.slug),
           otherPath: intentPath(locale === "fr" ? "en" : "fr", intent.slug),
-          title: locale === "fr" ? `Freelances ${intent.skill} — ${intent.area}` : `${intent.skill} freelancers — ${intent.area}`,
+          title: LABELS[locale].intentTitle(intent.skill, intent.area),
           intro: INTRO[locale](intent.profiles.length),
           profiles: intent.profiles,
         }),
@@ -204,7 +205,7 @@ export const buildProfilesSite = (profiles: readonly PublicProfile[], { baseUrl,
         baseUrl,
         path: homePath(locale),
         otherPath: homePath(locale === "fr" ? "en" : "fr"),
-        title: locale === "fr" ? "Profils vérifiés" : "Verified profiles",
+        title: LABELS[locale].homeTitle,
         intro: INTRO[locale](indexable.length),
         profiles: indexable,
         links: intentRefs(intents, locale, () => true),
