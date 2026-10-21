@@ -87,6 +87,10 @@ describe("annuaire public des freelances", () => {
     expect(ld.mainEntity).toMatchObject({ itemListOrder: "https://schema.org/ItemListUnordered", numberOfItems: 2 });
   });
 
+  it("ne promet aucune vérification sur document, en français comme en anglais", () => {
+    for (const lang of ["fr", "en"] as const) expect(render(NO_DIRECTORY_FILTERS, false, lang)).not.toMatch(/pi[eè]ces?|documents?|facture|invoice/i);
+  });
+
   it("se désigne elle-même, s'indexe nue, et se retire de l'index une fois filtrée", () => {
     const bare = render();
     expect(bare).toContain('<link rel="canonical" href="https://proofseen.com/fr/freelances">');

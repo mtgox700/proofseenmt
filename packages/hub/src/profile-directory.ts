@@ -47,7 +47,7 @@ const LABELS = {
     how: "Comment un profil arrive ici",
     howSteps: [
       "Le freelance publie son profil : ce qu'il écrit reste marqué comme déclaré.",
-      "Ses pièces sont vérifiées une à une par un tiers, puis datées.",
+      "Ses missions sont confirmées une à une par le client ou par un paiement sur Proofseen, puis datées.",
       "L'ordre est la date de mise à jour du profil, jamais un score.",
     ],
     next: "Page suivante",
@@ -76,7 +76,7 @@ const LABELS = {
     how: "How a profile gets here",
     howSteps: [
       "The freelancer publishes a profile: what they write stays marked as declared.",
-      "Their documents are verified one by one by a third party, then dated.",
+      "Their missions are confirmed one by one by the client or by a payment on Proofseen, then dated.",
       "The order is the date the profile was updated, never a score.",
     ],
     next: "Next page",

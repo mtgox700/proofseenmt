@@ -59,7 +59,7 @@ export interface ProofRegister {
 export const PROOF_LABELS = {
   fr: {
     title: "Ce qui est vérifié",
-    note: "Chaque ligne porte sa source, sa date et qui l'a vérifiée. Nous montrons la méthode de vérification, jamais le document.",
+    note: "Chaque ligne porte sa source, sa date et qui l'a vérifiée. Le nom du client n'apparaît que s'il l'a autorisé.",
     missions: "Missions vérifiées",
     addresses: "Adresses dont la possession est prouvée",
     facts: "Faits vérifiés",
@@ -108,7 +108,7 @@ export const PROOF_LABELS = {
   },
   en: {
     title: "What is verified",
-    note: "Each line carries its source, its date and who verified it. We show the verification method, never the document.",
+    note: "Each line carries its source, its date and who verified it. The client's name appears only if they allowed it.",
     missions: "Verified missions",
     addresses: "Addresses with proven ownership",
     facts: "Verified facts",

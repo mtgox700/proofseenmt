@@ -95,7 +95,7 @@ const LABELS = {
     more: (n: number) => `+${n}`,
     portfolio: "Work samples shown on the profile",
     see: "See the profile",
-    noProof: "No verified document yet.",
+    noProof: "No verified fact yet.",
     registry: "Business active in the official company register",
     identity: "Identity verified by the payment provider",
     vigilance: "Valid URSSAF vigilance certificate",

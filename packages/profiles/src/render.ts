@@ -69,7 +69,7 @@ const layout = ({ locale, baseUrl, path, otherPath, title, description, noindex,
       marketHeader(locale, otherPath),
       `<main id="contenu" class="wrap${wide ? " wide" : ""}">`,
       body,
-      `<p class="page-note">${e(footer ?? l.whyText)} <a href="${methodPath(locale)}">${l.method}</a></p>`,
+      `<p class="page-note">${footer === "" ? "" : `${e(footer ?? l.whyText)} `}<a href="${methodPath(locale)}">${l.method}</a></p>`,
       "</main>",
       marketFooter(locale),
       "</body>",
@@ -341,6 +341,8 @@ export const renderContactPage = (locale: Locale, baseUrl: string, contactEmail?
     description: l.contactNote,
     noindex: false,
     body,
+    // The page already says why in its body: the note keeps only the link to the method.
+    footer: "",
     jsonLd: crumbs.jsonLd,
   });
 };

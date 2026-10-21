@@ -178,7 +178,7 @@ export const notFoundPage = (lang: Lang, o: StatusPageOptions = {}): string => {
     `<nav class="nf-links" aria-labelledby="nf-elsewhere"><h2 id="nf-elsewhere" class="nf-links-title">${c.elsewhere}</h2><ul class="nf-list">` +
     links.map(([href, label]) => `<li><a href="${href}"><span>${e(label)}</span><span class="nf-path">${href}</span></a></li>`).join("") +
     "</ul></nav></div>";
-  return frame(lang, c.title, c.lead, main, o);
+  return frame(lang, c.title.replace(/\.$/, ""), c.lead, main, o);
 };
 
 /**
@@ -192,5 +192,5 @@ export const unavailablePage = (lang: Lang, retryHref: string, o: StatusPageOpti
   const main =
     `<div class="state-error"><p class="nf-code">${c.code}</p><h1 class="nf-title">${e(c.title)}</h1><p class="nf-lead">${e(c.lead)}</p>` +
     `<p class="state-actions"><a class="btn btn-primary" href="${e(retry)}">${c.retry}</a><a class="btn" href="/${lang}">${c.home}</a></p></div>`;
-  return frame(lang, c.title, c.lead, main, o);
+  return frame(lang, c.title.replace(/\.$/, ""), c.lead, main, o);
 };
