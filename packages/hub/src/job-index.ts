@@ -127,7 +127,6 @@ const LABELS = {
  * de 62 rem, sans script. Le triangle natif est remplacé par un signe en mono ; ce n'est pas du texte.
  */
 const INDEX_STYLES =
-  ".wrap.wide{width:min(100% - 2*var(--ps-gutter),var(--ps-max))}" +
   ".dir{display:grid;gap:var(--ps-space-5) var(--ps-space-7);margin-top:var(--ps-space-6)}" +
   "@media (min-width:62rem){.dir{grid-template-columns:17rem minmax(0,1fr);align-items:start}.dir>.drawer{position:sticky;top:calc(4rem + var(--ps-space-4))}" +
   ".dir>.drawer::details-content{content-visibility:visible;display:block}.dir>.drawer>summary{cursor:default}.dir>.drawer>summary::after{content:none}}" +

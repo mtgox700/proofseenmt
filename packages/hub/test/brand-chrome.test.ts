@@ -171,6 +171,13 @@ describe("the shared chrome", () => {
     expect(header).toContain('<a class="lang" href="/en/missions" hreflang="en" lang="en">English</a>');
   });
 
+  it("starts every page on the header's left edge and keeps the reading measure on running text (Kensa M6)", () => {
+    expect(STYLES).toContain(".wrap{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}");
+    expect(STYLES).toContain(".chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}");
+    expect(STYLES).toMatch(/:where\(main\.wrap:not\(\.wide\)\) :where\(p:not\(\[class\]\)[^{]*\)\{max-width:var\(--ps-measure\)\}/);
+    expect(STYLES).not.toContain("58rem");
+  });
+
   it("follows the system theme without a theme switch, and the static site loads no web font", () => {
     expect(STYLES).toContain(`@media (prefers-color-scheme:light){:root{color-scheme:light;--ps-bg:${PALETTE.light.bg};`);
     expect(STYLES).not.toContain("data-theme");

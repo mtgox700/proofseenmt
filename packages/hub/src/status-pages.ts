@@ -175,7 +175,7 @@ export const notFoundPage = (lang: Lang, o: StatusPageOptions = {}): string => {
     '<span class="nf-search-row"><input id="nf-q" type="search" name="q" maxlength="200" autocomplete="off" enterkeyhint="search">' +
     `<button class="btn btn-primary" type="submit">${c.searchSubmit}</button></span></form></div>` +
     `<figure class="nf-art">${punchAbsent()}<figcaption class="nf-mark">${c.mark}</figcaption></figure>` +
-    `<nav class="nf-links" aria-labelledby="nf-elsewhere"><h2 id="nf-elsewhere" class="nf-links-title">${c.elsewhere}</h2><ul>` +
+    `<nav class="nf-links" aria-labelledby="nf-elsewhere"><h2 id="nf-elsewhere" class="nf-links-title">${c.elsewhere}</h2><ul class="nf-list">` +
     links.map(([href, label]) => `<li><a href="${href}"><span>${e(label)}</span><span class="nf-path">${href}</span></a></li>`).join("") +
     "</ul></nav></div>";
   return frame(lang, c.title, c.lead, main, o);

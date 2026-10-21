@@ -11,14 +11,17 @@ export const safeJsonLd = (data: unknown): string =>
 
 /**
  * The inline CSS of every public page: the brand tokens and the shared chrome of @proofseen/brand (one source with the
- * React pages: same palette, same scale, same button, same radius), then the reading rules of the hub. One display
+ * React pages: same palette, same scale, same button, same radius), then the reading rules of the hub. Every page
+ * starts on the left edge of the header (`.wrap` is as wide as `.chrome`, Kensa M6); on a reading page the running
+ * text keeps the reading measure, while tables, charts and grids take the width. One display
  * font, preloaded; body text in the system font. Zero JavaScript. Hard rule (tested): nothing is ever hidden, no
  * display:none, no zero opacity, no zero font size, so what a visitor reads is exactly what a crawler reads.
  */
 const BASE_STYLES = `
 *,*::before,*::after{box-sizing:border-box}
 a{color:inherit;text-underline-offset:.2em;text-decoration-thickness:1px}
-.wrap{width:min(100% - 2*var(--ps-gutter),58rem);margin-inline:auto}
+.wrap{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}
+:where(main.wrap:not(.wide)) :where(p:not([class]),blockquote,form,ul:not([class]),ol:not([class]),.toc,.note,.links){max-width:var(--ps-measure)}
 main{padding-block:var(--ps-space-7) var(--ps-space-8)}
 h1,h2,h3{font-family:var(--ps-font-display);font-weight:var(--ps-weight-display);margin:0;text-wrap:balance}
 h1{font-size:var(--ps-step-5);line-height:var(--ps-lead-5);letter-spacing:var(--ps-track-5)}
