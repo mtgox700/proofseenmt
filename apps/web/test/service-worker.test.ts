@@ -115,7 +115,7 @@ describe("versions", () => {
     const sw = boot();
     await sw.fire("install", {});
     await sw.fire("activate", {});
-    expect([...sw.stores.keys()].sort()).toEqual(["other-app", "proofseen-v2-shell"]);
+    expect([...sw.stores.keys()].sort()).toEqual(["other-app", "proofseen-v3-shell"]);
   });
 });
 

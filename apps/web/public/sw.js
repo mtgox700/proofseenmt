@@ -12,7 +12,7 @@
  * Bump VERSION to drop every cache of the previous version on activation.
  */
 
-const VERSION = "proofseen-v2";
+const VERSION = "proofseen-v3";
 const SHELL_CACHE = VERSION + "-shell";
 const STATIC_CACHE = VERSION + "-static";
 const OFFLINE_URL = "/offline";

@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ICONS, PALETTE } from "@proofseen/brand";
+import { ICONS, MONOGRAM_SMALL_PATH, PALETTE } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import config from "../next.config";
 import { manifestPath, PWA_BACKGROUND, PWA_ICONS, webAppManifest } from "../src/lib/pwa/manifest";
@@ -72,6 +72,17 @@ describe("offline page", () => {
     expect(html).toContain(`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${PALETTE.dark.bg}">`);
     // The way back is paper on ink, like every call to action: green is kept for what is verified.
     expect(html).not.toContain(PALETTE.dark.proof);
+    expect(html).not.toContain(PALETTE.light.proof);
+  });
+
+  it("carries the brand: the poinçon inline in its monochrome version, the trace, safe areas", () => {
+    const html = offlinePage();
+    expect(html).toContain(`fill="currentColor" fill-rule="evenodd" d="${MONOGRAM_SMALL_PATH}"`);
+    expect(html).toContain('role="img" aria-label="Proofseen"');
+    expect(html).toContain('<svg class="trace"');
+    expect(html).toContain("env(safe-area-inset-bottom)");
+    expect(html).toContain("@media (hover:hover) and (pointer:fine){a:hover");
+    expect(html).not.toMatch(/—/);
   });
 });
 
