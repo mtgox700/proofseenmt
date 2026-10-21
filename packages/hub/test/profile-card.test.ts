@@ -91,7 +91,7 @@ describe("une seule carte de profil", () => {
       '<ul class="fc-proof"><li>2 missions vérifiées</li><li>1 adresse web dont la possession est prouvée</li><li>Entreprise active au répertoire officiel</li><li>Attestation de vigilance URSSAF en cours de validité</li></ul>',
     );
     expect(proven).not.toContain("fc-none");
-    expect(bare).toContain('<p class="fc-none">Pas encore de pièce vérifiée.</p>');
+    expect(bare).toContain('<p class="fc-none">Pas encore de fait vérifié.</p>');
     expect(bare).not.toContain("fc-proof");
   });
 

@@ -8,7 +8,7 @@ export const fr = {
   meta: {
     title: "Proofseen : la preuve de ce qu'un freelance a vraiment livré",
     description:
-      "Des missions de freelances tech vérifiées sur pièce et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
+      "Des missions de freelances tech confirmées par leur client ou payées sur Proofseen, et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
   },
   skip: "Aller au contenu",
   nav: {
@@ -27,7 +27,7 @@ export const fr = {
   },
   hero: {
     title: "La preuve de ce qu'un freelance a vraiment livré.",
-    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'après l'examen d'une pièce, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
+    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'une fois confirmée par son client ou payée sur la plateforme, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
     primary: "Faire mesurer ma visibilité",
     secondary: "Voir les freelances",
   },
@@ -132,11 +132,11 @@ export const fr = {
     sampleCaption: "Nous ne montrons pas de rapport client : nous n'en avons pas encore.",
   },
   piece: {
-    kicker: "La pièce",
-    title: "Une mission n'est vérifiée que sur pièce.",
-    lead: "Le freelance déclare. Un tiers vérifie la pièce. Alors seulement, la mission porte sa marque, avec sa date.",
-    evidenceTitle: "Ce qui peut faire preuve",
-    evidence: ["Facture", "Contrat", "Attestation du client", "Accès au dépôt de code", "Livrable public"],
+    kicker: "La preuve",
+    title: "Une mission n'est vérifiée que par un tiers.",
+    lead: "Le freelance déclare. Son client confirme, ou la mission est payée sur Proofseen. Alors seulement, elle porte sa marque, avec sa date.",
+    evidenceTitle: "Ce qui reste déclaré",
+    evidence: ["Une mission sans confirmation ni paiement", "Les compétences et le TJM", "Les documents : nous n'en examinons pas encore"],
     confirmTitle: "Qui peut confirmer",
     confirm: ["Le client, depuis son compte", "Un contact chez le client, par lien signé, sans compte", "Le paiement de la mission sur Proofseen"],
     factsTitle: "Les faits vérifiés d'un profil",
@@ -146,7 +146,7 @@ export const fr = {
       "Attestation de vigilance URSSAF",
       "Payé sur Proofseen par une ou plusieurs entreprises",
     ],
-    rule: "Nous montrons la méthode de vérification, jamais le document.",
+    rule: "Chaque mission vérifiée dit qui l'a confirmée et quand ; le nom du client n'apparaît que s'il l'a autorisé.",
     link: "Voir les profils publiés",
     replay: "Rejouer la frappe",
     specimen: {
@@ -154,14 +154,14 @@ export const fr = {
       role: "Lead développeur TypeScript",
       context: "PME · logistique · 6 mois",
       summary: "Refonte de l'API de suivi des colis et reprise de la couverture de tests.",
-      evidence: "Pièce : facture",
-      stamp: "Vérifiée le 12 octobre 2026 · facture",
+      evidence: "Preuve : confirmation du client",
+      stamp: "Vérifiée le 12 octobre 2026 · confirmée par le client",
     },
   },
   companies: {
     title: "Recrutez des freelances dont les missions sont vérifiées.",
-    text: "Des profils pseudonymes, des missions contrôlées sur pièce, une méthode publique. Aucun score, aucun classement de personnes : l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
-    points: ["Possession des profils prouvée", "Méthode de vérification affichée, jamais le document", "Disponibilité datée", "Identité communiquée après accord du freelance"],
+    text: "Des profils pseudonymes, des missions confirmées par leur client ou payées sur Proofseen, une méthode publique. Aucun score, aucun classement de personnes : l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
+    points: ["Possession des profils prouvée", "Méthode de vérification affichée pour chaque mission", "Disponibilité datée", "Identité communiquée après accord du freelance"],
     cta: "Voir les freelances",
     publish: "Publier une mission",
   },
@@ -169,7 +169,7 @@ export const fr = {
     label: "Par où commencer",
     freelance: {
       title: "Vous êtes freelance",
-      text: "Publiez vos missions, faites vérifier vos pièces, et sachez si une IA vous cite quand un recruteur la questionne.",
+      text: "Publiez vos missions, faites-les confirmer par vos clients, et sachez si une IA vous cite quand un recruteur la questionne.",
       cta: "Faire mesurer ma visibilité",
     },
     company: {
@@ -350,7 +350,7 @@ export const fr = {
       title: "Bienvenue. Vous êtes…",
       lead: "Ce choix décide de votre espace. Il ne se change pas seul : écrivez-nous en cas d'erreur.",
       freelance: { title: "Freelance", text: "Je veux savoir si les IA me trouvent quand un recruteur cherche, et corriger ce qui bloque." },
-      company: { title: "Entreprise", text: "Je cherche des freelances dont les missions sont vérifiées sur pièce." },
+      company: { title: "Entreprise", text: "Je cherche des freelances dont les missions sont confirmées par leurs clients." },
       choose: "Choisir",
     },
     operator: {

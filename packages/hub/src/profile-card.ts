@@ -68,7 +68,7 @@ const LABELS = {
     more: (n: number) => `+${n}`,
     portfolio: "Réalisations présentées sur le profil",
     see: "Voir le profil",
-    noProof: "Pas encore de pièce vérifiée.",
+    noProof: "Pas encore de fait vérifié.",
     registry: "Entreprise active au répertoire officiel",
     identity: "Identité vérifiée par le prestataire de paiement",
     vigilance: "Attestation de vigilance URSSAF en cours de validité",
@@ -122,7 +122,7 @@ export interface ProfileCardFields {
   readonly context: readonly string[];
   readonly rate: string | null;
   readonly availability: { readonly state: string; readonly tone: AvailabilityTone; readonly when: string | null } | null;
-  /** Les faits vérifiés, chacun nommé et compté ; vide : « pas encore de pièce vérifiée ». */
+  /** Les faits vérifiés, chacun nommé et compté ; vide : « pas encore de fait vérifié ». */
   readonly verified: readonly string[];
   readonly skills: readonly string[];
   readonly moreSkills: string | null;

@@ -23,7 +23,7 @@ export const discoveryFr = {
     profile: "Contenu du profil",
     photo: "Avec photo (profils nominatifs)",
     portfolio: "Avec des réalisations",
-    missions: "Au moins une mission vérifiée sur pièce",
+    missions: "Au moins une mission vérifiée",
     seniority: "La séniorité n'est pas un filtre : Proofseen ne la déduit jamais des expériences.",
     count: (n: number) => `${n}`,
     apply: "Appliquer les filtres",

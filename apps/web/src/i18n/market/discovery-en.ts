@@ -25,7 +25,7 @@ export const discoveryEn: DiscoveryDictionary = {
     profile: "Profile content",
     photo: "With a photo (named profiles)",
     portfolio: "With portfolio items",
-    missions: "At least one mission verified against a document",
+    missions: "At least one verified mission",
     seniority: "Seniority is not a filter: Proofseen never infers it from experience.",
     count: (n: number) => `${n}`,
     apply: "Apply filters",

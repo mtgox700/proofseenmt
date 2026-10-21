@@ -63,8 +63,8 @@ export const LABELS = {
     listMissions: "Missions vérifiées",
     methodLink: "méthode",
     methodIntro:
-      "Sur Proofseen, une mission n'est marquée vérifiée que de l'une de trois façons : le client la confirme lui-même, elle a été payée sur la plateforme, ou Proofseen l'a contrôlée sur une pièce. Chaque mission vérifiée dit laquelle, avec sa date et qui l'a vérifiée. Une pièce n'est jamais publiée, et le nom du client ne l'est que s'il l'a autorisé en confirmant la mission.",
-    methodModes: "Trois façons de vérifier une mission",
+      "Sur Proofseen, une mission n'est marquée vérifiée que de l'une de deux façons : le client la confirme lui-même, ou elle a été payée sur la plateforme. Chaque mission vérifiée dit laquelle, avec sa date et qui l'a vérifiée. Le nom du client n'est publié que s'il l'a autorisé en confirmant la mission. Le contrôle sur pièce n'est pas encore proposé.",
+    methodModes: "Comment une mission est vérifiée",
     modes: {
       client: {
         title: "Confirmée par le client",
@@ -75,8 +75,8 @@ export const LABELS = {
         text: "La mission a été contractée et payée sur la plateforme : elle est enregistrée au versement des fonds au freelance. Le contrat et le versement font foi.",
       },
       document: {
-        title: "Contrôlée sur pièce",
-        text: "Proofseen contrôle une pièce de la mission et publie seulement la nature du contrôle, jamais la pièce :",
+        title: "Contrôlée sur pièce : pas encore proposé",
+        text: "Aucune mission n'est vérifiée sur pièce aujourd'hui. Quand ce contrôle sera proposé, Proofseen publiera seulement sa nature, jamais la pièce :",
       },
     },
     evidenceShort: {
@@ -171,7 +171,7 @@ export const LABELS = {
     listMissions: "Verified missions",
     methodLink: "method",
     methodIntro:
-      "On Proofseen, a mission is marked verified in one of three ways only: the client confirms it themselves, it was paid on the platform, or Proofseen checked it against a document. Each verified mission says which, with its date and who verified it. A document is never published, and the client's name is published only if the client allowed it when confirming the mission.",
+      "On Proofseen, a mission is marked verified in one of two ways only: the client confirms it themselves, or it was paid on the platform. Checking a document is not offered yet. Each verified mission says which, with its date and who verified it. A document is never published, and the client's name is published only if the client allowed it when confirming the mission.",
     methodModes: "Three ways a mission is verified",
     modes: {
       client: {
@@ -183,8 +183,8 @@ export const LABELS = {
         text: "The mission was contracted and paid on the platform: it is recorded when the funds are released to the freelancer. The contract and the payout are the evidence.",
       },
       document: {
-        title: "Checked against a document",
-        text: "Proofseen checks a document of the mission and publishes only the kind of check, never the document:",
+        title: "Checked against a document: not offered yet",
+        text: "No mission is verified against a document today. When this check is offered, Proofseen will publish only its kind, never the document:",
       },
     },
     evidenceShort: {

@@ -6,7 +6,7 @@ export const en: Dictionary = {
   meta: {
     title: "Proofseen: proof of what a freelancer actually delivered",
     description:
-      "Tech freelance missions verified against evidence and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
+      "Tech freelance missions confirmed by their client or paid on Proofseen, and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
   },
   skip: "Skip to content",
   nav: {
@@ -25,7 +25,7 @@ export const en: Dictionary = {
   },
   hero: {
     title: "Proof of what a freelancer actually delivered.",
-    lead: "On Proofseen, a mission is marked verified only once a document has been checked, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
+    lead: "On Proofseen, a mission is marked verified only once its client confirms it or it is paid on the platform, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
     primary: "Get my visibility measured",
     secondary: "See the freelancers",
   },
@@ -128,11 +128,11 @@ export const en: Dictionary = {
     sampleCaption: "We show no client report: we do not have one yet.",
   },
   piece: {
-    kicker: "The evidence",
-    title: "A mission is verified against evidence, or not at all.",
-    lead: "The freelancer declares. A third party checks the evidence. Only then does the mission carry its mark, with its date.",
-    evidenceTitle: "What counts as evidence",
-    evidence: ["Invoice", "Contract", "Client attestation", "Repository access", "Public deliverable"],
+    kicker: "The proof",
+    title: "A mission is verified by a third party, or not at all.",
+    lead: "The freelancer declares. Their client confirms, or the mission is paid on Proofseen. Only then does it carry its mark, with its date.",
+    evidenceTitle: "What stays declared",
+    evidence: ["A mission with no confirmation and no payment", "Skills and day rate", "Documents: we do not examine any yet"],
     confirmTitle: "Who can confirm",
     confirm: ["The client, from their account", "A contact at the client, through a signed link, without an account", "Payment of the mission on Proofseen"],
     factsTitle: "The verified facts of a profile",
@@ -142,7 +142,7 @@ export const en: Dictionary = {
       "URSSAF vigilance certificate",
       "Paid on Proofseen by one or more companies",
     ],
-    rule: "We show how it was verified, never the document.",
+    rule: "Every verified mission says who confirmed it and when; the client's name appears only if they allowed it.",
     link: "See the published profiles",
     replay: "Replay the stamp",
     specimen: {
@@ -150,14 +150,14 @@ export const en: Dictionary = {
       role: "TypeScript lead developer",
       context: "SME · logistics · 6 months",
       summary: "Rebuild of the parcel tracking API and recovery of the test coverage.",
-      evidence: "Evidence: invoice",
+      evidence: "Proof: client confirmation",
       stamp: "Verified on 12 October 2026 · invoice",
     },
   },
   companies: {
     title: "Hire freelancers whose missions are verified.",
-    text: "Pseudonymous profiles, missions checked against a document, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
-    points: ["Profile ownership proven", "Verification method shown, never the document", "Dated availability", "Identity shared once the freelancer agrees"],
+    text: "Pseudonymous profiles, missions confirmed by their client or paid on Proofseen, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
+    points: ["Profile ownership proven", "Verification method shown for every mission", "Dated availability", "Identity shared once the freelancer agrees"],
     cta: "See the freelancers",
     publish: "Post a mission",
   },
@@ -165,7 +165,7 @@ export const en: Dictionary = {
     label: "Where to start",
     freelance: {
       title: "You are a freelancer",
-      text: "Publish your missions, have your evidence checked, and find out whether an AI cites you when a recruiter asks it.",
+      text: "Publish your missions, have your clients confirm them, and find out whether an AI cites you when a recruiter asks it.",
       cta: "Get my visibility measured",
     },
     company: {
@@ -346,7 +346,7 @@ export const en: Dictionary = {
       title: "Welcome. You are…",
       lead: "This choice decides your space. It cannot be changed on your own: write to us if you made a mistake.",
       freelance: { title: "A freelancer", text: "I want to know whether AI assistants find me when a recruiter searches, and fix what fails." },
-      company: { title: "A company", text: "I am looking for freelancers whose missions are verified against documents." },
+      company: { title: "A company", text: "I am looking for freelancers whose missions are confirmed by their clients." },
       choose: "Choose",
     },
     operator: {
