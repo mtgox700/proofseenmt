@@ -87,10 +87,11 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 
 .rg-table summary { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: var(--ps-step--1); text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
 .rg-table { min-width: 0; }
-.rg-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.rg-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; container-type: inline-size; }
 .rg-scroll:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
 .rg-table table { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); font-variant-numeric: tabular-nums; }
-.rg-table caption { padding-bottom: var(--ps-space-3); text-align: left; color: var(--ps-muted); }
+/* The caption wraps at the width of the box and stays in view while the columns scroll under it. */
+.rg-table caption { position: sticky; left: 0; max-width: 100cqi; padding-bottom: var(--ps-space-3); text-align: left; color: var(--ps-muted); }
 .rg-table th, .rg-table td { padding: var(--ps-space-2) var(--ps-space-3) var(--ps-space-2) 0; border-bottom: 1px solid var(--ps-line); text-align: right; white-space: nowrap; }
 .rg-table th:first-child { text-align: left; font-weight: var(--ps-weight-strong); }
 .rg-table thead th, .rg-table tfoot th, .rg-table tfoot td { font-weight: var(--ps-weight-strong); }

@@ -214,6 +214,9 @@ describe("the register never widens the page on a phone (Kensa B1)", () => {
     }
     expect(rule(".rg-table")).toMatch(/min-width:\s*0/);
     expect(rule(".rg-scroll")).toMatch(/overflow-x:\s*auto/);
+    // The caption wraps at the width of the box (measured 2026-10-21 at 375 px: page 434 px wide before, 375 after).
+    expect(rule(".rg-scroll")).toMatch(/container-type:\s*inline-size/);
+    expect(rule(".rg-table caption")).toMatch(/max-width:\s*100cqi/);
   });
 
   it.each(["fr", "en"] as const)("%s: the scrolling table is a named region the keyboard can reach", (lang) => {
