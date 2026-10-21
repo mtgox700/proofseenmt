@@ -256,7 +256,9 @@ const toCard = (row: Row, since: Date): ProfileCard => {
     ...(name === null ? {} : { displayName: name }),
     // La photo suit le nom : un profil pseudonyme, ou dont le nom n'est pas publiable, ne montre jamais de visage.
     photoFileId: name === null ? null : photoFileId,
-    skills: skills.map((s) => s.skill.label).sort((a, b) => a.localeCompare(b, "fr")),
+    // L'ordre déclaré par le freelance, celui de sa fiche publique : la carte coupe ensuite à six, et la compétence
+    // qu'il a mise en tête (souvent celle de son titre) reste visible (revue Kensa, M3).
+    skills: skills.map((s) => s.skill.label),
     verifiedUrls: _count.ownedUrls,
     verifiedMissions: _count.missions,
     registryActive,
