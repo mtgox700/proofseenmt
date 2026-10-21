@@ -9,6 +9,8 @@ interface SiteHeaderProps {
   readonly t: Dictionary;
   /** "site" shows the public menu (missions, freelancers, skills, sign-in); "app" keeps only the brand and the language. */
   readonly variant: "site" | "app";
+  /** A fixed address for the other language, when the current one has no counterpart (the 404 outside /fr and /en). */
+  readonly otherHref?: string;
 }
 
 /*
@@ -17,7 +19,7 @@ interface SiteHeaderProps {
  * pages filled from the database or from sourced rates. Plain links (`<a>`) for those: they are route handlers serving
  * raw HTML, not pages of the React tree. On a phone the menu is a second row that scrolls sideways, without script.
  */
-export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
+export function SiteHeader({ lang, t, variant, otherHref }: SiteHeaderProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
   const menu = publicMenu(lang);
   return (
@@ -41,7 +43,13 @@ export function SiteHeader({ lang, t, variant }: SiteHeaderProps) {
             </Link>
           </>
         ) : null}
-        <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
+        {otherHref === undefined ? (
+          <LangSwitch to={other} label={t.nav.otherLang} title={t.nav.otherLangLabel} />
+        ) : (
+          <a className="lang" href={otherHref} hrefLang={other} lang={other} title={t.nav.otherLangLabel}>
+            {t.nav.otherLang}
+          </a>
+        )}
       </div>
     </header>
   );

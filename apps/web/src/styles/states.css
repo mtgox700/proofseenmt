@@ -1,0 +1,82 @@
+/* The states between pages: an address that leads nowhere, a page that failed, a page loading, a list still empty.
+   No green anywhere here: green is earned by a verified fact, and none of these states has one. */
+
+/* ---------- Shared: the label in the trace typeface ---------- */
+.nf-code,
+.nf-mark,
+.nf-links-title { margin: 0; font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+
+.state-page { padding-block: var(--ps-space-7) var(--ps-space-8); }
+
+/* ---------- 404: the register entry with an empty punch slot ---------- */
+.nf { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "text" "art" "links"; gap: var(--ps-space-6); }
+@media (min-width: 56rem) {
+  .nf { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "text art" "links links"; column-gap: var(--ps-space-8); align-items: center; }
+}
+.nf-text { grid-area: text; display: grid; gap: var(--ps-space-4); justify-items: start; }
+.nf-title { margin: 0; font: var(--ps-weight-display) var(--ps-step-4) / var(--ps-lead-4) var(--ps-font-display); letter-spacing: var(--ps-track-4); max-width: 16ch; }
+.nf-lead { max-width: 52ch; color: var(--ps-muted); font-size: var(--ps-step-1); line-height: var(--ps-lead-1); text-wrap: pretty; }
+.nf-search { display: grid; gap: var(--ps-space-2); width: min(100%, 30rem); margin-top: var(--ps-space-2); }
+.nf-search label { font-size: var(--ps-step--1); font-weight: var(--ps-weight-strong); }
+.nf-search-row { display: flex; gap: var(--ps-space-2); }
+.nf-search input { flex: 1; min-width: 0; min-height: 2.75rem; padding: 0 var(--ps-space-3); background: var(--ps-raised); border: var(--ps-border) solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+
+.nf-art { grid-area: art; margin: 0; display: grid; gap: var(--ps-space-3); justify-items: center; }
+.nf-art-svg { width: min(100%, 24rem); height: auto; }
+.nf-paper { fill: var(--ps-surface); stroke: var(--ps-line); stroke-width: 1.5; }
+.nf-ink { fill: var(--ps-line-strong); opacity: 0.4; }
+.nf-rule { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; opacity: 0.6; }
+.nf-slot { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; stroke-dasharray: 6 5; }
+/* The crop marks close in on the slot once (strike easing, 320 ms), then stop. Nothing is struck. */
+.nf-aim { fill: none; stroke: var(--ps-text); stroke-width: 1.5; stroke-linecap: square; transform-box: view-box; transform-origin: 248px 96px; }
+@media (prefers-reduced-motion: no-preference) {
+  .nf-aim { animation: nf-aim var(--ps-dur-reveal) var(--ps-ease-strike) 240ms both; }
+}
+@keyframes nf-aim { from { transform: scale(1.14); } }
+
+.nf-links { grid-area: links; padding-top: var(--ps-space-5); border-top: var(--ps-border) solid var(--ps-line); }
+.nf-links-title { margin-bottom: var(--ps-space-3); }
+.nf-links ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); column-gap: var(--ps-space-6); }
+@media (min-width: 40rem) { .nf-links ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 64rem) { .nf-links ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.nf-links a { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ps-space-3); min-height: 3rem; padding-block: var(--ps-space-3); border-bottom: var(--ps-border) solid var(--ps-line); color: var(--ps-text); font-weight: var(--ps-weight-strong); text-decoration: none; }
+.nf-path { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-faint); }
+@media (hover: hover) and (pointer: fine) {
+  .nf-links a:hover { border-bottom-color: var(--ps-text); }
+  .nf-links a:hover .nf-path { color: var(--ps-text); }
+}
+.nf-other { margin-top: var(--ps-space-6); color: var(--ps-muted); font-size: var(--ps-step--1); }
+
+/* ---------- A page that failed ---------- */
+.state-error { display: grid; gap: var(--ps-space-4); justify-items: start; max-width: 44rem; }
+.state-hint { max-width: 52ch; color: var(--ps-muted); }
+.state-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); margin-top: var(--ps-space-2); }
+.state-ref { color: var(--ps-faint); font-size: var(--ps-step--1); }
+.state-ref code { color: var(--ps-muted); overflow-wrap: anywhere; }
+
+/* ---------- Loading: an empty register, ruled, at fixed sizes ---------- */
+.sk { display: grid; gap: var(--ps-space-6); align-content: start; }
+.sk-head { display: grid; gap: var(--ps-space-4); }
+.sk-bar { display: block; height: 0.75rem; border-radius: 2px; background: var(--ps-line); }
+.sk-title { height: 2.5rem; width: min(22rem, 72%); }
+.sk-line { width: min(34rem, 92%); }
+.sk-rows { list-style: none; margin: 0; padding: 0; border-top: var(--ps-border) solid var(--ps-line); }
+.sk-row { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--ps-space-4); height: 4rem; border-bottom: var(--ps-border) solid var(--ps-line); }
+.sk-text { width: min(30rem, 100%); }
+.sk-row:nth-child(even) .sk-text { width: min(22rem, 80%); }
+@media (prefers-reduced-motion: no-preference) {
+  .sk-bar { animation: sk-breathe 1.4s var(--ps-ease-in-out) infinite alternate; }
+  .sk-row:nth-child(2) .sk-bar { animation-delay: 120ms; }
+  .sk-row:nth-child(3) .sk-bar { animation-delay: 240ms; }
+  .sk-row:nth-child(4) .sk-bar { animation-delay: 360ms; }
+  .sk-row:nth-child(5) .sk-bar { animation-delay: 480ms; }
+}
+@keyframes sk-breathe { to { opacity: 0.45; } }
+
+/* ---------- Honest empty state: the cartouche outline, dashed, nothing struck inside ---------- */
+.empty { display: grid; gap: var(--ps-space-3); justify-items: start; padding: clamp(1.5rem, 4vw, 2.5rem); background: var(--ps-surface); border: var(--ps-border) solid var(--ps-line); border-radius: var(--ps-radius); }
+.empty-mark { flex: none; fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; stroke-dasharray: 3 2.5; }
+.empty-title { font: var(--ps-weight-display) var(--ps-step-2) / var(--ps-lead-2) var(--ps-font-display); letter-spacing: var(--ps-track-2); }
+.empty-body { display: grid; gap: var(--ps-space-3); max-width: 62ch; color: var(--ps-muted); }
+.empty-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); }
+.empty-note { display: flex; align-items: center; gap: var(--ps-space-2); color: var(--ps-muted); }

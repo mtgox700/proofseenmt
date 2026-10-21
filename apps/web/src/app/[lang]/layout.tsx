@@ -4,6 +4,7 @@ import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/landing.css";
 import "@/styles/workspace.css";
+import "@/styles/states.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { FONT_FILES, THEME_COLOR } from "@proofseen/brand";

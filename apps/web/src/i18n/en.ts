@@ -398,5 +398,4 @@ export const en: Dictionary = {
   messages: {
     requestTitle: "Request this profile",
   },
-  notFound: { title: "This page does not exist.", back: "Back to home" },
 };

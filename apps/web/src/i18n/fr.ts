@@ -402,7 +402,6 @@ export const fr = {
   messages: {
     requestTitle: "Demander ce profil",
   },
-  notFound: { title: "Cette page n'existe pas.", back: "Retour à l'accueil" },
 };
 
 export type Dictionary = typeof fr;

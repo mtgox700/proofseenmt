@@ -2,6 +2,7 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { authConfigured } from "@/lib/auth-config";
 import { legacyRoute, legacyTarget } from "@/lib/legacy-pages";
+import { LANG_HEADER, langOfPath } from "@/lib/request-lang";
 
 /*
  * Two jobs, in this order:
@@ -41,7 +42,17 @@ const spaceLink = (request: NextRequest): NextResponse | null => {
   return response;
 };
 
-const withClerk = clerkMiddleware((_auth, request) => spaceLink(request) ?? NextResponse.next());
+/**
+ * Let the request through, telling the server render which language its address is in. Always overwritten from the
+ * path, never taken from the client. Read only by the 404 of an unknown address (app/global-not-found.tsx).
+ */
+const pass = (request: NextRequest): NextResponse => {
+  const headers = new Headers(request.headers);
+  headers.set(LANG_HEADER, langOfPath(request.nextUrl.pathname));
+  return NextResponse.next({ request: { headers } });
+};
+
+const withClerk = clerkMiddleware((_auth, request) => spaceLink(request) ?? pass(request));
 
 /**
  * Pages of the former static site, served at their indexed address; retired addresses (the demonstration spaces),
@@ -61,7 +72,7 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   const old = legacy(request);
   if (old !== null) return old;
   if (authConfigured()) return withClerk(request, event);
-  return spaceLink(request) ?? NextResponse.next();
+  return spaceLink(request) ?? pass(request);
 }
 
 export const config = {
