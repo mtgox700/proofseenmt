@@ -86,6 +86,8 @@
 /* ---------- The card grid ---------- */
 .result-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
 .result-grid > li { display: flex; min-width: 0; }
+.search-main .ps-legend { margin: 0 0 var(--ps-space-4); }
+/* The freelancer card itself is the marketplace's one card (@proofseen/brand/profile-card.css); the rules below serve the company cards. */
 .pcard {
   position: relative; display: flex; flex-direction: column; gap: var(--ps-space-3); width: 100%; padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-3);
   border: 1px solid var(--ps-line); border-radius: var(--ps-radius);
@@ -106,23 +108,13 @@
 .pc-name a:focus-visible { outline: 2px solid var(--ps-focus); outline-offset: 2px; border-radius: 2px; }
 @media (hover: hover) and (pointer: fine) { .pc-name a:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .pc-ref { margin: 0; font: 500 var(--ps-step--2) / 1.35 var(--ps-font-mono); color: var(--ps-muted); overflow-wrap: anywhere; }
-.pc-proof { display: grid; gap: var(--ps-space-2); justify-items: start; }
-.pc-count { margin: 0; padding: 0.15rem 0.5rem; border-radius: var(--ps-radius); font: 500 var(--ps-step--2) / 1.4 var(--ps-font-text); white-space: nowrap; color: var(--ps-proof); background: var(--ps-proof-wash); }
-.pc-count.none { color: var(--ps-muted); background: var(--ps-surface); }
-.pc-headline { margin: 0; font: 400 var(--ps-step-0) / 1.45 var(--ps-font-text); color: var(--ps-text); }
-.pc-meta { margin: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); color: var(--ps-muted); }
-.pc-meta b { color: var(--ps-text); font-weight: 600; }
-.pc-langs { font-size: var(--ps-step--2); }
-.pcard .skills { margin: 0; gap: var(--ps-space-1); }
-.pcard .skills li { padding: 0.1rem 0.5rem; font-size: var(--ps-step--2); background: var(--ps-surface); border-color: var(--ps-line); }
-.pcard .skills li.plus { color: var(--ps-muted); border-style: dashed; background: transparent; }
 .pc-badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-1); }
 .pc-badges li { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.55rem; border: 1px solid color-mix(in srgb, var(--ps-proof) 40%, var(--ps-line)); border-radius: var(--ps-radius); font-size: var(--ps-step--2); color: var(--ps-proof); }
 .pc-badges li::before { content: "✓"; font-weight: 700; }
 .pc-actions { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); padding-top: var(--ps-space-3); border-top: 1px solid var(--ps-line); }
 .pc-actions .btn { min-height: 2.5rem; font-size: var(--ps-step--1); }
 .pc-list { display: flex; flex-wrap: wrap; gap: var(--ps-space-1); align-items: center; }
-.pc-list select { min-height: 2.5rem; max-width: 10rem; padding: 0.3rem 0.5rem; font: inherit; font-size: var(--ps-step--1); color: var(--ps-text); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.pc-list select { min-height: 2.75rem; max-width: 10rem; padding: 0.3rem 0.5rem; font: inherit; font-size: max(16px, var(--ps-step--1)); color: var(--ps-text); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
 
 /* ---------- Availability badge ---------- */
 .avail { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-1) var(--ps-space-2); }
