@@ -67,8 +67,9 @@ export const en: Dictionary = {
     intro: "Here are five profiles that match your search:",
     masked: "name masked",
     rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    verdict: "You: not in this answer",
-    appear: "You appear",
+    // The replay is the founder's measure, not the visitor's: it names him, never "you".
+    verdict: "Our founder: not in this answer",
+    appear: "Our founder appears",
     interval: "Range of the true rate",
     times: "{hits} times out of {n}",
     same: "Same count on all three engines measured.",

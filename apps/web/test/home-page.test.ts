@@ -152,6 +152,24 @@ describe("the register of the 780 answers is server SVG, under budget", () => {
   });
 });
 
+describe("the simulator replays the founder's measure and says so (Kensa M1)", () => {
+  it.each([
+    ["fr", "Notre fondateur : absent de cette réponse", "Notre fondateur apparaît"],
+    ["en", "Our founder: not in this answer", "Our founder appears"],
+  ] as const)("%s: names the founder, never the visitor", (lang, verdict, appear) => {
+    const sim = visibleText(home[lang].match(/<figure class="sim"[\s\S]*?<\/figure>/)?.[0] ?? "");
+    expect(sim).toContain(verdict);
+    expect(sim).toContain(appear);
+    // "votre recherche" is the engine speaking to the recruiter; the reading of the count never says "you".
+    expect(sim).not.toMatch(/\bVous\s*:|\bVous apparaissez|\bYou\s*:|\bYou appear/);
+  });
+
+  it("reads the same sentence to a screen reader, with the colon of each language", () => {
+    expect(home.fr).toContain('<p class="sr-only">Notre fondateur apparaît 0 fois sur 200. Fourchette du taux réel : [');
+    expect(home.en).toContain('<p class="sr-only">Our founder appears 0 times out of 200. Range of the true rate: [');
+  });
+});
+
 describe("the register never widens the page on a phone (Kensa B1)", () => {
   // The first top-level rule of a selector (a rule inside a media query follows a "{", not a "}").
   const rule = (selector: string): string => {

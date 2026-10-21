@@ -70,8 +70,9 @@ export const fr = {
     intro: "Voici cinq profils qui correspondent à votre recherche :",
     masked: "nom masqué",
     rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    verdict: "Vous : absent de cette réponse",
-    appear: "Vous apparaissez",
+    // The replay is the founder's measure, not the visitor's: it names him, never "vous".
+    verdict: "Notre fondateur : absent de cette réponse",
+    appear: "Notre fondateur apparaît",
     interval: "Fourchette du taux réel",
     times: "{hits} fois sur {n}",
     same: "Même compte sur les trois moteurs mesurés.",
