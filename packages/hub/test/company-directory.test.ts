@@ -44,9 +44,13 @@ describe("annuaire public des entreprises", () => {
     expect(html).toContain("Boîte &lt;X&gt; &amp; fils");
     expect(html).toContain("3 missions ouvertes");
     expect(html).toContain("Aucune mission ouverte");
-    expect(html).toContain("<li>Entreprise active au répertoire officiel (vérifié le 2 octobre 2026)</li>");
-    expect(html).toContain("<li>Répond en 2 jours (médiane, 7 candidatures)</li>");
-    expect(html).toContain("<li>Inscrite sur Proofseen depuis le 1 septembre 2026</li>");
+    // Le carré vert précède le seul fait contrôlé par un tiers ; ce que Proofseen mesure porte un carré neutre.
+    expect(html).toContain('<li class="vline"><span class="pin" aria-hidden="true"></span><span>Entreprise active au répertoire officiel (vérifié le 2 octobre 2026)</span></li>');
+    expect(html).toContain('<li class="vline open"><span class="pin open" aria-hidden="true"></span><span>Répond en 2 jours (médiane, 7 candidatures)</span></li>');
+    expect(html).toContain('<li class="vline open"><span class="pin open" aria-hidden="true"></span><span>Inscrite sur Proofseen depuis le 1 septembre 2026</span></li>');
+    expect(html).toContain('<li class="vline open"><span class="pin open" aria-hidden="true"></span><span>Activité au répertoire officiel non confirmée</span></li>');
+    // La liste des faits n'est plus la liste « vérifiés » des freelances, dont chaque ligne reçoit une coche verte.
+    expect(html).not.toContain('<ul class="verified">');
     expect(html).toMatch(/<span class="avatar sq tone-\d" aria-hidden="true">AD<\/span>/);
     expect(html).not.toMatch(/rating|score"|aggregateRating/i);
   });
@@ -67,7 +71,11 @@ describe("annuaire public des entreprises", () => {
   });
 
   it("distingue l'annuaire vide d'une recherche sans résultat, et existe en anglais", () => {
-    expect(render(NO_COMPANY_FILTERS, "fr", [])).toContain("Aucune entreprise n'a encore ouvert de page publique.");
+    expect(render(NO_COMPANY_FILTERS, "fr", [])).toContain("Aucune entreprise n&#39;a encore ouvert de page publique.");
+    // Personne du tout : pas de panneau de filtres à régler pour rien.
+    const nobody = renderCompanyDirectory([], { baseUrl: BASE, lang: "fr", filters: NO_COMPANY_FILTERS, facets: { total: 0, cities: [], kinds: [], hiring: 0, registryActive: 0 }, hasMore: false });
+    expect(nobody).toContain('<div class="blank">');
+    expect(nobody).not.toContain('<details class="drawer">');
     expect(render({ ...NO_COMPANY_FILTERS, hiringOnly: true }, "fr", [])).toContain("Aucune entreprise ne correspond à ces filtres.");
     // C23 : que faire ensuite, en liens simples et sans invitation (inviter se fait depuis l'espace connecté).
     const none = render(NO_COMPANY_FILTERS, "fr", []);

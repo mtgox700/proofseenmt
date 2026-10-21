@@ -48,6 +48,17 @@ describe("index public des missions", () => {
   });
 
   it("dit clairement quand rien ne correspond", () => {
-    expect(render(PLAIN, false, [])).toContain("Aucune mission ne correspond à ces filtres.");
+    // Aucune mission ouverte du tout : la page le dit, sans formulaire inutile, et propose quoi faire.
+    const none = render(PLAIN, false, []);
+    expect(none).toContain("Aucune mission n&#39;est ouverte aujourd&#39;hui.");
+    expect(none).not.toContain("ne correspond à ces filtres");
+    expect(none).not.toContain('<form class="filters"');
+    expect(none).toContain('<a href="/fr/creer-un-compte">Vous recrutez : créez un compte et publiez une mission</a>');
+    // Des filtres sans résultat : la page le dit autrement, garde le formulaire et propose de les retirer.
+    const filtered = render({ ...PLAIN, skill: "Cobol" }, false, []);
+    expect(filtered).toContain("Aucune mission ne correspond à ces filtres.");
+    expect(filtered).toContain('<form class="filters"');
+    expect(filtered).toContain('<a href="/fr/missions">Retirer les filtres</a>');
+    expect(filtered).toContain('<details class="drawer" open>');
   });
 });

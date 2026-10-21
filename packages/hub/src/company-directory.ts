@@ -1,8 +1,20 @@
 import { companyUrl } from "./company-page";
 import { pageHead, withBrand } from "./head";
-import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram, nextLinks } from "./directory-cards";
+import { avatarTone, DIRECTORY_STYLES, linksUnder, monogram } from "./directory-cards";
 import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
+import { blankState, factLine, LEDGER_STYLES, square } from "./ledger";
 import { longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
+
+/*
+ * Ce que l'annuaire des entreprises ajoute aux cartes partagées avec celui des freelances (directory-cards.ts, qui
+ * n'est pas modifié ici) : le registre de la carte au carré (vert pour le seul fait contrôlé), des cibles de 44 px
+ * dans le panneau de filtres, et la colonne unique d'un annuaire encore vide.
+ */
+const COMPANY_DIRECTORY_STYLES =
+  ".pcard .reg{list-style:none;margin:0;padding:0;display:grid;gap:var(--ps-space-1);font-size:var(--ps-step--1)}" +
+  ".pcard .reg .vline.open{color:var(--ps-muted)}" +
+  ".facets select{min-height:2.75rem}.facets .check{min-height:2.75rem}.facets .reset{display:inline-flex;align-items:center;min-height:2.75rem}" +
+  ".solo{margin-top:var(--ps-space-6)}";
 
 /*
  * Annuaire public des entreprises (C22) : celles qui ont ouvert une page publique, et seulement elles. Chaque carte porte
@@ -82,6 +94,11 @@ const LABELS = {
     next: "Page suivante",
     previous: "Page précédente",
     registryFact: (d: string) => `Entreprise active au répertoire officiel (vérifié le ${d})`,
+    registryUnknown: "Activité au répertoire officiel non confirmée",
+    legendVerified: "vérifié par un tiers, daté",
+    legendOpen: "mesuré sur Proofseen ou déclaré",
+    emptyWhy: "D'autres entreprises ont peut-être une page publique : retirez un filtre.",
+    noneWhy: "Une entreprise apparaît ici quand elle ouvre sa page publique, avec son activité au répertoire officiel, datée, et ses missions ouvertes.",
     since: (d: string) => `Inscrite sur Proofseen depuis le ${d}`,
     missions: (n: number) => (n === 0 ? "Aucune mission ouverte" : n === 1 ? "1 mission ouverte" : `${n} missions ouvertes`),
     response: (days: number, n: number) => `Répond en ${days} jour${days > 1 ? "s" : ""} (médiane, ${n} candidatures)`,
@@ -114,6 +131,11 @@ const LABELS = {
     next: "Next page",
     previous: "Previous page",
     registryFact: (d: string) => `Business active in the official register (checked on ${d})`,
+    registryUnknown: "Not confirmed as active in the official register",
+    legendVerified: "verified by a third party, dated",
+    legendOpen: "measured on Proofseen or stated",
+    emptyWhy: "Other companies may have a public page: remove a filter.",
+    noneWhy: "A company shows here when it opens its public page, with its status in the official register, dated, and its open missions.",
     since: (d: string) => `On Proofseen since ${d}`,
     missions: (n: number) => (n === 0 ? "No open mission" : n === 1 ? "1 open mission" : `${n} open missions`),
     response: (days: number, n: number) => `Answers in ${days} day${days > 1 ? "s" : ""} (median, ${n} applications)`,
@@ -161,14 +183,17 @@ const filtersForm = (lang: Lang, f: CompanyDirectoryFilters, facets: CompanyDire
   );
 };
 
-/** Une carte d'entreprise : ses faits et le lien vers sa page. */
+/**
+ * Une carte d'entreprise : ses faits et le lien vers sa page. Le carré vert ne précède que l'activité au répertoire
+ * officiel, contrôlée et datée ; l'inscription et le délai de réponse sont mesurés sur Proofseen, au carré neutre.
+ */
 const companyCard = (c: CompanyDirectoryCardView, lang: Lang): string => {
   const l = LABELS[lang];
   const href = `/${lang}/entreprises/${e(c.slug)}`;
   const facts = [
-    ...(c.registryActiveCheckedAt === null ? [] : [l.registryFact(longDate(c.registryActiveCheckedAt, lang))]),
-    l.since(longDate(c.memberSince, lang)),
-    ...(c.response === null ? [] : [l.response(c.response.medianDays, c.response.decided)]),
+    c.registryActiveCheckedAt === null ? factLine(l.registryUnknown, false, "li") : factLine(l.registryFact(longDate(c.registryActiveCheckedAt, lang)), true, "li"),
+    factLine(l.since(longDate(c.memberSince, lang)), false, "li"),
+    ...(c.response === null ? [] : [factLine(l.response(c.response.medianDays, c.response.decided), false, "li")]),
   ];
   return (
     `<li><article class="pcard" aria-labelledby="c-${e(c.slug)}">` +
@@ -176,7 +201,7 @@ const companyCard = (c: CompanyDirectoryCardView, lang: Lang): string => {
     `<div><h3 class="pc-name" id="c-${e(c.slug)}"><a href="${href}">${e(c.name)}</a></h3><p class="pc-ref">${e(KIND_LABELS[lang][c.kind])}</p></div></div>` +
     `<p class="avail"><span class="badge ${c.openMissions > 0 ? "now" : "off"}"><i aria-hidden="true"></i>${e(l.missions(c.openMissions))}</span></p>` +
     (c.city === null ? "" : `<p class="pc-meta">${e(c.city)}</p>`) +
-    `<ul class="verified">${facts.map((f) => `<li>${e(f)}</li>`).join("")}</ul>` +
+    `<ul class="reg">${facts.join("")}</ul>` +
     `<div class="pc-foot"><span></span><a class="go" href="${href}" aria-hidden="true" tabindex="-1">${l.see} →</a></div>` +
     `</article></li>`
   );
@@ -198,6 +223,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
   const path = `/${o.lang}/entreprises`;
   const filtered = companyDirectoryQueryString(f, f.page) !== "";
   const next = linksUnder(o.lang, filtered ? l.nextFiltered : l.nextNone);
+  const nobody = !filtered && items.length === 0 && o.facets.total === 0;
   const pager = [
     f.page > 1 ? `<a class="crumb" href="${path}${e(companyDirectoryQueryString(f, f.page - 1))}" rel="prev">← ${l.previous}</a>` : "<span></span>",
     o.hasMore ? `<a class="crumb" href="${path}${e(companyDirectoryQueryString(f, f.page + 1))}" rel="next">${l.next} →</a>` : "<span></span>",
@@ -223,7 +249,7 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     filtered ? '<meta name="robots" content="noindex, follow">' : "",
     `<link rel="alternate" hreflang="fr" href="${e(companyDirectoryUrl(base, "fr"))}">`,
     `<link rel="alternate" hreflang="en" href="${e(companyDirectoryUrl(base, "en"))}">`,
-    `<style>${STYLES}${DIRECTORY_STYLES}</style>`,
+    `<style>${STYLES}${DIRECTORY_STYLES}${LEDGER_STYLES}${COMPANY_DIRECTORY_STYLES}</style>`,
     `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
     "</head>",
     "<body>",
@@ -231,11 +257,13 @@ export const renderCompanyDirectory = (items: readonly CompanyDirectoryCardView[
     '<main id="contenu" class="wrap wide">',
     `<h1 class="title">${l.title}</h1>`,
     `<p class="headline">${l.lead}</p>`,
-    '<div class="dir">',
-    filtersForm(o.lang, f, o.facets, path),
+    `<p class="legend"><span class="vline">${square(true)}${l.legendVerified}</span><span class="vline">${square(false)}${l.legendOpen}</span></p>`,
+    // Aucune page publique du tout : pas de filtres à régler pour rien, l'état vide dit pourquoi et propose quoi faire.
+    nobody ? '<div class="solo">' : '<div class="dir">',
+    nobody ? "" : filtersForm(o.lang, f, o.facets, path),
     "<section>",
-    `<div class="res-head"><h2>${l.results(o.facets.total)}</h2><p class="muted">${l.order(l.sorts[f.sort])}</p></div>`,
-    items.length === 0 ? `<p class="muted">${filtered ? l.empty : l.none}</p>${nextLinks(l.nextTitle, next)}` : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
+    `<div class="res-head"><h2>${l.results(o.facets.total)}</h2><p class="trace">${l.order(l.sorts[f.sort])}</p></div>`,
+    items.length === 0 ? blankState(filtered ? l.empty : l.none, filtered ? l.emptyWhy : l.noneWhy, next) : `<ul class="grid">${items.map((c) => companyCard(c, o.lang)).join("")}</ul>`,
     `<nav class="pager">${pager}</nav>`,
     "</section>",
     "</div>",
