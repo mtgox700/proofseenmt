@@ -54,21 +54,25 @@ describe("how a mission was verified", () => {
     expect(page(files, "en/p/FR-AAAAA/index.html")).toContain("invoice + contract");
   });
 
-  it("publishes a method page with the three ways a mission is verified, as the product does them (Kensa B3)", () => {
+  it("publishes a method page with the two ways a mission is verified today, and the document check as not offered (Kensa B3)", () => {
     const files = buildProfilesSite([profile("FR-AAAAA")], { baseUrl: BASE });
     const text = (html: string): string => html.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, "").replace(/<[^>]*>/g, " ").replace(/&#39;/g, "'").replace(/[\u00a0\u202f]/g, " ");
     const method = text(page(files, "methode/index.html"));
     expect(method).toContain("Comment nous vérifions");
     for (const mode of ["Confirmée par le client", "Payée sur Proofseen", "Contrôlée sur pièce"]) expect(method).toContain(mode);
     expect(method).toContain("un lien signé à usage unique");
-    expect(method).toContain("le nom du client ne l'est que s'il l'a autorisé en confirmant la mission");
+    expect(method).toContain("Le nom du client n'est publié que s'il l'a autorisé en confirmant la mission");
+    expect(method).toContain("de l'une de deux façons");
+    expect(method).toContain("Contrôlée sur pièce : pas encore proposé");
+    expect(method).toContain("Aucune mission n'est vérifiée sur pièce aujourd'hui");
     // The two claims the code contradicted: every mission checked on a document, and a client name never published.
     expect(method).not.toMatch(/Chaque mission publiée sur Proofseen a été contrôlée sur au moins une pièce/);
     expect(method).not.toMatch(/Son nom n'est jamais publié/);
     expect(method).toMatch(/ne juge ni la qualité du travail/);
     for (const fact of ["répertoire officiel des entreprises", "prestataire de paiement", "URSSAF", "tous les 30 jours"]) expect(method).toContain(fact);
     const en = text(page(files, "en/method/index.html"));
-    for (const mode of ["How we verify", "Confirmed by the client", "Paid on Proofseen", "Checked against a document"]) expect(en).toContain(mode);
+    for (const mode of ["How we verify", "Confirmed by the client", "Paid on Proofseen", "Checked against a document: not offered yet"]) expect(en).toContain(mode);
+    expect(en).toContain("in one of two ways only");
     expect(en).not.toMatch(/The client's name is never published/);
     expect(page(files, "sitemap.xml")).toContain(`${BASE}/methode/`);
   });
