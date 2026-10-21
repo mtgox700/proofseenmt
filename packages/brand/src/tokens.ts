@@ -43,14 +43,22 @@ const FOUNDATION = [
 
 const REDUCED = "--ps-dur-strike:0ms;--ps-dur-ink:0ms;--ps-dur-reveal:0ms;--ps-dur-trace:0ms;";
 
-export const renderTokensCss = (): string =>
+export interface TokensCssOptions {
+  /** `[data-theme]` overrides for a theme switch. The hub has none: it follows the system. Default true. */
+  readonly themeAttributes?: boolean;
+  /** The two served fonts. A site without the /fonts/ folder (the static site of hub:build) keeps the fallbacks. Default true. */
+  readonly webFonts?: boolean;
+}
+
+export const renderTokensCss = ({ themeAttributes = true, webFonts = true }: TokensCssOptions = {}): string =>
   [
     "/* Generated from packages/brand/src/tokens.ts: do not edit by hand. */",
-    fontFaceCss(),
+    fontFaceCss({ webFonts }),
     `:root{${theme("dark")}\n${FOUNDATION}}`,
-    `@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){${theme("light")}}}`,
-    `:root[data-theme="light"]{${theme("light")}}`,
-    `:root[data-theme="dark"]{${theme("dark")}}`,
+    themeAttributes
+      ? `@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){${theme("light")}}}`
+      : `@media (prefers-color-scheme:light){:root{${theme("light")}}}`,
+    ...(themeAttributes ? [`:root[data-theme="light"]{${theme("light")}}`, `:root[data-theme="dark"]{${theme("dark")}}`] : []),
     `@media (prefers-reduced-motion:reduce){:root{${REDUCED}}}`,
     "",
   ].join("\n");

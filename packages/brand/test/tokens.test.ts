@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CONTRAST_PAIRS, PALETTE, THEME_COLOR, TYPE_SCALE, contrastRatio, fluid, renderTokensCss } from "../src/index";
+import { CHROME_CSS, CONTRAST_PAIRS, MONOGRAM_SMALL_PATH, PALETTE, THEME_COLOR, TYPE_SCALE, contrastRatio, fluid, renderChromeCss, renderTokensCss } from "../src/index";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const brandDir = (app: string): string => join(root, "apps", app, "public", "brand");
@@ -33,6 +33,25 @@ describe("brand tokens", () => {
     expect(fluid(16, 16)).toBe("1rem");
     const hero = TYPE_SCALE.at(-1);
     expect(hero && fluid(hero.min, hero.max)).toBe("clamp(2.4881rem, 1.7894rem + 2.9812vw, 4.4725rem)");
+  });
+
+  it("chrome.css is exactly what src/chrome.ts renders", () => {
+    expect(readFileSync(join(root, "packages", "brand", "chrome.css"), "utf8")).toBe(renderChromeCss());
+  });
+
+  it("chrome hides nothing, types no colour and keeps hover where hover exists", () => {
+    expect(CHROME_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(CHROME_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+    for (const rule of CHROME_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
+  });
+
+  it("can leave out the theme switch and the web fonts (hub, static site)", () => {
+    const inline = renderTokensCss({ themeAttributes: false });
+    expect(inline).not.toContain("data-theme");
+    expect(inline).toContain("@media (prefers-color-scheme:light){:root{color-scheme:light;");
+    const standalone = renderTokensCss({ themeAttributes: false, webFonts: false });
+    expect(standalone).not.toContain("url(");
+    expect(standalone).toContain('src:local("Georgia")');
   });
 
   it("writes no em dash and no hard-coded colour outside the palette", () => {
@@ -70,6 +89,7 @@ describe("brand files", () => {
     expect(svg("ps-lockup-mono.svg")).not.toMatch(/#[0-9a-f]{6}/i);
     expect(svg("favicon.svg")).toContain(PALETTE.light.proof);
     expect(svg("favicon.svg")).toContain(PALETTE.dark.proof);
+    expect(svg("favicon.svg")).toContain(`d="${MONOGRAM_SMALL_PATH}"`);
   });
 
   it("renders the icons at the sizes the manifest and the share card announce", () => {

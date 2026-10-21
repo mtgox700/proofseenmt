@@ -38,10 +38,14 @@ const FALLBACKS: readonly FallbackFace[] = [
   { family: "PS Mono Fallback Courier", local: "Courier New", weight: "400 700", sizeAdjust: "99.98%", ascent: "98.42%", descent: "27.30%" },
 ];
 
-export const fontFaceCss = (): string =>
+const WEB_FONT_FACES = [
+  `@font-face{font-family:"PS Display";src:url(${FONT_FILES.display}) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}`,
+  `@font-face{font-family:"PS Mono";src:url(${FONT_FILES.mono}) format("woff2");font-weight:500;font-style:normal;font-display:swap}`,
+];
+
+export const fontFaceCss = ({ webFonts = true }: { readonly webFonts?: boolean } = {}): string =>
   [
-    `@font-face{font-family:"PS Display";src:url(${FONT_FILES.display}) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}`,
-    `@font-face{font-family:"PS Mono";src:url(${FONT_FILES.mono}) format("woff2");font-weight:500;font-style:normal;font-display:swap}`,
+    ...(webFonts ? WEB_FONT_FACES : []),
     ...FALLBACKS.map(
       (f) =>
         `@font-face{font-family:"${f.family}";src:local("${f.local}");font-weight:${f.weight};size-adjust:${f.sizeAdjust};` +
