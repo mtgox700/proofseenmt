@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import LandingPage, { generateMetadata } from "../src/app/[lang]/page";
+import { J0_CITATIONS, SHOWN_SHARES } from "../src/data/j0-citations";
 import { AnswersSnapshotSchema } from "../src/data/schema";
 import { en } from "../src/i18n/en";
 import { fr } from "../src/i18n/fr";
@@ -167,6 +168,34 @@ describe("the simulator replays the founder's measure and says so (Kensa M1)", (
   it("reads the same sentence to a screen reader, with the colon of each language", () => {
     expect(home.fr).toContain('<p class="sr-only">Notre fondateur apparaît 0 fois sur 200. Fourchette du taux réel : [');
     expect(home.en).toContain('<p class="sr-only">Our founder appears 0 times out of 200. Range of the true rate: [');
+  });
+});
+
+describe("every citation share carries its raw count, its total and its wave (Kensa M2)", () => {
+  it.each([
+    ["fr", "Part des 2 328 citations relevées dans les 780 réponses, par domaine. Vague J0, 23 et 24 septembre 2026.", ["malt.fr 39 % 908 citations sur 2 328", "linkedin.com 26,5 % 618 citations sur 2 328", "github.com 2,9 % 67 citations sur 2 328"]],
+    ["en", "Share of the 2,328 citations found in the 780 answers, by domain. Wave J0, 23 and 24 September 2026.", ["malt.fr 39% 908 of 2,328 citations", "linkedin.com 26.5% 618 of 2,328 citations", "github.com 2.9% 67 of 2,328 citations"]],
+  ] as const)("%s: no share without its count", (lang, caption, rows) => {
+    const figure = home[lang].match(/<figure class="study-shares">[\s\S]*?<\/figure>/)?.[0] ?? "";
+    const text = visibleText(figure).trim();
+    expect(text).toContain(caption);
+    for (const row of rows) expect(text).toContain(row);
+    // As many raw counts as percentages: a share never stands alone.
+    expect((text.match(/%/g) ?? []).length).toBe(SHOWN_SHARES.length);
+  });
+
+  it("holds the fixed counts against the answers snapshot of the same wave", () => {
+    expect(snapshot.waveId).toBe("J0");
+    expect(J0_CITATIONS.answers).toBe(snapshot.answers.length);
+    // The other citations are kept per answer in the snapshot: they add up to the same number.
+    expect(snapshot.answers.reduce((sum, a) => sum + a.other, 0)).toBe(J0_CITATIONS.other);
+    const platforms = Object.values(J0_CITATIONS.platforms).reduce((a, b) => a + b, 0);
+    expect(platforms + J0_CITATIONS.other).toBe(J0_CITATIONS.total);
+    // Every platform cited in an answer is listed, and none is counted fewer times than the answers that cite it.
+    const answersCiting = new Map<string, number>();
+    for (const a of snapshot.answers) for (const d of a.domains) answersCiting.set(d, (answersCiting.get(d) ?? 0) + 1);
+    expect([...answersCiting.keys()].sort()).toEqual(Object.keys(J0_CITATIONS.platforms).sort());
+    for (const [domain, n] of answersCiting) expect(J0_CITATIONS.platforms[domain as keyof typeof J0_CITATIONS.platforms]).toBeGreaterThanOrEqual(n);
   });
 });
 

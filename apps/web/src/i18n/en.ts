@@ -102,15 +102,14 @@ export const en: Dictionary = {
     facts: {
       answers: { value: "780", label: "AI answers analysed, for $15.79 of measurement cost" },
       zero: { value: "0%", range: "[0%, 1.9%]", label: "citations of the founder, 95% range on each engine" },
-      sources: { label: "share of the citations observed, by domain" },
+      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
+      sources: {
+        label: "Share of the {total} citations found in the {answers} answers, by domain. Wave J0, 23 and 24 September 2026.",
+        count: "{hits} of {total} citations",
+      },
       silent: { value: "90.8%", label: "of Anthropic's answers consult no source at all: being seen depends on the engine" },
       agreement: { value: "20/20", label: "agreement between our API measures and the consumer apps" },
     },
-    shares: [
-      { domain: "malt.fr", value: "39%", width: 0.39 },
-      { domain: "linkedin.com", value: "26.5%", width: 0.265 },
-      { domain: "github.com", value: "2.9%", width: 0.029 },
-    ],
     source: "Wave J0, 23 and 24 September 2026. Protocol fixed before the measure, fingerprint 1bc9f85f. Raw answers deleted after analysis.",
     limits:
       "These figures describe one profile, these jobs, these engines, on this date. They do not predict your results. We publish them because a vendor that does not measure itself proves nothing.",

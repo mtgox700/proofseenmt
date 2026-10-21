@@ -106,15 +106,14 @@ export const fr = {
     facts: {
       answers: { value: "780", label: "réponses d'IA analysées, pour 15,79 $ de coût de mesure" },
       zero: { value: "0 %", range: "[0 % ; 1,9 %]", label: "de citations du fondateur, fourchette à 95 % sur chaque moteur" },
-      sources: { label: "part des citations observées, par domaine" },
+      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
+      sources: {
+        label: "Part des {total} citations relevées dans les {answers} réponses, par domaine. Vague J0, 23 et 24 septembre 2026.",
+        count: "{hits} citations sur {total}",
+      },
       silent: { value: "90,8 %", label: "des réponses d'Anthropic ne consultent aucune source : être vu dépend du moteur" },
       agreement: { value: "20/20", label: "d'accord entre nos mesures par API et les applications grand public" },
     },
-    shares: [
-      { domain: "malt.fr", value: "39 %", width: 0.39 },
-      { domain: "linkedin.com", value: "26,5 %", width: 0.265 },
-      { domain: "github.com", value: "2,9 %", width: 0.029 },
-    ],
     source: "Vague J0, 23 et 24 septembre 2026. Protocole figé avant la mesure, empreinte 1bc9f85f. Réponses brutes supprimées après analyse.",
     limits:
       "Ces chiffres décrivent un profil, ces offres, ces moteurs, à cette date. Ils ne prédisent pas vos résultats. Nous les publions parce qu'un vendeur qui ne se mesure pas lui-même ne prouve rien.",

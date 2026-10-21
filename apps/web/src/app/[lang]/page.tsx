@@ -51,7 +51,7 @@ export default async function LandingPage({ params }: { readonly params: Promise
       <SiteHeader lang={lang} t={t} variant="site" />
       <main id="contenu" tabIndex={-1}>
         <Hero lang={lang} t={t} answers={answers} />
-        <Study t={t} />
+        <Study lang={lang} t={t} />
         <Piece lang={lang} t={t} />
         <Journey lang={lang} t={t} />
         <Method t={t} />

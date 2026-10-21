@@ -116,8 +116,10 @@ main > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-in
 .study-facts dd { margin: 0; }
 .study-shares { margin: 0; display: grid; gap: var(--ps-space-4); }
 .study-shares ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); }
-.study-shares li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--ps-space-3); }
+.study-shares li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--ps-space-1) var(--ps-space-3); }
 .study-shares b { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); text-align: right; white-space: nowrap; }
+/* The raw count sits under its bar: the share and what it counts are read together. */
+.share-count { grid-column: 2 / -1; font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); }
 /* Drawn at their real length from the first paint: a share is a fact, not an entrance. */
 .share-bar { display: block; height: 0.5rem; background: var(--ps-line); }
 .share-bar span { display: block; height: 100%; background: var(--ps-text); transform-origin: left center; transform: scaleX(var(--w)); }
