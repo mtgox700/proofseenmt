@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./tokens.css",
-    "./chrome.css": "./chrome.css"
+    "./chrome.css": "./chrome.css",
+    "./profile-card.css": "./profile-card.css"
   }
 }

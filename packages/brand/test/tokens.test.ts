@@ -2,7 +2,20 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CHROME_CSS, CONTRAST_PAIRS, MONOGRAM_SMALL_PATH, PALETTE, THEME_COLOR, TYPE_SCALE, contrastRatio, fluid, renderChromeCss, renderTokensCss } from "../src/index";
+import {
+  CHROME_CSS,
+  CONTRAST_PAIRS,
+  MONOGRAM_SMALL_PATH,
+  PALETTE,
+  PROFILE_CARD_CSS,
+  THEME_COLOR,
+  TYPE_SCALE,
+  contrastRatio,
+  fluid,
+  renderChromeCss,
+  renderProfileCardCss,
+  renderTokensCss,
+} from "../src/index";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const brandDir = (app: string): string => join(root, "apps", app, "public", "brand");
@@ -43,6 +56,13 @@ describe("brand tokens", () => {
     expect(CHROME_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(CHROME_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
     for (const rule of CHROME_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
+  });
+
+  it("profile-card.css is exactly what src/profile-card.ts renders, under the same rules as the chrome", () => {
+    expect(readFileSync(join(root, "packages", "brand", "profile-card.css"), "utf8")).toBe(renderProfileCardCss());
+    expect(PROFILE_CARD_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(PROFILE_CARD_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+    for (const rule of PROFILE_CARD_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
   });
 
   it("can leave out the theme switch and the web fonts (hub, static site)", () => {
