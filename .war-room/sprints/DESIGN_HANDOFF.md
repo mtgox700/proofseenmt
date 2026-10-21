@@ -7,34 +7,42 @@
 
 | Étape | État | Où |
 |---|---|---|
-| Vague 0, audit (Kage) | fait | `.war-room/design/AUDIT.md`, captures avant `.war-room/design/before/` (12 PNG, prod, 1440 et 375) |
-| Arbitrages du Shogun | faits | fin de `AUDIT.md` (8 décisions) |
-| Vague 0 bis, marque (Sumi) | en cours | branche `sprint/design-legends-a`, livrables attendus `.war-room/brand/BRAND_BOOK.md`, `PLANCHE.png`, SVG `apps/web/public/brand/` |
-| Verdict du Shogun sur la marque | à faire | |
-| Lots a à g | à faire | une PR chacun, branche `sprint/design-legends-<lot>` |
-| Vague 7, Kensa puis Shogun | à faire | |
-| BEFORE_AFTER, Lighthouse mesuré | à faire | `.war-room/design/BEFORE_AFTER.md` |
+| Vague 0, audit (Kage) et arbitrages | faits | `.war-room/design/AUDIT.md`, captures avant `.war-room/design/before/` |
+| Marque (Sumi), verdict | faits | `.war-room/brand/BRAND_BOOK.md`, `PLANCHE.png`, `packages/brand/`, `apps/web/public/brand/` |
+| Concept et storyboard (Sensei) | faits | `.war-room/design/CONCEPT.md`, `STORYBOARD.md` (M1 le relevé, M2 l'essai et la frappe, M3 le passage au guichet) |
+| Lot a, socle de marque | fusionné, PR #72 | captures `.war-room/design/after-a/` |
+| Lot d, fiche profil et trace de preuve | fusionné, PR #73 | `after-d/` |
+| Lot g, vide, erreur, 404, hors ligne | fusionné, PR #74 | `after-g/` |
+| Lot b, vitrine | fusionné, PR #75 | `after-b/`, Lighthouse mobile 0,97 à 0,98 |
+| Lots e+f, missions, entreprises, baromètres, blog | fusionné, PR #76 | `after-ef/` |
+| Lot c, annuaire et carte unique, M3 | fusionné, PR #77 | `after-c/` |
+| Vague 7, Mamori | fait, tous budgets PASS sauf BP sur l'aperçu (127.0.0.1) | `.war-room/design/MAMORI_REPORT.md` |
+| Vague 7, Kensa | FAIL : 3 bloquants, 7 majeurs | `.war-room/design/KENSA_REVIEW.md` |
+| Correctifs vague 7 | en cours | branche `sprint/design-legends-polish` ; deux Tetsu sur `-polish-a` (React) et `-polish-b` (hub, `packages/profiles`) |
+| BEFORE_AFTER | fait, à rafraîchir après les correctifs | `.war-room/design/BEFORE_AFTER.md`, captures `after/` |
 
-## Décisions clés (détail dans AUDIT.md)
+## Déjà corrigé sur la branche polish
 
-- La vitrine est `apps/web/src/app/[lang]/page.tsx` ; `apps/landing` (Astro) n'est pas déployée et ne reçoit que les fichiers de marque.
-- L'accueil devient indexable (aujourd'hui `noindex` par `apps/web/src/app/[lang]/layout.tsx:38`).
-- Sombre par défaut, clair défini (`prefers-color-scheme`), contrastes AA mesurés.
-- Aucun prix public (les offres 49 € / 490 € disparaissent).
-- Une seule marque pour React et le hub HTML (mêmes tokens), le hub garde une pile système pour le corps.
-- Rien n'est caché en attendant une animation (pas d'opacité nulle initiale).
-- Le graphique des 780 réponses perd ses 214 Ko.
-- Pack 21st.dev du founder : vide sur le compte relié ; catalogue via `search`/`get_inspiration`, licence lue avec `get_component`, crédit dans `apps/web/NOTICE.md`.
+En-tête mobile (trois colonnes, fondu), bords gauches des pages larges et des fiches sur `--ps-max`, captures de
+l'ancienne interface retirées de la vitrine, JSON-LD de l'accueil et de l'index des missions, `x-default` partout,
+`apps/web/NOTICE.md`. Le reste des défauts est dans `KENSA_REVIEW.md`.
 
 ## Pièges connus
 
-- Le panneau navigateur intégré n'affiche rien quand il est masqué ; les captures se font avec Playwright (`mcp__playwright__*`, fichiers relatifs au dépôt, `.playwright-mcp/` exclu de git).
-- Une quinzaine de tests vérifient du markup ou du texte (liste dans AUDIT.md §4) : les mettre à jour avec le changement, jamais les affaiblir.
-- `marketplace-verify` et les tests du hub exigent des pages HTML identiques pour les robots, sans script hors JSON-LD, sans `display:none` ni `opacity:0`.
-- Gate complet sur le VPS (conteneur jetable `/root/pscheck`), pas en local (trop lent).
+- Le panneau navigateur intégré n'affiche rien quand il est masqué ; captures avec Playwright (`mcp__playwright__*`,
+  chemins relatifs au dépôt, `.playwright-mcp/` exclu de git).
+- `marketplace-verify` et les tests du hub exigent des pages identiques pour les robots, sans script hors JSON-LD,
+  sans `display:none` ni `opacity:0`.
+- Gate complet sur le VPS : arbre copié dans `/root/pscheck`, script `/root/gate.sh` dans `node:22-bookworm-slim`,
+  journal `/root/pscheck.log` (marqueurs `GATE-END`, `PREVIEW-END`). Aperçu privé : `deploy/vps/preview.sh`, port
+  127.0.0.1:3200, tunnel `ssh -N -L 3200:127.0.0.1:3200 root@82.165.57.191`.
+- Lighthouse : `lighthouse@12.8.2` dans `node:22-bookworm-slim` avec chromium Debian, `--network host`, rapports dans
+  `/root/lh/`.
 - Commits au nom d'Ayoub, jamais de mention de Claude, aucun tiret cadratin dans les textes.
 
 ## Suite immédiate
 
-1. Lire le rapport de Sumi, regarder `PLANCHE.png` et le logo à 16 px, rendre le verdict.
-2. Lot a avec Tetsu : brancher tokens, polices, logo, layout global (React + hub), favicon et icônes PWA, `theme-color` par thème, carte de partage `og:image`.
+1. Fusionner `-polish-a` et `-polish-b` dans `sprint/design-legends-polish`, gate complet sur le VPS, aperçu.
+2. Relancer Kensa sur les bloquants et majeurs, puis verdict du Shogun.
+3. Rafraîchir `after/` et `BEFORE_AFTER.md`, PR et fusion de la branche polish, résumé au founder.
+4. Après GO DEPLOY seulement : remesurer Lighthouse en production (bonnes pratiques attendues à 1).
