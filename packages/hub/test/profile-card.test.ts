@@ -88,7 +88,7 @@ describe("une seule carte de profil", () => {
   it("nomme et compte chaque fait vérifié, et dit calmement quand il n'y en a aucun", () => {
     const [proven, bare] = cards(directory([PROVEN, BARE]));
     expect(proven).toContain(
-      '<ul class="fc-proof"><li>2 missions vérifiées sur pièce</li><li>1 adresse web dont la possession est prouvée</li><li>Entreprise active au répertoire officiel</li><li>Attestation de vigilance URSSAF en cours de validité</li></ul>',
+      '<ul class="fc-proof"><li>2 missions vérifiées</li><li>1 adresse web dont la possession est prouvée</li><li>Entreprise active au répertoire officiel</li><li>Attestation de vigilance URSSAF en cours de validité</li></ul>',
     );
     expect(proven).not.toContain("fc-none");
     expect(bare).toContain('<p class="fc-none">Pas encore de pièce vérifiée.</p>');
@@ -110,18 +110,25 @@ describe("une seule carte de profil", () => {
     const view: ProfileCardView = { ...PROVEN, slug: null };
     const body = profileCardBody(view, "en", "card-1");
     expect(body).toContain('<h3 class="fc-name" id="card-1">Freelancer FR-ABCDE</h3>');
-    expect(body).toContain("2 missions verified against a document");
+    expect(body).toContain("2 verified missions");
     expect(body).not.toContain("<article");
   });
 });
 
 describe("la légende et la règle du vert", () => {
   it("met la légende du registre sous le chapeau, une fois, dans les deux langues", () => {
-    const fr = directory([BARE]);
+    const fr = directory([PROVEN, BARE]);
     expect(fr).toContain('<ul class="ps-legend" aria-label="Légende des cartes"><li class="k-proof">vérifié par un tiers</li><li class="k-decl">déclaré par le freelance</li></ul>');
     expect(fr.match(/class="ps-legend"/g)?.length).toBe(1);
     expect(fr.indexOf('class="headline"')).toBeLessThan(fr.indexOf('class="ps-legend"'));
-    expect(directory([], NO_DIRECTORY_FILTERS, false, "en")).toContain('<li class="k-proof">verified by a third party</li>');
+    expect(directory([PROVEN], NO_DIRECTORY_FILTERS, false, "en")).toContain('<li class="k-proof">verified by a third party</li>');
+  });
+
+  it("n'affiche pas de clé verte sans carte verte, ni de légende sur une liste vide (revue Kensa, M5)", () => {
+    const bare = directory([BARE]);
+    expect(bare).toContain('<ul class="ps-legend" aria-label="Légende des cartes"><li class="k-decl">déclaré par le freelance</li></ul>');
+    expect(bare).not.toContain('<li class="k-proof">');
+    expect(directory([], NO_DIRECTORY_FILTERS, false, "en")).not.toContain('<ul class="ps-legend"');
   });
 
   it("ne pose le vert que sur un fait vérifié et sur sa clé de légende", () => {
@@ -161,10 +168,10 @@ describe("les filtres, en GET et retirables", () => {
 
   it("fait de chaque filtre actif un lien vers la même recherche sans lui, en première page", () => {
     const html = directory([PROVEN], filters);
-    expect(html).toContain('<a href="/fr/freelances?competence=Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer&amp;missions=1" aria-label="Retirer le filtre : Compétence : Rust">Compétence : Rust <span aria-hidden="true">×</span></a>');
+    expect(html).toContain('<a href="/fr/freelances?competence=Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer&amp;missions=1" aria-label="Retirer le filtre : Compétence : Rust">Compétence\u202f: Rust <span aria-hidden="true">×</span></a>');
     expect(html).toContain('aria-label="Retirer le filtre : Ville : Lyon"');
     expect(html).toContain('aria-label="Retirer le filtre : Poste : Data engineer"');
-    expect(html).toContain('href="/fr/freelances?competence=Rust%2C+Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer" aria-label="Retirer le filtre : Mission vérifiée sur pièce"');
+    expect(html).toContain('href="/fr/freelances?competence=Rust%2C+Go&amp;ville=Lyon&amp;mode=remote&amp;poste=data-engineer" aria-label="Retirer le filtre : Mission vérifiée"');
     expect(html).toContain('<li><a class="clear" href="/fr/freelances">Effacer les filtres</a></li>');
     expect(directory([PROVEN])).not.toContain('class="dir-chips"');
   });
@@ -197,7 +204,7 @@ describe("des états vides honnêtes, jamais de spécimen", () => {
     const one = directory([BARE]);
     expect(one).toContain('<p class="res-count">1 profil publié</p>');
     expect(one).toContain('<div class="few"><ul class="grid">');
-    expect(one).toContain("Ordre : du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
+    expect(one).toContain("Ordre\u202f: du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
     expect(directory([BARE], NO_DIRECTORY_FILTERS, true)).not.toContain('class="res-count"');
     expect(directory([BARE, PROVEN, { ...BARE, slug: "fr-zzzzz", reference: "FR-ZZZZZ" }])).not.toContain('class="few"');
   });

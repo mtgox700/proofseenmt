@@ -93,7 +93,7 @@ const BLOG_STYLES =
   ".chips{margin-top:0}.chips a{display:inline-flex;align-items:center;min-height:2.75rem;padding:0 var(--ps-space-4)}" +
   "@media (hover:hover) and (pointer:fine){.chips a:hover{color:var(--ps-text);border-color:var(--ps-line-strong)}}" +
   ".entry .desc{color:var(--ps-muted)}" +
-  ".data-files{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-4)}.data-files a{display:inline-flex;align-items:center;min-height:2.75rem}" +
+  ".data-files{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-4)}.data-files a{display:inline-flex;align-items:center;justify-content:center;min-width:2.75rem;min-height:2.75rem}" +
   ".feed{margin-top:var(--ps-space-6)}.feed a{display:inline-flex;align-items:center;min-height:2.75rem}" +
   "@media (min-width:48rem){.entries.posts,.entries.datasets{grid-template-columns:repeat(2,minmax(0,1fr))}}";
 

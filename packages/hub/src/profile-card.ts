@@ -72,7 +72,7 @@ const LABELS = {
     registry: "Entreprise active au répertoire officiel",
     identity: "Identité vérifiée par le prestataire de paiement",
     vigilance: "Attestation de vigilance URSSAF en cours de validité",
-    missions: (n: number) => (n === 1 ? "1 mission vérifiée sur pièce" : `${n} missions vérifiées sur pièce`),
+    missions: (n: number) => (n === 1 ? "1 mission vérifiée" : `${n} missions vérifiées`),
     provenUrls: (n: number) => (n === 1 ? "1 adresse web dont la possession est prouvée" : `${n} adresses web dont la possession est prouvée`),
     paying: (n: number) => (n === 1 ? "Payé sur Proofseen par 1 entreprise" : `Payé sur Proofseen par ${n} entreprises différentes`),
     legend: "Légende des cartes",
@@ -99,7 +99,7 @@ const LABELS = {
     registry: "Business active in the official company register",
     identity: "Identity verified by the payment provider",
     vigilance: "Valid URSSAF vigilance certificate",
-    missions: (n: number) => (n === 1 ? "1 mission verified against a document" : `${n} missions verified against a document`),
+    missions: (n: number) => (n === 1 ? "1 verified mission" : `${n} verified missions`),
     provenUrls: (n: number) => (n === 1 ? "1 web address with proven ownership" : `${n} web addresses with proven ownership`),
     paying: (n: number) => (n === 1 ? "Paid on Proofseen by 1 company" : `Paid on Proofseen by ${n} different companies`),
     legend: "Card legend",
@@ -244,8 +244,15 @@ export const profileCardHtml = (c: ProfileCardView & { readonly slug: string }, 
   );
 };
 
-/** La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré. */
-export const profileCardLegend = (lang: Lang): string => {
+/**
+ * La clé de lecture des cartes : le carré vert pour ce qu'un tiers a vérifié, le carré au filet pour le déclaré.
+ * `proof: false` (revue Kensa, M5) : aucune carte affichée ne porte de fait vérifié, la clé n'a donc pas de vert.
+ */
+export const profileCardLegend = (lang: Lang, o: { readonly proof?: boolean } = {}): string => {
   const l = LABELS[lang];
-  return `<ul class="ps-legend" aria-label="${e(l.legend)}"><li class="k-proof">${l.legendProof}</li><li class="k-decl">${l.legendDeclared}</li></ul>`;
+  const proof = o.proof === false ? "" : `<li class="k-proof">${l.legendProof}</li>`;
+  return `<ul class="ps-legend" aria-label="${e(l.legend)}">${proof}<li class="k-decl">${l.legendDeclared}</li></ul>`;
 };
+
+/** Au moins une de ces cartes porte un fait vérifié (et donc un carré vert). */
+export const anyVerifiedCard = (cards: readonly ProfileCardView[]): boolean => cards.some((c) => verifiedLines(c, "fr").length > 0);

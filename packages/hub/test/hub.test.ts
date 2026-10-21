@@ -146,7 +146,7 @@ describe("buildSite", () => {
       }),
     );
     const fr = full.find((s) => s.path === "index.html")!.content;
-    expect(fr).toContain("TJM : 500 à 650 € HT par jour");
+    expect(fr).toContain("TJM\u202f: 500 à 650 € HT par jour");
     expect(fr).toContain("mailto:alex@alex-martin.example");
     expect(fr).toContain("Indisponible pour le moment");
     expect(fr).toContain("aujourd&#39;hui");
@@ -172,7 +172,7 @@ describe("buildSite", () => {
     expect(home).toContain(`${base.missions.length} mission`);
     expect(home).toContain(`${facts} fait`);
     const mission = file("missions/pipeline-temps-reel/index.html");
-    expect(mission).toContain("Source : code du dépôt");
+    expect(mission).toContain("Source\u202f: code du dépôt");
     expect(file("en/missions/pipeline-temps-reel/index.html")).toMatch(/Source: /);
   });
 

@@ -37,7 +37,6 @@ export const monogram = (reference: string, name: string | null): string => {
 
 /** Le cadre des annuaires publics : la colonne de filtres, le panneau repliable, la grille, la pagination. */
 export const DIRECTORY_FRAME_STYLES =
-  ".wrap.wide{width:min(100% - 2*var(--ps-gutter),var(--ps-max))}" +
   ".dir{display:grid;gap:1.5rem 2rem;margin-top:2.2rem}" +
   "@media (min-width:62rem){.dir{grid-template-columns:17rem minmax(0,1fr);align-items:start}.dir>.drawer{position:sticky;top:1rem}}" +
   // Replié par défaut sur un téléphone ; sur grand écran, le panneau reste ouvert (sans script).

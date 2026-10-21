@@ -6,6 +6,7 @@ import { missionUrl } from "./job-posting";
 import { blankState, factLine, LEDGER_STYLES } from "./ledger";
 import { isoDay, longDate, marketFooter, marketHeader, type Lang } from "./market-shell";
 import { recentPostsSection, type RecentPostItem } from "./post-page";
+import { typeset } from "./typography";
 
 /*
  * Page publique d'une entreprise, qui l'a choisie. Trois registres séparés, jamais mélangés :
@@ -165,38 +166,41 @@ export const renderCompanyPage = (c: CompanyPageModel, o: { readonly baseUrl: st
   const url = companyUrl(o.baseUrl, o.lang, c.slug);
   const lead = l.lead(c.city);
   const follow = `<a class="cta" href="${e(`/${o.lang}/app/entreprises-suivies?suivre=${encodeURIComponent(c.slug)}`)}" rel="nofollow">${l.follow}</a>`;
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(c.name), description: `${c.name} · ${lead}`.slice(0, 160), canonical: url }),
-    `<link rel="alternate" hreflang="fr" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(companyUrl(o.baseUrl, "en", c.slug))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
-    `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${COMPANY_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(companyJsonLd(c, o))}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, companyUrl(o.baseUrl, other, c.slug), "companies"),
-    '<main id="contenu" class="sheet">',
-    `<header class="head"><a class="crumb" href="/${o.lang}/entreprises">← ${l.back}</a>`,
-    `<p class="ref"><time datetime="${isoDay(c.generatedAt)}">${e(l.trace(longDate(c.generatedAt, o.lang)))}</time></p>`,
-    `<div class="who"><span class="mono" aria-hidden="true">${e(monogram(c.slug, c.name))}</span><h1 class="title">${e(c.name)}</h1></div>`,
-    `<p class="headline">${e(lead)}</p></header>`,
-    `<aside class="rail" aria-label="${l.rail}">${follow}<p class="rail-note">${l.followHint}</p><a class="tally" href="#missions">${l.count(c.missions.length)}</a></aside>`,
-    '<div class="body">',
-    register(c, o.lang),
-    about(c, o.lang),
-    missionList(c, o.lang),
-    recentPostsSection(c.posts, o.lang),
-    `<p class="closing trace"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(longDate(c.generatedAt, o.lang)))}</time></p>`,
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(c.name), description: `${c.name} · ${lead}`.slice(0, 160), canonical: url }),
+      `<link rel="alternate" hreflang="fr" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(companyUrl(o.baseUrl, "en", c.slug))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(companyUrl(o.baseUrl, "fr", c.slug))}">`,
+      `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}${COMPANY_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(companyJsonLd(c, o))}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, companyUrl(o.baseUrl, other, c.slug), "companies"),
+      '<main id="contenu" class="sheet">',
+      `<header class="head"><a class="crumb" href="/${o.lang}/entreprises">← ${l.back}</a>`,
+      `<p class="ref"><time datetime="${isoDay(c.generatedAt)}">${e(l.trace(longDate(c.generatedAt, o.lang)))}</time></p>`,
+      `<div class="who"><span class="mono" aria-hidden="true">${e(monogram(c.slug, c.name))}</span><h1 class="title">${e(c.name)}</h1></div>`,
+      `<p class="headline">${e(lead)}</p></header>`,
+      `<aside class="rail" aria-label="${l.rail}">${follow}<p class="rail-note">${l.followHint}</p><a class="tally" href="#missions">${l.count(c.missions.length)}</a></aside>`,
+      '<div class="body">',
+      register(c, o.lang),
+      about(c, o.lang),
+      missionList(c, o.lang),
+      recentPostsSection(c.posts, o.lang),
+      `<p class="closing trace"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(longDate(c.generatedAt, o.lang)))}</time></p>`,
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 export const companySitemap = (baseUrl: string, items: readonly { readonly slug: string; readonly updatedAt: Date }[]): string =>

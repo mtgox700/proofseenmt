@@ -7,6 +7,7 @@ import { recentPostsSection, type RecentPostItem } from "./post-page";
 import { proofRegister, proofTally, type ProofFacts, type ProofMission, type ProofRegister, type ProvenAddress } from "./profile-proofs";
 import { PROFILE_STYLES } from "./profile-styles";
 import { PASSAGE_CSS, passageName } from "./profile-card";
+import { typeset } from "./typography";
 
 /*
  * Page publique d'un profil freelance de la marketplace : document HTML complet, lisible sans JavaScript, avec ses
@@ -44,6 +45,11 @@ export interface PublicProfile {
   readonly missions: readonly ProofMission[];
   readonly reviews: readonly { readonly rating: number; readonly body: string; readonly createdAt: Date }[];
   readonly facts: ProofFacts;
+  /**
+   * La langue dans laquelle le freelance a écrit son titre et son résumé. Différente de celle de la page (une fiche
+   * française lue sous /en), elle est déclarée sur ces textes pour les lecteurs d'écran (WCAG 3.1.2, revue Kensa m5).
+   */
+  readonly contentLang?: Lang;
   /** Photo publiée : profil nominatif seulement (le dépôt ne la fournit jamais pour un profil pseudonyme). */
   readonly photoFileId?: string | null;
   /** Dernière déclaration ou confirmation de la disponibilité par le freelance. */
@@ -153,6 +159,9 @@ export interface ProfilePageOptions {
   readonly nearby?: readonly NearbyProfile[];
 }
 
+/** L'attribut `lang` d'un texte écrit par le freelance, seulement quand sa langue n'est pas celle de la page. */
+const langOf = (p: PublicProfile, page: Lang): string => (p.contentLang === undefined || p.contentLang === page ? "" : ` lang="${p.contentLang}"`);
+
 /*
  * La fiche, en-tête du dossier : la ligne de trace (référence et date), la photo d'identité d'un profil nominatif et
  * de lui seul, le nom (ou la référence), le métier, puis les faits déclarés du contexte, sans vert.
@@ -173,7 +182,7 @@ const fiche = (p: PublicProfile, name: string, availability: string, o: ProfileP
   return (
     // M3 : la carte de l'annuaire porte le même nom de transition ; arrivée de l'annuaire, elle devient cette fiche.
     `<header class="fiche" style="view-transition-name:${passageName(p.slug)}"><p class="ref">${e(l.reference(p.reference, date(p.updatedAt, o.lang)))}</p>` +
-    `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline">${e(p.headline)}</p></div></div>` +
+    `<div class="who">${photo}<div><h1 class="title">${e(name)}</h1><p class="headline"${langOf(p, o.lang)}>${e(p.headline)}</p></div></div>` +
     `<dl class="context">${context}</dl></header>`
   );
 };
@@ -204,37 +213,40 @@ export const renderProfilePage = (p: PublicProfile, o: ProfilePageOptions): stri
   const register: ProofRegister = { named, missions: p.missions, provenUrls: p.provenUrls, provenUrlCount: p.provenUrlCount, provenAddresses: p.provenAddresses ?? [], facts: p.facts };
   const contact = `<a class="cta" href="${e(o.contactHref)}">${l.contact}</a>`;
 
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: `${name} · ${p.headline}`, description: `${p.headline} · ${p.city} · ${availability}`.slice(0, 160), canonical: profileUrl(o.baseUrl, o.lang, p.slug), type: "profile" }),
-    `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
-    `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}\n${PASSAGE_CSS}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
-    '<main id="contenu" class="dossier">',
-    fiche(p, name, availability, o),
-    `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
-    '<div class="folio">',
-    `<p class="lede">${e(p.summary)}</p>`,
-    proofRegister(register, o.lang),
-    declared(p, o),
-    reviews(p, o.lang),
-    recentPostsSection(p.posts, o.lang),
-    `<div class="closing">${contact}<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p></div>`,
-    nearbyProfilesSection(o.nearby ?? [], o.lang),
-    "</div>",
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: `${name} · ${p.headline}`, description: `${p.headline} · ${p.city} · ${availability}`.slice(0, 160), canonical: profileUrl(o.baseUrl, o.lang, p.slug), type: "profile" }),
+      `<link rel="alternate" hreflang="fr" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(profileUrl(o.baseUrl, "en", p.slug))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(profileUrl(o.baseUrl, "fr", p.slug))}">`,
+      `<style>${STYLES}${SECTION_STYLES}${PROFILE_STYLES}\n${PASSAGE_CSS}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(profileJsonLd(p, o))}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, profileUrl(o.baseUrl, other, p.slug)),
+      '<main id="contenu" class="dossier">',
+      fiche(p, name, availability, o),
+      `<aside class="rail" aria-label="${e(l.rail)}">${contact}<a class="tally" href="#verifie">${e(proofTally(register, o.lang))}</a></aside>`,
+      '<div class="folio">',
+      `<p class="lede"${langOf(p, o.lang)}>${e(p.summary)}</p>`,
+      proofRegister(register, o.lang),
+      declared(p, o),
+      reviews(p, o.lang),
+      recentPostsSection(p.posts, o.lang),
+      `<div class="closing">${contact}<p class="muted">${l.updated} ${e(date(p.updatedAt, o.lang))}</p></div>`,
+      nearbyProfilesSection(o.nearby ?? [], o.lang),
+      "</div>",
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };
 
 /** Sitemap des profils publiés, dans les deux langues. */

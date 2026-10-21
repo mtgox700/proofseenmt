@@ -58,7 +58,7 @@ describe("annuaire public des freelances", () => {
     expect(html).toContain("Lyon · Hybride");
     expect(html).toContain("650");
     expect(html).toContain("<li>Entreprise active au répertoire officiel</li>");
-    expect(html).toContain("<li>2 missions vérifiées sur pièce</li>");
+    expect(html).toContain("<li>2 missions vérifiées</li>");
     expect(html).toContain("<li>1 adresse web dont la possession est prouvée</li>");
     expect(html).toContain("<li>Payé sur Proofseen par 1 entreprise</li>");
     // La ligne de trace, en tête de carte : la référence et la date, comme l'en-tête du profil.
@@ -81,7 +81,7 @@ describe("annuaire public des freelances", () => {
 
   it("dit son ordre, neutre, et ne porte ni note, ni score, ni rang", () => {
     const html = render();
-    expect(html).toContain("Ordre : du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
+    expect(html).toContain("Ordre\u202f: du profil le plus récemment mis à jour au plus ancien. Aucun score, aucun classement de personnes.");
     expect(html).not.toMatch(/rating|score"|"rank|aggregateRating/i);
     const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "{}") as { mainEntity: { itemListOrder: string; numberOfItems: number } };
     expect(ld.mainEntity).toMatchObject({ itemListOrder: "https://schema.org/ItemListUnordered", numberOfItems: 2 });
@@ -129,8 +129,8 @@ describe("annuaire public des freelances", () => {
   it("dit quoi faire d'un annuaire vide, par de simples liens, les mêmes pour tous et sans invitation (C23)", () => {
     const empty = (filters: DirectoryFilters, lang: "fr" | "en" = "fr"): string => renderProfileDirectory([], { baseUrl: "https://proofseen.com", lang, filters, hasMore: false });
     const none = empty(NO_DIRECTORY_FILTERS);
-    expect(none).toContain('<a href="/fr/app/profil">Vous êtes freelance : publiez votre profil</a>');
-    expect(none).toContain('<a href="/fr/app/missions/nouvelle">Vous recrutez : publiez une mission</a>');
+    expect(none).toContain('<a href="/fr/app/profil">Vous êtes freelance\u202f: publiez votre profil</a>');
+    expect(none).toContain('<a href="/fr/app/missions/nouvelle">Vous recrutez\u202f: publiez une mission</a>');
     expect(none).toContain('<a href="/fr/creer-un-compte">');
     expect(none).not.toContain("invitations");
     expect(scriptsOutsideJsonLd(none)).toBe(0);

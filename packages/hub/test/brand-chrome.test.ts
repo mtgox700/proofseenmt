@@ -17,6 +17,7 @@ import { renderProfilePage, type PublicProfile } from "../src/profile-page";
 import { parseSimulatorQuery } from "../src/simulator";
 import { renderSimulatorPage } from "../src/simulator-page";
 import { renderSkillIndex } from "../src/skill-index";
+import { notFoundPage } from "../src/status-pages";
 
 /*
  * The brand of the public pages (lot a of the redesign): one head, one header, one footer for every document of the
@@ -80,6 +81,7 @@ const PAGES: Readonly<Record<string, string>> = {
   blog: renderBlogIndex([], { baseUrl: BASE, lang: "fr", filters: { category: null, audience: null, page: 1 }, hasMore: false }),
   legal: renderLegalPage({ baseUrl: BASE, lang: "fr", page: "mentions-legales" }),
   simulator: renderSimulatorPage({ baseUrl: BASE, lang: "en", query: parseSimulatorQuery(new URLSearchParams()) }),
+  "404": notFoundPage("en", { baseUrl: BASE }),
 };
 
 const head = (html: string): string => /<head>([\s\S]*?)<\/head>/.exec(html)?.[1] ?? "";
@@ -111,6 +113,14 @@ describe("the head of every public page", () => {
     expect(html).toContain('<footer class="foot">');
   });
 
+  it.each(Object.entries(PAGES).filter(([, html]) => html.includes('<html lang="fr">')))(
+    "%s: no French line starts with a colon, a semicolon, a question or exclamation mark (Kensa m6)",
+    (_name, html) => {
+      const text = html.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, "").replace(/<[^>]*>/g, "");
+      expect(text).not.toMatch(/ [:;?!]/);
+    },
+  );
+
   it("announces the share card of the page language, with the page address", () => {
     expect(head(PAGES["profile EN"]!)).toContain('<meta property="og:image" content="https://proofseen.com/brand/og-en.png">');
     expect(head(PAGES.profile!)).toContain('<meta property="og:url" content="https://proofseen.com/fr/profils/fr-abcde">');
@@ -135,7 +145,7 @@ describe("one document builder, one head", () => {
   const builders = readdirSync(src).filter((f) => f.endsWith(".ts") && readFileSync(join(src, f), "utf8").includes('"<!doctype html>"'));
 
   it("every marketplace page goes through pageHead; only the standalone static site does not", () => {
-    expect(builders.length).toBe(12);
+    expect(builders.length).toBe(13);
     for (const file of builders.filter((f) => f !== "pages.ts")) expect(readFileSync(join(src, file), "utf8"), file).toContain("...pageHead({");
   });
 
@@ -159,6 +169,13 @@ describe("the shared chrome", () => {
     }
     expect(header).toContain('<a href="/fr/missions" aria-current="page">Missions</a>');
     expect(header).toContain('<a class="lang" href="/en/missions" hreflang="en" lang="en">English</a>');
+  });
+
+  it("starts every page on the header's left edge and keeps the reading measure on running text (Kensa M6)", () => {
+    expect(STYLES).toContain(".wrap{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}");
+    expect(STYLES).toContain(".chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}");
+    expect(STYLES).toMatch(/:where\(main\.wrap:not\(\.wide\)\) :where\(p:not\(\[class\]\)[^{]*\)\{max-width:var\(--ps-measure\)\}/);
+    expect(STYLES).not.toContain("58rem");
   });
 
   it("follows the system theme without a theme switch, and the static site loads no web font", () => {

@@ -2,6 +2,7 @@ import { escapeHtml as e, safeJsonLd, STYLES } from "./html";
 import { pageHead, withBrand } from "./head";
 import { marketFooter, marketHeader, type Lang } from "./market-shell";
 import { skillUrl } from "./skill-page";
+import { typeset } from "./typography";
 
 /*
  * Index des pages métiers : les compétences qui ont une page, c'est-à-dire assez de missions ouvertes et de profils
@@ -60,29 +61,32 @@ export const renderSkillIndex = (entries: readonly SkillIndexItem[], o: { readon
       : `<ul class="more">${sorted
           .map((s) => `<li><a href="/${o.lang}/metiers/${e(encodeURIComponent(s.key))}">${e(s.label)}<small>${l.counts(s.missions, s.profiles)}</small></a></li>`)
           .join("")}</ul>`;
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: skillIndexUrl(base, o.lang) }),
-    `<link rel="alternate" hreflang="fr" href="${e(skillIndexUrl(base, "fr"))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(skillIndexUrl(base, "en"))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(skillIndexUrl(base, "fr"))}">`,
-    `<style>${STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, `/${other}/metiers`, "skills"),
-    '<main id="contenu" class="wrap">',
-    `<h1 class="title">${l.title}</h1>`,
-    `<p class="headline">${l.lead}</p>`,
-    `<h2>${l.list}</h2>`,
-    `<p class="muted">${l.order}</p>`,
-    list,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(l.title), description: l.lead, canonical: skillIndexUrl(base, o.lang) }),
+      `<link rel="alternate" hreflang="fr" href="${e(skillIndexUrl(base, "fr"))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(skillIndexUrl(base, "en"))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(skillIndexUrl(base, "fr"))}">`,
+      `<style>${STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, `/${other}/metiers`, "skills"),
+      '<main id="contenu" class="wrap">',
+      `<h1 class="title">${l.title}</h1>`,
+      `<p class="headline">${l.lead}</p>`,
+      `<h2>${l.list}</h2>`,
+      `<p class="muted">${l.order}</p>`,
+      list,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };

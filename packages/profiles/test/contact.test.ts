@@ -81,7 +81,8 @@ describe("profile layout", () => {
     expect(panel).toContain("Disponible");
     expect(panel).toContain("550–650 €");
     expect(panel).toContain('class="cta"');
-    expect(panel).toContain("3 missions vérifiées sur pièce");
+    expect(panel).toContain("3 missions vérifiées");
+    expect(panel).not.toContain("sur pièce");
     expect(panel).toContain('href="/methode/"');
     expect(panel).toMatch(/Identité révélée après accord/);
   });
@@ -100,10 +101,16 @@ describe("profile layout", () => {
 });
 
 describe("head of every page", () => {
-  it("declares an inline icon, so no visitor triggers a /favicon.ico 404", () => {
+  it("wears the marketplace's brand: its icons, its header, its footer, no old palette and no dash (Kensa B3)", () => {
     for (const file of buildProfilesSite(trio, { baseUrl: BASE }).filter((f) => f.path.endsWith(".html"))) {
-      expect(file.content).toContain("<link rel=\"icon\" href=\"data:image/svg+xml,");
-      expect(file.content).toContain("<meta name=\"theme-color\" content=\"#070b14\">");
+      expect(file.content, file.path).toContain('<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">');
+      expect(file.content, file.path).toContain('<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
+      expect(file.content, file.path).toContain('<header class="top">');
+      expect(file.content, file.path).toContain('<footer class="foot">');
+      expect(file.content, file.path).toContain("--ps-bg:");
+      expect(file.content, file.path).not.toMatch(/#070b14|#3fcf9c|--accent/i);
+      expect(file.content, file.path).not.toContain(String.fromCodePoint(0x2014));
+      for (const [, attrs] of file.content.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toContain('type="application/ld+json"');
     }
   });
 });

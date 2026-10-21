@@ -4,6 +4,7 @@ import { missionUrl } from "./job-posting";
 import { jobCard, JOB_CARD_STYLES } from "./job-card";
 import { factLine, LEDGER_STYLES } from "./ledger";
 import { isoDay, longDate, marketFooter, marketHeader, money, type Lang } from "./market-shell";
+import { typeset } from "./typography";
 
 /*
  * Page d'une ville : ses missions ouvertes. Elle n'existe que remplie de missions réelles (la base décide du seuil) ;
@@ -106,35 +107,38 @@ export const renderCityPage = (c: CityPageView, o: { readonly baseUrl: string; r
       itemListElement: c.missions.map((m, i) => ({ "@type": "ListItem", position: i + 1, name: m.title, url: missionUrl(o.baseUrl, o.lang, m.id) })),
     },
   };
-  return [
-    "<!doctype html>",
-    `<html lang="${o.lang}">`,
-    "<head>",
-    ...pageHead({ lang: o.lang, title: withBrand(title), description: lead, canonical: url }),
-    `<link rel="alternate" hreflang="fr" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
-    `<link rel="alternate" hreflang="en" href="${e(cityUrl(o.baseUrl, "en", c.key))}">`,
-    `<link rel="alternate" hreflang="x-default" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
-    `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}</style>`,
-    `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
-    "</head>",
-    "<body>",
-    marketHeader(o.lang, cityUrl(o.baseUrl, other, c.key), "missions"),
-    '<main id="contenu" class="wrap">',
-    `<header class="head"><a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
-    `<p class="ref"><time datetime="${isoDay(c.generatedAt)}">${e(l.trace(generated))}</time></p>`,
-    `<h1 class="title">${e(title)}</h1>`,
-    `<p class="headline">${e(lead)}</p></header>`,
-    `<h2 class="part">${l.facts}</h2>`,
-    `<p class="part-note">${l.factsNote}</p>`,
-    `<ul class="lines">${facts(c, o.lang).map((f) => factLine(f, false, "li")).join("")}</ul>`,
-    `<h2 class="part">${l.list}</h2>`,
-    `<p class="trace">${l.order}</p>`,
-    `<ul class="entries missions">${c.missions.map((m) => jobCard(m, o.lang)).join("")}</ul>`,
-    `<p class="byline trace"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(generated))}</time></p>`,
-    "</main>",
-    marketFooter(o.lang),
-    "</body>",
-    "</html>",
-    "",
-  ].join("\n");
+  return typeset(
+    o.lang,
+    [
+      "<!doctype html>",
+      `<html lang="${o.lang}">`,
+      "<head>",
+      ...pageHead({ lang: o.lang, title: withBrand(title), description: lead, canonical: url }),
+      `<link rel="alternate" hreflang="fr" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
+      `<link rel="alternate" hreflang="en" href="${e(cityUrl(o.baseUrl, "en", c.key))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${e(cityUrl(o.baseUrl, "fr", c.key))}">`,
+      `<style>${STYLES}${LEDGER_STYLES}${JOB_CARD_STYLES}</style>`,
+      `<script type="application/ld+json">${safeJsonLd(jsonLd)}</script>`,
+      "</head>",
+      "<body>",
+      marketHeader(o.lang, cityUrl(o.baseUrl, other, c.key), "missions"),
+      '<main id="contenu" class="wrap">',
+      `<header class="head"><a class="crumb" href="/${o.lang}/missions">← ${l.back}</a>`,
+      `<p class="ref"><time datetime="${isoDay(c.generatedAt)}">${e(l.trace(generated))}</time></p>`,
+      `<h1 class="title">${e(title)}</h1>`,
+      `<p class="headline">${e(lead)}</p></header>`,
+      `<h2 class="part">${l.facts}</h2>`,
+      `<p class="part-note">${l.factsNote}</p>`,
+      `<ul class="lines">${facts(c, o.lang).map((f) => factLine(f, false, "li")).join("")}</ul>`,
+      `<h2 class="part">${l.list}</h2>`,
+      `<p class="trace">${l.order}</p>`,
+      `<ul class="entries missions">${c.missions.map((m) => jobCard(m, o.lang)).join("")}</ul>`,
+      `<p class="byline trace"><time datetime="${isoDay(c.generatedAt)}">${e(l.generated(generated))}</time></p>`,
+      "</main>",
+      marketFooter(o.lang),
+      "</body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
 };

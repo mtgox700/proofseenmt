@@ -4,6 +4,7 @@ import { parseSimulatorQuery } from "../src/simulator";
 import { simulatorFaq } from "../src/simulator-facts";
 import { renderSimulatorPage, simulatorUrl } from "../src/simulator-page";
 import { SOURCES } from "../src/simulator-rates";
+import { frenchSpacing } from "../src/typography";
 
 const BASE = "https://proofseen.com";
 // Espaces insécables (U+00A0, U+202F) que Intl met dans les montants et les pourcentages en français.
@@ -31,7 +32,7 @@ describe("page du simulateur", () => {
 
   it("cite chaque source, avec la date des taux", () => {
     const html = page("fr");
-    expect(html).toContain("Taux en vigueur au 17 octobre 2026, sources :");
+    expect(html).toContain("Taux en vigueur au 17 octobre 2026, sources\u202f:");
     for (const s of Object.values(SOURCES)) expect(html).toContain(`href="${s.url}"`);
     expect(plain(html)).toContain("25,6 %");
     expect(page("en")).toContain("Rates in force on 17 October 2026, sources:");
@@ -66,7 +67,8 @@ describe("page du simulateur", () => {
       expect(graph[0]?.citation).toEqual(Object.values(SOURCES).map((s) => s.url));
       const faq = simulatorFaq(lang);
       expect(faq.length).toBeGreaterThanOrEqual(6);
-      for (const f of faq) expect(html).toContain(f.a.replace(/'/g, "&#39;"));
+      // The visible answer carries the French spacing; the JSON-LD keeps the text as written.
+      for (const f of faq) expect(html).toContain((lang === "fr" ? frenchSpacing(f.a) : f.a).replace(/'/g, "&#39;"));
       expect(JSON.stringify(graph)).not.toMatch(/\b(aggregateRating|rating|score|rank)/i);
     }
     expect(plain(simulatorFaq("fr").map((f) => f.a).join(" "))).toContain("31,4 %");
@@ -74,7 +76,7 @@ describe("page du simulateur", () => {
 
   it("dit pourquoi l'EURL à l'IS n'est pas simulée, et n'en donne aucun chiffre", () => {
     const html = page("fr");
-    expect(html).toContain("EURL à l&#39;IS : non simulée.");
+    expect(html).toContain("EURL à l&#39;IS\u202f: non simulée.");
     expect(html).not.toMatch(/value="eurl/);
   });
 

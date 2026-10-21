@@ -147,7 +147,8 @@ const toListed = (row: ItemRow, userId: string): ListedProfile => {
     availability: published ? p.availability : null,
     availableFrom: published ? p.availableFrom : null,
     availabilityAt: published ? p.availabilityAt : null,
-    skills: published ? p.skills.map((s) => s.skill.label).sort((a, b) => a.localeCompare(b, "fr")) : [],
+    // L'ordre déclaré par le freelance, comme sur sa fiche publique et sa carte (revue Kensa, M3).
+    skills: published ? p.skills.map((s) => s.skill.label) : [],
     note: row.note,
     addedByName: row.addedBy?.displayName ?? null,
     addedAt: row.createdAt,

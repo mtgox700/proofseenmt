@@ -14,8 +14,13 @@ export interface PageHeadOptions {
   /** The whole <title>, brand suffix included when there is one. */
   readonly title: string;
   readonly description: string;
-  /** Absolute canonical address: the share card is announced on the same origin. */
-  readonly canonical: string;
+  /**
+   * Absolute canonical address: the share card is announced on the same origin. `null`: a page that has no address of
+   * its own (a 404); it then names neither a canonical nor an og:url, and `origin` places the share card.
+   */
+  readonly canonical: string | null;
+  /** The site origin, for a page without a canonical address. */
+  readonly origin?: string;
   /** og:type. A profile is "profile", a publication "article". */
   readonly type?: "website" | "article" | "profile";
 }
@@ -36,7 +41,7 @@ const originOf = (url: string): string => {
 
 export const pageHead = (o: PageHeadOptions): string[] => {
   const card = SHARE_CARD[o.lang];
-  const image = `${originOf(o.canonical)}${card.src}`;
+  const image = `${o.canonical === null ? (o.origin ?? "").replace(/\/$/, "") : originOf(o.canonical)}${card.src}`;
   return [
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
@@ -45,7 +50,7 @@ export const pageHead = (o: PageHeadOptions): string[] => {
     `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
     `<title>${e(o.title)}</title>`,
     `<meta name="description" content="${e(o.description)}">`,
-    `<link rel="canonical" href="${e(o.canonical)}">`,
+    ...(o.canonical === null ? [] : [`<link rel="canonical" href="${e(o.canonical)}">`]),
     `<link rel="preload" href="${FONT_FILES.display}" as="font" type="font/woff2" crossorigin>`,
     `<link rel="icon" href="${ICONS.ico}" sizes="48x48">`,
     `<link rel="icon" href="${ICONS.svg}" type="image/svg+xml">`,
@@ -55,7 +60,7 @@ export const pageHead = (o: PageHeadOptions): string[] => {
     `<meta property="og:locale" content="${LOCALE[o.lang]}">`,
     `<meta property="og:title" content="${e(o.title)}">`,
     `<meta property="og:description" content="${e(o.description)}">`,
-    `<meta property="og:url" content="${e(o.canonical)}">`,
+    ...(o.canonical === null ? [] : [`<meta property="og:url" content="${e(o.canonical)}">`]),
     `<meta property="og:image" content="${e(image)}">`,
     `<meta property="og:image:width" content="${SHARE_CARD.width}">`,
     `<meta property="og:image:height" content="${SHARE_CARD.height}">`,
