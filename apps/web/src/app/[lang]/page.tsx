@@ -15,7 +15,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getSource } from "@/data/file-source";
 import { dictionary, isLang } from "@/i18n";
-import { shareMetadata } from "@/lib/brand-metadata";
+import { shareMetadata, siteOrigin } from "@/lib/brand-metadata";
+import { homeJsonLd } from "@/lib/home-jsonld";
 
 /*
  * The home page is public and listed in sitemap-pages.xml: it opts out of the noindex default of the [lang] layout,
@@ -46,6 +47,7 @@ export default async function LandingPage({ params }: { readonly params: Promise
   const answers = await getSource().answers();
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd(lang, siteOrigin(), t.meta.description) }} />
       <SiteHeader lang={lang} t={t} variant="site" />
       <main id="contenu" tabIndex={-1}>
         <Hero lang={lang} t={t} answers={answers} />
