@@ -111,3 +111,5 @@ export { HOSTS, LEGAL_VERSION, LEGAL_VERSION_DATE, PUBLISHER, type Host } from "
 export { PROCESSORS, type Processor } from "./legal-processors";
 export { LEGAL_LABELS, LEGAL_PAGES, marketFooter, publicMenu, type LegalPage, type MenuItem, type PublicMenu } from "./market-shell";
 export { pageHead, withBrand, type PageHeadOptions } from "./head";
+export { notFoundPage, statusLang, unavailablePage, type StatusPageOptions } from "./status-pages";
+export { frenchSpacing, typeset } from "./typography";

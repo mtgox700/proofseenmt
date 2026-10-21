@@ -17,6 +17,7 @@ import { renderProfilePage, type PublicProfile } from "../src/profile-page";
 import { parseSimulatorQuery } from "../src/simulator";
 import { renderSimulatorPage } from "../src/simulator-page";
 import { renderSkillIndex } from "../src/skill-index";
+import { notFoundPage } from "../src/status-pages";
 
 /*
  * The brand of the public pages (lot a of the redesign): one head, one header, one footer for every document of the
@@ -80,6 +81,7 @@ const PAGES: Readonly<Record<string, string>> = {
   blog: renderBlogIndex([], { baseUrl: BASE, lang: "fr", filters: { category: null, audience: null, page: 1 }, hasMore: false }),
   legal: renderLegalPage({ baseUrl: BASE, lang: "fr", page: "mentions-legales" }),
   simulator: renderSimulatorPage({ baseUrl: BASE, lang: "en", query: parseSimulatorQuery(new URLSearchParams()) }),
+  "404": notFoundPage("en", { baseUrl: BASE }),
 };
 
 const head = (html: string): string => /<head>([\s\S]*?)<\/head>/.exec(html)?.[1] ?? "";
@@ -135,7 +137,7 @@ describe("one document builder, one head", () => {
   const builders = readdirSync(src).filter((f) => f.endsWith(".ts") && readFileSync(join(src, f), "utf8").includes('"<!doctype html>"'));
 
   it("every marketplace page goes through pageHead; only the standalone static site does not", () => {
-    expect(builders.length).toBe(12);
+    expect(builders.length).toBe(13);
     for (const file of builders.filter((f) => f !== "pages.ts")) expect(readFileSync(join(src, file), "utf8"), file).toContain("...pageHead({");
   });
 

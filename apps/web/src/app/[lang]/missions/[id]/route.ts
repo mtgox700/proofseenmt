@@ -4,6 +4,7 @@ import { hasDatabase } from "@/data/intake-sink";
 import { nearbyMissionsFor } from "@/data/nearby";
 import { publicBaseUrl } from "@/lib/public-url";
 import { logError } from "@/lib/log";
+import { hubNotFound, hubUnavailable } from "@/lib/hub-status";
 
 /*
  * Public page of an open mission: a complete HTML document from `@proofseen/hub`, readable without JavaScript, with its
@@ -20,16 +21,13 @@ interface Context {
 const html = (body: string, status: number, cache: string): Response =>
   new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache } });
 
-const NOT_FOUND = '<!doctype html><html lang="fr"><meta charset="utf-8"><title>Mission introuvable</title><p>Cette mission n’existe pas ou n’est plus ouverte.</p></html>';
-const UNAVAILABLE = '<!doctype html><html lang="fr"><meta charset="utf-8"><title>Indisponible</title><p>Les missions sont momentanément indisponibles.</p></html>';
-
 export async function GET(request: Request, context: Context): Promise<Response> {
   const { lang, id } = await context.params;
-  if (lang !== "fr" && lang !== "en") return html(NOT_FOUND, 404, "no-store");
-  if (!hasDatabase()) return html(UNAVAILABLE, 503, "no-store");
+  if (lang !== "fr" && lang !== "en") return hubNotFound(request, lang, "no-store");
+  if (!hasDatabase()) return hubUnavailable(request, lang, 503);
   try {
     const mission = await missions(getDb()).findPublic(id);
-    if (mission === null || mission.publishedAt === null) return html(NOT_FOUND, 404, "public, max-age=60");
+    if (mission === null || mission.publishedAt === null) return hubNotFound(request, lang, "public, max-age=60");
     const page = renderJobPage(
       { ...mission, publishedAt: mission.publishedAt },
       { baseUrl: publicBaseUrl(request), lang, applyHref: `/${lang}/app/missions/${mission.id}/postuler`, nearby: await nearbyMissionsFor(mission.id, lang) },
@@ -38,6 +36,6 @@ export async function GET(request: Request, context: Context): Promise<Response>
     return html(page, 200, "public, max-age=0, s-maxage=300, stale-while-revalidate=3600");
   } catch (error) {
     logError("mission page: not rendered", error);
-    return html(UNAVAILABLE, 500, "no-store");
+    return hubUnavailable(request, lang, 500);
   }
 }
