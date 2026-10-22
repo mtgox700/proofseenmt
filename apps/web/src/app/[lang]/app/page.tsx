@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CountUp } from "@/components/motion/CountUp";
-import { InView } from "@/components/motion/InView";
 import { DossierPath } from "@/components/workspace/DossierPath";
 import { EmptyState } from "@/components/EmptyState";
 import { getClientSource } from "@/data/client-source";
@@ -42,24 +40,23 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
         <h1>{o.title}</h1>
       </header>
 
-      <InView className="tiles">
-        <div className="tile" style={{ "--i": 0 } as React.CSSProperties}>
+      {/* Figures are true from the first paint: no tile fades in, no count runs up (Kensa m4). */}
+      <div className="tiles">
+        <div className="tile">
           <span className="tile-label">{o.files}</span>
-          <b className="tile-value">
-            <CountUp display={String(summary.total)} to={summary.total} locale={LOCALE[lang]} />
-          </b>
+          <b className="tile-value num">{summary.total}</b>
           <span className="tile-foot muted">
             {summary.waitingOnClient} · {o.waitingClient}
           </span>
         </div>
-        <div className="tile" style={{ "--i": 1 } as React.CSSProperties}>
+        <div className="tile">
           <span className="tile-label">{o.complete}</span>
           <b className="tile-value num">{summary.complete}</b>
           <span className="tile-foot muted">
             {summary.total - summary.complete - summary.waitingOnClient} · {o.waitingUs}
           </span>
         </div>
-        <div className="tile tile-wide" style={{ "--i": 2 } as React.CSSProperties}>
+        <div className="tile tile-wide">
           <span className="tile-label">{o.gateTitle}</span>
           {gate === null ? (
             <span className="muted small">{o.journalUnreadable}</span>
@@ -79,7 +76,7 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
             </>
           )}
         </div>
-        <div className="tile" style={{ "--i": 3 } as React.CSSProperties}>
+        <div className="tile">
           <span className="tile-label">{o.deliveryTitle}</span>
           {delivery === null ? (
             <span className="muted small">{o.journalUnreadable}</span>
@@ -93,7 +90,7 @@ async function OperatorHome({ lang, t }: { readonly lang: Lang; readonly t: Dict
             </>
           )}
         </div>
-      </InView>
+      </div>
 
       <section className="ws-block" aria-labelledby="files-title">
         <h2 id="files-title">{o.tableTitle}</h2>

@@ -24,14 +24,15 @@ export interface ContractSummary {
   readonly id: string;
   readonly side: ContractSide;
   readonly status: ContractStatus;
-  readonly counterpart: string;
+  /** `null` : le freelance a effacé son profil avant de signer, il n'y a plus de nom à montrer. L'interface le dit en mots. */
+  readonly counterpart: string | null;
   readonly totalCents: number;
   readonly currency: string;
   readonly startsOn: Date;
 }
 
 export interface ContractDetail extends ContractSummary {
-  readonly seller: { readonly legalName: string; readonly siret: string | null };
+  readonly seller: { readonly legalName: string | null; readonly siret: string | null };
   readonly buyer: { readonly legalName: string; readonly siret: string | null };
   readonly dailyRateCents: number;
   readonly days: number;
@@ -68,10 +69,10 @@ const SELECT = {
 type Row = Prisma.ContractGetPayload<{ select: typeof SELECT }>;
 
 /** Le vendeur tel que la personne peut le voir : son identité légale, ou sa référence tant qu'il n'a pas signé. */
-const sellerFor = (row: Row, side: ContractSide): { readonly legalName: string; readonly siret: string | null } => {
+const sellerFor = (row: Row, side: ContractSide): { readonly legalName: string | null; readonly siret: string | null } => {
   const seller = LegalSnapshotSchema.parse(row.sellerSnapshot);
   if (side === "freelance" || row.acceptedByFreelanceAt !== null) return { legalName: seller.legalName, siret: seller.siret };
-  return { legalName: row.profile?.reference ?? "—", siret: null };
+  return { legalName: row.profile?.reference ?? null, siret: null };
 };
 
 const summary = (row: Row, userId: string): ContractSummary => {

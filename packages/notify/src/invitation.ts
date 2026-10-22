@@ -1,3 +1,4 @@
+import { SIGNATURE_DELIMITER } from "./signature";
 import type { Email, Lang } from "./templates";
 
 /*
@@ -67,7 +68,7 @@ export const renderInvitation = (i: InvitationEmailInput): Email => {
   const who = i.inviter === null ? c.someCompany : oneLine(i.inviter).slice(0, 200);
   const note = i.message === null ? [] : i.message.split("\n").map((line) => line.trim());
   const expires = c.expires(day(i.expiresAt, i.lang));
-  const text = [c.hello, "", c.ask[i.kind](who), ...(note.length === 0 ? [] : ["", c.note, ...note.map((line) => `> ${line}`)]), "", c.how, "", `${c.open} : ${i.link}`, expires, "", "—", c.footer(who)].join("\n");
+  const text = [c.hello, "", c.ask[i.kind](who), ...(note.length === 0 ? [] : ["", c.note, ...note.map((line) => `> ${line}`)]), "", c.how, "", `${c.open} : ${i.link}`, expires, "", SIGNATURE_DELIMITER, c.footer(who)].join("\n");
   const html = [
     '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.6;color:#0e1626;max-width:560px">',
     `<p>${e(c.hello)}</p>`,

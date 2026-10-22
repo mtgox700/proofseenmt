@@ -1,14 +1,16 @@
 import type { NextAction } from "@proofseen/workspace";
-import { InView } from "@/components/motion/InView";
 import type { Dictionary } from "@/i18n";
 import { stepsFor } from "@/lib/dossier";
 
-/** A client's file as an ordered path: done, current (with who must act), coming. Shared by the token space and the app. */
+/**
+ * A client's file as an ordered path: done, current (with who must act), coming. Shared by the token space and the app.
+ * Every step is drawn in its true state from the first paint: nothing waits to be revealed (Kensa m4).
+ */
 export function DossierPath({ t, action }: { readonly t: Dictionary["space"]; readonly action: NextAction }) {
   return (
-    <InView as="ol" className="dossier" threshold={0.2}>
-      {stepsFor(action).map((step, i) => (
-        <li key={step.key} data-state={step.state} style={{ "--i": i } as React.CSSProperties} aria-current={step.state === "active" ? "step" : undefined}>
+    <ol className="dossier">
+      {stepsFor(action).map((step) => (
+        <li key={step.key} data-state={step.state} aria-current={step.state === "active" ? "step" : undefined}>
           <span className="dossier-mark" aria-hidden="true" />
           <div className="dossier-body">
             <p className="dossier-title">
@@ -21,6 +23,6 @@ export function DossierPath({ t, action }: { readonly t: Dictionary["space"]; re
           </div>
         </li>
       ))}
-    </InView>
+    </ol>
   );
 }

@@ -150,14 +150,12 @@
 .missions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); }
 .missions > li { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) 0; border-top: 1px solid var(--ps-line); }
 
-/* ---------- Workspace motion: intervals drawn, rings filled, cards ---------- */
+/*
+ * ---------- Workspace: figures and marks in their final state ----------
+ * Kensa m4. Nothing here waits for an animation: no element starts invisible, empty or at zero, and no figure counts
+ * up. A range, a ring, a tile or a step of the file is drawn true from the first paint, with or without JavaScript.
+ */
 .ws-field .field { padding: clamp(1rem, 2.5vw, 1.6rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
-@media (prefers-reduced-motion: no-preference) {
-  .funnel-reveal[data-armed]:not([data-in]) .ci-range { transform: scaleX(0); }
-  .funnel-reveal[data-armed]:not([data-in]) .ci-dot { opacity: 0; transform: scale(0.4); }
-  .funnel-reveal .ci-range { transform-origin: left center; transition: transform 700ms var(--ps-ease-out); }
-  .funnel-reveal .ci-dot { transition: opacity 300ms var(--ps-ease-out) 450ms, transform 300ms var(--ps-ease-out) 450ms; }
-}
 
 .rings { display: flex; flex-wrap: wrap; gap: var(--ps-space-5); margin-top: var(--ps-space-4); }
 .ring { margin: 0; display: grid; grid-template-columns: 4.5rem auto; align-items: center; gap: var(--ps-space-3); }
@@ -169,10 +167,6 @@
 .ring-signal .ring-arc { stroke: var(--ps-signal); }
 .ring figcaption { display: grid; gap: 2px; }
 .ring b { font: 500 var(--ps-step-2) / 1 var(--ps-font-display); }
-@media (prefers-reduced-motion: no-preference) {
-  .rings[data-armed]:not([data-in]) .ring-arc { stroke-dashoffset: var(--dash); }
-  .rings .ring-arc { transition: stroke-dashoffset 900ms var(--ps-ease-out); }
-}
 
 .profiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--ps-space-4); border-top: 0; }
 .profiles-grid > li { padding: clamp(1.2rem, 2.5vw, 1.6rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); transition: border-color var(--ps-dur-ui) ease, transform var(--ps-dur-ui) var(--ps-ease-out); }
@@ -199,11 +193,8 @@
 @media (prefers-reduced-motion: no-preference) {
   /* The active step breathes once a while: it is real state (where the file is), not decoration. */
   .dossier li[data-state="active"] .dossier-mark::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--ps-signal); animation: dossier-ping 2.4s var(--ps-ease-out) infinite; }
+  /* The halo is a pseudo-element around a mark that stays drawn: it fades out, it never hides the step. */
   @keyframes dossier-ping { 0% { transform: scale(1); opacity: 0.7; } 70%, 100% { transform: scale(1.6); opacity: 0; } }
-  .dossier[data-armed]:not([data-in]) li { opacity: 0; transform: translateY(10px); }
-  .dossier[data-armed]:not([data-in]) li[data-state="done"]::before { transform: scaleY(0); }
-  .dossier li { transition: opacity 400ms var(--ps-ease-out), transform 400ms var(--ps-ease-out); transition-delay: calc(var(--i) * 90ms); }
-  .dossier li::before { transition: transform 500ms var(--ps-ease-out); transition-delay: calc(var(--i) * 90ms + 200ms); }
 }
 
 /* ---------- Connected app ---------- */
@@ -233,10 +224,6 @@
 .gate-bar { position: relative; display: block; height: 0.5rem; background: var(--ps-line); border-radius: 1px; overflow: hidden; }
 .gate-bar span { position: absolute; inset: 0; background: var(--ps-text); transform-origin: left center; }
 .gate-bar .gate-provisional { background: var(--ps-line-strong); border-right: 2px solid var(--ps-text); z-index: -1; }
-@media (prefers-reduced-motion: no-preference) {
-  .tiles[data-armed]:not([data-in]) .tile { opacity: 0; transform: translateY(12px); }
-  .tiles .tile { transition: opacity 450ms var(--ps-ease-out), transform 450ms var(--ps-ease-out); transition-delay: calc(var(--i) * 80ms); }
-}
 
 .ops { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); }
 .ops th, .ops td { padding: var(--ps-space-3) var(--ps-space-3) var(--ps-space-3) 0; text-align: left; border-bottom: 1px solid var(--ps-line); vertical-align: middle; }
@@ -272,8 +259,12 @@
 .reply textarea { width: 100%; min-height: 7rem; padding: var(--ps-space-3); font-size: max(16px, var(--ps-step-0)); line-height: 1.5; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); resize: vertical; }
 .reply .btn { justify-self: start; }
 .form-error { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-signal); border-radius: var(--ps-radius); background: var(--signal-wash); color: var(--ps-text); }
+/*
+ * A message that arrives while the thread is open settles into place, short, and stays readable all along: it moves
+ * a few pixels, it never fades in from nothing. The messages served with the page do not move.
+ */
 @media (prefers-reduced-motion: no-preference) {
-  .bubbles li { animation: bubble-in 260ms var(--ps-ease-out) both; }
-  @keyframes bubble-in { from { opacity: 0; transform: translateY(6px); } }
+  .bubbles li[data-new] { animation: bubble-in 200ms var(--ps-ease-out); }
+  @keyframes bubble-in { from { transform: translateY(6px); } }
 }
 .app-lang { display: flex; align-items: center; }

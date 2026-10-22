@@ -45,6 +45,15 @@ const visibleText = (html: string): string =>
     .replace(/&amp;/g, "&")
     .replace(/\s+/g, " ");
 
+/** The same text, keeping the no-break spaces: `\s` would fold them, and they are the typography under test. */
+const typedText = (html: string): string =>
+  html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/g, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t\r\n\f]+/g, " ");
+
 describe("the storefront carries no price (decision of 2026-10-07)", () => {
   it.each(["fr", "en"] as const)("%s: no euro amount, no offer, no order page", (lang) => {
     const html = home[lang];
@@ -69,7 +78,8 @@ describe("every section is in the server HTML, visible without waiting for a scr
     for (const stage of t.method.stages) {
       expect(text).toContain(stage.code);
       expect(text).toContain(stage.name);
-      expect(text).toContain(stage.question);
+      // The question carries its narrow no-break space; `visibleText` folds it like any space, so fold it here too.
+      expect(text).toContain(visibleText(stage.question));
     }
     expect(text).toContain(t.method.diagramNote);
   });
@@ -230,5 +240,20 @@ describe("indexing", () => {
     const meta = await generateMetadata({ params: Promise.resolve({ lang }) });
     expect(meta.robots).toEqual({ index: true, follow: true });
     expect(meta.alternates?.canonical).toBe(`/${lang}`);
+  });
+});
+
+describe("French typography of the storefront as served (Kensa N6)", () => {
+  it("fr: no plain or no-break space before « : ; ? ! », none inside guillemets, in the text or the labels", () => {
+    // Text between tags and the attributes a reader hears or sees (aria-label, alt, title, placeholder).
+    const html = home.fr.replace(/<(script|style)[\s\S]*?<\/\1>/g, "");
+    const labels = [...html.matchAll(/\b(?:aria-label|alt|title|placeholder|content)="([^"]*)"/g)].map((m) => m[1] ?? "");
+    const loose = new RegExp(`[ ${String.fromCharCode(0xa0)}][:;?!»]|«[ ${String.fromCharCode(0xa0)}]`, "g");
+    const found = [typedText(html), ...labels].flatMap((text) => [...text.matchAll(loose)].map((m) => text.slice(Math.max(0, m.index - 30), m.index + 2)));
+    expect(found).toEqual([]);
+  });
+
+  it("en: keeps the English colon, with no space before it", () => {
+    expect(visibleText(home.en)).not.toContain(String.fromCharCode(0x202f) + ":");
   });
 });

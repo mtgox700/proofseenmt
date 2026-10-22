@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { b, definitions, documentTitle, heading, list, paragraph, table, toHtml, toMarkdown, type ReportDocument } from "../src/document";
 
 const doc: ReportDocument = [
-  heading(1, "Votre visibilité — ", b("Camille Dupont")),
+  heading(1, "Votre visibilité\u202f: ", b("Camille Dupont")),
   paragraph("Mesure du ", b("2026-10-24"), "."),
   table(["Moteur", "Résultat"], [["openai", "0 fois sur 200"]]),
   list(["Premier point", "Deuxième point"]),
@@ -26,10 +26,17 @@ describe("le fond est décrit une fois, rendu deux fois", () => {
   });
 
   it("conserve les espaces entre fragments : un fragment se compose avec ses voisins", () => {
-    // Rogner chaque fragment collerait « …IA — » à « Camille Dupont ». Défaut vu à l'exécution, pas au test unitaire.
-    expect(toMarkdown(doc)).toContain("Votre visibilité — **Camille Dupont**");
+    // Rogner chaque fragment collerait « …IA : » à « Camille Dupont ». Défaut vu à l'exécution, pas au test unitaire.
+    expect(toMarkdown(doc)).toContain("Votre visibilité\u202f: **Camille Dupont**");
     expect(toMarkdown(doc)).toContain("Mesure du **2026-10-24**.");
-    expect(html()).toContain("Votre visibilité — <strong>Camille Dupont</strong>");
+    expect(html()).toContain("Votre visibilité\u202f: <strong>Camille Dupont</strong>");
+  });
+
+  it("sépare un terme de son détail par un deux-points français, insécable, jamais par un tiret cadratin", () => {
+    // Kensa N5 : le séparateur était un tiret cadratin. L'espace fine insécable garde le deux-points collé au terme.
+    expect(toMarkdown(doc)).toContain("- Effort\u202f: moyen");
+    expect(html()).toContain("<li>Effort\u202f: moyen</li>");
+    for (const out of [toMarkdown(doc), html()]) expect(out).not.toContain(String.fromCodePoint(0x2014));
   });
 
   it("neutralise quand même un saut de ligne à l'intérieur d'un fragment", () => {
@@ -37,8 +44,8 @@ describe("le fond est décrit une fois, rendu deux fois", () => {
   });
 
   it("tire le titre du document de son premier titre", () => {
-    expect(documentTitle(doc)).toBe("Votre visibilité — Camille Dupont");
-    expect(html()).toContain("<title>Votre visibilité — Camille Dupont</title>");
+    expect(documentTitle(doc)).toBe("Votre visibilité\u202f: Camille Dupont");
+    expect(html()).toContain("<title>Votre visibilité\u202f: Camille Dupont</title>");
   });
 });
 

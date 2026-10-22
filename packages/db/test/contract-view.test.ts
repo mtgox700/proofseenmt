@@ -84,6 +84,16 @@ describe("contrats vus des écrans", () => {
     expect(after?.counterpart).toBe("Camille Test EI");
   });
 
+  it("ne montre aucun nom de remplacement quand le profil du freelance a disparu avant sa signature", async () => {
+    // Le profil effacé laisse `profileId` à NULL (ON DELETE SET NULL). L'interface dit l'absence en mots, dans sa
+    // langue ; la base ne renvoie plus un signe typographique à la place d'un nom (Kensa N5).
+    const c = await contract();
+    await t.db.contract.update({ where: { id: c.contractId }, data: { profileId: null } });
+    const [row] = await contractView(t.db).list({ userId: c.owner });
+    expect(row).toMatchObject({ id: c.contractId, side: "company", counterpart: null });
+    expect((await contractView(t.db).find({ userId: c.owner }, c.contractId))?.seller).toEqual({ legalName: null, siret: null });
+  });
+
   it("chaque partie voit l'autre et son propre côté", async () => {
     const c = await contract();
     const [freelance] = await contractView(t.db).list({ userId: c.freelanceUser });

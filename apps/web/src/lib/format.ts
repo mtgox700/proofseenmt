@@ -24,7 +24,7 @@ export const range = (interval: Interval | null, lang: Lang): string => {
   if (interval === null) return lang === "fr" ? "non calculable" : "not computable";
   const low = percent(interval.low, lang);
   const high = percent(interval.high, lang);
-  return lang === "fr" ? `[${low} ; ${high}]` : `[${low}, ${high}]`;
+  return lang === "fr" ? `[${low}${NARROW_NBSP}; ${high}]` : `[${low}, ${high}]`;
 };
 
 /** A share of observed citations, with the Wilson interval of that share. `null` when nothing was counted. */

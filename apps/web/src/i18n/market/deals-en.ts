@@ -43,6 +43,7 @@ export const dealsEn: DealsDictionary = {
     status: { pending_signatures: "To sign", active: "Ongoing", completed: "Completed", cancelled: "Cancelled" },
     back: "All contracts",
     seller: "Provider",
+    sellerUnknown: "Name not provided",
     buyer: "Client",
     period: "Period",
     from: "from",

@@ -1,3 +1,4 @@
+import { SIGNATURE_DELIMITER } from "./signature";
 import type { Email, Lang } from "./templates";
 
 /*
@@ -49,7 +50,7 @@ export const renderDigest = (input: DigestInput, baseUrl: string): Email => {
   const inbox = `${base}/${lang}/app/messages`;
   const stop = `${base}/${lang}/app/notifications`;
   const threads = input.threads.map((t) => ({ label: copy.thread(oneLine(t.counterpart), t.unread), href: UUID.test(t.conversationId) ? `${inbox}/${t.conversationId}` : inbox }));
-  const text = [copy.hello(input.to.displayName), "", copy.lead(input.unread), ...threads.map((t) => `- ${t.label} : ${t.href}`), "", `${copy.open} : ${inbox}`, "", "—", copy.footer, `${copy.stop} : ${stop}`].join("\n");
+  const text = [copy.hello(input.to.displayName), "", copy.lead(input.unread), ...threads.map((t) => `- ${t.label} : ${t.href}`), "", `${copy.open} : ${inbox}`, "", SIGNATURE_DELIMITER, copy.footer, `${copy.stop} : ${stop}`].join("\n");
   const html = [
     '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.6;color:#0e1626;max-width:560px">',
     `<p>${e(copy.hello(input.to.displayName))}</p>`,

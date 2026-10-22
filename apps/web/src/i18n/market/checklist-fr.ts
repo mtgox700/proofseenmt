@@ -1,7 +1,7 @@
 /** Liste de contrôle du profil : les faits qu'une IA doit pouvoir lire, faits ou manquants. Jamais une note. */
 export const checklistFr = {
   title: "Ce que les IA peuvent lire de vous",
-  lead: "Chaque ligne est un fait que les moteurs d'IA lisent sur votre page publique. Ce n'est pas une note : la liste dit seulement ce qui manque et où le compléter.",
+  lead: "Chaque ligne est un fait que les moteurs d'IA lisent sur votre page publique. Ce n'est pas une note\u202f: la liste dit seulement ce qui manque et où le compléter.",
   allDone: "Tous les faits sont en place.",
   missing: (count: number) => (count > 1 ? `${count} faits manquants` : "1 fait manquant"),
   seeAll: "Voir la liste complète",
@@ -13,27 +13,27 @@ export const checklistFr = {
   items: {
     published: {
       label: "Profil publié",
-      why: "Une page privée n'existe pas pour les moteurs : rien de ce qui suit n'est lu tant qu'elle n'est pas publiée.",
+      why: "Une page privée n'existe pas pour les moteurs\u202f: rien de ce qui suit n'est lu tant qu'elle n'est pas publiée.",
     },
     headline: {
       label: "Titre",
-      why: "C'est la phrase qu'une IA compare à la question d'un recruteur : votre métier et votre spécialité.",
+      why: "C'est la phrase qu'une IA compare à la question d'un recruteur\u202f: votre métier et votre spécialité.",
     },
     summary: {
       label: (min: number) => `Résumé de ${min} caractères au moins`,
-      why: "Le résumé donne aux moteurs de quoi décrire vos missions ; trop court, la page est jugée vide et n'est pas indexée.",
+      why: "Le résumé donne aux moteurs de quoi décrire vos missions\u202f; trop court, la page est jugée vide et n'est pas indexée.",
     },
     skills: {
       label: (min: number) => `${min} compétences au moins`,
-      why: "Les compétences sont les mots que les questions contiennent : sans elles, votre page ne répond à aucune.",
+      why: "Les compétences sont les mots que les questions contiennent\u202f: sans elles, votre page ne répond à aucune.",
     },
     city: {
       label: "Ville",
-      why: "Beaucoup de demandes précisent une ville : sans elle, la page ne peut pas y répondre.",
+      why: "Beaucoup de demandes précisent une ville\u202f: sans elle, la page ne peut pas y répondre.",
     },
     workMode: {
       label: "Mode de travail",
-      why: "Sur site, hybride ou à distance : une IA l'utilise pour écarter ou retenir une page.",
+      why: "Sur site, hybride ou à distance\u202f: une IA l'utilise pour écarter ou retenir une page.",
     },
     dailyRate: {
       label: "TJM",
@@ -41,7 +41,7 @@ export const checklistFr = {
     },
     availability: {
       label: "Disponibilité à jour",
-      why: "Une date dépassée dit une chose fausse aux moteurs ; à jour, elle répond à « disponible quand ? ».",
+      why: "Une date dépassée dit une chose fausse aux moteurs\u202f; à jour, elle répond à «\u202fdisponible quand\u202f?\u202f».",
     },
     experience: {
       label: "Au moins une expérience",
@@ -49,11 +49,11 @@ export const checklistFr = {
     },
     languages: {
       label: "Langues",
-      why: "Beaucoup de demandes précisent une langue de travail : sans elle, la page ne peut pas y répondre.",
+      why: "Beaucoup de demandes précisent une langue de travail\u202f: sans elle, la page ne peut pas y répondre.",
     },
     photo: {
       label: "Photo (recommandée)",
-      why: "Facultative : visible seulement sur un profil publié sous votre nom, elle rend la page plus parlante.",
+      why: "Facultative\u202f: visible seulement sur un profil publié sous votre nom, elle rend la page plus parlante.",
     },
     provenAddress: {
       label: "Au moins une adresse prouvée",
@@ -74,7 +74,7 @@ export const checklistFr = {
     date_passed: "La date de disponibilité est passée.",
     awaiting_check: "SIRET saisi, vérification au répertoire en attente.",
     registry_problem: "Le répertoire ne confirme pas ce SIRET pour votre raison sociale.",
-    expired: "L'attestation a expiré : déclarez la nouvelle.",
+    expired: "L'attestation a expiré\u202f: déclarez la nouvelle.",
     awaiting_operator: "Attestation déclarée, en attente de vérification par l'équipe.",
   },
 };
