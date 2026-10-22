@@ -20,7 +20,7 @@ describe("percent", () => {
 
 describe("range", () => {
   it("brackets the interval the way the client report does", () => {
-    expect(range({ p: 0, low: 0, high: 0.019 }, "fr")).toBe("[0 % ; 1,9 %]");
+    expect(range({ p: 0, low: 0, high: 0.019 }, "fr")).toBe("[0 % ; 1,9 %]");
     expect(range({ p: 0, low: 0, high: 0.019 }, "en")).toBe("[0%, 1.9%]");
   });
 

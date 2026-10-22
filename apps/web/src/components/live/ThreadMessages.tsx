@@ -87,6 +87,8 @@ export function ThreadMessages({ conversationId, selfId, lang, live, initial, ot
   const [otherRead, setOtherRead] = useState<string | null>(otherReadAt);
   const readPending = useRef(false);
   const messages = useMemo(() => merge(initial, arrived), [initial, arrived]);
+  // Served with the page: these do not move. Only a message that arrives while the thread is open settles in.
+  const served = useMemo(() => new Set(initial.map((message) => message.id)), [initial]);
 
   useEffect(() => setOtherRead((current) => later(current, otherReadAt)), [otherReadAt]);
 
@@ -150,7 +152,7 @@ export function ThreadMessages({ conversationId, selfId, lang, live, initial, ot
   return (
     <ol className="bubbles" aria-live={live ? "polite" : undefined} aria-relevant={live ? "additions" : undefined}>
       {messages.map((message) => (
-        <li key={message.id} data-from={message.mine ? "mine" : "other"} data-mine={message.mine || undefined}>
+        <li key={message.id} data-from={message.mine ? "mine" : "other"} data-mine={message.mine || undefined} data-new={served.has(message.id) ? undefined : ""}>
           <span className="bubble-who small">{message.mine ? labels.you : labels.counterpart}</span>
           <p className="bubble-body">{message.body}</p>
           {message.attachments.length === 0 ? null : (

@@ -40,7 +40,7 @@ function Signatures({ lang, c, contract }: { readonly lang: Lang; readonly c: De
     <section className="panel" aria-labelledby="signatures-title">
       <h2 id="signatures-title">{c.signatures}</h2>
       <ul className="plain-list">
-        {line(contract.seller.legalName, contract.signedByFreelanceAt)}
+        {line(contract.seller.legalName ?? c.sellerUnknown, contract.signedByFreelanceAt)}
         {line(contract.buyer.legalName, contract.signedByCompanyAt)}
       </ul>
       {contract.status === "pending_signatures" ? (
@@ -145,7 +145,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
         <Link href={`/${lang}/app/contrats`}>← {c.back}</Link>
       </p>
       <header className="app-head">
-        <h1>{contract.counterpart}</h1>
+        <h1>{contract.counterpart ?? c.sellerUnknown}</h1>
         <p className="thread-meta">
           <StatusTag status={contract.status} label={c.status[contract.status]} />
           <span className="muted small">
@@ -164,7 +164,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
         <div>
           <dt>{c.seller}</dt>
           <dd>
-            {contract.seller.legalName}
+            {contract.seller.legalName ?? c.sellerUnknown}
             {contract.seller.siret === null ? null : <span className="muted small"> · {contract.seller.siret}</span>}
           </dd>
         </div>

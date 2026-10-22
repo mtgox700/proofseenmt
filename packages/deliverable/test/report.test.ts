@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { wilson, type Engine, type EngineFunnel } from "@proofseen/stats";
+import { compareWaves } from "../src/comparison";
 import { correctionPlan, type PlanInput, type Surface } from "../src/plan";
-import { renderClientReport, type ClientReportInput } from "../src/report";
+import { renderClientReport, renderClientReportHtml, type ClientReportInput } from "../src/report";
 
 const stage = (successes: number, draws: number) => ({ successes, interval: wilson(successes, draws) });
 const engineFunnel = (engine: Engine, draws: number, [e2, e3, e4, e5]: readonly number[]): EngineFunnel => ({
@@ -184,5 +185,44 @@ describe("garde-fous", () => {
 
   it("refuse de rendre un rapport dont la vague ne porte aucun tirage", () => {
     expect(() => renderClientReport(input({ wave: { ...input().wave, draws: 0 } }))).toThrow(/aucun tirage/);
+  });
+});
+
+describe("typographie d'un document remis au client (Kensa N5)", () => {
+  // Toutes les branches qui écrivaient un tiret cadratin : simulation, contrôle nul ou positif, indexation absente,
+  // comparaison où les moteurs ont bougé, plan avec actions. Le rapport se lit sans un seul.
+  const variants: readonly ClientReportInput[] = [
+    input(),
+    input({ simulated: true }),
+    input({ controlRetrieval: { p: 0.12, low: 0.07, high: 0.2 }, indexation: null }),
+    input({
+      comparison: compareWaves({
+        before: FUNNEL,
+        after: [engineFunnel("openai", 200, [60, 40, 30, 20]), engineFunnel("perplexity", 200, [70, 40, 20, 10])],
+        controlDrift: { delta: 0.12, flagged: true },
+      }),
+    }),
+  ];
+
+  it("n'écrit aucun tiret cadratin, ni en Markdown ni en HTML", () => {
+    for (const variant of variants) {
+      expect(renderClientReport(variant)).not.toContain(String.fromCodePoint(0x2014));
+      expect(renderClientReportHtml(variant)).not.toContain(String.fromCodePoint(0x2014));
+    }
+  });
+
+  it("titre le rapport par le nom du client, après un deux-points insécable, et marque la simulation entre parenthèses", () => {
+    expect(renderClientReport(input()).split("\n")[0]).toBe("# Votre visibilité dans les réponses des IA\u202f: Camille Dupont");
+    expect(renderClientReport(input({ simulated: true })).split("\n")[0]).toBe("# Votre visibilité dans les réponses des IA\u202f: Camille Dupont (SIMULATION)");
+    expect(renderClientReportHtml(input())).toContain("<title>Votre visibilité dans les réponses des IA\u202f: Camille Dupont</title>");
+  });
+
+  it("garde chaque chiffre et chaque fourchette, entre parenthèses plutôt qu'après un tiret", () => {
+    const report = renderClientReport(input({ controlRetrieval: { p: 0.12, low: 0.07, high: 0.2 } }));
+    expect(report).toContain("des réponses (fourchette [7,0\u00a0% ; 20,0\u00a0%]).");
+    expect(renderClientReport(input())).toContain("(fourchette [0,0\u00a0% ; 1,9\u00a0%]). C'est le résultat attendu.");
+    expect(report).toContain("Modèle interrogé (openai)");
+    expect(renderClientReport(input({ indexation: null }))).toContain("**Vos pages sont-elles connues des moteurs ?** Non mesuré pour cette vague.");
+    expect(report).toContain("**Vos pages sont-elles connues des moteurs ?** **4 page(s) indexée(s)** sur 4 déclarée(s)");
   });
 });

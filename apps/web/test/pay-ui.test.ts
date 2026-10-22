@@ -113,7 +113,7 @@ describe("payment configuration", () => {
 
 describe("payment strings", () => {
   it("carry the test-mode notes in both languages", () => {
-    expect(dealsFr.contracts.pay.client.testMode).toBe("Mode test : aucune somme réelle n'est débitée.");
+    expect(dealsFr.contracts.pay.client.testMode).toBe("Mode test\u202f: aucune somme réelle n'est débitée.");
     expect(dealsEn.contracts.pay.client.testMode).toContain("Test mode");
     expect(billingFr.payouts.testMode).toContain("Mode test");
     expect(billingEn.payouts.testMode).toContain("Test mode");

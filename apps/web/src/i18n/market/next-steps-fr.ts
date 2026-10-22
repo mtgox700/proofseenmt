@@ -4,7 +4,7 @@ import type { NextStepKey } from "@/lib/next-steps";
 export const nextStepsFr = {
   title: "Que faire maintenant",
   steps: {
-    publish_profile: "Publier votre profil : les étapes sont sur votre accueil",
+    publish_profile: "Publier votre profil\u202f: les étapes sont sur votre accueil",
     follow_companies: "Suivre des entreprises",
     find_freelancers: "Trouver des freelances à suivre",
     discover: "Lire les publications récentes",

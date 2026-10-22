@@ -2,7 +2,7 @@
 export const accountFr = {
   dashboard: {
     title: "En chiffres",
-    lead: "Des faits comptés dans vos missions, contrats et paiements : rien d'estimé, rien de prévu.",
+    lead: "Des faits comptés dans vos missions, contrats et paiements\u202f: rien d'estimé, rien de prévu.",
     applications: "Candidatures",
     applicationsFoot: (open: number) => `${open} en cours`,
     contracts: "Contrats",
@@ -12,7 +12,7 @@ export const accountFr = {
     paid: "Payé",
     noMoney: "Aucun paiement pour l'instant.",
     noMoneyValue: "aucun",
-    severalCurrencies: "Plusieurs devises : pas de total, la plateforme ne convertit pas.",
+    severalCurrencies: "Plusieurs devises\u202f: pas de total, la plateforme ne convertit pas.",
     invoices: "Factures",
     reviews: "Avis reçus",
     missions: "Missions",
@@ -36,14 +36,14 @@ export const accountFr = {
     minRate: "TJM minimum (€ HT)",
     maxDuration: "Durée maximale (mois)",
     create: "Créer l'alerte",
-    limit: "Dix alertes au plus : supprimez-en une d'abord.",
+    limit: "Dix alertes au plus\u202f: supprimez-en une d'abord.",
     invalid: "Vérifiez les champs de l'alerte.",
     from: (amount: string) => `à partir de ${amount} par jour`,
     upTo: (months: number) => `${months} mois au plus`,
   },
   emails: {
     title: "E-mails",
-    lead: "Décochez ce que vous ne voulez plus recevoir. Les e-mails ne recopient jamais le contenu d'un message : il reste sur Proofseen.",
+    lead: "Décochez ce que vous ne voulez plus recevoir. Les e-mails ne recopient jamais le contenu d'un message\u202f: il reste sur Proofseen.",
     kinds: {
       contact_received: "Une entreprise vous écrit",
       application_received: "Une candidature arrive sur une mission",
@@ -70,7 +70,7 @@ export const accountFr = {
     rating: "Appréciation",
     ratings: { "5": "5 · Excellent", "4": "4 · Très bien", "3": "3 · Bien", "2": "2 · Décevant", "1": "1 · Mauvais" },
     body: "Votre avis",
-    bodyHint: "Ce qui a été livré, comment s'est passée la collaboration. Pas de coordonnées : l'avis est public.",
+    bodyHint: "Ce qui a été livré, comment s'est passée la collaboration. Pas de coordonnées\u202f: l'avis est public.",
     send: "Publier l'avis",
     written: "Avis publié. Merci.",
     already: "Un avis a déjà été publié pour ce contrat.",
