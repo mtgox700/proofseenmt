@@ -33,7 +33,8 @@ const notice = (c: C, lang: Lang, erreur: string | null, decided: CompanyDecided
     decidee: c.company.errors.decided,
     soi: c.company.errors.self,
   };
-  const error = erreur === null ? undefined : errors[erreur];
+  // Own keys only: "constructor" or "__proto__" in the address must not reach an inherited value.
+  const error = erreur !== null && Object.hasOwn(errors, erreur) ? errors[erreur] : undefined;
   if (error !== undefined) return { ok: false, text: error };
   if (decided === null) return null;
   const done = decided.decision === "confirmed" ? c.company.done.confirmed : c.company.done.refused;

@@ -44,6 +44,16 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      // The signed confirmation link carries its token in the address: the headers say what the page's <meta> says,
+      // even to a reader that does not parse the HTML.
+      {
+        source: "/:lang(fr|en)/confirmer-mission/:id*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
       // The brand fonts carry their version in their name (ps-display-v1.woff2): a new cut is a new file.
       { source: "/fonts/:file*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
       // The service worker of the installable app (C20): scope "/" allowed explicitly, and always revalidated so a new
