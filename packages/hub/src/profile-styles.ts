@@ -1,3 +1,5 @@
+import { SEAL_KEYFRAMES, SEAL_LINE, SEAL_SQUARE } from "@proofseen/brand";
+
 /*
  * La page de preuve d'un profil (lot d de la refonte, STORYBOARD d.1 à d.5) : la fiche, le rail, le registre de ce qui
  * est vérifié et ce que le freelance déclare. CSS pur, en jetons de la marque : aucune couleur écrite ici.
@@ -39,7 +41,9 @@ const DOSSIER = [
 /*
  * Le registre. Une mission est une pièce : l'affirmation en haut, la ligne de preuve en bas, reliées par le fil (un
  * filet neutre qui part d'un carré vide, l'affirmation, et finit sur le carré vert, la preuve). Le cartouche daté est
- * la seule marque frappée ; ses coins de poinçon ne s'affichent que là où `corner-shape` existe.
+ * la seule marque frappée ; ses coins de poinçon ne s'affichent que là où `corner-shape` existe. La ligne de preuve, le
+ * cartouche, le carré et les deux gestes de la frappe viennent de @proofseen/brand (`seal.ts`), partagés avec l'espace
+ * connecté : l'ordre des règles, donc la feuille émise, ne change pas.
  */
 const REGISTER = [
   ".register{margin-top:var(--ps-space-8);padding-top:var(--ps-space-2);border-top:2px solid var(--ps-text)}",
@@ -50,23 +54,13 @@ const REGISTER = [
   ".claim .when{font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-muted)}",
   ".claim::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil));top:.85rem;bottom:calc(-2*var(--ps-space-4) - .55rem);width:1px;background:var(--ps-line-strong);transform-origin:top}",
   ".claim::after{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(.85rem - 4px);width:8px;height:8px;border:1px solid var(--ps-line-strong);background:var(--ps-surface)}",
-  ".proofline{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--ps-space-3) var(--ps-space-5);padding-top:var(--ps-space-4);border-top:1px dashed var(--ps-line)}",
-  ".proofline::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(var(--ps-space-4) + .55rem - 4px);width:8px;height:8px;background:var(--ps-proof)}",
-  ".trace{display:grid;gap:var(--ps-space-1);margin:0;font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);color:var(--ps-muted)}",
-  ".trace div{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-2)}",
-  ".trace dt{letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-faint)}",
-  ".trace dd{margin:0;color:var(--ps-text);overflow-wrap:anywhere}",
-  ".seal{position:relative;display:inline-flex;align-items:center;min-height:2rem;padding:var(--ps-space-1) var(--ps-space-3);border:1px solid var(--ps-proof);border-radius:var(--ps-radius);background:var(--ps-proof-wash);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.35 var(--ps-font-mono)}",
-  ".seal::after{content:\"\";position:absolute;inset:-1px;border:1px solid transparent;border-radius:inherit;pointer-events:none}",
-  "@supports (corner-shape:scoop){.seal{border-radius:var(--ps-radius-seal);corner-shape:scoop}.seal::after{corner-shape:scoop}}",
+  ...SEAL_LINE,
   ".group-note{margin-bottom:var(--ps-space-3);color:var(--ps-muted);font-size:var(--ps-step--1)}",
   ".lines{border-top:1px solid var(--ps-line)}",
   ".line{display:grid;gap:var(--ps-space-2);padding:var(--ps-space-3) 0;border-bottom:1px solid var(--ps-line)}",
   ".line .what{display:flex;align-items:baseline;gap:var(--ps-space-3);overflow-wrap:anywhere}",
   ".line .what a{display:inline-flex;align-items:center;min-height:2.75rem;min-width:0}",
-  ".sq{flex:none;display:inline-block;width:8px;height:8px;background:var(--ps-proof)}",
-  ".sq.open{background:none;border:1px solid var(--ps-line-strong)}",
-  ".stamp{display:flex;align-items:baseline;gap:var(--ps-space-2);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.4 var(--ps-font-mono)}",
+  ...SEAL_SQUARE,
   ".blank{display:grid;gap:var(--ps-space-3);margin-top:var(--ps-space-5);padding:var(--ps-space-5);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius)}",
   ".blank-title{font:var(--ps-weight-mono) var(--ps-step--1)/1.5 var(--ps-font-mono)}",
   ".slots li{display:flex;align-items:baseline;gap:var(--ps-space-3);padding:var(--ps-space-2) 0;border-bottom:1px dashed var(--ps-line);color:var(--ps-muted)}",
@@ -91,8 +85,7 @@ const STRIKE = [
     ".pieces>.piece:nth-child(-n+6) .seal{animation:ps-strike linear both;animation-timeline:--piece;animation-range:entry 60% entry 100%}" +
     ".pieces>.piece:nth-child(-n+6) .seal::after{animation:ps-ink linear both;animation-timeline:--piece;animation-range:entry 60% entry 100%}}}",
   "@keyframes ps-trace{0%{transform:scaleY(0);animation-timing-function:var(--ps-ease-in-out)}63%,100%{transform:scaleY(1)}}",
-  "@keyframes ps-strike{0%,63%{transform:scale(1.06);animation-timing-function:var(--ps-ease-strike)}76%{transform:scale(.97);animation-timing-function:var(--ps-ease-out)}88%,100%{transform:scale(1)}}",
-  "@keyframes ps-ink{0%,76%{transform:scale(1);border-color:var(--ps-proof);animation-timing-function:var(--ps-ease-ink)}100%{transform:scale(1.05,1.45);border-color:transparent}}",
+  ...SEAL_KEYFRAMES,
 ];
 
 /** La signature de mouvement seule : mesurée à part (budget de 1,5 Ko du storyboard). */
