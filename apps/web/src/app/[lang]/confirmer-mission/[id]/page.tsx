@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDb, missionConfirmations, monthsBetween, type ConfirmationView, type TokenLookup } from "@proofseen/db";
+import { getDb, missionConfirmations, monthsBetween, type ConfirmationRecordedDecision, type ConfirmationView, type TokenLookup } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
 import { ConfirmationDecisionForm } from "@/components/market/ConfirmationDecisionForm";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -15,8 +15,12 @@ import "@/styles/market.css";
 
 /*
  * Public page of a signed confirmation link: the client's contact reads the declared mission and confirms or declines
- * it, without an account. It shows the minimum — who asks (name or public reference, never a contact detail), the
- * role, the period, the summary — and is never indexed nor sent as a referrer. Opening it decides nothing.
+ * it, without an account. It shows the minimum: who asks (name or public reference, never a contact detail), the
+ * role, the period, the summary, and is never indexed nor sent as a referrer. Opening it decides nothing.
+ *
+ * Every state shown here is read from the database with the token of the link: open, decided (with the answer and its
+ * real date), expired. Nothing comes from the address besides the id and the token, so a crafted address without the
+ * right token gets the same answer as an invalid link, never a thank-you.
  */
 
 /** Per request, never cached: the answer depends on the token and on the request as it is right now. */
@@ -26,7 +30,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false }, ref
 
 interface PageProps {
   readonly params: Promise<{ lang: string; id: string }>;
-  readonly searchParams: Promise<{ t?: string; fait?: string; etat?: string; erreur?: string }>;
+  readonly searchParams: Promise<{ t?: string | string[]; erreur?: string | string[] }>;
 }
 
 type P = MarketDictionary["confirmations"]["public"];
@@ -43,14 +47,54 @@ function Shell({ lang, t, children }: { readonly lang: Lang; readonly t: Diction
   );
 }
 
-const closedCopy = (p: P, state: string | undefined): readonly [string, string] | null => {
-  if (state === "confirmee") return [p.confirmedTitle, p.confirmedText];
-  if (state === "refusee") return [p.refusedTitle, p.refusedText];
-  if (state === "expiree" || state === "expired") return [p.expiredTitle, p.expiredText];
-  if (state === "decidee" || state === "decided") return [p.decidedTitle, p.decidedText];
-  if (state === "invalide" || state === "invalid") return [p.invalidTitle, p.invalidText];
-  return null;
-};
+function Closed({ title, text, p }: { readonly title: string; readonly text: string; readonly p: P }) {
+  return (
+    <>
+      <h1 className="sr-only">{p.title}</h1>
+      <EmptyState title={title}>
+        <p>{text}</p>
+      </EmptyState>
+    </>
+  );
+}
+
+function Facts({ lang, m, view }: { readonly lang: Lang; readonly m: MarketDictionary; readonly view: ConfirmationView }) {
+  const c = m.confirmations;
+  return (
+    <dl className="meta-strip">
+      <div>
+        <dt>{c.public.role}</dt>
+        <dd>{view.role}</dd>
+      </div>
+      <div>
+        <dt>{c.public.period}</dt>
+        <dd>{c.period(month(view.startedOn, lang), month(view.endedOn, lang))}</dd>
+      </div>
+      <div>
+        <dt>{c.public.duration}</dt>
+        <dd>{c.months(monthsBetween(view.startedOn, view.endedOn))}</dd>
+      </div>
+    </dl>
+  );
+}
+
+/** The answer as recorded: what was decided and on which day. Not an empty state: something did happen. */
+function Decided({ lang, m, view, recorded }: { readonly lang: Lang; readonly m: MarketDictionary; readonly view: ConfirmationView; readonly recorded: ConfirmationRecordedDecision }) {
+  const p = m.confirmations.public;
+  const confirmed = recorded.decision === "confirmed";
+  const on = day(recorded.decidedAt, lang);
+  return (
+    <article className="panel" aria-labelledby="confirm-title">
+      <h1 id="confirm-title">{confirmed ? p.confirmedTitle : p.refusedTitle}</h1>
+      <p className={confirmed ? "form-ok" : undefined}>
+        <time dateTime={recorded.decidedAt.toISOString()}>{confirmed ? p.confirmedOn(on) : p.refusedOn(on)}</time>
+      </p>
+      <p className="muted small">{p.reference(view.reference)}</p>
+      <Facts lang={lang} m={m} view={view} />
+      <p className="measure">{confirmed ? p.confirmedText : p.refusedText}</p>
+    </article>
+  );
+}
 
 function Mission({ lang, m, view, token, throttledNotice }: { readonly lang: Lang; readonly m: MarketDictionary; readonly view: ConfirmationView; readonly token: string; readonly throttledNotice: boolean }) {
   const c = m.confirmations;
@@ -65,20 +109,7 @@ function Mission({ lang, m, view, token, throttledNotice }: { readonly lang: Lan
           {p.tooMany}
         </p>
       ) : null}
-      <dl className="meta-strip">
-        <div>
-          <dt>{p.role}</dt>
-          <dd>{view.role}</dd>
-        </div>
-        <div>
-          <dt>{p.period}</dt>
-          <dd>{c.period(month(view.startedOn, lang), month(view.endedOn, lang))}</dd>
-        </div>
-        <div>
-          <dt>{p.duration}</dt>
-          <dd>{c.months(monthsBetween(view.startedOn, view.endedOn))}</dd>
-        </div>
-      </dl>
+      <Facts lang={lang} m={m} view={view} />
       <h2>{p.summary}</h2>
       <p className="measure">{view.summary}</p>
       <p className="muted measure">{p.effect}</p>
@@ -88,34 +119,34 @@ function Mission({ lang, m, view, token, throttledNotice }: { readonly lang: Lan
   );
 }
 
-const lookup = async (id: string | null, token: string | undefined): Promise<TokenLookup> => {
-  if (id === null || token === undefined || token === "" || !hasDatabase()) return { kind: "invalid" };
+const lookup = async (id: string | null, token: string | null): Promise<TokenLookup> => {
+  if (id === null || token === null || token === "" || !hasDatabase()) return { kind: "invalid" };
   return missionConfirmations(getDb()).lookupByToken(id, token, new Date());
 };
+
+/** One value of a query parameter; a repeated one counts as absent. */
+const single = (value: string | string[] | undefined): string | null => (typeof value === "string" ? value : null);
+
+function Answer({ lang, m, found, token, throttledNotice }: { readonly lang: Lang; readonly m: MarketDictionary; readonly found: TokenLookup; readonly token: string | null; readonly throttledNotice: boolean }) {
+  const p = m.confirmations.public;
+  if (found.kind === "open" && token !== null) return <Mission lang={lang} m={m} view={found.view} token={token} throttledNotice={throttledNotice} />;
+  if (found.kind === "decided") return <Decided lang={lang} m={m} view={found.view} recorded={found} />;
+  if (found.kind === "expired") return <Closed p={p} title={p.expiredTitle} text={p.expiredText} />;
+  return <Closed p={p} title={p.invalidTitle} text={p.invalidText} />;
+}
 
 export default async function ConfirmMissionPage({ params, searchParams }: PageProps) {
   const { lang, id } = await params;
   if (!isLang(lang)) notFound();
   const t = dictionary(lang);
   const m = marketDictionary(lang);
-  const p = m.confirmations.public;
   const query = await searchParams;
-  const done = closedCopy(p, query.fait ?? query.etat);
-  const found = done === null ? await lookup(uuidOf(id), query.t) : null;
-  const closed = done ?? (found === null || found.kind === "open" ? null : closedCopy(p, found.kind));
+  const token = single(query.t);
+  const found = await lookup(uuidOf(id), token);
 
   return (
     <Shell lang={lang} t={t}>
-      {found !== null && found.kind === "open" && query.t !== undefined ? (
-        <Mission lang={lang} m={m} view={found.view} token={query.t} throttledNotice={query.erreur === "trop"} />
-      ) : (
-        <>
-          <h1 className="sr-only">{p.title}</h1>
-          <EmptyState title={closed?.[0] ?? p.invalidTitle}>
-            <p>{closed?.[1] ?? p.invalidText}</p>
-          </EmptyState>
-        </>
-      )}
+      <Answer lang={lang} m={m} found={found} token={token} throttledNotice={single(query.erreur) === "trop"} />
     </Shell>
   );
 }

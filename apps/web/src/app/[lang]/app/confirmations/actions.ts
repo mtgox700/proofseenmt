@@ -10,15 +10,16 @@ import { actionMarket, langOf, uuidOf } from "@/lib/market";
  * A company owner or administrator confirms or declines a freelancer's mission. The request id comes from the form,
  * but the repository only finds it among the requests addressed to a company the person administers: any other id
  * reads as "not found". The company name is published only when its box was ticked.
+ *
+ * After a decision the page is given the request id (`demande=`), never the outcome: it reads the decision and its
+ * date from the database, within the companies the person administers.
  */
 
 const RULE = { windowMs: 60_000, max: 20 };
 
 const page = (lang: string, query: string): string => `/${lang}/app/confirmations?${query}`;
 
-const CODES: Readonly<Record<ConfirmationDecideResult, string>> = {
-  confirmed: "fait=confirmee",
-  refused: "fait=refusee",
+const CODES: Readonly<Record<Exclude<ConfirmationDecideResult, "confirmed" | "refused">, string>> = {
   not_found: "erreur=introuvable",
   expired: "erreur=expiree",
   decided: "erreur=decidee",
@@ -34,5 +35,5 @@ export async function decideMissionConfirmation(formData: FormData): Promise<voi
   const decision = decisionFromForm(formData);
   if (id === null || decision === null) redirect(page(lang, "erreur=introuvable"));
   const result = await missionConfirmations(market.db).decideAsCompany(market.actor, id, decision, new Date());
-  redirect(page(lang, CODES[result]));
+  redirect(page(lang, result === "confirmed" || result === "refused" ? `demande=${id}` : CODES[result]));
 }

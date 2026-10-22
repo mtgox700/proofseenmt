@@ -92,7 +92,19 @@ export interface CompanyConfirmationRequest extends ConfirmationView {
   readonly organisationName: string;
 }
 
-export type TokenLookup = { readonly kind: "open"; readonly view: ConfirmationView } | { readonly kind: "expired" } | { readonly kind: "decided" } | { readonly kind: "invalid" };
+/** Une réponse lue en base : ce que le client a décidé, et quand. Jamais tirée d'une adresse ni d'un formulaire. */
+export interface RecordedDecision {
+  readonly decision: "confirmed" | "refused";
+  readonly decidedAt: Date;
+}
+
+export type TokenLookup =
+  | { readonly kind: "open"; readonly view: ConfirmationView }
+  | ({ readonly kind: "decided"; readonly view: ConfirmationView } & RecordedDecision)
+  | { readonly kind: "expired" }
+  | { readonly kind: "invalid" };
+
+export type CompanyDecidedRequest = CompanyConfirmationRequest & RecordedDecision;
 
 export interface Decision {
   readonly confirm: boolean;
@@ -110,6 +122,9 @@ export interface MissionConfirmations {
   /** Les demandes en attente adressées aux entreprises que l'acteur administre. */
   listForCompany(actor: Actor, now: Date): Promise<readonly CompanyConfirmationRequest[]>;
   decideAsCompany(actor: Actor, id: string, decision: Decision, now: Date): Promise<DecideResult>;
+  /** Une demande déjà décidée, adressée à une entreprise que l'acteur administre ; `null` pour toute autre. */
+  decidedForCompany(actor: Actor, id: string): Promise<CompanyDecidedRequest | null>;
+  /** La demande du lien signé, ouverte ou décidée (avec sa décision), pour qui détient le jeton et lui seul. */
   lookupByToken(id: string, token: string, now: Date): Promise<TokenLookup>;
   decideByToken(id: string, token: string, decision: Decision, now: Date): Promise<Exclude<DecideResult, "not_found" | "self_confirmation"> | "invalid">;
 }
@@ -141,6 +156,10 @@ const viewOf = (row: ViewRow): ConfirmationView => ({
   summary: row.summary,
   expiresAt: row.expiresAt,
 });
+
+/** La décision portée par la ligne ; `null` tant qu'elle est en attente (la base impose une date à toute décision). */
+const recordedOf = (row: { readonly status: MissionConfirmationStatus; readonly decidedAt: Date | null }): RecordedDecision | null =>
+  row.status === "pending" || row.decidedAt === null ? null : { decision: row.status, decidedAt: row.decidedAt };
 
 /** Les demandes adressées à une entreprise que l'acteur administre, dont il n'est pas lui-même le freelance. */
 const administered = (userId: string): Prisma.MissionConfirmationRequestWhereInput => ({
@@ -357,12 +376,26 @@ export const missionConfirmations = (db: Db): MissionConfirmations => ({
     });
   },
 
+  async decidedForCompany(actor, id) {
+    if (!Uuid.safeParse(id).success) return null;
+    const row = await db.missionConfirmationRequest.findFirst({
+      where: { id, ...administered(actor.userId), status: { in: ["confirmed", "refused"] } },
+      select: { ...VIEW_SELECT, status: true, decidedAt: true, organisation: { select: { name: true } } },
+    });
+    const recorded = row === null ? null : recordedOf(row);
+    if (row === null || recorded === null) return null;
+    return { ...viewOf(row), organisationName: row.organisation?.name ?? "", ...recorded };
+  },
+
   async lookupByToken(id, token, now) {
     if (!Uuid.safeParse(id).success || !TOKEN_FORMAT.test(token)) return { kind: "invalid" };
-    const row = await db.missionConfirmationRequest.findFirst({ where: { id, tokenHash: confirmationTokenHash(token) }, select: { ...VIEW_SELECT, status: true } });
+    const row = await db.missionConfirmationRequest.findFirst({ where: { id, tokenHash: confirmationTokenHash(token) }, select: { ...VIEW_SELECT, status: true, decidedAt: true } });
     if (row === null) return { kind: "invalid" };
     const state = pendingState(row, now);
-    return state === "open" ? { kind: "open", view: viewOf(row) } : { kind: state };
+    if (state === "open") return { kind: "open", view: viewOf(row) };
+    if (state === "expired") return { kind: "expired" };
+    const recorded = recordedOf(row);
+    return recorded === null ? { kind: "invalid" } : { kind: "decided", view: viewOf(row), ...recorded };
   },
 
   async decideByToken(id, token, decision, now) {

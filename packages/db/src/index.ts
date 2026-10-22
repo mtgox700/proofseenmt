@@ -296,6 +296,7 @@ export {
 export {
   missionConfirmations,
   type CompanyConfirmationRequest,
+  type CompanyDecidedRequest,
   type ConfirmationLink,
   type ConfirmationState,
   type ConfirmationTarget,
@@ -304,6 +305,7 @@ export {
   type Decision as ConfirmationDecision,
   type MissionConfirmations,
   type MyConfirmationRequest,
+  type RecordedDecision as ConfirmationRecordedDecision,
   type RequestConfirmationResult,
   type TokenLookup,
 } from "./mission-confirmations";

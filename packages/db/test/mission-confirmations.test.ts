@@ -174,7 +174,7 @@ describe("confirmer par le lien signé", () => {
     expect(await repo().decideByToken(l.id, l.token, { confirm: true, showClientName: true }, NOW)).toBe("confirmed");
     expect(await repo().decideByToken(l.id, l.token, YES, NOW)).toBe("decided");
     expect(await repo().decideByToken(l.id, l.token, NO, NOW)).toBe("decided");
-    expect(await repo().lookupByToken(l.id, l.token, NOW)).toEqual({ kind: "decided" });
+    expect(await repo().lookupByToken(l.id, l.token, later(2))).toMatchObject({ kind: "decided", decision: "confirmed", decidedAt: NOW, view: { id: l.id, role: "Lead data engineer" } });
     const missions = await missionsOf(f.profileId);
     expect(missions).toHaveLength(1);
     expect(missions[0]).toMatchObject({
@@ -205,11 +205,71 @@ describe("confirmer par le lien signé", () => {
     expect(await repo().decideByToken(refused.id, refused.token, { confirm: false, showClientName: true }, NOW)).toBe("refused");
     const row = await t.db.missionConfirmationRequest.findUniqueOrThrow({ where: { id: refused.id } });
     expect(row).toMatchObject({ status: "refused", showClientName: false });
+    // La décision reste lisible avec le jeton, même après l'échéance : elle est faite, pas expirée.
+    expect(await repo().lookupByToken(refused.id, refused.token, later(31))).toMatchObject({ kind: "decided", decision: "refused", decidedAt: NOW });
     const expired = await requestByEmail(f.actor);
     expect(await repo().lookupByToken(expired.id, expired.token, later(30))).toEqual({ kind: "expired" });
     expect(await repo().decideByToken(expired.id, expired.token, YES, later(31))).toBe("expired");
     expect(await missionsOf(f.profileId)).toHaveLength(0);
     expect((await repo().listMine(f.actor, later(31))).map((r) => r.state).sort()).toEqual(["expired", "refused"]);
+  });
+});
+
+describe("lire une décision : seulement avec le jeton de cette demande", () => {
+  it("une adresse fabriquée, un jeton faux ou celui d'une autre demande ne révèlent rien, décidée ou non", async () => {
+    const f = await freelance();
+    const decided = await requestByEmail(f.actor);
+    const other = await requestByEmail(f.actor);
+    expect(await repo().decideByToken(decided.id, decided.token, YES, NOW)).toBe("confirmed");
+    const invalid = { kind: "invalid" };
+    expect(await repo().lookupByToken(decided.id, other.token, NOW)).toEqual(invalid);
+    expect(await repo().lookupByToken(other.id, decided.token, NOW)).toEqual(invalid);
+    expect(await repo().lookupByToken(decided.id, link().token, NOW)).toEqual(invalid);
+    expect(await repo().lookupByToken(decided.id, "", NOW)).toEqual(invalid);
+    expect(await repo().lookupByToken(randomUUID(), decided.token, NOW)).toEqual(invalid);
+    expect(await repo().lookupByToken("pas-un-uuid", decided.token, NOW)).toEqual(invalid);
+  });
+
+  it("une demande adressée à une entreprise n'a pas de jeton : aucun lien ne la lit", async () => {
+    const f = await freelance();
+    const c = await company();
+    const l = link();
+    await repo().request(f.actor, input({ clientSiret: c.siret, contactEmail: null }), l, "fr", NOW);
+    expect(await repo().decideAsCompany(c.owner, l.id, YES, NOW)).toBe("confirmed");
+    expect(await repo().lookupByToken(l.id, l.token, NOW)).toEqual({ kind: "invalid" });
+  });
+});
+
+describe("lire une décision depuis l'espace de l'entreprise", () => {
+  it("donne la décision et sa date à qui administre l'entreprise, rien à quiconque d'autre", async () => {
+    const f = await freelance();
+    const c = await company();
+    const other = await company();
+    const admin = await createUser(t.db);
+    const member = await createUser(t.db);
+    await t.db.membership.create({ data: { organisationId: c.orgId, userId: admin, role: "admin" } });
+    await t.db.membership.create({ data: { organisationId: c.orgId, userId: member, role: "member" } });
+    const l = link();
+    await repo().request(f.actor, input({ clientSiret: c.siret, contactEmail: null }), l, "fr", NOW);
+    // En attente, elle n'est pas « décidée » : rien à montrer, comme pour une demande inexistante.
+    expect(await repo().decidedForCompany(c.owner, l.id)).toBeNull();
+    expect(await repo().decideAsCompany(c.owner, l.id, NO, later(1))).toBe("refused");
+    const seen = { id: l.id, decision: "refused", decidedAt: later(1), organisationName: "Acme", role: "Lead data engineer" };
+    expect(await repo().decidedForCompany(c.owner, l.id)).toMatchObject(seen);
+    // Un autre administrateur de la même entreprise lit la même décision.
+    expect(await repo().decidedForCompany({ userId: admin }, l.id)).toMatchObject(seen);
+    expect(JSON.stringify(await repo().decidedForCompany(c.owner, l.id))).not.toContain(f.email);
+    for (const stranger of [{ userId: member }, other.owner, f.actor]) expect(await repo().decidedForCompany(stranger, l.id)).toBeNull();
+    expect(await repo().decidedForCompany(c.owner, randomUUID())).toBeNull();
+    expect(await repo().decidedForCompany(c.owner, "pas-un-uuid")).toBeNull();
+  });
+
+  it("une demande par e-mail décidée n'appartient à aucune entreprise", async () => {
+    const f = await freelance();
+    const c = await company();
+    const l = await requestByEmail(f.actor, { clientSiret: null });
+    expect(await repo().decideByToken(l.id, l.token, YES, NOW)).toBe("confirmed");
+    expect(await repo().decidedForCompany(c.owner, l.id)).toBeNull();
   });
 });
 
