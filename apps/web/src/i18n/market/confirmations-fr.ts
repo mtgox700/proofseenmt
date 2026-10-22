@@ -69,7 +69,11 @@ export const confirmationsFr = {
     forCompany: (name: string) => `Adressée à ${name}`,
     declaredAs: (name: string) => `Client déclaré par le freelance\u202f: «\u202f${name}\u202f». S'il est confirmé avec l'accord d'affichage, c'est le nom de votre entreprise sur Proofseen qui est publié.`,
     expires: (d: string) => `Expire le ${d}`,
-    done: { confirmed: "Mission confirmée\u202f: elle apparaît sur le profil du freelance.", refused: "Demande refusée\u202f: rien n'est publié." },
+    /** Read from the database, never from the address: the decision and its real date. */
+    done: {
+      confirmed: (role: string, d: string) => `Mission «\u202f${role}\u202f» confirmée le ${d}\u202f: elle apparaît sur le profil du freelance.`,
+      refused: (role: string, d: string) => `Demande «\u202f${role}\u202f» refusée le ${d}\u202f: rien n'est publié.`,
+    },
     errors: {
       tooMany: "Trop de décisions en peu de temps\u202f: réessayez dans une minute.",
       notFound: "Cette demande n'existe pas ou ne vous est pas adressée.",
@@ -98,11 +102,11 @@ export const confirmationsFr = {
     invalidText: "Ce lien est incomplet ou ne correspond à aucune demande. Copiez l'adresse complète depuis l'e-mail reçu.",
     expiredTitle: "Lien expiré",
     expiredText: "Cette demande a dépassé trente jours sans réponse\u202f: elle est close et rien n'a été publié.",
-    decidedTitle: "Réponse déjà donnée",
-    decidedText: "Ce lien a déjà servi\u202f: une demande ne reçoit qu'une réponse.",
     confirmedTitle: "Merci, la mission est confirmée",
-    confirmedText: "Elle apparaît maintenant sur le profil public du freelance, datée. Vous n'avez rien d'autre à faire.",
+    confirmedOn: (d: string) => `Confirmée le ${d}.`,
+    confirmedText: "Elle apparaît sur le profil public du freelance, datée. Vous n'avez rien d'autre à faire.",
     refusedTitle: "Réponse enregistrée",
+    refusedOn: (d: string) => `Refusée le ${d}.`,
     refusedText: "Vous avez refusé de confirmer cette mission\u202f: rien n'est publié.",
     tooMany: "Trop de tentatives en peu de temps\u202f: réessayez dans quelques minutes.",
   },

@@ -12,20 +12,15 @@ import { langOf, uuidOf } from "@/lib/market";
  * The client's contact answers through the signed link, without an account. The token travels in the form and is
  * checked by the repository (hash comparison, single use, expiry) in the same conditional update that records the
  * answer. Throttled per network address: a token cannot be guessed, but the endpoint must not be a free oracle either.
+ *
+ * The outcome never travels in the address: the person is sent back to the link itself, token included, and the page
+ * reads from the database what was decided and when. Without a valid token there is nothing to read.
  */
 
 const RULE = { windowMs: 10 * 60_000, max: 10 };
 const TOKEN = /^[A-Za-z0-9_-]{1,100}$/;
 
-const page = (lang: string, id: string, query: string): string => `/${lang}/confirmer-mission/${id}?${query}`;
-
-const OUTCOME: Readonly<Record<string, string>> = {
-  confirmed: "fait=confirmee",
-  refused: "fait=refusee",
-  expired: "etat=expiree",
-  decided: "etat=decidee",
-  invalid: "etat=invalide",
-};
+const page = (lang: string, id: string, query = ""): string => `/${lang}/confirmer-mission/${id}${query === "" ? "" : `?${query}`}`;
 
 export async function decideMissionByLink(formData: FormData): Promise<void> {
   const lang = langOf(formData.get("lang"));
@@ -33,11 +28,12 @@ export async function decideMissionByLink(formData: FormData): Promise<void> {
   const rawToken = formData.get("t");
   const token = typeof rawToken === "string" && TOKEN.test(rawToken) ? rawToken : null;
   if (id === null) redirect(`/${lang}`);
-  if (token === null || !hasDatabase()) redirect(page(lang, id, "etat=invalide"));
+  if (token === null || !hasDatabase()) redirect(page(lang, id));
+  const link = `t=${encodeURIComponent(token)}`;
   const address = addressFromHeaders(await headers()) ?? "unknown";
-  if (await throttled("mission-confirmation-link", address, RULE, new Date())) redirect(page(lang, id, `t=${encodeURIComponent(token)}&erreur=trop`));
+  if (await throttled("mission-confirmation-link", address, RULE, new Date())) redirect(page(lang, id, `${link}&erreur=trop`));
   const decision = decisionFromForm(formData);
-  if (decision === null) redirect(page(lang, id, `t=${encodeURIComponent(token)}`));
-  const result = await missionConfirmations(getDb()).decideByToken(id, token, decision, new Date());
-  redirect(page(lang, id, OUTCOME[result] ?? "etat=invalide"));
+  if (decision !== null) await missionConfirmations(getDb()).decideByToken(id, token, decision, new Date());
+  // Whatever the outcome (decided now, already decided, expired, unknown token), the page reads it with the token.
+  redirect(page(lang, id, link));
 }

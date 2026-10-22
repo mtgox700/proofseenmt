@@ -70,7 +70,11 @@ export const confirmationsEn: ConfirmationsDictionary = {
     forCompany: (name: string) => `Addressed to ${name}`,
     declaredAs: (name: string) => `Client as declared by the freelancer: "${name}". If confirmed with the display box ticked, your company's name on Proofseen is what gets published.`,
     expires: (d: string) => `Expires on ${d}`,
-    done: { confirmed: "Mission confirmed: it appears on the freelancer's profile.", refused: "Request declined: nothing is published." },
+    /** Read from the database, never from the address: the decision and its real date. */
+    done: {
+      confirmed: (role: string, d: string) => `Mission "${role}" confirmed on ${d}: it appears on the freelancer's profile.`,
+      refused: (role: string, d: string) => `Request "${role}" declined on ${d}: nothing is published.`,
+    },
     errors: {
       tooMany: "Too many decisions in a short time: try again in a minute.",
       notFound: "This request does not exist or is not addressed to you.",
@@ -99,11 +103,11 @@ export const confirmationsEn: ConfirmationsDictionary = {
     invalidText: "This link is incomplete or matches no request. Copy the full address from the e-mail you received.",
     expiredTitle: "Link expired",
     expiredText: "This request went thirty days without an answer: it is closed and nothing was published.",
-    decidedTitle: "Already answered",
-    decidedText: "This link has already been used: a request gets one answer only.",
     confirmedTitle: "Thank you, the mission is confirmed",
-    confirmedText: "It now appears on the freelancer's public profile, dated. There is nothing else to do.",
+    confirmedOn: (d: string) => `Confirmed on ${d}.`,
+    confirmedText: "It appears on the freelancer's public profile, dated. There is nothing else to do.",
     refusedTitle: "Answer saved",
+    refusedOn: (d: string) => `Declined on ${d}.`,
     refusedText: "You declined to confirm this mission: nothing is published.",
     tooMany: "Too many attempts in a short time: try again in a few minutes.",
   },

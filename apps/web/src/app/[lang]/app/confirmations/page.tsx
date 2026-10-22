@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { missionConfirmations, monthsBetween, type CompanyConfirmationRequest } from "@proofseen/db";
+import { missionConfirmations, monthsBetween, type CompanyConfirmationRequest, type CompanyDecidedRequest } from "@proofseen/db";
 import { ConfirmationDecisionForm } from "@/components/market/ConfirmationDecisionForm";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang, type Lang } from "@/i18n";
@@ -13,12 +13,19 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   readonly params: Promise<{ lang: string }>;
-  readonly searchParams: Promise<{ erreur?: string; fait?: string }>;
+  readonly searchParams: Promise<{ erreur?: string | string[]; demande?: string | string[] }>;
 }
 
 type C = MarketDictionary["confirmations"];
 
-const notice = (c: C, erreur: string | undefined, fait: string | undefined): { readonly ok: boolean; readonly text: string } | null => {
+/** One value of a query parameter; a repeated one counts as absent. */
+const single = (value: string | string[] | undefined): string | null => (typeof value === "string" ? value : null);
+
+/**
+ * The notice above the list. A failure comes from the action's code; a success only from a decision read in the
+ * database, within the companies the person administers: any other id (unknown, pending, someone else's) shows nothing.
+ */
+const notice = (c: C, lang: Lang, erreur: string | null, decided: CompanyDecidedRequest | null): { readonly ok: boolean; readonly text: string } | null => {
   const errors: Readonly<Record<string, string>> = {
     trop: c.company.errors.tooMany,
     introuvable: c.company.errors.notFound,
@@ -26,11 +33,11 @@ const notice = (c: C, erreur: string | undefined, fait: string | undefined): { r
     decidee: c.company.errors.decided,
     soi: c.company.errors.self,
   };
-  const error = erreur === undefined ? undefined : errors[erreur];
+  const error = erreur === null ? undefined : errors[erreur];
   if (error !== undefined) return { ok: false, text: error };
-  if (fait === "confirmee") return { ok: true, text: c.company.done.confirmed };
-  if (fait === "refusee") return { ok: true, text: c.company.done.refused };
-  return null;
+  if (decided === null) return null;
+  const done = decided.decision === "confirmed" ? c.company.done.confirmed : c.company.done.refused;
+  return { ok: true, text: done(decided.role, day(decided.decidedAt, lang)) };
 };
 
 function RequestCard({ lang, c, request }: { readonly lang: Lang; readonly c: C; readonly request: CompanyConfirmationRequest }) {
@@ -66,9 +73,11 @@ export default async function ConfirmationsPage({ params, searchParams }: PagePr
   const c = m.confirmations;
   const market = await pageMarket(lang, ["company"]);
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
-  const requests = await missionConfirmations(market.db).listForCompany(market.actor, new Date());
-  const { erreur, fait } = await searchParams;
-  const message = notice(c, erreur, fait);
+  const repo = missionConfirmations(market.db);
+  const query = await searchParams;
+  const demande = single(query.demande);
+  const [requests, decided] = await Promise.all([repo.listForCompany(market.actor, new Date()), demande === null ? null : repo.decidedForCompany(market.actor, demande)]);
+  const message = notice(c, lang, single(query.erreur), decided);
 
   return (
     <>
