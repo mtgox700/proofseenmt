@@ -184,6 +184,11 @@ describe("the light: glow and ambience (BRAND_BOOK_V2 sections 2.2 and 4)", () =
     }
   });
 
+  it("lets an element that follows the pointer resolve the spot with its own coordinates", () => {
+    // Declared on :root only, var(--spot-x) would resolve there and a card's coordinates would never reach the spot.
+    expect(css).toMatch(/^:where\(\[data-spot\]\)\{--ps-edge-spot:radial-gradient\(260px circle at var\(--spot-x, 50%\) var\(--spot-y, 0%\),[^}]*--ps-edge-spot-proof:/m);
+  });
+
   it("lights the edge of a card in CSS only, under hover, with a transition of border-color alone", () => {
     const rule = edgeSpotCss([".a", ".b"]);
     expect(rule).toMatch(/^@media \(hover:hover\) and \(pointer:fine\)\{\.a:hover,\.b:hover\{border-color:transparent;/);

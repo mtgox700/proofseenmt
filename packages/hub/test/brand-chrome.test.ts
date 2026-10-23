@@ -228,7 +228,7 @@ describe("the v2 light on the public pages (BRAND_BOOK_V2 section 4)", () => {
   it.each(Object.entries(PAGES))("%s: a discreet ambience behind the page header, under the caps", (_name, html) => {
     expect(styleOf(html)).toContain("body{background:var(--ps-ambient-section) 50% 0/100% 40rem no-repeat,var(--ps-bg)}");
     // The ambience is a token: no page types its own light.
-    expect(styleOf(html).replace(/:root\{[^}]*\}/g, "")).not.toMatch(/radial-gradient|rgb\(/);
+    expect(styleOf(html).replace(/:root\{[^}]*\}|:where\(\[data-spot\]\)\{[^}]*\}/g, "")).not.toMatch(/radial-gradient|rgb\(/);
   });
 
   it.each(Object.entries(PAGES))("%s: cards light their edge in violet under the pointer, never by a grey border", (_name, html) => {

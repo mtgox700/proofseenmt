@@ -13,8 +13,7 @@
 --ps-halo-proof:radial-gradient(closest-side, rgb(111 214 144 / .28), rgb(111 214 144 / 0));
 --ps-glow-aura:0 0 0 1px rgb(124 108 255 / .45),0 10px 40px -10px rgb(124 108 255 / .55);
 --ps-glow-cta:0 0 0 1px rgb(242 239 232 / .9),0 8px 32px -8px rgb(124 108 255 / .65),0 0 64px -16px rgb(124 108 255 / .5);
---ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);
---ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);
+--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);
 --ps-ambient-hero:radial-gradient(60% 55% at 18% 6%, rgb(124 108 255 / .18), rgb(124 108 255 / 0) 70%),radial-gradient(45% 45% at 88% 16%, rgb(61 123 255 / .1), rgb(61 123 255 / 0) 72%),radial-gradient(70% 60% at 50% 115%, rgb(124 108 255 / .1), rgb(124 108 255 / 0) 70%);
 --ps-ambient-section:radial-gradient(55% 60% at 50% 0%, rgb(124 108 255 / .12), rgb(124 108 255 / 0) 70%);
 --ps-ambient-deep:radial-gradient(80% 70% at 50% 100%, rgb(61 123 255 / .08), rgb(61 123 255 / 0) 70%);
@@ -43,4 +42,5 @@
 --ps-dur-press:90ms;--ps-dur-ui:160ms;--ps-dur-strike:140ms;--ps-dur-ink:240ms;--ps-dur-reveal:320ms;--ps-dur-trace:640ms;
 --ps-dur-glow:420ms;--ps-dur-media:900ms;--ps-dur-aurora:32s;
 --ps-z-header:10;--ps-z-overlay:30;--ps-z-skip:40;}
+:where([data-spot]){--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);}
 @media (prefers-reduced-motion:reduce){:root{--ps-dur-strike:0ms;--ps-dur-ink:0ms;--ps-dur-reveal:0ms;--ps-dur-trace:0ms;--ps-dur-glow:0ms;--ps-dur-media:0ms;}}

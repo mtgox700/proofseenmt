@@ -29,14 +29,22 @@ const SHADOWS = `--ps-shadow-1:0 1px 0 ${rgbA(black, 0.5)},0 1px 3px ${rgbA(blac
 const spot = (hex: string): string =>
   `radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), ${rgbA(hex, 0.7)}, ${rgbA(hex, 0)} 60%)`;
 
+const EDGE_SPOTS = `--ps-edge-spot:${spot(aura)};--ps-edge-spot-proof:${spot(proof)};`;
+
+/*
+ * A custom property that reads var() is resolved where it is declared: on :root, a `--spot-x` set on a card would never
+ * reach the spot. An element that follows the pointer (a script sets --spot-x and --spot-y on it) carries `data-spot`,
+ * and the two spots are declared again there, so they resolve with its own coordinates.
+ */
+const SPOT_HOST = `:where([data-spot]){${EDGE_SPOTS}}`;
+
 const GLOW = [
   `--ps-glow-proof:0 0 0 1px ${rgbA(proof, 0.55)},0 0 18px -2px ${rgbA(proof, 0.45)},0 0 48px -8px ${rgbA(proof, 0.3)};`,
   `--ps-glow-proof-strike:0 0 0 1px ${rgbA(proof, 0.9)},0 0 28px 2px ${rgbA(proof, 0.55)},0 0 80px -6px ${rgbA(proof, 0.35)};`,
   `--ps-halo-proof:radial-gradient(closest-side, ${rgbA(proof, 0.28)}, ${rgbA(proof, 0)});`,
   `--ps-glow-aura:0 0 0 1px ${rgbA(aura, 0.45)},0 10px 40px -10px ${rgbA(aura, 0.55)};`,
   `--ps-glow-cta:0 0 0 1px ${rgbA(text, 0.9)},0 8px 32px -8px ${rgbA(aura, 0.65)},0 0 64px -16px ${rgbA(aura, 0.5)};`,
-  `--ps-edge-spot:${spot(aura)};`,
-  `--ps-edge-spot-proof:${spot(proof)};`,
+  EDGE_SPOTS,
 ].join("\n");
 
 /*
@@ -90,6 +98,7 @@ export const renderTokensCss = ({ webFonts = true }: TokensCssOptions = {}): str
     "/* Generated from packages/brand/src/tokens.ts: do not edit by hand. */",
     fontFaceCss({ webFonts }),
     `:root{color-scheme:dark;${colours(PALETTE.dark)}${SHADOWS}\n${GLOW}\n${AMBIENT}\n${FOUNDATION}}`,
+    SPOT_HOST,
     `@media (prefers-reduced-motion:reduce){:root{${REDUCED}}}`,
     "",
   ].join("\n");
