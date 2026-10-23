@@ -214,14 +214,14 @@ const addressGroup = (r: ProofRegister, lang: Lang): string => {
   return `<h3 class="group">${e(l.addresses)}</h3>${note}<ul class="lines">${items.join("")}</ul>`;
 };
 
-interface FactLine {
+export interface FactLine {
   readonly text: string;
   readonly source: string;
   readonly by: string;
   readonly date: Date | null;
 }
 
-const factLines = (f: ProofFacts, lang: Lang): FactLine[] => {
+export const factLines = (f: ProofFacts, lang: Lang): FactLine[] => {
   const l = PROOF_LABELS[lang];
   return [
     ...(f.registryActiveCheckedAt === null ? [] : [{ text: l.registryActive(longDate(f.registryActiveCheckedAt, lang)), source: l.registrySource, by: l.proofseen, date: null }]),
