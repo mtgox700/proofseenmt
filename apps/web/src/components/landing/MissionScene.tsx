@@ -88,7 +88,7 @@ function MissionScene({ copy, step, way, phase, typed }: SceneProps) {
             </m.span>
           ) : null}
           {verified ? (
-            <m.span key="stack" className="mp-stack" initial={{ x: 120, y: 150, scale: 0.7, opacity: 0.4 }} animate={{ x: 0, y: 0, scale: 1, opacity: 1 }} exit={{ opacity: 0, y: 8 }} transition={{ ...SPRING, delay: 0.96 }}>
+            <m.span key="stack" className="mp-stack" initial={{ x: 120, y: 150, scale: 0.7, opacity: 0.4 }} animate={{ x: 0, y: 0, scale: 1, opacity: 1 }} exit={{ opacity: 0, y: 8, transition: { duration: 0.2 } }} transition={{ ...SPRING, delay: 0.96 }}>
               <span className="sq" />
               {copy.stack}
             </m.span>
