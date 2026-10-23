@@ -1,7 +1,8 @@
 "use client";
 
-import { AnimatePresence, m } from "motion/react";
-import type { HomeCopy } from "@/content/home";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
+import type { HomeCopy } from "@/content/home/schema";
 import { Photo } from "./Photo";
 import { otherWayVerified, sceneAt, type Way } from "./mission-scene";
 
@@ -123,7 +124,7 @@ export function MissionScene({ copy, step, way, phase, typed }: SceneProps) {
             <span className="seal mp-seal">
               <span className="sq" />
               {sealText.slice(0, typed)}
-              <span className="mp-caret" />
+              {typed < sealText.length ? <span className="mp-caret" /> : null}
             </span>
           ) : (
             <AnimatePresence mode="popLayout" initial={false}>

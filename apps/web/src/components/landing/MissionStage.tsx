@@ -3,7 +3,8 @@
 import { LazyMotion, MotionConfig, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { fill, type HomeCopy } from "@/content/home";
+import { fill } from "@/content/home/fill";
+import type { HomeCopy } from "@/content/home/schema";
 import { MissionScene } from "./MissionScene";
 import { FINAL_STEP, OTHER_WAY_AT, STEPS, stepAtMiddle, type Way } from "./mission-scene";
 
@@ -127,7 +128,8 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
           setWay("payment");
           setStep(1);
         });
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "instant", block: "start" });
+        // Land on the scene itself, so the card is seen arriving; the hash still names the section.
+        document.getElementById(listId)?.scrollIntoView({ behavior: "instant", block: "start" });
         if (window.location.hash !== `#${sectionId}`) history.pushState(null, "", `#${sectionId}`);
       });
       window.setTimeout(() => {
@@ -137,7 +139,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
-  }, [reduced, sectionId]);
+  }, [reduced, sectionId, listId]);
 
   const clearTimers = (): void => {
     timers.current.forEach((id) => window.clearTimeout(id));
@@ -174,7 +176,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
   const shown = way === "client" ? STEPS : step;
   return (
     <LazyMotion features={loadFeatures} strict>
-      <MotionConfig reducedMotion="user" transition={reduced ? { duration: 0 } : undefined}>
+      <MotionConfig reducedMotion="user" {...(reduced ? { transition: { duration: 0 } } : {})}>
         <div className="mp-stage" ref={stageRef}>
           <p className="mp-counter">
             {fill(copy.counter, { n: shown })}

@@ -1,6 +1,7 @@
 "use client";
 
-import { LazyMotion, m, useReducedMotion } from "motion/react";
+import { LazyMotion, useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import { useEffect, useRef, useState } from "react";
 
 /*
