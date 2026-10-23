@@ -82,15 +82,8 @@
 .profiles { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ps-line-strong); }
 .profiles > li { padding: var(--ps-space-5) 0; border-bottom: 1px solid var(--ps-line); }
 .profiles article { display: grid; gap: var(--ps-space-2); }
-.profile-row-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-2) var(--ps-space-4); }
-.profile-row-head h3 a { text-decoration: none; }
-@media (hover: hover) and (pointer: fine) { .profile-row-head h3 a:hover { text-decoration: underline; } }
-.profile-headline { font: 400 var(--ps-step-1) / 1.35 var(--ps-font-display); color: var(--ps-muted); }
 .skills { list-style: none; margin: var(--ps-space-1) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
 .skills li { padding: 0.15rem 0.5rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); font-size: var(--ps-step--1); }
-.profile-facts { margin: var(--ps-space-2) 0 0; display: grid; gap: var(--ps-space-2) var(--ps-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
-.profile-facts dt { font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); }
-.profile-facts dd { margin: 0; font-size: var(--ps-step--1); }
 .missions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); }
 .missions > li { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) 0; border-top: 1px solid var(--ps-line); }
 

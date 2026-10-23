@@ -1,0 +1,47 @@
+/* Lot 5 of the connected space (CONNECTED_PLAN section 3): to choose (company) and to find (freelancer). Imported by
+   its pages only: the lists, a mission's applicants and close profiles, an application, the companies directory.
+   Tokens only, no colour written here. The one green is the square of @proofseen/brand/seal.css, on a verified fact;
+   nothing starts hidden, nothing moves. */
+
+/* ---------- The one profile card, in a grid, in the order the screen writes ---------- */
+.choice-grid { list-style: none; margin: var(--ps-space-4) 0 0; padding: 0; display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+.choice-grid > li { display: flex; min-width: 0; }
+.ps-legend + .choice-grid { margin-top: var(--ps-space-4); }
+
+/* What stays inside the company, under the card (above its link layer, which .fc-actions already clears). */
+.choice-desk { flex: 1 1 100%; display: grid; gap: var(--ps-space-3); min-width: 0; }
+.choice-desk .field textarea { min-height: 5rem; }
+.choice-desk select { min-height: 2.75rem; max-width: 100%; padding: 0.4rem 0.6rem; font: inherit; font-size: max(16px, var(--ps-step--1)); color: var(--ps-text); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.choice-desk select:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.choice-desk form { min-width: 0; }
+
+/* The trace of the company's own facts: who added, when. Mono, like every date of the register. */
+.choice-trace { margin: 0; font: var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono); color: var(--ps-muted); overflow-wrap: anywhere; }
+
+/* Why a close profile is here: each criterion met, as a declared fact (never a share, a bar or a rank). */
+.choice-why { display: grid; gap: var(--ps-space-2); }
+.choice-why .tags { display: flex; flex-wrap: wrap; gap: var(--ps-space-1); }
+
+/* A profile that left the public pages: the card's frame and its reference, nothing else. */
+.ref-card .fc-name { color: var(--ps-muted); }
+.ref-note { font-size: var(--ps-step--1); line-height: 1.45; color: var(--ps-muted); }
+
+/* ---------- Lines of the register: a square of 8 px, then the words ---------- */
+.fact-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); line-height: 1.45; }
+.fact-line { display: flex; align-items: flex-start; gap: var(--ps-space-2); min-width: 0; color: var(--ps-text); overflow-wrap: anywhere; }
+.fact-line.open { color: var(--ps-muted); }
+.fact-line .sq, .fact-key .sq { box-sizing: border-box; }
+.fact-line .sq { margin-top: 0.42em; }
+
+/* The key of the squares, as on the public directories. */
+.fact-key { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2) var(--ps-space-5); font: var(--ps-weight-mono) var(--ps-step--2)/1.45 var(--ps-font-mono); color: var(--ps-muted); }
+.fact-key li { display: inline-flex; align-items: center; gap: var(--ps-space-2); }
+
+/* ---------- A mission's applicants: each one with its facts as register lines, its dates in the trace ---------- */
+.board-card .fact-lines { padding-top: var(--ps-space-2); border-top: 1px dashed var(--ps-line); }
+.board-card .board-who { margin: 0; display: grid; gap: var(--ps-space-1); }
+.board-card .board-who strong { font: var(--ps-weight-mono) var(--ps-step--1)/1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); }
+
+/* ---------- One application: the candidate's card, alone, at the width of a card ---------- */
+.choice-one { display: flex; max-width: 34rem; min-width: 0; }
+.ref-card .fc-actions .fact-lines { flex: 1 1 100%; }

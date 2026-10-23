@@ -54,8 +54,6 @@ export const missionsEn: MissionsDictionary = {
     applicantsEmpty: "No application yet.",
     oldestFirst: "Oldest first",
     newestFirst: "Newest first",
-    facts: (urls: number, missions: number) => `${urls} proven address${urls > 1 ? "es" : ""} · ${missions} verified mission${missions > 1 ? "s" : ""}`,
-    receivedOn: "received on",
     conversation: "Open the conversation",
     profile: "See the profile",
     shortlist: "Shortlist",

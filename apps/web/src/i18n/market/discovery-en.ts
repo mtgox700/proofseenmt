@@ -63,10 +63,6 @@ export const discoveryEn: DiscoveryDictionary = {
       portfolioOnly: "With portfolio",
     },
   },
-  /** The profile card itself is the marketplace's one card (@proofseen/hub): only this label is still read here. */
-  card: {
-    unconfirmed: "Availability not confirmed",
-  },
   saved: {
     title: "Saved searches",
     lead: "Shared with your colleagues. The daily alert only writes to the person who created it.",
@@ -116,6 +112,11 @@ export const discoveryEn: DiscoveryDictionary = {
     missions: (n: number) => (n === 0 ? "No open mission" : n === 1 ? "1 open mission" : `${n} open missions`),
     registryFact: (d: string) => `Active SIRET (checked on ${d})`,
     since: (d: string) => `On Proofseen since ${d}`,
+    registryUnknown: "Not confirmed as active in the official register",
+    factsLabel: "Company facts",
+    legend: "Key to the facts",
+    legendVerified: "verified by a third party, dated",
+    legendOpen: "measured on Proofseen or stated",
     response: (days: number, n: number) => `Answers in ${days} day${days > 1 ? "s" : ""} (median, ${n} applications)`,
     page: "See the page",
     follow: "Follow",
