@@ -4,9 +4,15 @@ import { legacyRoute, legacyTarget } from "../src/lib/legacy-pages";
 describe("legacy pages of the static site", () => {
   it("serves each indexed address as it is, from the saved page", () => {
     expect(legacyRoute("/n/ayoub-hammoudi/")).toEqual({ kind: "serve", file: "/legacy/n/ayoub-hammoudi/index.html" });
-    expect(legacyRoute("/en/p/FR-7H2XK/")).toEqual({ kind: "serve", file: "/legacy/en/p/FR-7H2XK/index.html" });
     expect(legacyRoute("/methode/")).toEqual({ kind: "serve", file: "/legacy/methode/index.html" });
     expect(legacyRoute("/api/profiles.json")).toEqual({ kind: "serve", file: "/legacy/api/profiles.json" });
+  });
+
+  it("sends the pseudonymous twin of the founder's profile to his named page, for good", () => {
+    expect(legacyRoute("/p/FR-7H2XK/")).toEqual({ kind: "redirect", to: "/n/ayoub-hammoudi/" });
+    expect(legacyRoute("/p/FR-7H2XK")).toEqual({ kind: "redirect", to: "/n/ayoub-hammoudi/" });
+    expect(legacyRoute("/en/p/FR-7H2XK/")).toEqual({ kind: "redirect", to: "/en/n/ayoub-hammoudi/" });
+    expect(legacyRoute("/constructor")).toEqual({ kind: "none" });
   });
 
   it("sends the bare address of a legacy page to its indexed address", () => {

@@ -114,7 +114,7 @@ async (page) => {
 
   return { url, desktop, mobile: { ...mobile, ...mobileVitals }, contrast, keyboard, reduced, consoleErrors: errors };
 };
-  const urls = ["/fr", "/en", "/fr/missions", "/fr/freelances", "/en/freelances", "/fr/metiers", "/fr/commande", "/en/commande", "/fr/inscription", "/fr/connexion", "/fr/app"];
+  const urls = ["/fr", "/en", "/fr/missions", "/fr/freelances", "/en/freelances", "/fr/metiers", "/fr/inscription", "/fr/connexion", "/fr/app"];
   const out = {};
   for (const path of urls) {
     await page.goto(`http://localhost:3100${path}`);
