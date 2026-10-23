@@ -29,6 +29,9 @@ export const profileEn: ProfileDictionary = {
   save: "Save",
   create: "Create my profile",
   saved: "Profile saved.",
+  declared: "Declared by you",
+  declaredLead: "Everything you write here is declared: your public page shows it as such, without the green of verified facts.",
+  proofsLink: "See what is verified",
   visibilityTitle: "Publication",
   visibility: {
     private: "Private: nobody sees it.",

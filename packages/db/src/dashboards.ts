@@ -42,6 +42,11 @@ export interface CompanyDashboard {
   /** Candidatures reçues sur les missions ouvertes, retraits exclus. */
   readonly openApplications: number;
   readonly contracts: Counts<ContractStatus>;
+  /**
+   * Les contrats à signer, par côté : l'entreprise signe d'abord (`contracts.sign`), le freelance ensuite. Leur somme est
+   * `contracts.pending_signatures` ; aucun chiffre ne mélange les deux côtés.
+   */
+  readonly signatures: { readonly company: number; readonly freelance: number };
   readonly spend: { readonly currency: string; readonly paidCents: number; readonly heldCents: number } | null;
   readonly invoices: number;
 }
@@ -119,19 +124,22 @@ export const dashboards = (db: Db): Dashboards => ({
   async company(actor, organisationId) {
     if (!z.uuid().safeParse(organisationId).success) return null;
     if ((await db.membership.count({ where: { organisationId, userId: actor.userId } })) === 0) return null;
-    const [missions, openApplications, contracts, payments, invoices] = await Promise.all([
+    const [missions, openApplications, contracts, payments, invoices, companyToSign, freelanceToSign] = await Promise.all([
       db.jobPost.groupBy({ by: ["status"], where: { organisationId }, _count: { _all: true } }),
       db.application.count({ where: { jobPost: { organisationId, status: "open" }, status: { not: "withdrawn" } } }),
       db.contract.groupBy({ by: ["status"], where: { organisationId }, _count: { _all: true } }),
       db.payment.findMany({ where: { contract: { organisationId }, status: { in: ["held", "releasing", "released"] } }, select: { status: true, amountCents: true, currency: true } }),
       // L'entreprise ne voit que les factures de mission : la commission regarde le freelance et Proofseen.
       db.invoice.count({ where: { kind: "mission", contract: { organisationId } } }),
+      db.contract.count({ where: { organisationId, status: "pending_signatures", acceptedByOrgAt: null } }),
+      db.contract.count({ where: { organisationId, status: "pending_signatures", acceptedByOrgAt: { not: null } } }),
     ]);
     const currency = singleCurrency(payments);
     return {
       missions: countBy(missions),
       openApplications,
       contracts: countBy(contracts),
+      signatures: { company: companyToSign, freelance: freelanceToSign },
       spend:
         currency === null
           ? null

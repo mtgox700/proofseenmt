@@ -70,6 +70,9 @@ describe("the seal of a verified fact", () => {
       "components/market/DealThread.tsx",
       // Lot 6: the operator's acknowledgement of a URSSAF certificate, read back by vigilanceDesk.verified().
       "components/operator/VerificationQueues.tsx",
+      // Lot 2, /app/preuves: a verified mission (confirmed by the client, or paid on Proofseen) and an address whose
+      // ownership is proven, read from the person's own rows (verifiedMissions.listMine, ownedUrls.list).
+      "components/registre/ProofRegister.tsx",
     ]);
   });
 });

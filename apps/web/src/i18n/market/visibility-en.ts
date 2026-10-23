@@ -95,6 +95,18 @@ export const visibilityEn: VisibilityDictionary = {
     cited: (count: string, draws: string) => `cited with link in ${count} of ${draws} answers`,
     measuredOn: (date: string) => `Measurement of ${date}`,
   },
+  register: {
+    title: "The register of your answers",
+    caption: (cited: string, draws: string, date: string) => `Answers that cite you with a link: ${cited} of ${draws}. Measurement of ${date}.`,
+    engine: (engine: string, cited: string, draws: string) => `${engine}: ${cited} answers cited with a link out of ${draws}`,
+    key: "One slot per answer obtained, engine by engine. A green slot is an answer that cites you with a link to a proven address: a measured fact, dated, whose source is the engine's answer. The others stay in ink.",
+    none: "No answer cites you with a link yet: no slot lights up.",
+    table: "The register as a table",
+    tableEngine: "Engine",
+    tableDraws: "Answers obtained",
+    tableCited: "Cited with link",
+    tableTotal: "Total",
+  },
   checklist: checklistEn,
   waves: {
     title: "All measurements",

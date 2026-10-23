@@ -102,7 +102,7 @@ describe("the strike is played once, for a decision just read in the database", 
   });
 
   it("keeps the island small, local and silent: no network, no personal data, only the opaque id it was given", () => {
-    const island = read(src, "components", "proof", "AckStrike.tsx");
+    const island = read(src, "components", "proof", "StrikeOnce.tsx");
     expect(island.startsWith('"use client";')).toBe(true);
     expect([...island.matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1])).toEqual(["react"]);
     expect(island).not.toMatch(/fetch\(|XMLHttpRequest|sendBeacon|document\.cookie|sessionStorage/);

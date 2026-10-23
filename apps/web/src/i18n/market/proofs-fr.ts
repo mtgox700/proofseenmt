@@ -1,9 +1,45 @@
-/** Adresses prouvées : les URL du freelance, et la preuve qu'elles sont bien les siennes. */
+/**
+ * Preuves : le registre du freelance (ce qui est vérifié, ce qui attend un client), puis ses adresses et la preuve
+ * qu'elles sont bien les siennes.
+ */
 export const proofsFr = {
-  nav: "Adresses prouvées",
-  title: "Adresses prouvées",
-  lead: "Une citation par un moteur d'IA ne compte que si elle mène à une adresse dont vous avez prouvé la possession. Déclarez vos sites, puis posez l'une des trois preuves\u202f: nous la relisons, puis tous les trente jours.",
+  nav: "Preuves",
+  title: "Preuves",
+  lead: "Ce que votre page publique montre comme vérifié, ce qui attend la réponse d'un client, puis vos adresses. Rien ne devient vérifié sur votre seule déclaration\u202f: un client confirme une mission, un paiement passe par Proofseen, vous prouvez qu'une adresse est à vous.",
+  /** Le résumé du rail de la page publique, en tête de l'accueil et de cette page : les mêmes comptes. */
+  standing: {
+    title: "Ce qui est poinçonné sur votre page publique",
+    detail: "Le détail, ligne par ligne, avec la date et la source de chaque fait",
+    publicPage: "Voir ma page publique",
+    unpublished: "Votre profil n'est pas publié\u202f: aucune page publique ne montre encore vos faits.",
+    hidden: "Votre page publique n'est pas servie en ce moment\u202f: rien n'y paraît.",
+    publish: "Publier mon profil",
+  },
+  register: {
+    title: "Ce qui est vérifié",
+    notePublished: "Ces lignes paraissent sur votre page publique, chacune avec sa date, sa source et qui l'a vérifiée.",
+    notePrivate: "Votre profil n'est pas publié\u202f: ces lignes paraîtront sur votre page publique dès que vous le publierez.",
+    pseudonymous: "Publiée sous votre référence, votre page compte vos adresses prouvées sans les montrer.",
+    empty: "Rien n'est encore vérifié. Une mission le devient quand votre client la confirme ou quand elle est payée sur Proofseen, une adresse quand vous prouvez qu'elle est à vous.",
+    missions: "Missions vérifiées",
+    addresses: "Adresses prouvées",
+    facts: "Autres faits vérifiés",
+  },
+  trial: {
+    title: "À l'essai",
+    lead: "Vos demandes de confirmation, la plus proche de son échéance d'abord. Tant que le client n'a pas répondu, rien n'est publié.",
+    closed: "Demandes closes",
+    confirmedHere: (d: string) => `Confirmée le ${d}\u202f: la mission est en tête de cette page`,
+    confirmedUndated: "Confirmée\u202f: la mission est en tête de cette page",
+  },
+  /** L'accueil : ce qui attend la réponse d'un client. */
+  waiting: {
+    title: "En attente d'un client",
+    more: (n: number) => (n === 1 ? "Et 1 autre demande en attente." : `Et ${n} autres demandes en attente.`),
+    link: "Voir vos demandes",
+  },
   listTitle: "Vos adresses",
+  listLead: "Une citation par un moteur d'IA ne compte que si elle mène à une adresse dont vous avez prouvé la possession. Déclarez vos sites, puis posez l'une des trois preuves\u202f: nous la relisons, puis tous les trente jours.",
   empty: "Aucune adresse déclarée pour l'instant.",
   status: {
     proven: (date: string, method: string) => `Prouvée le ${date} · ${method}`,

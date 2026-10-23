@@ -29,6 +29,10 @@ export const profileFr = {
   save: "Enregistrer",
   create: "Créer mon profil",
   saved: "Profil enregistré.",
+  /** L'en-tête de la page : tout ce qui s'écrit ici est déclaré, rien n'y est vert. */
+  declared: "Déclaré par vous",
+  declaredLead: "Tout ce que vous écrivez ici est déclaré\u202f: votre page publique le montre comme tel, sans le vert des faits vérifiés.",
+  proofsLink: "Voir ce qui est vérifié",
   visibilityTitle: "Publication",
   visibility: {
     private: "Privé\u202f: personne ne le voit.",

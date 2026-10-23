@@ -11,6 +11,8 @@ import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { AvailabilitySection, PhotoSection } from "@/components/profile/PhotoAndAvailability";
 import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { ProfileChecklist } from "@/components/visibility/ProfileChecklist";
+import "@proofseen/brand/seal.css";
+import "@/styles/app-registre.css";
 import { importConfigured } from "@/data/cv-import";
 import { checklistFor } from "@/data/profile-checklist";
 import { isLang, type Lang } from "@/i18n";
@@ -114,7 +116,9 @@ function Publication({ lang, p, profile }: { readonly lang: Lang; readonly p: Pr
         <StatusTag status={profile.visibility === "private" ? "draft" : "accepted"} label={profile.reference} />
         <span className="muted">{p.visibility[profile.visibility]}</span>
       </p>
-      <p className="muted small">{p.facts(profile.verifiedUrls, profile.verifiedMissions)}</p>
+      <p className="muted small">
+        {p.facts(profile.verifiedUrls, profile.verifiedMissions)} · <Link href={`/${lang}/app/preuves`}>{p.proofsLink}</Link>
+      </p>
       {profile.visibility === "named" ? null : <p className="muted small">{p.pseudonymousShows}</p>}
       <div className="empty-actions">
         {profile.visibility === "pseudonymous" ? null : button("pseudonymous", p.publish, profile.visibility === "private")}
@@ -157,7 +161,10 @@ async function RichSections({ lang, market, notice, editing, s }: { readonly lan
   );
 }
 
-/** The freelancer's own profile: edited here, published or withdrawn here. */
+/**
+ * The freelancer's own profile: edited here, published or withdrawn here. Everything on it is declared (CONNECTED_PLAN
+ * §2.1 "Déclarer"): the head says so in the trace face, with the open square of a declared line, and nothing is green.
+ */
 export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
@@ -178,8 +185,21 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   return (
     <>
       <header className="app-head">
+        <p className="reg-declared">
+          <span className="sq open" aria-hidden="true" />
+          {p.declared}
+        </p>
         <h1>{p.title}</h1>
         <p className="muted measure">{p.lead}</p>
+        <p className="muted small measure">
+          {p.declaredLead}
+          {profile !== null && profile.visibility !== "private" && profile.slug !== null ? (
+            <>
+              {" "}
+              <a href={`/${lang}/profils/${profile.slug}`}>{p.publicPage}</a>
+            </>
+          ) : null}
+        </p>
       </header>
       <StandingNotice lang={lang} market={market} topics={["profile"]} />
       {error === null ? null : (

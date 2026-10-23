@@ -7,7 +7,12 @@ export const accountEn: AccountDictionary = {
     applications: "Applications",
     applicationsFoot: (open: number) => `${open} ongoing`,
     contracts: "Contracts",
-    contractsFoot: (active: number, toSign: number) => `${active} ongoing · ${toSign} to sign`,
+    contractsFoot: (active: number, toSign: { readonly company: number; readonly freelance: number }) =>
+      [
+        `${active} ongoing`,
+        ...(toSign.company === 0 ? [] : [toSign.company === 1 ? "1 awaits your signature" : `${toSign.company} await your signature`]),
+        ...(toSign.freelance === 0 ? [] : [toSign.freelance === 1 ? "1 awaits the freelancer's signature" : `${toSign.freelance} await the freelancer's signature`]),
+      ].join(" · "),
     received: "Paid out",
     held: "held until approval",
     paid: "Paid",

@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MAX_OWNED_URL_LENGTH, MAX_OWNED_URLS, MAX_PENDING_CONFIRMATIONS, missionConfirmations, ownedUrls, PROOF_GRACE_DAYS, verifiedMissions, type OwnedUrlRecord } from "@proofseen/db";
+import { MAX_OWNED_URL_LENGTH, MAX_OWNED_URLS, MAX_PENDING_CONFIRMATIONS, missionConfirmations, ownedUrls, profiles, PROOF_GRACE_DAYS, publicProfiles, verifiedMissions, type OwnedUrlRecord } from "@proofseen/db";
 import { proofKit } from "@proofseen/profiles";
+import { EmptyNote } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { ProofWays } from "@/components/market/ProofWays";
-import { VerifiedMissionsPanel } from "@/components/market/VerifiedMissionsPanel";
+import { StrikeOnce } from "@/components/proof/StrikeOnce";
+import { MissionTrial } from "@/components/registre/MissionTrial";
+import { ProofRegister } from "@/components/registre/ProofRegister";
+import { PublicTally } from "@/components/registre/PublicTally";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { addressSeals, factViews, missionSeal, publicDay, publicStanding } from "@/lib/proof-register";
 import { proofSecret } from "@/lib/proof-secret";
 import { addOwnedUrl, checkOwnedUrl, removeOwnedUrl } from "./actions";
 
@@ -24,7 +29,7 @@ type Proofs = MarketDictionary["proofs"];
 
 const DAY_MS = 86_400_000;
 
-/** The notice of the verified missions section, from the codes its actions redirect with. */
+/** The notice of the requests section, from the codes its actions redirect with. */
 const missionNotice = (ok: string | undefined, failed: string | undefined, m: MarketDictionary): { readonly kind: "ok" | "error"; readonly text: string } | null => {
   const f = m.confirmations.freelance;
   const errors: Readonly<Record<string, string>> = {
@@ -63,8 +68,9 @@ const errorText = (code: string | undefined, p: Proofs): string | null => {
   return code === undefined ? null : (known[code] ?? null);
 };
 
+/** The state of an address in words. Proven reads in ink here: its poinçon is in the register at the top, once. */
 function Status({ record, lang, p }: { readonly record: OwnedUrlRecord; readonly lang: Lang; readonly p: Proofs }) {
-  if (record.verifiedAt !== null) return <span className="tag tag-proof">{p.status.proven(day(record.verifiedAt, lang), p.methods[record.proofMethod])}</span>;
+  if (record.verifiedAt !== null) return <span className="tag tag-done">{p.status.proven(publicDay(record.verifiedAt, lang), p.methods[record.proofMethod])}</span>;
   if (record.proofMethod === "profile_token") return <span className="tag tag-quiet">{p.status.manual}</span>;
   return <span className="tag tag-signal">{p.status.waiting}</span>;
 }
@@ -114,61 +120,50 @@ function ProofItem({ record, lang, p, secret }: ItemProps) {
   );
 }
 
-/** The freelancer's addresses, their proof status, and how to prove the ones still waiting. */
-export default async function ProofsPage({ params, searchParams }: PageProps) {
-  const { lang } = await params;
-  if (!isLang(lang)) notFound();
-  const m = marketDictionary(lang);
-  const p = m.proofs;
-  const market = await pageMarket(lang, ["freelance"]);
-  if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
-  const [records, missions, requests] = await Promise.all([
-    ownedUrls(market.db).list(market.actor),
-    verifiedMissions(market.db).listMine(market.actor),
-    missionConfirmations(market.db).listMine(market.actor, new Date()),
-  ]);
-  const secret = proofSecret();
-  const { erreur, enregistre, prouve, mission, "mission-erreur": missionError } = await searchParams;
-  const error = errorText(erreur, p);
-  const success = error !== null ? null : prouve !== undefined ? p.proven : enregistre !== undefined ? p.saved : null;
-  const full = records.length >= MAX_OWNED_URLS;
+interface AddressesProps {
+  readonly lang: Lang;
+  readonly p: Proofs;
+  readonly records: readonly OwnedUrlRecord[];
+  readonly secret: string | null;
+  /** The notice of an address action, already translated. */
+  readonly error: string | null;
+  readonly saved: boolean;
+  readonly profileError: boolean;
+}
 
+/** The addresses, their state, how to prove the ones still waiting, and the form to add one. */
+function Addresses({ lang, p, records, secret, error, saved, profileError }: AddressesProps) {
   return (
-    <>
-      <header className="app-head">
-        <h1>{p.title}</h1>
-        <p className="muted measure">{p.lead}</p>
-      </header>
+    <section className="panel" id="adresses" aria-labelledby="proofs-list">
+      <h2 id="proofs-list">{p.listTitle}</h2>
+      <p className="muted measure">{p.listLead}</p>
       {error === null ? null : (
         <div className="form-error" role="alert">
           <p>{error}</p>
-          {erreur === "profil" ? <Link href={`/${lang}/app/profil`}>{p.profileLink}</Link> : null}
+          {profileError ? <Link href={`/${lang}/app/profil`}>{p.profileLink}</Link> : null}
         </div>
       )}
-      {success === null ? null : (
+      {saved ? (
         <p className="form-ok" role="status">
-          {success}
+          {p.saved}
         </p>
-      )}
+      ) : null}
       {secret === null ? <p className="muted measure">{p.unavailable}</p> : null}
-      <section className="panel" aria-labelledby="proofs-list">
-        <h2 id="proofs-list">{p.listTitle}</h2>
-        {records.length === 0 ? (
-          <p className="muted">{p.empty}</p>
-        ) : (
-          <ul className="plain-list">
-            {records.map((record) => (
-              <ProofItem key={record.id} record={record} lang={lang} p={p} secret={secret} />
-            ))}
-          </ul>
-        )}
-      </section>
-      {full ? (
+      {records.length === 0 ? (
+        <EmptyNote>{p.empty}</EmptyNote>
+      ) : (
+        <ul className="plain-list">
+          {records.map((record) => (
+            <ProofItem key={record.id} record={record} lang={lang} p={p} secret={secret} />
+          ))}
+        </ul>
+      )}
+      {records.length >= MAX_OWNED_URLS ? (
         <p className="muted measure">{p.errors.limit(MAX_OWNED_URLS)}</p>
       ) : (
-        <form action={addOwnedUrl} className="panel" aria-labelledby="proofs-add">
+        <form action={addOwnedUrl} className="reg-add" aria-labelledby="proofs-add">
           <input type="hidden" name="lang" value={lang} />
-          <h2 id="proofs-add">{p.addTitle}</h2>
+          <h3 id="proofs-add">{p.addTitle}</h3>
           <div className="field">
             <label htmlFor="proof-url">{p.addLabel}</label>
             <input id="proof-url" name="url" type="url" inputMode="url" required maxLength={MAX_OWNED_URL_LENGTH} placeholder="https://" autoComplete="url" aria-describedby="proof-url-hint" />
@@ -181,7 +176,60 @@ export default async function ProofsPage({ params, searchParams }: PageProps) {
           </button>
         </form>
       )}
-      <VerifiedMissionsPanel lang={lang} m={m} missions={missions} requests={requests} notice={missionNotice(mission, missionError, m)} />
+    </section>
+  );
+}
+
+/*
+ * "Preuves", the register of the freelancer (CONNECTED_PLAN §2.1, lot 2), in the order of a file: under the same
+ * cartouche as the home, what the public page shows as verified, each fact under its poinçon; then what is on trial
+ * with a client, and the form to ask for a confirmation; then the addresses to prove. Everything is read from the
+ * database on the server; the only script is the island that strikes a newly verified fact once per device.
+ */
+export default async function ProofsPage({ params, searchParams }: PageProps) {
+  const { lang } = await params;
+  if (!isLang(lang)) notFound();
+  const m = marketDictionary(lang);
+  const p = m.proofs;
+  const market = await pageMarket(lang, ["freelance"]);
+  if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
+  const now = new Date();
+  const [records, missions, requests, profile] = await Promise.all([
+    ownedUrls(market.db).list(market.actor),
+    verifiedMissions(market.db).listMine(market.actor),
+    missionConfirmations(market.db).listMine(market.actor, now),
+    profiles(market.db).findMine(market.actor),
+  ]);
+  // The public page as its visitors get it: the counts of its rail and its other verified facts.
+  const page = profile === null || profile.visibility === "private" || profile.slug === null ? null : await publicProfiles(market.db).page(profile.slug, now);
+  const standing = publicStanding(profile, page, lang);
+  const secret = proofSecret();
+  const { erreur, enregistre, prouve, mission, "mission-erreur": missionError } = await searchParams;
+  const error = errorText(erreur, p);
+
+  return (
+    <>
+      <header className="app-head">
+        <h1>{p.title}</h1>
+        <p className="muted measure">{p.lead}</p>
+        <PublicTally lang={lang} p={p} standing={standing} link={false} />
+      </header>
+      {error === null && prouve !== undefined ? (
+        <p className="form-ok" role="status">
+          {p.proven}
+        </p>
+      ) : null}
+      <ProofRegister
+        p={p}
+        missions={missions.map((verified) => missionSeal(verified, lang))}
+        addresses={addressSeals(records, lang)}
+        facts={factViews(page, lang)}
+        published={standing.kind === "published"}
+        pseudonymous={profile?.visibility === "pseudonymous"}
+      />
+      <MissionTrial lang={lang} m={m} requests={requests} notice={missionNotice(mission, missionError, m)} />
+      <Addresses lang={lang} p={p} records={records} secret={secret} error={error} saved={error === null && prouve === undefined && enregistre !== undefined} profileError={erreur === "profil"} />
+      <StrikeOnce scope="verifie" />
     </>
   );
 }

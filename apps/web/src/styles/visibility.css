@@ -12,7 +12,8 @@
 .vis-step-line b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .vis-bar { position: relative; display: block; height: 0.5rem; background: var(--ps-line); border-radius: 1px; overflow: hidden; }
 .vis-bar span { position: absolute; inset: 0 auto 0 0; width: var(--share, 0%); background: var(--ps-text); }
-.vis-step[data-step="cited"] .vis-bar span { background: var(--ps-signal); }
+/* A citation with a link is a measured fact, dated, whose source is the answer: the green of the register (CONNECTED_PLAN §6). */
+.vis-step[data-step="cited"] .vis-bar span { background: var(--ps-proof); }
 .vis-range { font-size: var(--ps-step--2); color: var(--ps-muted); }
 .vis-legend { margin: 0; display: grid; gap: var(--ps-space-3) var(--ps-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
 .vis-legend div { padding-top: var(--ps-space-3); border-top: 1px solid var(--ps-line); }
@@ -30,7 +31,7 @@
 .vis-todo > li > .tag { justify-self: start; }
 .vis-todo-body { display: grid; gap: var(--ps-space-1); min-width: 0; }
 .vis-todo-body strong { font-weight: 600; }
-.vis-todo-body a { justify-self: start; }
+.vis-todo-body a { justify-self: start; display: inline-flex; align-items: center; min-height: 2.75rem; }
 .vis-todo > li[data-done] .vis-todo-body strong { color: var(--ps-muted); font-weight: 500; }
 @media (max-width: 30rem) { .vis-todo > li { grid-template-columns: minmax(0, 1fr); } }
 .vis-group { font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); }

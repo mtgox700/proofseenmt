@@ -142,4 +142,13 @@ describe("the frame, rendered by the server", () => {
     expect(order.every((at) => at >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
+
+  it("makes every link of the menu and of the tabs a 44 x 44 target, the shortest tab included", () => {
+    const css = readFileSync(join(web, "src", "styles", "workspace.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    // The body of the rule whose selector is exactly this one, at the start of a line.
+    const rule = (selector: string): string => css.split("\n").find((line) => line.startsWith(`${selector} {`)) ?? "";
+    expect(rule(".ws-tabs a")).toMatch(/min-width: 2\.75rem/);
+    expect(rule(".ws-tabs a")).toMatch(/min-height: 2\.75rem/);
+    expect(rule(".ws-nav a")).toMatch(/min-height: 2\.75rem/);
+  });
 });

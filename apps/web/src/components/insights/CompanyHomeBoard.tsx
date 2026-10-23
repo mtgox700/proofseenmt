@@ -82,7 +82,7 @@ export async function CompanyHomeBoard({ lang, market, organisationId }: { reado
               foot: insights.firstResponse === null ? c.firstResponseNone : c.firstResponseHint,
             },
             { label: m.account.dashboard.openApplications, value: count(board.openApplications, lang) },
-            { label: c.contracts, value: count(contracts, lang), foot: m.account.dashboard.contractsFoot(board.contracts.active ?? 0, board.contracts.pending_signatures ?? 0) },
+            { label: c.contracts, value: count(contracts, lang), foot: m.account.dashboard.contractsFoot(board.contracts.active ?? 0, board.signatures) },
             { label: c.invoices, value: count(board.invoices, lang) },
           ]}
         />

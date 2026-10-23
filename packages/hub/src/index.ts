@@ -8,6 +8,7 @@ export { renderJobIndex, SINCE_DAYS, type JobIndexCity, type JobIndexFilters, ty
 export { cityUrl, renderCityPage, type CityMissionView, type CityPageView } from "./city-page";
 export { companyJsonLd, companySitemap, companyUrl, renderCompanyPage, type CompanyPageMission, type CompanyPageModel } from "./company-page";
 export { profileJsonLd, profileName, profileSitemap, profileUrl, renderProfilePage, type PublicProfile } from "./profile-page";
+export { factLines, PROOF_LABELS, proofTally, type FactLine, type ProofRegister } from "./profile-proofs";
 export { fileUrl, languageName, type PublicSectionsView, type SectionLanguageLevel } from "./profile-sections";
 export { renderSkillPage, skillSitemap, skillUrl, type SkillPageFactsView, type SkillPageView } from "./skill-page";
 export { renderSkillIndex, skillIndexUrl, type SkillIndexItem } from "./skill-index";

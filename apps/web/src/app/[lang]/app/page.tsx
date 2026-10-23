@@ -182,8 +182,7 @@ async function FreelanceHome({ lang, t, person, notice }: { readonly lang: Lang;
         )}
       </header>
       <HomeNoticeLine lang={lang} notice={notice} />
-      <FreelanceHomeBoard lang={lang} />
-      <FreelanceMissionsForYou lang={lang} />
+      <FreelanceHomeBoard lang={lang} forYou={<FreelanceMissionsForYou lang={lang} />} />
       {view === null ? (
         <p className="muted small">
           <Link href={`/${lang}/inscription`}>{marketDictionary(lang).profile.homeAudit}</Link>

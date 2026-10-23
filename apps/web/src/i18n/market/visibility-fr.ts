@@ -95,6 +95,19 @@ export const visibilityFr = {
     cited: (count: string, draws: string) => `cité·e avec lien dans ${count} réponses sur ${draws}`,
     measuredOn: (date: string) => `Mesure du ${date}`,
   },
+  /** Le registre des réponses (CONNECTED_PLAN §6, décision 1) : une case par réponse, verte quand elle vous cite. */
+  register: {
+    title: "Le registre de vos réponses",
+    caption: (cited: string, draws: string, date: string) => `Réponses qui vous citent avec un lien\u202f: ${cited} sur ${draws}. Mesure du ${date}.`,
+    engine: (engine: string, cited: string, draws: string) => `${engine}\u202f: ${cited} réponses citées avec lien sur ${draws}`,
+    key: "Une case par réponse obtenue, moteur par moteur. Une case verte est une réponse qui vous cite avec un lien vers une adresse prouvée\u202f: un fait mesuré, daté, dont la source est la réponse du moteur. Les autres restent à l'encre.",
+    none: "Aucune réponse ne vous cite avec un lien pour l'instant\u202f: aucune case ne s'allume.",
+    table: "Le registre en tableau",
+    tableEngine: "Moteur",
+    tableDraws: "Réponses obtenues",
+    tableCited: "Citées avec lien",
+    tableTotal: "Total",
+  },
   checklist: checklistFr,
   waves: {
     title: "Toutes les mesures",

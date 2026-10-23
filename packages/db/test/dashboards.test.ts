@@ -24,7 +24,7 @@ const PROOFSEEN: LegalSnapshot = { legalName: "Proofseen (test)", siret: "123456
 const NOW = new Date("2026-11-20T10:00:00Z");
 
 /** Une entreprise et un freelance avec un contrat actif de 10 jours à 600 €, en franchise de TVA, compte de versement prêt. */
-const signedContract = async () => {
+const signedContract = async (signatures: 0 | 1 | 2 = 2) => {
   const recruiter = await createUser(t.db);
   const org = await createOrganisation(t.db, recruiter);
   const freelanceUser = await createUser(t.db);
@@ -41,8 +41,8 @@ const signedContract = async () => {
   await quotes(t.db).decide({ userId: recruiter }, draft?.id ?? "", "accepted");
   const created = await contracts(t.db).createFromQuote({ userId: recruiter }, draft?.id ?? "", { startsOn: "2026-11-02" });
   if (created.kind !== "created") throw new Error(created.kind);
-  await contracts(t.db).sign({ userId: recruiter }, created.contract.id, NOW);
-  await contracts(t.db).sign({ userId: freelanceUser }, created.contract.id, NOW);
+  if (signatures >= 1) await contracts(t.db).sign({ userId: recruiter }, created.contract.id, NOW);
+  if (signatures >= 2) await contracts(t.db).sign({ userId: freelanceUser }, created.contract.id, NOW);
   return { id: created.contract.id, recruiter, freelanceUser, org, profile };
 };
 
@@ -101,6 +101,16 @@ describe("tableaux de bord", () => {
     const board = await dashboards(t.db).company({ userId: c.recruiter }, c.org);
     expect(board).toMatchObject({ missions: { open: 1, draft: 1 }, openApplications: 0, contracts: { completed: 1 }, spend: { currency: "EUR", paidCents: 600_000, heldCents: 0 }, invoices: 1 });
     expect(await dashboards(t.db).company({ userId: c.freelanceUser }, c.org)).toBeNull();
+  });
+
+  it("dit de quel côté attend chaque contrat à signer : l'entreprise d'abord, puis le freelance", async () => {
+    const c = await signedContract(0);
+    const board = async () => (await dashboards(t.db).company({ userId: c.recruiter }, c.org))?.signatures;
+    expect(await board()).toEqual({ company: 1, freelance: 0 });
+    await contracts(t.db).sign({ userId: c.recruiter }, c.id, NOW);
+    expect(await board()).toEqual({ company: 0, freelance: 1 });
+    await contracts(t.db).sign({ userId: c.freelanceUser }, c.id, NOW);
+    expect(await board()).toEqual({ company: 0, freelance: 0 });
   });
 
   it("dit qu'il n'y a pas de profil plutôt que d'inventer des chiffres", async () => {
