@@ -8,12 +8,14 @@ import {
   MONOGRAM_SMALL_PATH,
   PALETTE,
   PROFILE_CARD_CSS,
+  SEAL_CSS,
   THEME_COLOR,
   TYPE_SCALE,
   contrastRatio,
   fluid,
   renderChromeCss,
   renderProfileCardCss,
+  renderSealCss,
   renderTokensCss,
 } from "../src/index";
 
@@ -68,6 +70,20 @@ describe("brand tokens", () => {
     expect(PROFILE_CARD_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(PROFILE_CARD_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
     for (const rule of PROFILE_CARD_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
+  });
+
+  it("seal.css is exactly what src/seal.ts renders, under the same rules as the chrome", () => {
+    expect(readFileSync(join(root, "packages", "brand", "seal.css"), "utf8")).toBe(renderSealCss());
+    expect(SEAL_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity|font-size\s*:\s*0|scale[XY]?\(\s*0\s*\)/i);
+    expect(SEAL_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+    expect(SEAL_CSS).not.toContain(":hover");
+  });
+
+  it("the seal strikes only under no-preference, from a visible state, and its ring rests transparent", () => {
+    for (const rule of SEAL_CSS.split("\n").filter((line) => /animation:/.test(line))) expect(rule).toMatch(/^@media \(prefers-reduced-motion:no-preference\)/);
+    expect(SEAL_CSS).toContain(".seal::after{content:\"\";position:absolute;inset:-1px;border:1px solid transparent;");
+    expect(SEAL_CSS).toMatch(/@keyframes ps-strike\{0%,63%\{transform:scale\(1\.06\)/);
+    expect(SEAL_CSS).toMatch(/@keyframes ps-ink\{[^\n]*100%\{transform:scale\([^)]*\);border-color:transparent\}\}/);
   });
 
   it("can leave out the theme switch and the web fonts (hub, static site)", () => {

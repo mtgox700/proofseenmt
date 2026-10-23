@@ -338,11 +338,6 @@ export const fr = {
     signUpTitle: "Créer un compte",
     signInLead: "Un code arrive par e-mail. Aucun mot de passe à retenir.",
     nav: {
-      home: "Tableau de bord",
-      file: "Mon dossier",
-      directory: "Annuaire",
-      messages: "Messages",
-      site: "Retour au site",
       label: "Navigation de l'espace",
     },
     roles: { operator: "Opérateur", freelance: "Freelance", company: "Entreprise" } as Record<string, string>,

@@ -1,0 +1,18 @@
+/* Generated from packages/brand/src/seal.ts: do not edit by hand. */
+.proofline{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--ps-space-3) var(--ps-space-5);padding-top:var(--ps-space-4);border-top:1px dashed var(--ps-line)}
+.proofline::before{content:"";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(var(--ps-space-4) + .55rem - 4px);width:8px;height:8px;background:var(--ps-proof)}
+.trace{display:grid;gap:var(--ps-space-1);margin:0;font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);color:var(--ps-muted)}
+.trace div{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-2)}
+.trace dt{letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-faint)}
+.trace dd{margin:0;color:var(--ps-text);overflow-wrap:anywhere}
+.seal{position:relative;display:inline-flex;align-items:center;min-height:2rem;padding:var(--ps-space-1) var(--ps-space-3);border:1px solid var(--ps-proof);border-radius:var(--ps-radius);background:var(--ps-proof-wash);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.35 var(--ps-font-mono)}
+.seal::after{content:"";position:absolute;inset:-1px;border:1px solid transparent;border-radius:inherit;pointer-events:none}
+@supports (corner-shape:scoop){.seal{border-radius:var(--ps-radius-seal);corner-shape:scoop}.seal::after{corner-shape:scoop}}
+.sq{flex:none;display:inline-block;width:8px;height:8px;background:var(--ps-proof)}
+.sq.open{background:none;border:1px solid var(--ps-line-strong)}
+.stamp{display:flex;align-items:baseline;gap:var(--ps-space-2);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.4 var(--ps-font-mono)}
+@keyframes ps-strike{0%,63%{transform:scale(1.06);animation-timing-function:var(--ps-ease-strike)}76%{transform:scale(.97);animation-timing-function:var(--ps-ease-out)}88%,100%{transform:scale(1)}}
+@keyframes ps-ink{0%,76%{transform:scale(1);border-color:var(--ps-proof);animation-timing-function:var(--ps-ease-ink)}100%{transform:scale(1.05,1.45);border-color:transparent}}
+.sealed{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ps-space-2) var(--ps-space-4);min-width:0}
+.sealed .seal{max-width:100%;margin:0}
+@media (prefers-reduced-motion:no-preference){.seal[data-strike]{animation:ps-strike 1020ms linear -640ms both}.seal[data-strike]::after{animation:ps-ink 1020ms linear -640ms both}}

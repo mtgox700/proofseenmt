@@ -8,12 +8,12 @@ import { stepsFor } from "@/lib/dossier";
  */
 export function DossierPath({ t, action }: { readonly t: Dictionary["space"]; readonly action: NextAction }) {
   return (
-    <ol className="dossier">
+    <ol className="audit-path">
       {stepsFor(action).map((step) => (
         <li key={step.key} data-state={step.state} aria-current={step.state === "active" ? "step" : undefined}>
-          <span className="dossier-mark" aria-hidden="true" />
-          <div className="dossier-body">
-            <p className="dossier-title">
+          <span className="audit-mark" aria-hidden="true" />
+          <div className="audit-body">
+            <p className="audit-title">
               <strong>{t.steps[step.key].title}</strong>
               <span className={step.state === "active" ? (step.actor === "client" ? "tag tag-signal" : "tag tag-done") : "tag tag-quiet"}>
                 {step.state === "done" ? t.done : step.state === "blocked" ? t.blocked : step.state === "todo" ? t.todo : step.actor === "client" ? t.yours : t.ours}

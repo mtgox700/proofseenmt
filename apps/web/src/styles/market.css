@@ -5,7 +5,12 @@
 .panel { display: grid; gap: var(--ps-space-4); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
 .panel > h2 { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
 .panel-grid { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
-.field input[type="text"], .field input[type="number"], .field input[type="date"], .field input[type="email"], .field textarea {
+/*
+ * One rule for every control a person writes in: text (with or without its type), numbers, dates and months, e-mail
+ * and web addresses, phone numbers, searches, menus and long texts. Each gets a border at 3:1 (--ps-line-strong) and
+ * 16 px text, so iOS never zooms. Checkboxes, radios and files keep their own rules.
+ */
+.field :is(input:not([type]), input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="email"], input[type="url"], input[type="tel"], input[type="search"], input[type="password"]), .field select, .field textarea {
   width: 100%; min-height: 2.75rem; padding: 0.55rem 0.75rem; font: inherit; font-size: max(16px, var(--ps-step-0)); background: var(--ps-bg); color: var(--ps-text);
   border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius);
 }
@@ -71,7 +76,7 @@
 
 /* ---------- Live messaging (C15) ---------- */
 .live-count { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ps-text); }
-.app-bell { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-muted); text-decoration: none; }
+.app-bell { display: inline-flex; align-items: center; gap: 0.3em; min-height: 2.75rem; color: var(--ps-muted); text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .app-bell:hover { color: var(--ps-text); } }
 .thread-unread { margin-left: var(--ps-space-2); color: var(--ps-text); vertical-align: middle; }
 .thread-row[data-unread] { border-color: var(--ps-line-strong); }

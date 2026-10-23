@@ -11,6 +11,7 @@ import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { day, month } from "@/lib/format";
 import { uuidOf } from "@/lib/market";
 import { decideMissionByLink } from "./actions";
+import "@/styles/workspace.css";
 import "@/styles/market.css";
 
 /*

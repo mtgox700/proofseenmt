@@ -23,6 +23,7 @@ import { settingsEn } from "./settings-en";
 import { standingEn } from "./standing-en";
 import { teamEn } from "./team-en";
 import { visibilityEn } from "./visibility-en";
+import { workspaceNavEn } from "./workspace-nav-en";
 
 export const marketEn: MarketDictionary = {
   account: accountEn,
@@ -48,6 +49,7 @@ export const marketEn: MarketDictionary = {
   standing: standingEn,
   team: teamEn,
   visibility: visibilityEn,
+  workspaceNav: workspaceNavEn,
   nav: {
     messages: "Messages",
     missions: "Missions",

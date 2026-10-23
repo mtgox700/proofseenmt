@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { checkAccess, MIN_SECRET_LENGTH } from "@proofseen/access";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";

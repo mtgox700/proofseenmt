@@ -6,3 +6,4 @@ export { TOKENS_CSS, renderTokensCss } from "./tokens";
 export type { TokensCssOptions } from "./tokens";
 export { CHROME_CSS, ICONS, LOCKUP, MONOGRAM_SMALL_PATH, SHARE_CARD, renderChromeCss } from "./chrome";
 export { PROFILE_CARD_CSS, renderProfileCardCss } from "./profile-card";
+export { SEAL_CSS, SEAL_KEYFRAMES, SEAL_LINE, SEAL_REACT, SEAL_SQUARE, renderSealCss } from "./seal";
