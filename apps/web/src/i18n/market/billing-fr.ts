@@ -31,6 +31,12 @@ export const billingFr = {
     mismatch: "Ce SIRET est enregistré sous un autre nom que la raison sociale déclarée.",
     pending: "Contrôle au répertoire en attente.",
     checkedOn: "contrôlé le",
+    /** Green, in a cartouche: a fact Proofseen checked in the official register, with its date. */
+    sealActive: (date: string) => `SIRET actif au répertoire officiel, contrôlé le ${date}`,
+    source: "Source",
+    sourceValue: "Répertoire officiel des entreprises (Recherche d'entreprises)",
+    nameMatch: "Nom",
+    nameMatchValue: "conforme à la raison sociale déclarée",
   },
   payouts: {
     title: "Compte de versement",
@@ -49,6 +55,7 @@ export const billingFr = {
     expired: "Le lien Stripe a expiré\u202f: demandez-en un nouveau.",
     testMode: "Mode test\u202f: utilisez les données de test de Stripe, aucune somme réelle n'est versée.",
     closed: "Les versements ouvrent bientôt\u202f: vous serez prévenu dans cet espace.",
+    noscript: "Ouvrir le compte de versement demande JavaScript\u202f: le lien vers Stripe est créé à la demande.",
     errors: {
       generic: "Le lien Stripe n'a pas pu être créé. Réessayez dans un instant.",
       identity: "Identité de facturation requise\u202f: renseignez votre adresse et votre pays ci-dessous.",
@@ -64,6 +71,11 @@ export const billingFr = {
     declare: "Déclarer l'attestation",
     states: { missing: "Aucune attestation déclarée.", valid: "Attestation valable jusqu'au", expired: "Attestation expirée le" },
     verified: "vérifiée par Proofseen",
+    /** Green, in a cartouche: an operator checked the code on the URSSAF site. */
+    sealVerified: (date: string) => `Attestation URSSAF vérifiée le ${date}`,
+    validUntil: "Valable jusqu'au",
+    checkedBy: "Vérifiée par",
+    checkedByValue: "Proofseen, sur le site de l'URSSAF",
     unverified: "en attente de vérification",
     saved: "Attestation déclarée.",
     errors: { expired: "Cette attestation a plus de six mois\u202f: téléchargez-en une nouvelle.", future: "La date de délivrance est dans le futur.", invalid: "Vérifiez la date et le code de sécurité." },

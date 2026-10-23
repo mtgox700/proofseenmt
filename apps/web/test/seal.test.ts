@@ -59,6 +59,9 @@ describe("the seal of a verified fact", () => {
       .sort();
     // Lots 2 to 4 add their screens here, each with the fact read from the database that earns the green.
     expect(users).toEqual([
+      // Lot 4: the SIRET checked active in the official register and the URSSAF certificate an operator verified, each
+      // with the day of the check (billing identity of the freelancer, legal identity of the company).
+      "app/[lang]/app/facturation/page.tsx",
       // Lot 4: the last line of the thread of a deal, only when the verified mission (paid on Proofseen) is in the database.
       "components/market/DealThread.tsx",
     ]);
