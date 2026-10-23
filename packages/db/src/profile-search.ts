@@ -268,15 +268,23 @@ const toCard = (row: Row, since: Date): ProfileCard => {
   };
 };
 
-/** Les cartes de ces profils, dans l'ordre des identifiants reçus. */
+/** Les cartes de ces profils publiés, dans l'ordre des identifiants reçus ; un profil qui n'est plus publié est omis. */
 const cardsInOrder = async (db: Db, ids: readonly string[], since: Date): Promise<readonly ProfileCard[]> => {
-  const rows = await db.freelanceProfile.findMany({ where: { id: { in: [...ids] } }, select: SELECT });
+  if (ids.length === 0) return [];
+  const rows = await db.freelanceProfile.findMany({ where: { id: { in: [...ids] }, ...PUBLISHED_PROFILE }, select: SELECT });
   const byId = new Map(rows.map((row) => [row.id, row]));
   return ids.flatMap((id) => {
     const row = byId.get(id);
     return row === undefined ? [] : [toCard(row, since)];
   });
 };
+
+/**
+ * La carte unique de ces profils, pour un écran qui les a déjà choisis (une liste de l'entreprise, des profils proches,
+ * une candidature) : la même lecture et les mêmes faits que la recherche, dans l'ordre reçu, sans en créer aucun
+ * (AI Act). Seuls les profils publiés ont une carte ; l'appelant montre les autres par leur seule référence.
+ */
+export const profileCardsInOrder = (db: Db, ids: readonly string[], now: Date): Promise<readonly ProfileCard[]> => cardsInOrder(db, ids, sixMonthsBefore(now));
 
 export const searchProfiles = async (db: Db, raw: ProfileSearch, now: Date): Promise<ProfileSearchPage> => {
   const f = ProfileSearchSchema.parse(raw);

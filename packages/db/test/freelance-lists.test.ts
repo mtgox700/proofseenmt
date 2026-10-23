@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { freelanceLists, MAX_ITEMS_PER_LIST, MAX_LISTS_PER_ORGANISATION } from "../src/freelance-lists";
 import { gdpr } from "../src/gdpr";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "./support/database";
+import { searchProfiles } from "../src/profile-search";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, verifiedVigilance, type TestDatabase } from "./support/database";
 
 /*
  * Listes de freelances d'une entreprise : partagées entre collègues, fermées aux autres entreprises, plafonnées, et
@@ -129,8 +130,43 @@ describe("contrôle d'accès dans chaque requête", () => {
     await t.db.freelanceProfile.update({ where: { id: profileId }, data: { visibility: "private" } });
     const item = (await freelanceLists(t.db).detail({ userId: owner }, listId))?.items[0];
     expect(item?.published).toBe(false);
-    expect([item?.headline, item?.city, item?.slug, item?.skills]).toEqual([null, null, null, []]);
+    expect(item?.card).toBeNull();
     expect(item?.reference).toMatch(/^FR-/);
+  });
+});
+
+describe("une seule carte de freelance (refonte de l'espace connecté, lot 5)", () => {
+  it("une ligne de liste porte la carte de la recherche : mêmes faits vérifiés, mise à jour, disponibilité et langues", async () => {
+    const { owner, organisationId } = await company();
+    const listId = await newList(owner, organisationId);
+    const proven = await freelancer();
+    await t.db.ownedUrl.create({ data: { profileId: proven.profileId, url: "https://liste.example/", urlKey: "https://liste.example", proofMethod: "meta_tag", verifiedAt: new Date() } });
+    await verifiedVigilance(t.db, proven.profileId);
+    await t.db.profileLanguage.create({ data: { profileId: proven.profileId, code: "en", level: "c1" } });
+    await freelanceLists(t.db).addItem({ userId: owner }, listId, proven.profileId);
+
+    const now = new Date();
+    const item = (await freelanceLists(t.db).detail({ userId: owner }, listId, now))?.items[0];
+    const searched = (await searchProfiles(t.db, { pageSize: 50 }, now)).items.find((card) => card.id === proven.profileId);
+    expect(searched).toBeDefined();
+    expect(item?.card).toEqual(searched);
+    expect([item?.card?.verifiedUrls, item?.card?.vigilanceValid, item?.card?.languages]).toEqual([1, true, [{ code: "en", level: "c1" }]]);
+    expect(item?.card?.updatedAt).toBeInstanceOf(Date);
+    expect(item?.card?.availabilityAt).toBeInstanceOf(Date);
+  });
+
+  it("garde l'ordre d'ajout, jamais un ordre par faits vérifiés (AI Act)", async () => {
+    const { owner, organisationId } = await company();
+    const listId = await newList(owner, organisationId);
+    const proven = await freelancer();
+    const plain = await freelancer();
+    await t.db.ownedUrl.create({ data: { profileId: proven.profileId, url: "https://ordre.example/", urlKey: "https://ordre.example", proofMethod: "meta_tag", verifiedAt: new Date() } });
+    await freelanceLists(t.db).addItem({ userId: owner }, listId, proven.profileId);
+    await freelanceLists(t.db).addItem({ userId: owner }, listId, plain.profileId);
+    const items = (await freelanceLists(t.db).detail({ userId: owner }, listId))?.items ?? [];
+    // Le plus récent d'abord : le profil sans fait vérifié, ajouté en dernier, reste en tête.
+    expect(items.map((i) => i.profileId)).toEqual([plain.profileId, proven.profileId]);
+    expect(items.map((i) => i.card?.verifiedUrls)).toEqual([0, 1]);
   });
 });
 
@@ -148,7 +184,7 @@ describe("profil retiré du public par un opérateur (revue vague 3, L9)", () =>
     expect(items).toHaveLength(2);
     for (const item of items) {
       expect(item.published).toBe(false);
-      expect([item.headline, item.city, item.slug, item.skills]).toEqual([null, null, null, []]);
+      expect(item.card).toBeNull();
     }
   });
 });

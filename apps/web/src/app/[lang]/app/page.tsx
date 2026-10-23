@@ -11,10 +11,12 @@ import { readHomeNotice, type HomeNotice } from "@/lib/home-notice";
 import { requirePerson, type Person } from "@/lib/session";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { CompanyHomeBoard } from "@/components/insights/CompanyHomeBoard";
+import { CompanyToDo } from "@/components/insights/CompanyToDo";
 import { FreelanceHomeBoard } from "@/components/insights/FreelanceHomeBoard";
 import { FreelanceMissionsForYou } from "@/components/market/MissionsForYou";
 import { marketDictionary } from "@/i18n/market";
 import { currentOrganisation, pageMarket } from "@/lib/market";
+import { companyDesk } from "@proofseen/db";
 import { createOrganisation } from "./actions";
 
 /** Depends on who is signed in (and on whether sign-in is configured): rendered per request, never frozen at build. */
@@ -245,6 +247,7 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
   const market = await pageMarket(lang, ["company"]);
   if (market === "unconfigured") return <MarketUnavailable text={m.notConfigured} />;
   const organisation = await currentOrganisation(market);
+  const desk = organisation === null ? null : await companyDesk(market.db).forCompany(market.actor, organisation.id, new Date());
   return (
     <>
       <header className="app-head">
@@ -258,7 +261,8 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
         )}
         <p className="muted measure">{c.lead}</p>
       </header>
-      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : <CompanyHomeBoard lang={lang} market={market} organisationId={organisation.id} />}
+      {organisation === null ? <CreateOrganisation lang={lang} error={error} /> : null}
+      {organisation === null || desk === null ? null : <CompanyToDo lang={lang} t={m.confirmDesk.todo} organisation={organisation.name} desk={desk} />}
       <form className="filters" method="get" action={`/${lang}/app/recherche`} role="search" aria-label={c.search}>
         <div className="field">
           <label htmlFor="skill">{t.directory.form.skill}</label>
@@ -274,6 +278,7 @@ async function CompanyHome({ lang, t, person, error }: { readonly lang: Lang; re
           <button type="submit" className="btn btn-primary">{c.search}</button>
         </div>
       </form>
+      {organisation === null ? null : <CompanyHomeBoard lang={lang} market={market} organisationId={organisation.id} />}
     </>
   );
 }

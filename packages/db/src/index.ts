@@ -212,6 +212,7 @@ export {
 } from "./payments";
 export { ReviewInputSchema, reviews, type PublicReview, type ReviewInput, type Reviews, type WriteReviewResult } from "./reviews";
 export { dashboards, type CompanyDashboard, type Dashboards, type FreelanceDashboard } from "./dashboards";
+export { companyDesk, type CompanyDesk, type CompanyDesks } from "./company-desk";
 export { visibility, WaveRecordSchema, type EngineResult, type Visibility, type WaveRecord, type WaveView } from "./visibility";
 export {
   CompletionSchema,
@@ -266,6 +267,7 @@ export { INBOX_LIMIT, inbox, type Counterpart, type Inbox, type InboxThread, typ
 export { isUniqueViolation } from "./errors";
 export { billingView, type BillingView, type FreelanceIdentityView, type OrganisationIdentityView, type RegistryView } from "./billing-view";
 export { CONTRACT_LIST_LIMIT, contractView, type ContractDetail, type ContractSide, type ContractSummary, type ContractView } from "./contract-view";
+export { dealDates, type ContractDates, type ConversationDates, type DealDates } from "./deal-dates";
 export { organisationView, type MemberView, type OrganisationView } from "./organisation-view";
 export {
   MAX_OWNED_URL_LENGTH,
@@ -455,7 +457,7 @@ export { matching, MAX_MATCH_CANDIDATES, type Matching, type ProfileForMission, 
 // C22, recherche avancée : facettes, recherches enregistrées, annuaire des entreprises.
 export { profileFacets, type FacetValue, type ProfileFacets } from "./profile-facets";
 export { MAX_SCAN as MAX_PROFILE_SCAN, MAX_TEXT_MATCHES as MAX_PROFILE_TEXT_MATCHES } from "./profile-search-ids";
-export type { ProfileSearchFilters } from "./profile-search";
+export { profileCardsInOrder, type ProfileSearchFilters } from "./profile-search";
 export {
   MAX_SAVED_SEARCHES_PER_ORGANISATION,
   MAX_SEARCH_ALERTS_PER_USER,

@@ -61,7 +61,6 @@ export const matchingEn: MatchingDictionary = {
     empty: "No published profile shares a skill with this mission yet.",
     invite: "Invite to apply",
     invited: "Already invited",
-    profile: "View the profile",
     addTo: "Add to the list",
     add: "Add",
     noList: "Create a list",

@@ -1,5 +1,6 @@
 import { shownAvailability, type ProfileCard } from "@proofseen/db";
-import type { ProfileCardView } from "@proofseen/hub";
+import { anyVerifiedCard, profileCardLegend, type ProfileCardView } from "@proofseen/hub";
+import type { Lang } from "@/i18n";
 
 /*
  * A company search result, seen as the one profile card of the marketplace (@proofseen/hub, `profileCardBody`): the
@@ -32,3 +33,11 @@ export const profileCardView = (card: ProfileCard, now: Date): ProfileCardView =
   },
   updatedAt: card.updatedAt,
 });
+
+/**
+ * The key of the cards shown together (search results, a list, the profiles close to a mission), as on the public
+ * directory: the green square only when one of these cards carries a verified fact (Kensa M5). A page without proof
+ * has no green.
+ */
+export const profileCardKey = (cards: readonly ProfileCard[], lang: Lang, now: Date): string =>
+  profileCardLegend(lang, { proof: anyVerifiedCard(cards.map((card) => profileCardView(card, now))) });

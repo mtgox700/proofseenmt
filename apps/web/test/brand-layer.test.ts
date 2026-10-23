@@ -137,7 +137,6 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
       .sort();
     expect(users).toEqual([
       "app/[lang]/app/preuves/page.tsx",
-      "components/market/FreelancerCard.tsx",
       "components/market/VerifiedMissionsPanel.tsx",
       "components/visibility/ProfileChecklist.tsx",
     ]);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb, missionConfirmations, monthsBetween, type ConfirmationRecordedDecision, type ConfirmationView, type TokenLookup } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";
+import { ConfirmationAck } from "@/components/market/ConfirmationAck";
 import { ConfirmationDecisionForm } from "@/components/market/ConfirmationDecisionForm";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -79,21 +80,30 @@ function Facts({ lang, m, view }: { readonly lang: Lang; readonly m: MarketDicti
   );
 }
 
-/** The answer as recorded: what was decided and on which day. Not an empty state: something did happen. */
+/**
+ * The answer as recorded: what was decided and on which day, read with the token. Not an empty state: something did
+ * happen. Confirmed, the contact sees the mark the mission now carries on the freelancer's profile, struck once if the
+ * answer was just given.
+ */
 function Decided({ lang, m, view, recorded }: { readonly lang: Lang; readonly m: MarketDictionary; readonly view: ConfirmationView; readonly recorded: ConfirmationRecordedDecision }) {
   const p = m.confirmations.public;
   const confirmed = recorded.decision === "confirmed";
-  const on = day(recorded.decidedAt, lang);
   return (
-    <article className="panel" aria-labelledby="confirm-title">
-      <h1 id="confirm-title">{confirmed ? p.confirmedTitle : p.refusedTitle}</h1>
-      <p className={confirmed ? "form-ok" : undefined}>
-        <time dateTime={recorded.decidedAt.toISOString()}>{confirmed ? p.confirmedOn(on) : p.refusedOn(on)}</time>
-      </p>
-      <p className="muted small">{p.reference(view.reference)}</p>
+    <ConfirmationAck
+      lang={lang}
+      d={m.confirmDesk.ack}
+      id={view.id}
+      recorded={recorded}
+      by="contact"
+      reference={view.reference}
+      title={confirmed ? p.confirmedTitle : p.refusedTitle}
+      headingLevel={1}
+      now={new Date()}
+      footer={confirmed ? <p className="measure">{m.confirmDesk.ack.contactDone}</p> : null}
+    >
+      <p className="ack-claim small">{p.reference(view.reference)}</p>
       <Facts lang={lang} m={m} view={view} />
-      <p className="measure">{confirmed ? p.confirmedText : p.refusedText}</p>
-    </article>
+    </ConfirmationAck>
   );
 }
 

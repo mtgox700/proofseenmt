@@ -1,10 +1,16 @@
+import "@proofseen/brand/profile-card.css";
+import "@/styles/app-choisir.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { applicationDetails } from "@proofseen/db";
+import { applicationDetails, profileCardsInOrder } from "@proofseen/db";
+import { FactLines } from "@/components/market/FactLines";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { StatusTag } from "@/components/market/StatusTag";
+import { ProfileResultCard } from "@/components/search/ProfileResultCard";
+import { ReferenceCard } from "@/components/search/ReferenceCard";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
+import { candidateFactLines } from "@/lib/candidate-facts";
 import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 import { decideApplication } from "../../../actions";
@@ -31,8 +37,11 @@ export default async function ApplicationPage({ params }: PageProps) {
   const s = dict.missionsSpace;
   const market = await pageMarket(lang, ["company"]);
   if (market === "unconfigured") return <MarketUnavailable text={dict.notConfigured} />;
-  const detail = await applicationDetails(market.db).open(market.actor, applicationId, new Date());
+  const now = new Date();
+  const detail = await applicationDetails(market.db).open(market.actor, applicationId, now);
   if (detail === null || detail.mission.id !== id) notFound();
+  // The one profile card while the profile is published; afterwards, its reference and the facts the application carried.
+  const [card] = detail.profile.slug === null ? [] : await profileCardsInOrder(market.db, [detail.profile.id], now);
   const open = detail.status === "submitted" || detail.status === "shortlisted";
 
   return (
@@ -55,20 +64,22 @@ export default async function ApplicationPage({ params }: PageProps) {
         <h2 id="profile-title" className="sr-only">
           {detail.profile.reference}
         </h2>
-        <p>
-          <strong>{detail.profile.reference}</strong>
-          {detail.profile.headline === null ? null : <span className="muted"> · {detail.profile.headline}</span>}
-        </p>
-        <p className="muted small">{m.detail.facts(detail.profile.verifiedUrls, detail.profile.verifiedMissions)}</p>
-        <p>
-          {detail.profile.slug === null ? (
-            <span className="muted small">{s.detail.privateProfile}</span>
+        <div className="choice-one">
+          {card === undefined ? (
+            <ReferenceCard reference={detail.profile.reference} title={dict.search.card.pseudonym(detail.profile.reference)} headingId={`card-${detail.applicationId}`} {...(detail.profile.slug === null ? { note: s.detail.privateProfile } : {})}>
+              <FactLines lines={candidateFactLines(detail.profile, s.board)} label={s.board.factsLabel(detail.profile.reference)} />
+            </ReferenceCard>
           ) : (
-            <Link className="btn" href={`/${lang}/profils/${detail.profile.slug}`}>
-              {s.detail.profile}
-            </Link>
+            <ProfileResultCard lang={lang} card={card} now={now}>
+              {card.slug === null ? null : (
+                // The public page is raw HTML from a route handler: a plain link, a full page load.
+                <a className="btn" href={`/${lang}/profils/${card.slug}`}>
+                  {s.detail.profile}
+                </a>
+              )}
+            </ProfileResultCard>
           )}
-        </p>
+        </div>
       </section>
 
       <section className="ws-block" aria-labelledby="cv-title">

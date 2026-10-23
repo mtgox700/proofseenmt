@@ -45,7 +45,9 @@ export default async function ContractsPage({ params }: PageProps) {
                 </span>
                 <StatusTag status={contract.status} label={c.status[contract.status]} />
                 <span className="thread-last muted">{money(contract.totalCents, contract.currency, lang)} {c.exclVat}</span>
-                <span className="thread-date muted small">{date(contract.startsOn.toISOString(), lang)}</span>
+                <span className="thread-date muted small">
+                  {c.from} {date(contract.startsOn.toISOString(), lang)}
+                </span>
               </Link>
             </li>
           ))}

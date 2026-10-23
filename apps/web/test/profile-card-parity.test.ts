@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { toDirectoryCard, type ProfileCard } from "@proofseen/db";
@@ -101,8 +101,24 @@ describe("one profile card for the directory and the company search", () => {
     expect(component).not.toMatch(/className="pc-|className="badge|className="avatar/);
     const page = read("src", "app", "[lang]", "app", "recherche", "page.tsx");
     expect(page).toContain('import "@proofseen/brand/profile-card.css";');
-    expect(page).toContain("profileCardLegend(lang)");
+    // The key of the cards: green only when a card on screen carries a verified fact (Kensa M5).
+    expect(page).toContain("profileCardKey(page.items, lang, now)");
     // The old copy of the card's CSS is gone from the React styles: one definition, in @proofseen/brand.
     expect(read("src", "styles", "discovery.css")).not.toMatch(/\.pc-count|\.pc-proof|\.pc-headline|\.fiche-card|\.fc-/);
+  });
+
+  it("is the only freelancer card of the application: lists, close profiles and applications use it too (lot 5)", () => {
+    expect(existsSync(join(web, "src", "components", "market", "FreelancerCard.tsx"))).toBe(false);
+    const screens = [
+      ["src", "app", "[lang]", "app", "listes", "[id]", "page.tsx"],
+      ["src", "app", "[lang]", "app", "missions", "[id]", "candidatures", "[applicationId]", "page.tsx"],
+      ["src", "components", "market", "ProfilesForMission.tsx"],
+    ];
+    for (const parts of screens) {
+      const source = read(...parts);
+      expect(source, parts.join("/")).toContain("<ProfileResultCard ");
+      expect(source, parts.join("/")).toContain('import "@proofseen/brand/profile-card.css";');
+      expect(source, parts.join("/")).not.toMatch(/FreelancerCard|className="profile-row|className="profile-facts/);
+    }
   });
 });

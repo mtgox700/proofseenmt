@@ -15,7 +15,7 @@
 .chart-muted { --chart-ink: var(--ps-muted); }
 .chart-faint { --chart-ink: var(--ps-faint); }
 .chart-details { margin-top: var(--ps-space-3); }
-.chart-details > summary { cursor: pointer; color: var(--ps-focus); font-size: var(--ps-step--1); }
+.chart-details > summary { cursor: pointer; padding-block: var(--ps-space-3); color: var(--ps-focus); font-size: var(--ps-step--1); }
 .chart-details[open] > summary { margin-bottom: var(--ps-space-3); }
 .chart-details .table-scroll { max-height: 28rem; overflow: auto; }
 

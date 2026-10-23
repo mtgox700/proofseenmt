@@ -2,7 +2,9 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { paymentsUi } from "../src/data/payments-config";
-import { isPayer, payoutState, redirectStatus, returnState, showPayClosed, showPayForm, type PayContext } from "../src/lib/pay-section";
+import { contrastRatio, PALETTE } from "@proofseen/brand";
+import { appearanceTheme, isPayer, payoutState, redirectStatus, returnState, showPayClosed, showPayForm, type PayContext } from "../src/lib/pay-section";
+import { stripeAppearances } from "../src/lib/stripe-appearance";
 import { isStripeOnboardingUrl, isTestKey, publishableKey, STRIPE_JS_URL } from "../src/lib/stripe-public";
 import { billingEn } from "../src/i18n/market/billing-en";
 import { billingFr } from "../src/i18n/market/billing-fr";
@@ -128,6 +130,42 @@ describe("payment strings", () => {
       expect(deals.contracts.pay.client.amountDue).toContain("{amount}");
     }
     for (const billing of [billingFr, billingEn]) expect(plain(billing.payouts)).toBe(true);
+  });
+});
+
+describe("the Stripe form in the page's colours", () => {
+  const sets = stripeAppearances();
+
+  it("draws each theme from the brand palette, never the proof green", () => {
+    for (const theme of ["dark", "light"] as const) {
+      const p = PALETTE[theme];
+      const { variables, rules } = sets[theme];
+      expect(variables).toMatchObject({ colorBackground: p.bg, colorText: p.text, colorDanger: p.danger, borderRadius: "4px", fontSizeBase: "16px" });
+      expect(rules[".Input"]?.border).toBe(`1px solid ${p.lineStrong}`);
+      expect(rules[".Input:focus"]?.boxShadow).toBe(`0 0 0 2px ${p.focus}`);
+      expect(JSON.stringify(sets[theme]).toLowerCase()).not.toContain(p.proof.toLowerCase());
+      // Edges of the fields at 3:1, text and labels at 4.5:1 on the form's background.
+      expect(contrastRatio(p.lineStrong, p.bg)).toBeGreaterThanOrEqual(3);
+      for (const fg of [p.text, p.muted, p.faint, p.danger]) expect(contrastRatio(fg, p.bg)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(sets.dark.theme).toBe("night");
+    expect(sets.light.theme).toBe("stripe");
+  });
+
+  it("is handed to the form as plain strings, so the palette never ships to the browser", () => {
+    const plain = (value: unknown): boolean => typeof value === "string" || (typeof value === "object" && value !== null && Object.values(value).every(plain));
+    expect(plain(sets)).toBe(true);
+    const form = readFileSync(join(__dirname, "..", "src", "components", "market", "EscrowPayment.tsx"), "utf8");
+    expect(form).not.toMatch(/from ["']@proofseen\/brand["']/);
+    expect(form).toMatch(/import type \{ StripeAppearances \} from "@\/lib\/stripe-appearance"/);
+  });
+
+  it("takes the theme in force when it mounts: an explicit theme on the page, else the system, dark by default", () => {
+    expect(appearanceTheme(undefined, false)).toBe("dark");
+    expect(appearanceTheme(undefined, true)).toBe("light");
+    expect(appearanceTheme("dark", true)).toBe("dark");
+    expect(appearanceTheme("light", false)).toBe("light");
+    expect(appearanceTheme("sepia", true)).toBe("light");
   });
 });
 

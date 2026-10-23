@@ -59,6 +59,15 @@ describe("the seal of a verified fact", () => {
       .sort();
     // Lots 2 to 4 add their screens here, each with the fact read from the database that earns the green.
     expect(users).toEqual([
+      // In the sorted order of their paths.
+      // Lot 4: the SIRET checked active in the official register and the URSSAF certificate an operator verified, each
+      // with the day of the check (billing identity of the freelancer, legal identity of the company).
+      "app/[lang]/app/facturation/page.tsx",
+      // Lot 3: a mission confirmed by the client, read in the database (in the companies the person administers, or
+      // with the token of the signed link); a refusal carries no seal.
+      "components/market/ConfirmationAck.tsx",
+      // Lot 4: the last line of the thread of a deal, only when the verified mission (paid on Proofseen) is in the database.
+      "components/market/DealThread.tsx",
       // Lot 6: the operator's acknowledgement of a URSSAF certificate, read back by vigilanceDesk.verified().
       "components/operator/VerificationQueues.tsx",
     ]);
