@@ -58,6 +58,10 @@ describe("the seal of a verified fact", () => {
       .map((f) => relative(src, f).replace(/\\/g, "/"))
       .sort();
     // Lots 2 to 4 add their screens here, each with the fact read from the database that earns the green.
-    expect(users).toEqual([]);
+    expect(users).toEqual([
+      // Lot 3: a mission confirmed by the client, read in the database (in the companies the person administers, or
+      // with the token of the signed link); a refusal carries no seal.
+      "components/market/ConfirmationAck.tsx",
+    ]);
   });
 });

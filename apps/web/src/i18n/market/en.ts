@@ -5,6 +5,7 @@ import { articlesEn } from "./articles-en";
 import { billingEn } from "./billing-en";
 import { communityEn } from "./community-en";
 import { confirmationsEn } from "./confirmations-en";
+import { confirmDeskEn } from "./confirm-desk-en";
 import { invitationsEn } from "./invitations-en";
 import { dealsEn } from "./deals-en";
 import { discoveryEn } from "./discovery-en";
@@ -31,6 +32,7 @@ export const marketEn: MarketDictionary = {
   billing: billingEn,
   community: communityEn,
   confirmations: confirmationsEn,
+  confirmDesk: confirmDeskEn,
   invitations: invitationsEn,
   deals: dealsEn,
   discovery: discoveryEn,

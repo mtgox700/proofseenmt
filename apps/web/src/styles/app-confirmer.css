@@ -1,0 +1,37 @@
+/* Lot 3 of the connected space, « confirmer » (CONNECTED_PLAN section 3): the acknowledgement of a decision read in the
+   database, the requests still waiting, and « À traiter » on the company home. Loaded by those three screens only.
+   No green of its own: the poinçon is @proofseen/brand/seal.css, drawn by components/proof/Seal.tsx. Nothing starts
+   hidden: every block is drawn in its final state, and the only gesture is the strike of the seal itself. */
+
+/* ---------- The acknowledgement: a line of the register, then the mark as the profile now carries it ---------- */
+.ack { display: grid; gap: var(--ps-space-3); min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.ack .kicker { margin: 0; color: var(--ps-muted); }
+.ack > h1, .ack > h2 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); overflow-wrap: anywhere; }
+.ack-claim { color: var(--ps-muted); overflow-wrap: anywhere; }
+.ack-lead { max-width: var(--ps-measure); text-wrap: pretty; }
+.ack-seal { min-width: 0; padding-block: var(--ps-space-2); }
+.ack-seal .seal { min-height: 2.75rem; }
+.ack-refused { font: var(--ps-weight-mono) var(--ps-step--1) / 1.45 var(--ps-font-mono); color: var(--ps-text); overflow-wrap: anywhere; }
+
+/* ---------- Requests waiting: the state in words, its deadline in the trace face, amber because it is on trial ---------- */
+.pending-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-2) var(--ps-space-3); }
+.pending-head h2 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); letter-spacing: var(--ps-track-2); }
+.pending-count { font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); color: var(--ps-muted); }
+.pending .panel > h3 { font-size: var(--ps-step-1); overflow-wrap: anywhere; }
+.pending-when { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-3); font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); color: var(--ps-signal); }
+
+/* ---------- À traiter: one row per kind of work, its count, what it is, its deadline; a row to do is a link ---------- */
+.todo-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ps-line); }
+.todo-list > li { border-bottom: 1px solid var(--ps-line); }
+.todo-row { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); align-items: baseline; gap: 0 var(--ps-space-4); min-height: 3rem; padding: var(--ps-space-3) var(--ps-space-2); }
+a.todo-row { text-decoration: none; border-radius: var(--ps-radius); transition: background-color var(--ps-dur-ui) var(--ps-ease-out); }
+a.todo-row .todo-what { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+a.todo-row:focus-visible { outline: 2px solid var(--ps-focus); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  a.todo-row:hover { background: var(--ps-raised); }
+}
+.todo-n { grid-row: span 2; font: var(--ps-weight-display) var(--ps-step-2) / 1 var(--ps-font-display); font-variant-numeric: tabular-nums lining-nums; text-align: end; }
+.todo-what { overflow-wrap: anywhere; }
+.todo-when { grid-column: 2; font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); color: var(--ps-signal); }
+.todo-row.is-clear { color: var(--ps-muted); }
+.todo-row.is-clear .todo-n { color: var(--ps-faint); }
