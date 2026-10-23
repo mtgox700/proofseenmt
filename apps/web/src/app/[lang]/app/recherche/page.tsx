@@ -5,7 +5,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { freelanceLists, profileFacets, profiles, savedSearches, statKeywords, type ListSummary, type ProfileCard } from "@proofseen/db";
-import { profileCardLegend } from "@proofseen/hub";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { ProfileResultCard } from "@/components/search/ProfileResultCard";
@@ -19,6 +18,7 @@ import { isLang, type Lang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { searchFilters, searchHref, searchParamsOf, searchQuery, type SearchQuery } from "@/lib/freelancer-search";
 import { currentOrganisation, pageMarket } from "@/lib/market";
+import { profileCardKey } from "@/lib/profile-card-view";
 import { addToList } from "../listes/actions";
 import { suggestFilters } from "./actions";
 
@@ -233,8 +233,8 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
             <EmptyState title={s.results.none} headingLevel={3} />
           ) : (
             <>
-              {/* The key of the cards, the same as on the public directory: green verified, ruled declared. */}
-              <div dangerouslySetInnerHTML={{ __html: profileCardLegend(lang) }} />
+              {/* The key of the cards, the same as on the public directory: green verified, ruled declared (green only when shown). */}
+              <div dangerouslySetInnerHTML={{ __html: profileCardKey(page.items, lang, now) }} />
               <ul className="result-grid">
                 {page.items.map((card) => (
                   <li key={card.id}>

@@ -455,7 +455,7 @@ export { matching, MAX_MATCH_CANDIDATES, type Matching, type ProfileForMission, 
 // C22, recherche avancée : facettes, recherches enregistrées, annuaire des entreprises.
 export { profileFacets, type FacetValue, type ProfileFacets } from "./profile-facets";
 export { MAX_SCAN as MAX_PROFILE_SCAN, MAX_TEXT_MATCHES as MAX_PROFILE_TEXT_MATCHES } from "./profile-search-ids";
-export type { ProfileSearchFilters } from "./profile-search";
+export { profileCardsInOrder, type ProfileSearchFilters } from "./profile-search";
 export {
   MAX_SAVED_SEARCHES_PER_ORGANISATION,
   MAX_SEARCH_ALERTS_PER_USER,

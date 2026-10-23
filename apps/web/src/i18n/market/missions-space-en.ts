@@ -32,6 +32,12 @@ export const missionsSpaceEn: MissionsSpaceDictionary = {
     open: "Read the application",
     read: (date: string) => `read on ${date}`,
     unread: "unread",
+    received: (date: string) => `Received on ${date}`,
+    /** The candidate's verified facts, worded as on the one profile card (@proofseen/hub). */
+    factsLabel: (reference: string) => `Verified facts of ${reference}`,
+    verifiedMissions: (n: number) => (n === 1 ? "1 verified mission" : `${n} verified missions`),
+    provenUrls: (n: number) => (n === 1 ? "1 web address with proven ownership" : `${n} web addresses with proven ownership`),
+    noProof: "No verified fact yet.",
   },
   detail: {
     back: "Back to the mission",
