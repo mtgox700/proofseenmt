@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FONT_FILES, PALETTE, THEME_COLOR } from "@proofseen/brand";
+import { FONT_FILES, PALETTE, THEME_COLOR, edgeSpotCss } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { renderBlogIndex } from "../src/blog-index";
 import { NO_COMPANY_FILTERS, renderCompanyDirectory } from "../src/company-directory";
@@ -186,5 +186,57 @@ describe("the shared chrome", () => {
       expect(css).not.toMatch(/prefers-color-scheme|data-theme|color-scheme:\s*light/);
     }
     expect(STANDALONE_STYLES).not.toContain("url(");
+  });
+});
+
+describe("the v2 light on the public pages (BRAND_BOOK_V2 section 4)", () => {
+  const styleOf = (html: string): string => [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1] ?? "").join("\n");
+
+  // Every innermost block that reads a green glow token, named by its selector path.
+  const glowRules = (css: string): string[] => {
+    const found: string[] = [];
+    const stack: string[] = [];
+    let buffer = "";
+    for (const char of css.replace(/\/\*[\s\S]*?\*\//g, "")) {
+      if (char === "{") {
+        stack.push(buffer.trim());
+        buffer = "";
+      } else if (char === "}") {
+        if (/var\(--ps-(?:glow-proof|halo-proof|edge-spot-proof)/.test(buffer)) found.push(stack.join(" > "));
+        stack.pop();
+        buffer = "";
+      } else if (char === ";" && stack.length === 0) {
+        buffer = "";
+      } else {
+        buffer += char;
+      }
+    }
+    return found;
+  };
+
+  it.each(Object.entries(PAGES))("%s: only the cartouche and the squares of the poinçon glow green", (_name, html) => {
+    const lit = [...new Set(glowRules(styleOf(html)))].sort();
+    expect(lit.every((selector) => [".proofline::before", ".seal", ".sq"].includes(selector)), lit.join(" | ")).toBe(true);
+  });
+
+  it.each(Object.entries(PAGES))("%s: no box-shadow nor filter in any transition or keyframes", (_name, html) => {
+    const css = styleOf(html);
+    for (const m of css.matchAll(/transition(?:-property)?:([^;}]*)/g)) expect(m[1]).not.toMatch(/box-shadow|filter|\ball\b/);
+    for (const m of css.matchAll(/@keyframes[^{]*\{((?:[^{}]*\{[^}]*\})*)\}/g)) expect(m[1]).not.toMatch(/box-shadow|filter/);
+  });
+
+  it.each(Object.entries(PAGES))("%s: a discreet ambience behind the page header, under the caps", (_name, html) => {
+    expect(styleOf(html)).toContain("body{background:var(--ps-ambient-section) 50% 0/100% 40rem no-repeat,var(--ps-bg)}");
+    // The ambience is a token: no page types its own light.
+    expect(styleOf(html).replace(/:root\{[^}]*\}/g, "")).not.toMatch(/radial-gradient|rgb\(/);
+  });
+
+  it.each(Object.entries(PAGES))("%s: cards light their edge in violet under the pointer, never by a grey border", (_name, html) => {
+    const css = styleOf(html);
+    expect(css).not.toMatch(/(?:\.card|\.more a|\.pcard|\.entry|\.fiche-card):hover\{border-color:var\(--ps-line-strong\)\}/);
+    for (const card of [".card", ".pcard", ".entry", ".fiche-card"]) {
+      if (new RegExp(`(?:^|[}\\n])\\${card}\\{`).test(css)) expect(css, card).toContain(`${card}:hover`);
+    }
+    expect(STYLES).toContain(edgeSpotCss([".card", ".more a"]));
   });
 });

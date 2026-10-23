@@ -1,4 +1,4 @@
-import { CHROME_CSS, renderTokensCss } from "@proofseen/brand";
+import { CHROME_CSS, edgeSpotCss, renderTokensCss } from "@proofseen/brand";
 
 const ESCAPES: Readonly<Record<string, string>> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
@@ -16,16 +16,22 @@ export const safeJsonLd = (data: unknown): string =>
  * text keeps the reading measure, while tables, charts and grids take the width. One display
  * font, preloaded; body text in the system font. Zero JavaScript. Hard rule (tested): nothing is ever hidden, no
  * display:none, no zero opacity, no zero font size, so what a visitor reads is exactly what a crawler reads.
+ *
+ * v2 (BRAND_BOOK_V2): dark only. A discreet violet ambience sits behind the top of every page (the page header: title,
+ * lede), painted once on the body, under the caps of the brand (12 % aura); cards light their edge in violet under the
+ * pointer (`edgeSpotCss`); running links and section labels take the aura made legible. Nothing of it moves.
  */
 const BASE_STYLES = `
 *,*::before,*::after{box-sizing:border-box}
+body{background:var(--ps-ambient-section) 50% 0/100% 40rem no-repeat,var(--ps-bg)}
 a{color:inherit;text-underline-offset:.2em;text-decoration-thickness:1px}
+:where(main p:not([class]),.prose p,.prose li)>a:not([class]){color:var(--ps-aura-text)}
 .wrap{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}
 :where(main.wrap:not(.wide)) :where(p:not([class]),blockquote,form,ul:not([class]),ol:not([class]),.toc,.note,.links){max-width:var(--ps-measure)}
 main{padding-block:var(--ps-space-7) var(--ps-space-8)}
 h1,h2,h3{font-family:var(--ps-font-display);font-weight:var(--ps-weight-display);margin:0;text-wrap:balance}
 h1{font-size:var(--ps-step-5);line-height:var(--ps-lead-5);letter-spacing:var(--ps-track-5)}
-h2{display:flex;align-items:center;gap:var(--ps-space-3);margin:var(--ps-space-8) 0 var(--ps-space-5);font:var(--ps-weight-mono) var(--ps-step--2)/1.2 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}
+h2{display:flex;align-items:center;gap:var(--ps-space-3);margin:var(--ps-space-8) 0 var(--ps-space-5);font:var(--ps-weight-mono) var(--ps-step--2)/1.2 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-aura-text)}
 h2::before{content:"";width:1rem;height:.6rem;border-inline:2px solid currentColor;background:linear-gradient(currentColor,currentColor) center/100% 1px no-repeat}
 h3{font-size:var(--ps-step-1);line-height:var(--ps-lead-1);letter-spacing:var(--ps-track-1)}
 p{margin:0;text-wrap:pretty}
@@ -42,7 +48,7 @@ p{margin:0;text-wrap:pretty}
 ul.tags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--ps-space-2)}
 ul.tags li{border:1px solid var(--ps-line);border-radius:var(--ps-radius);padding:var(--ps-space-1) var(--ps-space-3);background:var(--ps-surface);font:var(--ps-weight-mono) var(--ps-step--1)/1.3 var(--ps-font-mono)}
 .missions{list-style:none;margin:0;padding:0;display:grid;gap:var(--ps-space-4)}
-.card{display:grid;gap:var(--ps-space-2);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius);padding:var(--ps-space-5);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}
+.card{display:grid;gap:var(--ps-space-2);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);padding:var(--ps-space-5);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}
 .card h3 a{text-decoration:none}
 .card .when{font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-muted)}
 .card .lead{display:flex;align-items:baseline;gap:var(--ps-space-2);flex-wrap:wrap;margin-top:var(--ps-space-1);padding-top:var(--ps-space-3);border-top:1px solid var(--ps-line)}
@@ -61,15 +67,16 @@ ul.tags li{border:1px solid var(--ps-line);border-radius:var(--ps-radius);paddin
 .context dt{font:var(--ps-weight-mono) var(--ps-step--2)/1.2 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}
 .context dd{margin:var(--ps-space-1) 0 0}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:var(--ps-space-4);margin:0}
-.fact{display:grid;align-content:start;gap:var(--ps-space-2);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius);padding:var(--ps-space-5)}
+.fact{display:grid;align-content:start;gap:var(--ps-space-2);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);padding:var(--ps-space-5)}
 .fact dd{margin:0}
 .fact .v{order:-1;font:var(--ps-weight-display-light) var(--ps-step-3)/1 var(--ps-font-display);letter-spacing:var(--ps-track-3);font-variant-numeric:tabular-nums}
 .fact dt{font-weight:var(--ps-weight-strong)}
 .fact .src{margin-top:var(--ps-space-2);padding-top:var(--ps-space-2);border-top:1px dashed var(--ps-line);font:var(--ps-weight-mono) var(--ps-step--2)/1.4 var(--ps-font-mono);color:var(--ps-muted)}
 .more{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr));gap:var(--ps-space-3);list-style:none;margin:0;padding:0}
-.more a{display:block;height:100%;padding:var(--ps-space-4);border:1px solid var(--ps-line);border-radius:var(--ps-radius);text-decoration:none;background:var(--ps-surface)}
+.more a{display:block;height:100%;padding:var(--ps-space-4);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);text-decoration:none;background:var(--ps-surface);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}
 .more small{display:block;margin-top:var(--ps-space-1);color:var(--ps-muted);font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono)}
-@media (hover:hover) and (pointer:fine){.card:hover,.more a:hover{border-color:var(--ps-line-strong)}.card h3 a:hover,.links a:hover{text-decoration:underline}.crumb:hover{color:var(--ps-text)}}
+${edgeSpotCss([".card", ".more a"])}
+@media (hover:hover) and (pointer:fine){.card h3 a:hover,.links a:hover{text-decoration:underline}.crumb:hover{color:var(--ps-text)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 `;
 

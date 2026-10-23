@@ -45,7 +45,7 @@ export const READING_STYLES =
   ".toc{margin-top:1.6rem;padding:1rem 1.2rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-raised)}" +
   ".toc ol{margin:.5rem 0 0;padding-left:1.2rem}" +
   ".chips{display:flex;flex-wrap:wrap;gap:.45rem;margin:.6rem 0 0;padding:0;list-style:none}" +
-  ".chips a{display:inline-block;padding:.3rem .8rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);color:var(--ps-muted);text-decoration:none;font-size:var(--ps-step--1)}" +
+  ".chips a{display:inline-block;padding:.3rem .9rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius-pill);color:var(--ps-muted);text-decoration:none;font-size:var(--ps-step--1)}" +
   ".chips a[aria-current]{border-color:var(--ps-text);color:var(--ps-text)}" +
   ".pager{display:flex;justify-content:space-between;margin-top:2rem}" +
   ".table{width:100%;overflow-x:auto;margin-top:1rem}" +
