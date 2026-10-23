@@ -1,10 +1,12 @@
 import "@/styles/discovery.css";
+import "@/styles/app-choisir.css";
 import Form from "next/form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { companyDirectory, type CompanyCard, type CompanyFacets } from "@proofseen/db";
 import { COMPANY_DIRECTORY_SORTS, companyDirectoryQueryString, type CompanyDirectoryFilters } from "@proofseen/hub";
 import { EmptyState } from "@/components/EmptyState";
+import { FactLines, type FactLine } from "@/components/market/FactLines";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { NextSteps } from "@/components/NextSteps";
 import { AutoSubmit } from "@/components/search/AutoSubmit";
@@ -125,14 +127,42 @@ function FollowButton({ lang, company, following, member, back, m }: { readonly 
   );
 }
 
+/**
+ * The facts of a company, as on its public card (@proofseen/hub, `companyCard`): the green square only before the
+ * activity in the official register, checked and dated; the date it joined and its response time are measured on
+ * Proofseen, on the ruled square.
+ */
+const companyFacts = (company: CompanyCard, m: MarketDictionary, lang: Lang): readonly FactLine[] => {
+  const c = m.discovery.companies;
+  return [
+    company.registryActiveCheckedAt === null ? { text: c.registryUnknown, verified: false } : { text: c.registryFact(day(company.registryActiveCheckedAt, lang)), verified: true },
+    { text: c.since(day(company.memberSince, lang)), verified: false },
+    ...(company.response === null ? [] : [{ text: c.response(company.response.medianDays, company.response.decided), verified: false }]),
+  ];
+};
+
+/** The key of the squares, under the count: the green one only when a card on screen carries a verified fact. */
+function FactKey({ m, anyVerified }: { readonly m: MarketDictionary; readonly anyVerified: boolean }) {
+  const c = m.discovery.companies;
+  return (
+    <ul className="fact-key" aria-label={c.legend}>
+      {anyVerified ? (
+        <li>
+          <span className="sq" aria-hidden="true" />
+          {c.legendVerified}
+        </li>
+      ) : null}
+      <li>
+        <span className="sq open" aria-hidden="true" />
+        {c.legendOpen}
+      </li>
+    </ul>
+  );
+}
+
 function Card({ lang, m, company, children }: { readonly lang: Lang; readonly m: MarketDictionary; readonly company: CompanyCard; readonly children: React.ReactNode }) {
   const c = m.discovery.companies;
   const headingId = `company-${company.slug}`;
-  const facts = [
-    ...(company.registryActiveCheckedAt === null ? [] : [c.registryFact(day(company.registryActiveCheckedAt, lang))]),
-    c.since(day(company.memberSince, lang)),
-    ...(company.response === null ? [] : [c.response(company.response.medianDays, company.response.decided)]),
-  ];
   return (
     <article className="pcard" aria-labelledby={headingId}>
       <div className="pc-head">
@@ -154,11 +184,7 @@ function Card({ lang, m, company, children }: { readonly lang: Lang; readonly m:
           {c.missions(company.openMissions)}
         </span>
       </p>
-      <ul className="pc-badges">
-        {facts.map((fact) => (
-          <li key={fact}>{fact}</li>
-        ))}
-      </ul>
+      <FactLines lines={companyFacts(company, m, lang)} label={c.factsLabel} />
       <div className="pc-actions">
         <a className="btn btn-quiet" href={`/${lang}/entreprises/${company.slug}`}>
           {c.page}
@@ -224,6 +250,7 @@ export default async function CompaniesPage({ params, searchParams }: PageProps)
               <h2 id="companies-title">{c.count(page.facets.total)}</h2>
             </div>
             <p className="muted small">{c.order(c.sorts[filters.sort])}</p>
+            {page.items.length === 0 ? null : <FactKey m={m} anyVerified={page.items.some((company) => company.registryActiveCheckedAt !== null)} />}
           </div>
           {page.items.length === 0 ? (
             <EmptyState title={unfiltered ? c.none : c.empty} headingLevel={3}>

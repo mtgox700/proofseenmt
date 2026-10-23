@@ -1,10 +1,13 @@
+import "@/styles/app-choisir.css";
 import Link from "next/link";
 import type { ApplicantView } from "@proofseen/db";
 import { EmptyNote } from "@/components/EmptyState";
+import { FactLines } from "@/components/market/FactLines";
 import { StatusTag } from "@/components/market/StatusTag";
 import type { Lang } from "@/i18n";
 import type { MissionsDictionary } from "@/i18n/market/missions-fr";
 import type { MissionsSpaceDictionary } from "@/i18n/market/missions-space-fr";
+import { candidateFactLines } from "@/lib/candidate-facts";
 import { day } from "@/lib/format";
 
 interface BoardProps {
@@ -26,13 +29,13 @@ function Card({ lang, m, s, missionId, applicant, decide }: Omit<BoardProps, "ap
   const open = applicant.status === "submitted" || applicant.status === "shortlisted";
   return (
     <li className="board-card">
-      <p>
+      <p className="board-who">
         <strong>{applicant.profile.reference}</strong>
-        {applicant.profile.headline === null ? null : <span className="muted small"> · {applicant.profile.headline}</span>}
+        {applicant.profile.headline === null ? null : <span className="small">{applicant.profile.headline}</span>}
       </p>
-      <p className="muted small">
-        {d.facts(applicant.profile.verifiedUrls, applicant.profile.verifiedMissions)} · {d.receivedOn} {day(applicant.createdAt, lang)} ·{" "}
-        {applicant.readAt === null ? s.board.unread : s.board.read(day(applicant.readAt, lang))}
+      <FactLines lines={candidateFactLines(applicant.profile, s.board)} label={s.board.factsLabel(applicant.profile.reference)} />
+      <p className="choice-trace">
+        {s.board.received(day(applicant.createdAt, lang))} · {applicant.readAt === null ? s.board.unread : s.board.read(day(applicant.readAt, lang))}
       </p>
       <p className="row-actions">
         {/* Opening marks the application as read for the freelancer: never prefetched, only on a deliberate click. */}

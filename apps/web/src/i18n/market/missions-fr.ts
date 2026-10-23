@@ -53,8 +53,6 @@ export const missionsFr = {
     applicantsEmpty: "Aucune candidature pour l'instant.",
     oldestFirst: "Plus anciennes d'abord",
     newestFirst: "Plus récentes d'abord",
-    facts: (urls: number, missions: number) => `${urls} adresse${urls > 1 ? "s" : ""} prouvée${urls > 1 ? "s" : ""} · ${missions} mission${missions > 1 ? "s" : ""} vérifiée${missions > 1 ? "s" : ""}`,
-    receivedOn: "reçue le",
     conversation: "Ouvrir l'échange",
     profile: "Voir le profil",
     shortlist: "Retenir",
