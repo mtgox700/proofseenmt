@@ -9,9 +9,10 @@ Décision du Shogun du 2026-10-23 (`.war-room/design/STORYBOARD_V2.md`, fin du f
 des composants animés de deux bibliothèques publiées sur 21st.dev, **Magic UI** et **Aceternity UI**. Le code a été
 récupéré le 2026-10-23 puis **réécrit** : aucun fichier n'est collé tel quel. Ce qui change à chaque fois : pas de
 Tailwind (l'application n'en a pas), styles dans les feuilles de l'accueil (`src/styles/home*.css`) aux jetons de la
-marque, `motion` (paquet `motion`, version exacte 12.43.0, import `motion/react`, en `LazyMotion` avec
-`domAnimation` chargé à part) à la place de `framer-motion` quand un ressort est nécessaire, CSS seul partout où il
-suffit. Règles ajoutées par la réécriture : le texte est rendu par le serveur dans son état final (lisible sans
+marque, `motion` (paquet `motion`, version exacte 12.43.0, imports `motion/react` et `motion/react-m`, en
+`LazyMotion` avec `domAnimation` chargé à part) à la place de `framer-motion` là où un ressort est nécessaire (la scène
+du parcours, chargée seulement quand la section approche : rien de `motion` dans le premier chargement), CSS seul
+partout où il suffit. Règles ajoutées par la réécriture : le texte est rendu par le serveur dans son état final (lisible sans
 JavaScript), les animations n'ajoutent que de la lumière ou du mouvement, elles sont coupées sous
 `prefers-reduced-motion: reduce`, les boucles ne bougent que `transform` et s'arrêtent hors écran, le vert n'éclaire
 que ce qui est vérifié.
@@ -30,9 +31,9 @@ avant la mise en production (le juridique est traité à la fin).
 | Bento Grid (Magic UI) | https://21st.dev/@dillionverma/components/bento-grid | Côtés freelance et entreprise (`FreelanceBento.tsx`, `CompanyBento.tsx`) | Montrer l'interface plutôt que la décrire. Grille de 12 colonnes en `minmax(0, 1fr)`, composition en miroir pour l'entreprise, maquettes dessinées en HTML. |
 | Magic Card (Magic UI) | https://21st.dev/@dillionverma/components/magic-card | Tuiles des deux bentos, cartes des ressources | La carte s'éclaire là où l'on regarde. Un seul écouteur délégué écrit `--spot-x` et `--spot-y`, bord violet (`--ps-edge-spot`), souris seulement. |
 | Shimmer Button (Magic UI) | https://21st.dev/@dillionverma/components/shimmer-button | Bouton principal du héros | L'action principale. Comète violette autour du bouton papier, rotation en `transform`, arrêtée hors écran. |
-| Shine Border (Magic UI) | https://21st.dev/@dillionverma/components/shine-border | Champ « une phrase devient des filtres » (`PhraseToFilters.tsx`) | La machine lit la phrase (violet = mesure, jamais preuve). Le bord brille seulement pendant l'écriture. |
+| Shine Border (Magic UI) | https://21st.dev/@dillionverma/components/shine-border | Champ « une phrase devient des filtres » (`PhraseToFilters.tsx`) | La machine lit la phrase (violet = mesure, jamais preuve). Le bord brille seulement pendant l'écriture ; les filtres s'allument ensuite un à un (transition CSS). |
 | Dot Pattern (Magic UI) | https://21st.dev/@dillionverma/components/dot-pattern | Fond du héros | Trame de points en CSS (`radial-gradient`) au lieu d'un motif SVG, masquée en ellipse. |
-| Blur Fade (Magic UI) | https://21st.dev/@dillionverma/components/blur-fade | Titres de section (`.reveal`) | Entrée liée au défilement (CSS `animation-timeline: view()`), depuis une demi-teinte lisible (opacité 0,5), jamais depuis le vide ; sans flou sur téléphone. |
+| Blur Fade (Magic UI) | https://21st.dev/@dillionverma/components/blur-fade | Titres de section (`.reveal`) | Entrée liée au défilement (CSS `animation-timeline: view()`), en montée seule : ni flou (un filtre ne s'anime pas, brand book v2 §4.4) ni fondu (un texte ne passe jamais sous son contraste, relevé par Lighthouse). |
 | Sticky Scroll Reveal (Aceternity UI) | https://21st.dev/@manuarora700/components/sticky-scroll-reveal | Parcours d'une mission (`MissionStage.tsx`) | Toute la plateforme en un geste. La page défile (pas une boîte interne), les neuf étapes sont du HTML serveur, l'étape au milieu de l'écran pilote la scène ; remonter rejoue à l'envers. |
 | Tracing Beam (Aceternity UI) | https://21st.dev/@manuarora700/components/tracing-beam | Rail des étapes du parcours | Le chemin parcouru. Remplissage en CSS (`view-timeline`) au lieu de `useScroll`, vert seulement à l'étape 9. |
 | Spotlight (Aceternity UI) | https://21st.dev/@manuarora700/components/spotlight | Héros | Une lumière se pose une fois sur la scène. Dégradé radial sans filtre de flou SVG. |
