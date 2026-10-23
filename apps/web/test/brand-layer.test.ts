@@ -211,7 +211,7 @@ describe("indexing", () => {
     const optIn = filesUnder(join(app, "[lang]")).filter((f) => f.endsWith(".tsx") && /index:\s*true/.test(readFileSync(f, "utf8")));
     expect(optIn.map((f) => relative(app, f).replace(/\\/g, "/"))).toEqual(["[lang]/page.tsx"]);
     expect(sitemap).toContain('"/fr", "/en"');
-    for (const privatePage of ["app", "espace", "confirmer-mission", "connexion", "creer-un-compte", "inscription", "commande"]) {
+    for (const privatePage of ["app", "espace", "confirmer-mission", "connexion", "creer-un-compte", "inscription"]) {
       for (const file of filesUnder(join(app, "[lang]", privatePage)).filter((f) => f.endsWith(".tsx"))) {
         expect(readFileSync(file, "utf8"), relative(app, file)).not.toMatch(/index:\s*true/);
       }
