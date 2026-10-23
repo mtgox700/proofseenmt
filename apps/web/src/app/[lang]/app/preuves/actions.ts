@@ -18,7 +18,8 @@ const ADD_RULE = { windowMs: 60 * 60_000, max: 30 };
 const VERIFY_RULE = { windowMs: 10 * 60_000, max: 10 };
 const REMOVE_RULE = { windowMs: 60_000, max: 20 };
 
-const page = (lang: string, query = ""): string => `/${lang}/app/preuves${query === "" ? "" : `?${query}`}`;
+/** Back to the addresses, where an address action writes its notice; a proof found goes to the top, to its poinçon. */
+const page = (lang: string, query = ""): string => `/${lang}/app/preuves${query === "" ? "" : `?${query}`}${query.startsWith("prouve=") ? "" : "#adresses"}`;
 
 const VERIFY_ERRORS: Readonly<Record<Exclude<VerifyOutcome, "proven">, string>> = {
   absent: "absente",

@@ -1,10 +1,41 @@
 import type { ProofsDictionary } from "./proofs-fr";
 
 export const proofsEn: ProofsDictionary = {
-  nav: "Proven addresses",
-  title: "Proven addresses",
-  lead: "A citation by an AI engine only counts when it leads to an address you have proven you own. Declare your sites, then publish one of the three proofs: we read it now, then every thirty days.",
+  nav: "Proofs",
+  title: "Proofs",
+  lead: "What your public page shows as verified, what is waiting for a client's answer, then your addresses. Nothing becomes verified on your word alone: a client confirms a mission, a payment goes through Proofseen, you prove that an address is yours.",
+  standing: {
+    title: "What is stamped on your public page",
+    detail: "The detail, line by line, with the date and the source of each fact",
+    publicPage: "See my public page",
+    unpublished: "Your profile is not published: no public page shows your facts yet.",
+    hidden: "Your public page is not served at the moment: nothing appears on it.",
+    publish: "Publish my profile",
+  },
+  register: {
+    title: "What is verified",
+    notePublished: "These lines appear on your public page, each with its date, its source and who verified it.",
+    notePrivate: "Your profile is not published: these lines will appear on your public page as soon as you publish it.",
+    pseudonymous: "Published under your reference, your page counts your proven addresses without showing them.",
+    empty: "Nothing is verified yet. A mission becomes verified when your client confirms it or when it is paid on Proofseen, an address when you prove it is yours.",
+    missions: "Verified missions",
+    addresses: "Proven addresses",
+    facts: "Other verified facts",
+  },
+  trial: {
+    title: "Pending",
+    lead: "Your confirmation requests, the nearest deadline first. Until the client answers, nothing is published.",
+    closed: "Closed requests",
+    confirmedHere: (d: string) => `Confirmed on ${d}: the mission is at the top of this page`,
+    confirmedUndated: "Confirmed: the mission is at the top of this page",
+  },
+  waiting: {
+    title: "Waiting for a client",
+    more: (n: number) => (n === 1 ? "And 1 more pending request." : `And ${n} more pending requests.`),
+    link: "See your requests",
+  },
   listTitle: "Your addresses",
+  listLead: "A citation by an AI engine only counts when it leads to an address you have proven you own. Declare your sites, then publish one of the three proofs: we read it now, then every thirty days.",
   empty: "No address declared yet.",
   status: {
     proven: (date: string, method: string) => `Proven on ${date} · ${method}`,

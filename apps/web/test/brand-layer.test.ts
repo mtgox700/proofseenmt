@@ -139,11 +139,9 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
       .filter((f) => /\.tsx?$/.test(f) && readFileSync(f, "utf8").includes("tag-proof"))
       .map((f) => relative(src, f).replace(/\\/g, "/"))
       .sort();
-    expect(users).toEqual([
-      "app/[lang]/app/preuves/page.tsx",
-      "components/market/VerifiedMissionsPanel.tsx",
-      "components/visibility/ProfileChecklist.tsx",
-    ]);
+    // Lot 2 moved the register of /app/preuves to the poinçon (components/registre/ProofRegister.tsx, in seal.test.ts):
+    // a verified mission or a proven address is no longer a flat tag there, and a closed request reads in ink.
+    expect(users).toEqual(["components/visibility/ProfileChecklist.tsx"]);
   });
 
   it("draws every focus ring of a field in the focus colour, at AA contrast in both themes", () => {
