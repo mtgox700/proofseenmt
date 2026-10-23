@@ -32,6 +32,8 @@ export interface ApplicationDetail {
    */
   readonly cvFileId: string | null;
   readonly profile: {
+    /** Pour relire sa carte publique (`profileCardsInOrder`), qui n'existe que tant que le profil est publié. */
+    readonly id: string;
     readonly reference: string;
     readonly headline: string | null;
     /** Adresse du profil public ; `null` si le profil est redevenu privé depuis. */
@@ -66,6 +68,7 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
         jobPost: { select: { id: true, title: true, questions: true, moderatedAt: true, organisation: { select: { suspendedAt: true } } } },
         profile: {
           select: {
+            id: true,
             userId: true,
             reference: true,
             headline: true,
@@ -91,6 +94,7 @@ export const applicationDetails = (db: Db): ApplicationDetails => ({
       mission: { id: row.jobPost.id, title: row.jobPost.title },
       cvFileId: row.jobPost.moderatedAt === null && row.jobPost.organisation.suspendedAt === null && row.profile.user.suspendedAt === null ? row.cvFileId : null,
       profile: {
+        id: row.profile.id,
         reference: row.profile.reference,
         headline: row.profile.headline,
         // Pas d'adresse publique pour un profil privé, masqué ou dont le compte est suspendu (revue vague 3, L9).

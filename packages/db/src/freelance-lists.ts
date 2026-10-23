@@ -3,9 +3,9 @@ import { countListAdd } from "./audience-stats";
 import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
-import type { AvailabilityStatus, ListReaction, MemberRole, WorkMode } from "./generated/enums";
+import type { ListReaction, MemberRole } from "./generated/enums";
 import type { Actor } from "./messaging";
-import { publicName } from "./public-profiles";
+import { profileCardsInOrder, type ProfileCard } from "./profile-search";
 import { isListedProfile, LISTED_PROFILE } from "./public-visibility";
 
 /*
@@ -52,19 +52,12 @@ export interface ListedProfile {
   readonly reference: string;
   /** Faux quand le freelance a retiré son profil depuis : ses faits ne sont plus montrés. */
   readonly published: boolean;
-  readonly slug: string | null;
-  /** Présent pour un profil nominatif publié seulement. */
-  readonly displayName?: string;
-  readonly headline: string | null;
-  readonly city: string | null;
-  readonly workMode: WorkMode | null;
-  readonly dailyRateCents: number | null;
-  readonly currency: string;
-  readonly availability: AvailabilityStatus | null;
-  readonly availableFrom: Date | null;
-  /** Dernière confirmation de la disponibilité : au-delà de 30 jours, l'écran l'affiche « non confirmée » (C23). */
-  readonly availabilityAt: Date | null;
-  readonly skills: readonly string[];
+  /**
+   * La carte unique de la place de marché, lue comme la recherche la lit (`profileCardsInOrder`) : mêmes faits vérifiés,
+   * même date de mise à jour, même disponibilité confirmée, mêmes langues. `null` pour un profil qui n'est plus publié,
+   * montré alors par sa seule référence.
+   */
+  readonly card: ProfileCard | null;
   readonly note: string | null;
   readonly addedByName: string | null;
   readonly addedAt: Date;
@@ -101,25 +94,7 @@ const ITEM_SELECT = {
   createdAt: true,
   addedBy: { select: { displayName: true } },
   reactions: { select: { userId: true, reaction: true } },
-  profile: {
-    select: {
-      id: true,
-      reference: true,
-      slug: true,
-      visibility: true,
-      headline: true,
-      city: true,
-      workMode: true,
-      dailyRateCents: true,
-      currency: true,
-      availability: true,
-      availableFrom: true,
-      availabilityAt: true,
-      moderatedAt: true,
-      user: { select: { displayName: true, suspendedAt: true } },
-      skills: { select: { skill: { select: { label: true } } } },
-    },
-  },
+  profile: { select: { id: true, reference: true, visibility: true, moderatedAt: true, user: { select: { suspendedAt: true } } } },
 } as const;
 
 type ItemRow = Prisma.FreelanceListItemGetPayload<{ select: typeof ITEM_SELECT }>;
@@ -127,28 +102,16 @@ type ItemRow = Prisma.FreelanceListItemGetPayload<{ select: typeof ITEM_SELECT }
 /** Une clé étrangère manquante (code Prisma P2003) : la ligne visée a été supprimée entre-temps. */
 const isMissingReference = (error: unknown): boolean => typeof error === "object" && error !== null && "code" in error && error.code === "P2003";
 
-const toListed = (row: ItemRow, userId: string): ListedProfile => {
+const toListed = (row: ItemRow, userId: string, cards: ReadonlyMap<string, ProfileCard>): ListedProfile => {
   const p = row.profile;
   // Masqué par un opérateur ou compte suspendu : la ligne reste, réduite à la référence (revue vague 3, L9).
   const published = p.visibility !== "private" && isListedProfile(p);
-  const name = published ? publicName(p.visibility, p.user.displayName) : null;
   return {
     itemId: row.id,
     profileId: p.id,
     reference: p.reference,
     published,
-    slug: published ? p.slug : null,
-    ...(name === null ? {} : { displayName: name }),
-    headline: published ? p.headline : null,
-    city: published ? p.city : null,
-    workMode: published ? p.workMode : null,
-    dailyRateCents: published ? p.dailyRateCents : null,
-    currency: p.currency,
-    availability: published ? p.availability : null,
-    availableFrom: published ? p.availableFrom : null,
-    availabilityAt: published ? p.availabilityAt : null,
-    // L'ordre déclaré par le freelance, comme sur sa fiche publique et sa carte (revue Kensa, M3).
-    skills: published ? p.skills.map((s) => s.skill.label) : [],
+    card: published ? (cards.get(p.id) ?? null) : null,
     note: row.note,
     addedByName: row.addedBy?.displayName ?? null,
     addedAt: row.createdAt,
@@ -204,8 +167,11 @@ export const freelanceLists = (db: Db) => ({
     return count === 1;
   },
 
-  /** Une liste et ses freelances, dans l'ordre d'ajout (le plus récent d'abord) ; `null` hors de l'entreprise. */
-  async detail(actor: Actor, listId: string): Promise<ListDetail | null> {
+  /**
+   * Une liste et ses freelances, dans l'ordre d'ajout (le plus récent d'abord) ; `null` hors de l'entreprise. `now` lit
+   * la règle des 30 jours de la disponibilité et la validité de l'attestation de vigilance, comme la recherche.
+   */
+  async detail(actor: Actor, listId: string, now: Date = new Date()): Promise<ListDetail | null> {
     if (!Uuid.safeParse(listId).success) return null;
     const row = await db.freelanceList.findFirst({
       where: { id: listId, ...visibleList(actor.userId) },
@@ -218,8 +184,23 @@ export const freelanceLists = (db: Db) => ({
       },
     });
     if (row === null) return null;
-    const removable = (await db.freelanceList.count({ where: { id: listId, ...removableBy(actor.userId) } })) === 1;
-    return { id: row.id, name: row.name, organisationId: row.organisationId, createdAt: row.createdAt, removable, items: row.items.map((item) => toListed(item, actor.userId)) };
+    const [removable, cards] = await Promise.all([
+      db.freelanceList.count({ where: { id: listId, ...removableBy(actor.userId) } }).then((n) => n === 1),
+      profileCardsInOrder(
+        db,
+        row.items.map((item) => item.profile.id),
+        now,
+      ),
+    ]);
+    const byProfile = new Map(cards.map((card) => [card.id, card]));
+    return {
+      id: row.id,
+      name: row.name,
+      organisationId: row.organisationId,
+      createdAt: row.createdAt,
+      removable,
+      items: row.items.map((item) => toListed(item, actor.userId, byProfile)),
+    };
   },
 
   /** Ajoute un profil publié à une liste de l'entreprise de l'acteur. */

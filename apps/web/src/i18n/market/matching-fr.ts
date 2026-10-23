@@ -64,7 +64,6 @@ export const matchingFr = {
     empty: "Aucun profil publié ne partage de compétence avec cette mission pour l'instant.",
     invite: "Inviter à postuler",
     invited: "Déjà invité",
-    profile: "Voir le profil",
     addTo: "Ajouter à la liste",
     add: "Ajouter",
     noList: "Créer une liste",

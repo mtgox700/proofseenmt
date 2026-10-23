@@ -30,6 +30,12 @@ export const missionsSpaceFr = {
     open: "Lire la candidature",
     read: (date: string) => `lue le ${date}`,
     unread: "non lue",
+    received: (date: string) => `Reçue le ${date}`,
+    /** Les faits vérifiés du candidat, dits comme sur la carte unique du profil (@proofseen/hub). */
+    factsLabel: (reference: string) => `Faits vérifiés de ${reference}`,
+    verifiedMissions: (n: number) => (n === 1 ? "1 mission vérifiée" : `${n} missions vérifiées`),
+    provenUrls: (n: number) => (n === 1 ? "1 adresse web dont la possession est prouvée" : `${n} adresses web dont la possession est prouvée`),
+    noProof: "Pas encore de fait vérifié.",
   },
   detail: {
     back: "Retour à la mission",

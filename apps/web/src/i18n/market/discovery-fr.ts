@@ -61,10 +61,6 @@ export const discoveryFr = {
       portfolioOnly: "Avec réalisations",
     },
   },
-  /** La carte de profil est la carte unique de la marketplace (@proofseen/hub) : seul ce libellé est encore lu ici. */
-  card: {
-    unconfirmed: "Disponibilité non confirmée",
-  },
   saved: {
     title: "Recherches enregistrées",
     lead: "Partagées avec vos collègues. L'alerte, quotidienne, n'écrit qu'à la personne qui l'a créée.",
@@ -114,6 +110,11 @@ export const discoveryFr = {
     missions: (n: number) => (n === 0 ? "Aucune mission ouverte" : n === 1 ? "1 mission ouverte" : `${n} missions ouvertes`),
     registryFact: (d: string) => `SIRET actif (vérifié le ${d})`,
     since: (d: string) => `Sur Proofseen depuis le ${d}`,
+    registryUnknown: "Activité au répertoire officiel non confirmée",
+    factsLabel: "Faits de l'entreprise",
+    legend: "Légende des faits",
+    legendVerified: "vérifié par un tiers, daté",
+    legendOpen: "mesuré sur Proofseen ou déclaré",
     response: (days: number, n: number) => `Répond en ${days} jour${days > 1 ? "s" : ""} (médiane, ${n} candidatures)`,
     page: "Voir la page",
     follow: "Suivre",

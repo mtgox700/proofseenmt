@@ -14,13 +14,20 @@ export interface StripeElements {
   create(type: "payment", options?: { readonly layout?: "tabs" | "accordion" }): StripePaymentElement;
 }
 
+/** Stripe's Appearance API: a base theme, then variables and rules (see src/lib/stripe-appearance.ts). */
+export interface StripeAppearanceOptions {
+  readonly theme?: "stripe" | "flat" | "night";
+  readonly variables?: Readonly<Record<string, string>>;
+  readonly rules?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+}
+
 export interface StripeConfirmError {
   readonly type?: string;
   readonly message?: string;
 }
 
 export interface StripeClient {
-  elements(options: { readonly clientSecret: string; readonly locale?: string; readonly appearance?: { readonly theme?: "stripe" | "flat" | "night" } }): StripeElements;
+  elements(options: { readonly clientSecret: string; readonly locale?: string; readonly appearance?: StripeAppearanceOptions }): StripeElements;
   confirmPayment(options: { readonly elements: StripeElements; readonly confirmParams: { readonly return_url: string } }): Promise<{ readonly error?: StripeConfirmError }>;
 }
 
