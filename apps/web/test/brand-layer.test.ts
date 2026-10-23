@@ -13,6 +13,7 @@ import { DEFAULT_SITE_ORIGIN, shareMetadata, siteOrigin } from "../src/lib/brand
 const web = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = join(web, "src");
 const app = join(src, "app");
+const brand = join(web, "..", "..", "packages", "brand");
 const read = (...parts: string[]): string => readFileSync(join(...parts), "utf8");
 
 const filesUnder = (dir: string): string[] =>
@@ -72,7 +73,8 @@ describe("colours come from the brand tokens only", () => {
 });
 
 describe("the green marks a verified fact or the poinçon, nothing else (Kensa M5)", () => {
-  // Every innermost block that reads --ps-proof (or --ps-proof-wash), named by its selector path.
+  // Every innermost block that reads --ps-proof (or --ps-proof-wash), named by its selector path. Reads, not
+  // declarations: the brand's tokens.css declares the colour, and declaring it marks nothing.
   const greenRules = (css: string): string[] => {
     const found: string[] = [];
     const stack: string[] = [];
@@ -82,7 +84,7 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         stack.push(buffer.trim().replace(/\s+/g, " "));
         buffer = "";
       } else if (char === "}") {
-        if (/--ps-proof/.test(buffer)) found.push(stack.join(" > "));
+        if (/var\(--ps-proof/.test(buffer)) found.push(stack.join(" > "));
         stack.pop();
         buffer = "";
       } else {
@@ -104,6 +106,26 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         "home.css: .specimen-stamp",
         "home.css: .specimen-dot",
         "home.css: @keyframes pc-ink > from",
+      ].sort(),
+    );
+  });
+
+  it("holds the same rule over the sheets of @proofseen/brand that React imports", () => {
+    // Listed from the folder: a new brand sheet is read here the day it is written, so the guard cannot go quiet.
+    const sheets = readdirSync(brand).filter((f) => f.endsWith(".css"));
+    expect(sheets.sort()).toEqual(["chrome.css", "profile-card.css", "seal.css", "tokens.css"]);
+    const green = sheets.flatMap((file) => greenRules(read(brand, file)).map((selector) => `${file}: ${selector}`));
+    expect(green.sort()).toEqual(
+      [
+        // The card's register: the square of a verified fact, and the key of the legend that names it.
+        "profile-card.css: .ps-legend .k-proof::before,.fc-proof li::before",
+        // The poinçon: the square at the end of the line of proof, the cartouche, the square and stamp of a proven
+        // address, and the ring of ink at the moment of the strike.
+        "seal.css: .proofline::before",
+        "seal.css: .seal",
+        "seal.css: .sq",
+        "seal.css: .stamp",
+        "seal.css: @keyframes ps-ink > 0%,76%",
       ].sort(),
     );
   });
