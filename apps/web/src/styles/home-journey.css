@@ -1,0 +1,136 @@
+/* The home page v2, part 3: S5, one mission from the post to the proof (the flagship). The sticky scene is the client
+   part (MissionStage, motion); the nine steps are server HTML. Desktop: the scene sticks on the left, the steps scroll
+   on the right along a rail that fills as the reader goes down (Aceternity UI "Tracing Beam" as a CSS view timeline).
+   Phone: the scene is a band that sticks under the top of the screen. Without JavaScript the scene shows the final
+   frame once, not sticky, and the list reads in full under it. */
+
+.mp { position: relative; isolation: isolate; padding-block: var(--ps-section-y); background: var(--ps-bg-deep); }
+.mp::before { content: ""; position: absolute; inset: 0 0 auto; z-index: -1; height: 60rem; background: var(--ps-ambient-section); pointer-events: none; }
+.mp-head { display: grid; justify-items: start; gap: var(--ps-space-5); max-width: 46rem; margin-bottom: var(--ps-space-8); }
+.mp-head h2:focus { outline: none; }
+.mp-lead { font-size: var(--ps-step-1); color: var(--ps-muted); }
+.mp-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); }
+
+/* ---------- The stage ---------- */
+.mp-stage { position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "counter rail" "scene rail" "other rail"; align-content: center; gap: var(--ps-space-3) var(--ps-space-4); }
+.mp-counter { grid-area: counter; font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-aura-text); }
+.mp-scene { grid-area: scene; position: relative; justify-self: center; width: min(100%, (100svh - 13rem) * 4 / 3); aspect-ratio: 4 / 3; }
+.mp-other { grid-area: other; justify-self: start; min-height: 2.75rem; white-space: normal; text-align: left; }
+.mp-rail { grid-area: rail; display: flex; flex-direction: column; justify-content: center; align-self: center; }
+.mp-rail a { display: grid; place-items: center; width: 2.75rem; height: 1.75rem; }
+.mp-rail a::before { content: ""; width: 8px; height: 8px; border: 1px solid var(--ps-line-strong); border-radius: 50%; transition: background-color var(--ps-dur-ui) var(--ps-ease-out), transform var(--ps-dur-ui) var(--ps-ease-out); }
+.mp-rail a[aria-current]::before { border-color: var(--ps-aura-text); background: var(--ps-aura-text); transform: scale(1.4); }
+.mp[data-step="9"] .mp-rail a[aria-current]::before { border-color: var(--ps-proof); background: var(--ps-proof); }
+@media (hover: hover) and (pointer: fine) { .mp-rail a:hover::before { border-color: var(--ps-text); } }
+
+/* The scene: three actors on a 560 x 420 board, the beams share its viewBox. */
+.mp-beams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.mp-beam { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; vector-effect: non-scaling-stroke; transition: stroke var(--ps-dur-glow) var(--ps-ease-glow); }
+.mp-beam.is-lit { stroke: var(--ps-aura-text); }
+.mp-beam.is-proof { stroke: var(--ps-proof); }
+.mp-pulse { fill: none; stroke: var(--ps-aura-text); stroke-width: 3; stroke-linecap: round; }
+.mp-fill { fill: none; stroke: var(--ps-proof); stroke-width: 2.5; stroke-linecap: round; }
+
+.mp-node { position: absolute; top: 16.7%; display: grid; justify-items: center; gap: 6px; translate: -50% -50%; }
+.mp-node-f { left: 14.3%; }
+.mp-node-e { left: 85.7%; }
+.mp-face, .mp-face img { display: block; width: clamp(3.5rem, 2rem + 4vw, 6rem); aspect-ratio: 1; border-radius: 50%; }
+.mp-face img { object-fit: cover; border: 1px solid var(--ps-line-strong); }
+.mp-node:not(.is-on) .mp-face { opacity: 0.5; filter: grayscale(1); }
+.mp-node.is-on .mp-face img { border-color: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
+.mp-scene[data-verified] .mp-node .mp-face img { border-color: var(--ps-line-strong); box-shadow: none; }
+.mp-node-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.mp-face { transition: opacity var(--ps-dur-glow) var(--ps-ease-glow), filter var(--ps-dur-glow) var(--ps-ease-glow); }
+/* A signature: a tick on the node, in ink (a signature is a fact of the contract, not a verification). */
+.mp-sign { position: absolute; right: -2px; top: -2px; width: 1.5rem; height: 1.5rem; border: 1px solid var(--ps-text); border-radius: 50%; background: var(--ps-text); }
+.mp-sign::after { content: ""; position: absolute; left: 50%; top: 45%; width: 0.35rem; height: 0.6rem; translate: -50% -50%; rotate: 45deg; border-right: 2px solid var(--ps-bg); border-bottom: 2px solid var(--ps-bg); }
+.mp-chip { position: absolute; display: inline-flex; align-items: center; gap: 6px; padding: 0.25rem 0.6rem; white-space: nowrap; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-overlay); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); color: var(--ps-text); }
+.mp-invoice { top: calc(100% + 6px); left: 50%; translate: -50% 0; border-color: var(--ps-aura); color: var(--ps-aura-text); }
+.mp-stack { position: absolute; top: calc(100% + 2.6rem); left: 50%; translate: -50% 0; display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.65rem; white-space: nowrap;
+  border: 1px solid var(--ps-proof); border-radius: var(--ps-radius); background: var(--ps-proof-wash); color: var(--ps-proof); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); }
+.mp-bubble { position: absolute; top: 2%; width: 2.25rem; height: 1.6rem; border-radius: 0.8rem 0.8rem 0.8rem 0.2rem; background: var(--ps-raised); border: 1px solid var(--ps-line-strong); }
+.mp-bubble::after { content: ""; position: absolute; inset: 40% 25% auto; height: 2px; border-radius: 1px; background: var(--ps-muted); box-shadow: 0 5px 0 var(--ps-muted); }
+.mp-bubble-f { left: 30%; }
+.mp-bubble-e { left: 62%; border-radius: 0.8rem 0.8rem 0.2rem 0.8rem; background: color-mix(in srgb, var(--ps-aura) 24%, var(--ps-surface)); }
+
+.mp-card { position: absolute; left: 50%; top: 56.2%; width: 62%; translate: -50% 0; display: grid; gap: var(--ps-space-2); padding: var(--ps-space-4) var(--ps-space-5);
+  background: var(--ps-surface); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-card); box-shadow: var(--ps-shadow-2);
+  transition: border-color var(--ps-dur-glow) var(--ps-ease-glow), box-shadow var(--ps-dur-glow) var(--ps-ease-glow); }
+.mp-scene[data-verified] .mp-card { border-color: var(--ps-proof); box-shadow: var(--ps-glow-proof); }
+.mp-card.is-held { border-color: var(--ps-signal); box-shadow: 0 0 0 1px var(--ps-signal), 0 0 32px -8px var(--ps-signal); }
+.mp-card.is-declared { border-style: dashed; border-color: var(--ps-line-strong); }
+.mp-ring { position: absolute; inset: -1px; border: 1px solid var(--ps-proof); border-radius: inherit; pointer-events: none; }
+.mp-card-label, .mp-card-meta { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.mp-card-title { font: var(--ps-weight-display) var(--ps-step-1) / 1.2 var(--ps-font-display); letter-spacing: var(--ps-track-1); }
+.mp-card-skills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mp-card-skills > span:not(.mp-card-meta) { padding: 0.15rem 0.5rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); font-size: var(--ps-step--2); }
+.mp-card-status { position: relative; display: block; min-height: 2.1rem; overflow: hidden; }
+.mp-status { display: inline-flex; align-items: center; min-height: 2rem; font: var(--ps-weight-mono) var(--ps-step--1) / 1.3 var(--ps-font-mono); color: var(--ps-text); }
+.mp-card.is-held .mp-status { color: var(--ps-signal); }
+.mp-card.is-declared .mp-status { color: var(--ps-muted); }
+.mp-seal { gap: var(--ps-space-2); max-width: 100%; white-space: normal; }
+.mp-caret { display: inline-block; width: 1px; height: 1em; background: currentColor; }
+.mp-quote { right: -1.25rem; top: -0.9rem; }
+.mp-escrow { right: var(--ps-space-4); top: -0.9rem; border-color: var(--ps-signal); background: var(--ps-overlay); color: var(--ps-signal); }
+.mp-lock { position: relative; width: 0.7rem; height: 0.55rem; margin-top: 0.25rem; border: 1.5px solid currentColor; border-radius: 2px; }
+.mp-lock::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 0.42rem; height: 0.32rem; translate: -50% 0; border: 1.5px solid currentColor; border-bottom: 0; border-radius: 0.3rem 0.3rem 0 0; }
+
+/* ---------- The steps and their rail ---------- */
+.mp-story { position: relative; padding-left: var(--ps-space-6); }
+.mp-trace { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; border-radius: 1px; background: var(--ps-line); overflow: hidden; }
+.mp-trace-fill { position: absolute; inset: 0; transform-origin: top center; background: linear-gradient(var(--ps-aura), var(--ps-aura-text)); }
+/* Green reaches the rail only once the mission is verified. */
+.mp[data-step="9"] .mp-trace-fill { background: linear-gradient(var(--ps-aura), var(--ps-aura-text) 70%, var(--ps-proof)); }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .mp-story { view-timeline: --mp-story block; }
+    .mp-trace-fill { animation: mp-trace linear both; animation-timeline: --mp-story; animation-range: cover 50svh cover calc(100% - 50svh); }
+  }
+}
+@keyframes mp-trace { from { transform: scaleY(0.02); } to { transform: none; } }
+.mp-steps { list-style: none; margin: 0; padding: 0; }
+.mp-steps li { display: grid; align-content: center; gap: var(--ps-space-3); min-height: 60svh; padding-block: var(--ps-space-6); scroll-margin-top: 30svh; }
+.mp-n { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); letter-spacing: var(--ps-track-label); color: var(--ps-aura-text); }
+.mp-steps h3 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
+.mp-steps p { max-width: 30rem; color: var(--ps-muted); }
+.mp-steps .mp-test { justify-self: start; padding: 0.35rem 0.75rem; border: 1px dashed var(--ps-signal); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-signal); }
+/* With a script, the step the scene shows is in full ink; the others stay readable in the secondary ink. */
+@media (scripting: enabled) {
+  .mp-steps li:not([data-active]) h3 { color: var(--ps-muted); }
+  .mp-steps li:not([data-active]) .mp-n { color: var(--ps-faint); }
+  .mp-steps li h3, .mp-steps li .mp-n { transition: color var(--ps-dur-ui) var(--ps-ease-out); }
+  .mp[data-step="9"] .mp-steps li:last-child .mp-n { color: var(--ps-proof); }
+}
+.mp-other-way { display: grid; gap: var(--ps-space-2); margin-top: var(--ps-space-6); padding: var(--ps-space-5); border: 1px dashed var(--ps-line-strong); border-radius: var(--ps-radius-card); }
+.mp-other-way p { color: var(--ps-muted); }
+
+@media (min-width: 64rem) {
+  .mp-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--ps-space-8); align-items: start; }
+  .mp-stage { position: sticky; top: 4rem; height: calc(100svh - 4rem); }
+  .mp-steps li { min-height: 72svh; }
+}
+
+/* ---------- Phone and tablet: a band that sticks under the top of the screen ---------- */
+@media (max-width: 63.99rem) {
+  .mp-stage { position: sticky; top: 0; grid-template-columns: minmax(0, 1fr); grid-template-areas: "counter" "scene" "other"; gap: var(--ps-space-2); margin-inline: calc(var(--ps-gutter) * -1); padding: var(--ps-space-3) var(--ps-gutter);
+    background: color-mix(in srgb, var(--ps-bg-deep) 94%, transparent); border-bottom: 1px solid var(--ps-line); }
+  .mp-rail { display: none; }
+  .mp-scene { width: 100%; aspect-ratio: auto; height: clamp(11rem, 26svh, 13rem); }
+  .mp-beams, .mp-bubble, .mp-stack, .mp-invoice, .mp-node-label { display: none; }
+  .mp-scene::before { content: ""; position: absolute; left: 3rem; right: 3rem; top: 1.25rem; height: 1px; background: var(--ps-line-strong); }
+  .mp-scene[data-verified]::before { background: var(--ps-proof); }
+  .mp-node { top: 1.25rem; translate: 0 -50%; }
+  .mp-node-f { left: 0; }
+  .mp-node-e { left: auto; right: 0; }
+  .mp-face, .mp-face img { width: 2.5rem; }
+  .mp-sign { width: 1rem; height: 1rem; }
+  .mp-card { top: 3.25rem; width: 100%; padding: var(--ps-space-3) var(--ps-space-4); gap: 4px; }
+  .mp-card-label { display: none; }
+  .mp-quote { right: var(--ps-space-2); }
+  .mp-other { width: 100%; font-size: var(--ps-step--1); }
+  .mp-steps li { min-height: 60svh; scroll-margin-top: 40svh; }
+}
+/* A short screen (landscape, small phones): the band does not stick, the steps read on their own. */
+@media (max-width: 63.99rem) and (max-height: 37.5rem) { .mp-stage { position: relative; } }
+/* Without a script: the final frame once, then the list; nothing sticks over it. */
+@media (scripting: none) { .mp-stage { position: relative; top: auto; height: auto; } .mp-steps li { min-height: 0; } }

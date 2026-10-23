@@ -1,0 +1,144 @@
+/* The home page v2, part 4: the quieter scenes. S4 what is verified, S6 the company cover, S8 the position, S9 the
+   copy beside the register, S10 the open data, S11 the questions, S12 the two doors. Their motion is CSS only, tied to
+   the scroll where the browser supports view timelines; without support, without script or under reduced motion,
+   each scene is simply in its final state. */
+
+/* ---------- S4. What is verified, and by whom ---------- */
+.vf-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-7); align-items: start; }
+@media (min-width: 64rem) { .vf-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--ps-space-9); } .vf-photo { margin-top: 5rem; } }
+.vf-photo { margin: 0; overflow: hidden; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); box-shadow: var(--ps-glow-aura); }
+.vf-photo img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 40%; }
+@media (max-width: 63.99rem) { .vf-photo img { aspect-ratio: 16 / 9; } }
+.vf-copy .section-head { margin-bottom: var(--ps-space-6); }
+.vf-list { margin: 0; display: grid; }
+.vf-row { display: grid; gap: var(--ps-space-1) var(--ps-space-5); padding-block: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
+@media (min-width: 48rem) { .vf-row { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); align-items: baseline; } }
+.vf-row dt { display: flex; align-items: center; gap: var(--ps-space-3); font: var(--ps-weight-display) var(--ps-step-1) / 1.25 var(--ps-font-display); }
+.vf-row dd { margin: 0; color: var(--ps-muted); }
+/* A verified fact, defined: the tick is green, as on a profile. */
+.vf-tick { flex: none; width: 1.15rem; height: 1.15rem; fill: none; stroke: var(--ps-proof); stroke-width: 1.5; }
+.vf-tick circle { fill: var(--ps-proof-wash); }
+.vf-foot { margin-top: var(--ps-space-4); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-faint); }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .vf-tick { animation: vf-tick linear both; animation-timeline: view(); animation-range: entry 60% cover 45%; }
+  }
+}
+@keyframes vf-tick { 0% { stroke: var(--ps-line-strong); transform: scale(0.85); } 80% { transform: scale(1.12); } 100% { stroke: var(--ps-proof); transform: none; } }
+
+/* ---------- S6. The company cover: Aceternity UI "Container Scroll", in CSS ---------- */
+.cv { position: relative; padding-block: var(--ps-section-y) 0; }
+.cv-stage { width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; perspective: 1200px; }
+.cv-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); box-shadow: var(--ps-glow-aura), var(--ps-shadow-2); }
+.cv-photo img { width: 100%; height: min(78svh, 46rem); object-fit: cover; object-position: 50% 45%; }
+.cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 50%, var(--ps-bg) 100%); pointer-events: none; }
+.cv-copy { display: grid; justify-items: start; gap: var(--ps-space-5); padding-block: var(--ps-space-6) var(--ps-section-y); }
+.cv-copy h2 { max-width: 16ch; }
+.cv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
+.cv-actions .btn { min-height: 3.25rem; padding-inline: var(--ps-space-5); }
+@media (min-width: 64rem) {
+  /* The text sits on the bottom of the photo, where the gradient is at least 88 % ink (BRAND_BOOK_V2 §6: 58 % minimum). */
+  .cv-copy { position: relative; margin-top: -14rem; padding-top: 0; }
+}
+@media (max-width: 40rem) { .cv-photo img { height: auto; aspect-ratio: 4 / 5; } .cv-actions { display: grid; width: 100%; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cv-photo { animation: cv-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; transform-origin: 50% 0; }
+    .cv-photo img { animation: cv-zoom linear both; animation-timeline: view(); animation-range: entry 0% cover 50%; }
+  }
+}
+@keyframes cv-rise { from { transform: rotateX(18deg) scale(0.92); clip-path: inset(10% 6% 0 round 16px); } to { transform: none; clip-path: inset(0 round 16px); } }
+@keyframes cv-zoom { from { transform: scale(1.08); } to { transform: none; } }
+
+/* ---------- S8. The position: Aceternity UI "Lamp", in CSS, and the words that light up ---------- */
+.mf { overflow: clip; background: var(--ps-bg-deep); }
+.mf-lamp { position: absolute; left: 50%; top: 0; width: min(64rem, 100%); height: 16rem; translate: -50% 0; pointer-events: none; }
+.mf-cone { position: absolute; top: 0; width: 50%; height: 100%; }
+.mf-cone-l { right: 50%; background: conic-gradient(from 70deg at 100% 0%, color-mix(in srgb, var(--ps-aura) 16%, transparent), transparent 40deg); }
+.mf-cone-r { left: 50%; background: conic-gradient(from 250deg at 0% 0%, transparent 320deg, color-mix(in srgb, var(--ps-aura) 16%, transparent) 360deg); }
+.mf-bar { position: absolute; left: 50%; top: 0; width: 50%; height: 2px; translate: -50% 0; background: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
+.mf .wrap { position: relative; display: grid; justify-items: start; gap: var(--ps-space-6); }
+.mf-statement { max-width: 20ch; font-size: clamp(2.25rem, 1.3rem + 4vw, 4.75rem); line-height: 1.04; letter-spacing: -0.03em; }
+.mf-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); width: 100%; margin-top: var(--ps-space-6); }
+@media (min-width: 64rem) { .mf-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; } .mf-columns > div { padding-inline: var(--ps-space-6); border-left: 1px solid var(--ps-line); } .mf-columns > div:first-child { padding-left: 0; border-left: 0; } }
+.mf-columns h3 { margin-bottom: var(--ps-space-2); font-size: var(--ps-step-1); }
+.mf-columns p { color: var(--ps-muted); }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .mf-word { animation: mf-word linear both; animation-timeline: view(); animation-range: cover calc(18% + var(--i) * 2%) cover calc(30% + var(--i) * 2%); }
+    .mf-bar { animation: mf-bar linear both; animation-timeline: view(); animation-range: entry 0% cover 35%; }
+    .mf-cone { animation: mf-cone linear both; animation-timeline: view(); animation-range: entry 0% cover 35%; }
+  }
+}
+@keyframes mf-word { from { color: var(--ps-muted); } to { color: var(--ps-text); } }
+@keyframes mf-bar { from { transform: scaleX(0.3); } to { transform: none; } }
+@keyframes mf-cone { from { transform: scaleX(0.4); opacity: 0.5; } to { transform: none; opacity: 1; } }
+
+/* ---------- S9. The copy beside the register ---------- */
+.ai-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-7); align-items: start; }
+@media (min-width: 64rem) { .ai-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+.ai-copy { display: grid; justify-items: start; gap: var(--ps-space-5); }
+.ai-copy h2 { font-size: var(--ps-step-4); }
+.ai-fact { font: var(--ps-weight-display) var(--ps-step-4) / 1.05 var(--ps-font-display); letter-spacing: var(--ps-track-4); color: var(--ps-aura-text); }
+.ai-source, .ai-condition { font: var(--ps-weight-mono) var(--ps-step--2) / 1.5 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.ai-condition { color: var(--ps-faint); }
+
+/* ---------- S10. Open data ---------- */
+.rs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
+@media (min-width: 64rem) { .rs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(10.75rem, auto)); } .rs-barometer { grid-row: 1 / 3; } }
+.rs-card { display: grid; align-content: space-between; gap: var(--ps-space-4); padding: var(--ps-space-5); text-decoration: none; background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.rs-art svg { width: 100%; max-height: 9rem; }
+.rs-barometer .rs-art svg { max-height: 14rem; }
+.rs-text { color: var(--ps-muted); }
+.rs-text strong { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+.rs-link { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); text-decoration: underline; text-underline-offset: 0.3em; }
+.art-axis, .art-line, .art-box path, .art-box rect { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.art-box rect { fill: var(--ps-raised); }
+.art-median { stroke: var(--ps-aura-text); }
+.art-fill { fill: color-mix(in srgb, var(--ps-aura) 35%, var(--ps-surface)); }
+
+/* ---------- S11. Questions ---------- */
+.fq-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); }
+@media (min-width: 64rem) { .fq-grid { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: var(--ps-space-8); align-items: start; } .fq-head { position: sticky; top: 6rem; } }
+.fq-head { display: grid; justify-items: start; gap: var(--ps-space-4); }
+.fq-head h2 { font-size: var(--ps-step-4); }
+.fq-list details { border-bottom: 1px solid var(--ps-line); }
+.fq-list summary { display: flex; justify-content: space-between; align-items: center; gap: var(--ps-space-4); min-height: 2.75rem; padding-block: var(--ps-space-5); cursor: pointer; list-style: none; font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.fq-list summary::-webkit-details-marker { display: none; }
+.fq-list summary::after { content: "+"; flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid var(--ps-line-strong); border-radius: 50%; font-family: var(--ps-font-mono); color: var(--ps-aura-text); transition: transform var(--ps-dur-ui) var(--ps-ease-out); }
+.fq-list details[open] summary::after { transform: rotate(45deg); }
+.fq-list details p { max-width: 60ch; padding-bottom: var(--ps-space-5); color: var(--ps-muted); }
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    .fq-list { interpolate-size: allow-keywords; }
+    .fq-list details::details-content { height: 0; overflow: clip; transition: height var(--ps-dur-ui) var(--ps-ease-out); }
+    .fq-list details[open]::details-content { height: auto; }
+  }
+}
+
+/* ---------- S12. The two doors ---------- */
+.dr { position: relative; background: var(--ps-bg-deep); }
+.dr-doors { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 48rem) { .dr-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dr-door { position: relative; isolation: isolate; display: grid; align-items: end; min-height: 18.75rem; overflow: hidden; padding: var(--ps-space-7) var(--ps-gutter); color: var(--ps-text); text-decoration: none; }
+@media (min-width: 48rem) { .dr-door { min-height: 32.5rem; padding: var(--ps-space-8); } }
+.dr-photo, .dr-photo img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dr-photo { z-index: -2; }
+.dr-photo img { object-fit: cover; }
+/* 60 % of ink at least over the photo, more where the text sits. */
+.dr-door::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(color-mix(in srgb, var(--ps-bg-deep) 60%, transparent), color-mix(in srgb, var(--ps-bg-deep) 92%, transparent)); }
+.dr-door::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; pointer-events: none; background: radial-gradient(520px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in srgb, var(--ps-aura) 18%, transparent), transparent 70%); }
+.dr-copy { display: grid; justify-items: start; gap: var(--ps-space-3); }
+.dr-title { font: var(--ps-weight-display) var(--ps-step-4) / 1.05 var(--ps-font-display); letter-spacing: var(--ps-track-4); }
+.dr-text { font-size: var(--ps-step-1); color: var(--ps-muted); }
+.dr-cta { margin-top: var(--ps-space-3); }
+.dr-door:focus-visible { outline-offset: -4px; }
+.dr-thread { position: absolute; left: 50%; top: 0; bottom: 0; display: none; width: 2px; translate: -50% 0; background: linear-gradient(transparent, var(--ps-aura-text) 30%, var(--ps-aura-text) 70%, transparent); box-shadow: var(--ps-glow-aura); pointer-events: none; transition: rotate var(--ps-dur-glow) var(--ps-ease-glow); }
+.dr-thread img { position: absolute; left: 50%; top: 50%; translate: -50% -50%; padding: 6px; border: 1px solid var(--ps-line-strong); border-radius: 12px; background: var(--ps-bg-deep); }
+@media (min-width: 48rem) { .dr-thread { display: block; } }
+@media (hover: hover) and (pointer: fine) {
+  .dr-door[data-spot-on]::after { opacity: 1; }
+  .dr-doors:has(.dr-freelance:hover) .dr-thread { rotate: -4deg; }
+  .dr-doors:has(.dr-company:hover) .dr-thread { rotate: 4deg; }
+}
+main.home:has(> .dr:last-child) + .foot { margin-top: 0; }

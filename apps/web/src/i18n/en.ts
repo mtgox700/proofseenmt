@@ -4,9 +4,9 @@ import type { Dictionary } from "./fr";
 
 export const en: Dictionary = {
   meta: {
-    title: "Proofseen: proof of what a freelancer actually delivered",
+    title: "Proofseen: the tech freelance marketplace where every mission is proven",
     description:
-      "Tech freelance missions confirmed by their client or paid on Proofseen, and dated, with no score and no ranking. And a measure of their visibility when a recruiter searches with AI.",
+      "Rich profiles, missions, messaging, quotes, contracts and escrow payment for tech freelancers and companies. A mission is verified only when its client confirms it or when it is paid on Proofseen. No rating of people.",
   },
   skip: "Skip to content",
   nav: {
@@ -22,12 +22,6 @@ export const en: Dictionary = {
     otherLang: "Français",
     otherLangLabel: "Lire cette page en français",
     home: "Proofseen, home",
-  },
-  hero: {
-    title: "Proof of what a freelancer actually delivered.",
-    lead: "On Proofseen, a mission is marked verified only once its client confirms it or it is paid on the platform, and the mark carries its date. We also measure whether a freelancer comes up when a recruiter asks an AI, and we started with ourselves.",
-    primary: "Get my visibility measured",
-    secondary: "See the freelancers",
   },
   field: {
     engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" } as Record<string, string>,
@@ -53,150 +47,6 @@ export const en: Dictionary = {
     tableTotal: "Total",
     summary:
       "780 real answers, split between OpenAI, Anthropic and Perplexity. The most cited sources are malt.fr and linkedin.com. 90.8% of Anthropic's answers cite no source. Our founder appears in none of them.",
-  },
-  journey: {
-    title: "One question, followed all the way to the count.",
-    lead: "The recruiter asks. The AI answers, cites its sources, suggests five profiles. We do it again two hundred times per engine, and the range tightens with every answer.",
-  },
-  sim: {
-    label: "Replay of our own measure",
-    engine: "OpenAI engine, web search on",
-    question: "Recruiter's question",
-    prompt: "I'm looking for a freelance full stack TypeScript developer, available, in Paris or remote. Give me the five most relevant profiles.",
-    answer: "AI answer",
-    intro: "Here are five profiles that match your search:",
-    masked: "name masked",
-    rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    // The replay is the founder's measure, not the visitor's: it names him, never "you".
-    verdict: "Our founder: not in this answer",
-    appear: "Our founder appears",
-    interval: "Range of the true rate",
-    times: "{hits} times out of {n}",
-    same: "Same count on all three engines measured.",
-    replay: "Replay",
-    disclosure:
-      "The answer text is an example: we do not keep answers, and the names of other professionals are masked before anything is stored. The counts are real: wave J0, 23 and 24 September 2026.",
-  },
-  method: {
-    kicker: "The method",
-    title: "Five steps between a question and your name.",
-    lead: "We measure each step separately, for each engine. Fixing always starts with the earliest step that fails.",
-    stages: [
-      { code: "E1", name: "Indexed", question: "Do the engines know your pages?" },
-      { code: "E2", name: "Retrieved", question: "Are your pages retrieved for this kind of job?" },
-      { code: "E3", name: "Named", question: "Are you named in the answer?" },
-      { code: "E4", name: "Top five", question: "Are you among the first five named?" },
-      { code: "E5", name: "Cited", question: "Does the answer link back to you?" },
-    ],
-    diagramNote: "The narrowing is a diagram of the method, not a measure.",
-    rules: [
-      { title: "Repeated draws", text: "An AI never answers the same way twice. Each question goes to each engine several times, then we count." },
-      { title: "A range for every rate", text: "Every rate comes with its raw count and its 95% range. A percentage on its own lies by omission." },
-      { title: "Control jobs", text: "Jobs that do not match you serve as a reference: if their rate moves, the engines changed, not you." },
-    ],
-  },
-  study: {
-    kicker: "Measured on ourselves first",
-    title: "780 AI answers. Our founder does not appear once.",
-    lead: "Before selling anything, we ran the method on our own founder, with a protocol fixed in advance. This is where we start, and we say so.",
-    facts: {
-      answers: { value: "780", label: "AI answers analysed, for $15.79 of measurement cost" },
-      zero: { value: "0%", range: "[0%, 1.9%]", label: "citations of the founder, 95% range on each engine" },
-      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
-      sources: {
-        label: "Share of the {total} citations found in the {answers} answers, by domain. Wave J0, 23 and 24 September 2026.",
-        count: "{hits} of {total} citations",
-      },
-      silent: { value: "90.8%", label: "of Anthropic's answers consult no source at all: being seen depends on the engine" },
-      agreement: { value: "20/20", label: "agreement between our API measures and the consumer apps" },
-    },
-    source: "Wave J0, 23 and 24 September 2026. Protocol fixed before the measure, fingerprint 1bc9f85f. Raw answers deleted after analysis.",
-    limits:
-      "These figures describe one profile, these jobs, these engines, on this date. They do not predict your results. We publish them because a vendor that does not measure itself proves nothing.",
-  },
-  deliverable: {
-    title: "What you receive, and nothing more.",
-    lead: "A dated, quantified, reproducible report. Every action comes from a figure in your measure: we do not recite best practices.",
-    contents: [
-      "The exact step where your profile drops out, for each engine.",
-      "The raw count and the range of every rate, never a percentage on its own.",
-      "The map of the platforms AI assistants read for this kind of job.",
-      "At most eight ranked actions, each with its reason, its place, its effort and the figure behind it.",
-      "What you cannot change, said plainly instead of being sold.",
-      "The model queried, the date, and the fingerprint of the protocol fixed before the measure.",
-    ],
-    sampleCaption: "We show no client report: we do not have one yet.",
-  },
-  piece: {
-    kicker: "The proof",
-    title: "A mission is verified by a third party, or not at all.",
-    lead: "The freelancer declares. Their client confirms, or the mission is paid on Proofseen. Only then does it carry its mark, with its date.",
-    evidenceTitle: "What stays declared",
-    evidence: ["A mission with no confirmation and no payment", "Skills and day rate", "Anything that does not cite its source"],
-    confirmTitle: "Who can confirm",
-    confirm: ["The client, from their account", "A contact at the client, through a signed link, without an account", "Payment of the mission on Proofseen"],
-    factsTitle: "The verified facts of a profile",
-    facts: [
-      "Business active in the official French company register: the SIRET is checked, never published",
-      "Identity verified by the payment provider",
-      "URSSAF vigilance certificate",
-      "Paid on Proofseen by one or more companies",
-    ],
-    rule: "Every verified mission says who confirmed it and when; the client's name appears only if they allowed it.",
-    link: "See the published profiles",
-    replay: "Replay the stamp",
-    specimen: {
-      label: "Specimen. Illustrative example, fictitious data.",
-      role: "TypeScript lead developer",
-      context: "SME · logistics · 6 months",
-      summary: "Rebuild of the parcel tracking API and recovery of the test coverage.",
-      evidence: "Proof: the client confirmed from their account",
-      stamp: "Verified on 12 October 2026",
-    },
-  },
-  companies: {
-    title: "Hire freelancers whose missions are verified.",
-    text: "Pseudonymous profiles, missions confirmed by their client or paid on Proofseen, a public method. No score, no ranking of people: the directory lists published profiles from the most recently updated to the oldest.",
-    points: ["Profile ownership proven", "Verification method shown for every mission", "Dated availability", "Identity shared once the freelancer agrees"],
-    cta: "See the freelancers",
-    publish: "Post a mission",
-  },
-  exit: {
-    label: "Where to start",
-    freelance: {
-      title: "You are a freelancer",
-      text: "Publish your missions, have your clients confirm them, and find out whether an AI cites you when a recruiter asks it.",
-      cta: "Get my visibility measured",
-    },
-    company: {
-      title: "You are hiring",
-      text: "Browse the published profiles, with no score and no ranking: they are listed by date of update.",
-      cta: "See the freelancers",
-    },
-  },
-  charter: {
-    title: "Our honesty charter.",
-    items: [
-      { title: "We measure, we do not promise.", text: "Our results are trends with their range, never a guaranteed rank or mission." },
-      { title: "No manipulation of AI assistants.", text: "No hidden text, no instructions aimed at AI, no content that changes with who is looking." },
-      { title: "Only true information.", text: "We refuse to generate a skill, an experience, a figure or a testimonial you do not have." },
-      { title: "Your accounts stay yours.", text: "We never post on LinkedIn, Malt or GitHub for you, and we collect no data on those platforms." },
-      { title: "Other people are protected.", text: "The names of other professionals cited by AI assistants are erased before anything is stored. We never show you who appears instead of you." },
-      { title: "Your results are yours.", text: "Even if your company pays for Proofseen, it never sees your individual results, only group statistics." },
-      { title: "Public method.", text: "Our measurement protocol is published and dated, at launch." },
-      { title: "We check our clients.", text: "We check that you own the profiles measured, and we refuse any profile where we detect manipulation." },
-    ],
-  },
-  faq: {
-    title: "Questions",
-    items: [
-      { q: "Can you guarantee me the top spot?", a: "No, and nobody honest can. We measure a probability with its range, help you fix what fails, then measure again." },
-      { q: "Why ask the same question several times?", a: "Because an AI never gives exactly the same answer twice. One answer means nothing; a series of answers shows a trend." },
-      { q: "Do you measure every AI?", a: "We measure, through their APIs, the engines whose terms allow their answers to be analysed: OpenAI, Anthropic and Perplexity. Gemini and Copilot are not covered." },
-      { q: "Is this black-hat SEO?", a: "No. We only work with true information, published by you, on your own profiles. See the charter." },
-      { q: "What if my audit shows I appear nowhere?", a: "That is a useful result: the report shows the step where your profile drops out and where to start. Our own measure starts exactly there." },
-      { q: "What about my privacy?", a: "You prove that the profiles measured are yours. Raw answers are encrypted, then deleted after 72 hours." },
-    ],
   },
   // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {

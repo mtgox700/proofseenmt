@@ -1,18 +1,28 @@
+import "@proofseen/brand/seal.css";
 import "@/styles/home.css";
+import "@/styles/home-bento.css";
+import "@/styles/home-journey.css";
+import "@/styles/home-sections.css";
+import "@/styles/home-registre.css";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Charter } from "@/components/landing/Charter";
-import { Companies } from "@/components/landing/Companies";
-import { Deliverable } from "@/components/landing/Deliverable";
-import { Exit } from "@/components/landing/Exit";
+import { Suspense } from "react";
+import { AiVisibility } from "@/components/landing/AiVisibility";
+import { Capabilities } from "@/components/landing/Capabilities";
+import { CompanyBento } from "@/components/landing/CompanyBento";
+import { CompanyCover } from "@/components/landing/CompanyCover";
+import { Doors } from "@/components/landing/Doors";
 import { Faq } from "@/components/landing/Faq";
-import { Hero } from "@/components/landing/Hero";
-import { Journey } from "@/components/landing/Journey";
-import { Method } from "@/components/landing/Method";
-import { Piece } from "@/components/landing/Piece";
-import { Study } from "@/components/landing/Study";
+import { FreelanceBento } from "@/components/landing/FreelanceBento";
+import { HomeHero } from "@/components/landing/HomeHero";
+import { LandingFx } from "@/components/landing/LandingFx";
+import { Manifesto } from "@/components/landing/Manifesto";
+import { MissionPath } from "@/components/landing/MissionPath";
+import { Resources } from "@/components/landing/Resources";
+import { Verified } from "@/components/landing/Verified";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { homeCopy } from "@/content/home";
 import { getSource } from "@/data/file-source";
 import { dictionary, isLang } from "@/i18n";
 import { shareMetadata, siteOrigin } from "@/lib/brand-metadata";
@@ -34,34 +44,50 @@ export async function generateMetadata({ params }: { readonly params: Promise<{ 
 }
 
 /*
- * The storefront (STORYBOARD lot b), in the order of the visit: the house and its own register, the legend of that
- * register in figures, what a piece of evidence is, one question followed to the count, the five steps, what a client
- * receives, the company side, the charter, the questions, and two doors out. No price: none is public before real
- * data exists (decision of 2026-10-07). Strong, quiet, strong, medium, quiet: never two strong moments on one screen.
+ * Real payments open only on the founder's GO PAIEMENT LIVE (PROOFSEEN_PAYMENTS_LIVE=GO on the server). Until then the
+ * payment step of the journey says, in words, that it runs in test mode. Read when the page is built: a build without
+ * the variable shows the line, which is the safe side.
+ */
+const paymentsInTestMode = (): boolean => process.env.PROOFSEEN_PAYMENTS_LIVE !== "GO";
+
+/*
+ * The home page v2 (STORYBOARD_V2.md), twelve scenes in the order of the visit: two sides and one proof; everything a
+ * mission needs; the freelancer's side; what is verified and by whom; one mission from the post to the proof (the
+ * flagship); the turn to the companies; their side; the position; the measure in AI answers; the open data; the
+ * questions; two doors. Strong, quiet, medium, quiet, strong: never two heavy moments on one screen. Every scene is
+ * server HTML in its final state; the two client scenes sit under their own Suspense so hydration is split. No price.
  */
 export default async function LandingPage({ params }: { readonly params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
   const t = dictionary(lang);
+  const copy = homeCopy(lang);
   // The founder's J0 wave (real answers, approved for publication): the only data read here.
   const answers = await getSource().answers();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd(lang, siteOrigin(), t.meta.description) }} />
       <SiteHeader lang={lang} t={t} variant="site" />
-      <main id="contenu" tabIndex={-1}>
-        <Hero lang={lang} t={t} answers={answers} />
-        <Study lang={lang} t={t} />
-        <Piece lang={lang} t={t} />
-        <Journey lang={lang} t={t} />
-        <Method t={t} />
-        <Deliverable t={t} />
-        <Companies lang={lang} t={t} />
-        <Charter t={t} />
-        <Faq t={t} />
-        <Exit lang={lang} t={t} />
+      <main id="contenu" tabIndex={-1} className="home">
+        <HomeHero lang={lang} copy={copy.hero} />
+        <Capabilities copy={copy.capabilities} />
+        <FreelanceBento lang={lang} copy={copy.freelance} />
+        <Verified lang={lang} copy={copy.verified} />
+        <Suspense>
+          <MissionPath copy={copy.journey} testMode={paymentsInTestMode()} />
+        </Suspense>
+        <CompanyCover lang={lang} copy={copy.cover} />
+        <Suspense>
+          <CompanyBento copy={copy.company} sample={copy.freelance.sample} />
+        </Suspense>
+        <Manifesto lang={lang} copy={copy.manifesto} />
+        <AiVisibility lang={lang} copy={copy.ai} field={t.field} answers={answers} />
+        <Resources lang={lang} copy={copy.resources} />
+        <Faq lang={lang} copy={copy.faq} />
+        <Doors lang={lang} copy={copy.doors} />
       </main>
       <SiteFooter lang={lang} t={t} />
+      <LandingFx />
     </>
   );
 }
