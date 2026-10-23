@@ -36,7 +36,8 @@
 .ws-nav a { display: flex; align-items: center; gap: 0.3em; min-height: 2.75rem; padding: 0 var(--ps-space-3); border: 1px solid transparent; border-radius: var(--ps-radius); color: var(--ps-muted); text-decoration: none; white-space: nowrap; }
 .ws-nav a[aria-current] { color: var(--ps-text); background: var(--ps-surface); border-color: var(--ps-line); }
 .ws-tabs ul { border-bottom: 1px solid var(--ps-line); }
-.ws-tabs a { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: var(--ps-space-3); color: var(--ps-muted); font-size: var(--ps-step--1); text-decoration: none; white-space: nowrap; }
+/* A short tab (« Fil ») is still a 44 x 44 target. */
+.ws-tabs a { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding-inline: var(--ps-space-3); color: var(--ps-muted); font-size: var(--ps-step--1); text-decoration: none; white-space: nowrap; }
 .ws-tabs a[aria-current] { color: var(--ps-text); text-decoration: underline; text-decoration-thickness: var(--ps-ring); text-underline-offset: 0.5em; }
 /* Inside a line that scrolls, a ring drawn outside the link would be cut: it is drawn inside. */
 .ws-nav a:focus-visible, .ws-tabs a:focus-visible { outline-offset: -2px; }
