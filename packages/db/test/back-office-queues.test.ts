@@ -115,7 +115,13 @@ describe("attestations de vigilance URSSAF", () => {
     const pending = await desk.pending(new Date());
     expect(pending.find((a) => a.reference === p.reference)).toMatchObject({ securityCode: "ABCD1234EF" });
     expect(await desk.verify(p.reference, "AUTRECODE1", new Date())).toBe("absent");
-    expect(await desk.verify(p.reference, "abcd 1234-ef", new Date())).toBe("done");
+    expect(await desk.verified(p.reference)).toBeNull();
+    const at = new Date();
+    expect(await desk.verify(p.reference, "abcd 1234-ef", at)).toBe("done");
+    // L'accusé de l'opérateur relit la vérification en base, avec sa date et l'échéance de l'attestation.
+    expect(await desk.verified(p.reference)).toMatchObject({ reference: p.reference, verifiedAt: at });
+    expect((await desk.verified(p.reference))?.expiresOn.getTime()).toBeGreaterThan(at.getTime());
+    expect(await desk.verified("pas une référence")).toBeNull();
     expect((await vigilance(t.db).status(p.id, new Date())).verified).toBe(true);
     expect((await desk.pending(new Date())).map((a) => a.reference)).not.toContain(p.reference);
     expect((await operatorLog(t.db, operator).list({ action: "vigilance_verified" })).items.some((i) => i.metadata.reference === p.reference)).toBe(true);
@@ -125,6 +131,7 @@ describe("attestations de vigilance URSSAF", () => {
     const p = await declared();
     const desk = vigilanceDesk(t.db, operator);
     expect(await desk.reject(p.reference, "Code introuvable sur urssaf.fr", new Date())).toBe("done");
+    expect(await desk.verified(p.reference)).toBeNull();
     expect((await accountNotices(t.db).standing({ userId: p.userId })).vigilanceRejection?.reason).toBe("Code introuvable sur urssaf.fr");
     // Refusée : ni l'écran ni la ligne de commande ne la marquent vérifiée.
     expect(await desk.verify(p.reference, "ABCD1234EF", new Date())).toBe("unchanged");

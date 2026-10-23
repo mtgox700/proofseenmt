@@ -412,7 +412,7 @@ export { isListedProfile, LISTED_COMPANY, LISTED_MISSION, LISTED_PROFILE } from 
 export { moderation, ProfileReferenceInputSchema, type HiddenItem, type Moderation, type ModerationTarget } from "./moderation";
 export { OPERATOR_LOG_PAGE_SIZE, operatorLog, OperatorLogFilterSchema, type OperatorLog, type OperatorLogEntry, type OperatorLogFilter } from "./operator-log";
 export { contactReviews, FIRST_CONTACT_REVIEW, isRecentSender, type ContactReviews, type FirstContactMode, type PendingContact } from "./contact-review";
-export { vigilanceDesk, type PendingAttestation, type VigilanceDesk } from "./vigilance-desk";
+export { vigilanceDesk, type PendingAttestation, type VerifiedAttestation, type VigilanceDesk } from "./vigilance-desk";
 export { proofDisputes, type ProofDispute, type ProofDisputes } from "./proof-disputes";
 export { registryDesk, type CompanyCheck, type RegistryDesk } from "./registry-desk";
 export { userDesk, type SuspendResult, type UserDesk, type UserHit, type UserSummary } from "./user-desk";
