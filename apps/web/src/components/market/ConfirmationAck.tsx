@@ -1,6 +1,6 @@
 import "@/styles/app-confirmer.css";
 import type { ConfirmationRecordedDecision } from "@proofseen/db";
-import { AckStrike } from "@/components/proof/AckStrike";
+import { StrikeOnce } from "@/components/proof/StrikeOnce";
 import { Seal } from "@/components/proof/Seal";
 import type { Lang } from "@/i18n";
 import type { MarketDictionary } from "@/i18n/market";
@@ -58,7 +58,7 @@ export function ConfirmationAck({ lang, d, id, recorded, by, reference, title, h
       ) : (
         <>
           <p className="ack-lead">{d.sealLead}</p>
-          {strikesNow(recorded.decidedAt, now) ? <AckStrike id={id}>{seal}</AckStrike> : <div className="ack-seal">{seal}</div>}
+          {strikesNow(recorded.decidedAt, now) ? <StrikeOnce id={id}>{seal}</StrikeOnce> : <div className="ack-seal">{seal}</div>}
           <p className="muted small">{d.published(reference)}</p>
         </>
       )}
