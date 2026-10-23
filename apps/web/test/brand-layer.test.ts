@@ -100,12 +100,32 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
       [
         // A verified fact, written as a tag (proven address, verified mission, confirmed by the client, URSSAF, SIRET).
         "base.css: .tag-proof",
-        // The storefront: the founder's slot of the register (empty today) and the specimen's poinçon.
-        "home.css: .rg-you",
-        "home.css: .rg-sw-you",
-        "home.css: .specimen-stamp",
-        "home.css: .specimen-dot",
-        "home.css: @keyframes pc-ink > from",
+        // The home page v2: the founder's slot of the register (empty today) and its swatch.
+        "home-registre.css: .rg-you",
+        "home-registre.css: .rg-sw-you",
+        // The example mission of the opening, verified by its payment: its card, the two beams that fed it, their
+        // ports, and the poinçon's square before the one point that speaks of verification.
+        "home.css: .hx-card",
+        "home.css: .beam",
+        "home.css: .beam-port",
+        "home.css: .hx-points .hx-point-proof::before",
+        // The label of the one section about proof (BRAND_BOOK_V2 §5), and the six verified facts it defines.
+        "home.css: .home .kicker-proof",
+        "home-sections.css: .vf-tick",
+        "home-sections.css: .vf-tick circle",
+        "home-sections.css: @keyframes vf-tick > 100%",
+        // The two facts a third party verified on the example profile of the company bento (never the availability).
+        "home-bento.css: .mock-facts .is-proof",
+        // The journey: green only once the mission is verified (step 9, or the client's confirmation).
+        'home-journey.css: .mp[data-step="9"] .mp-rail a[aria-current]::before',
+        'home-journey.css: .mp[data-step="9"] .mp-trace-fill',
+        'home-journey.css: @media (scripting: enabled) > .mp[data-step="9"] .mp-steps li:last-child .mp-n',
+        "home-journey.css: .mp-beam.is-proof",
+        "home-journey.css: .mp-fill",
+        "home-journey.css: .mp-stack",
+        "home-journey.css: .mp-scene[data-verified] .mp-card",
+        "home-journey.css: .mp-ring",
+        "home-journey.css: @media (max-width: 63.99rem) > .mp-scene[data-verified]::before",
         // Lot 2: an answer of the person's own register that cites them with a link (the storefront's .rg-you), and
         // the same count as the bar of its funnel step. A measured fact, dated, whose source is the answer.
         "app-registre.css: .cr-cited",

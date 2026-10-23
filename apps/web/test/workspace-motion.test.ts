@@ -10,7 +10,7 @@ import { ThreadMessages, type ThreadMessageView } from "../src/components/live/T
  * Kensa m4, the rule of the brand in the connected space: nothing is hidden while it waits for an animation, and a
  * figure does not count up, it is true at once. Motion may only settle something already visible, briefly, and under
  * `prefers-reduced-motion: no-preference`, and nothing loops (lot 1 of the connected redesign removed the last loop,
- * the halo of the active step of a file). The storefront (home.css) is held by its own tests; the sheets of
+ * the halo of the active step of a file). The home page (home.css and its four companion sheets, home-*.css) is held by its own tests; the sheets of
  * @proofseen/brand that React imports are held to the same rules here.
  */
 
@@ -25,7 +25,7 @@ const code = filesUnder(src).filter((f) => /\.tsx?$/.test(f));
 const brand = join(src, "..", "..", "..", "packages", "brand");
 const stylesheets = [
   ...readdirSync(join(src, "styles"))
-    .filter((f) => f.endsWith(".css") && f !== "home.css")
+    .filter((f) => f.endsWith(".css") && !/^home(?:-[a-z]+)?\.css$/.test(f))
     .map((f) => join("styles", f)),
   ...readdirSync(brand)
     .filter((f) => f.endsWith(".css"))
