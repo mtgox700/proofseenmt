@@ -6,7 +6,13 @@ export const accountFr = {
     applications: "Candidatures",
     applicationsFoot: (open: number) => `${open} en cours`,
     contracts: "Contrats",
-    contractsFoot: (active: number, toSign: number) => `${active} en cours · ${toSign} à signer`,
+    /** Chaque contrat à signer dit qui il attend, comme « À traiter » : jamais un compte qui mélange les deux côtés. */
+    contractsFoot: (active: number, toSign: { readonly company: number; readonly freelance: number }) =>
+      [
+        `${active} en cours`,
+        ...(toSign.company === 0 ? [] : [toSign.company === 1 ? "1 attend votre signature" : `${toSign.company} attendent votre signature`]),
+        ...(toSign.freelance === 0 ? [] : [toSign.freelance === 1 ? "1 attend la signature du freelance" : `${toSign.freelance} attendent la signature du freelance`]),
+      ].join(" · "),
     received: "Versé",
     held: "bloqué en attente de validation",
     paid: "Payé",
