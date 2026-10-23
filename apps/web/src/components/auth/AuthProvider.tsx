@@ -1,30 +1,37 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { enUS, frFR } from "@clerk/localizations";
-import { FONT_STACKS, PALETTE } from "@proofseen/brand";
+import { FONT_STACKS } from "@proofseen/brand";
 import type { Lang } from "@/i18n";
 import { clerkClientConfigured } from "@/lib/auth-config";
 
 /*
- * Clerk around the app, only when its publishable key exists (see `clerkClientConfigured`). Its widgets are themed from
- * the brand palette (@proofseen/brand): Clerk computes shades from colour values, so it receives the values themselves,
- * in the dark theme of the brand. The call to action is paper on ink, as everywhere: green is for what is verified.
+ * Clerk around the app, only when its publishable key exists (see `clerkClientConfigured`). Its widgets take the brand
+ * colours as CSS custom properties of @proofseen/brand, not as fixed values: the page's own theme (dark by default,
+ * light under `prefers-color-scheme: light` or `[data-theme="light"]`) recolours them, with no script, no extra request
+ * and no flash at hydration. Clerk passes `var(--…)` through where the browser mixes colours in CSS (`color-mix()` or
+ * relative colours) and drops it otherwise, falling back to its own defaults (`removeInvalidValues`, clerk/javascript
+ * packages/ui/src/customizables/parseVariables.ts). The names are those of Clerk's current `Variables`
+ * (`colorForeground`, `colorInput`…): the older ones (`colorText`, `colorInputBackground`…) are no longer read.
+ * The call to action is paper on ink, as everywhere: green is for what is verified, so no Clerk colour is green.
  */
-const ink = PALETTE.dark;
-const appearance = {
-  variables: {
-    colorPrimary: ink.text,
-    colorBackground: ink.surface,
-    colorInputBackground: ink.bg,
-    colorInputText: ink.text,
-    colorText: ink.text,
-    colorTextSecondary: ink.muted,
-    colorTextOnPrimaryBackground: ink.bg,
-    colorNeutral: ink.text,
-    colorDanger: ink.danger,
-    borderRadius: "4px",
-    fontFamily: FONT_STACKS.text,
-  },
-};
+export const CLERK_VARIABLES = {
+  colorPrimary: "var(--ps-text)",
+  colorPrimaryForeground: "var(--ps-bg)",
+  colorBackground: "var(--ps-surface)",
+  colorForeground: "var(--ps-text)",
+  colorMutedForeground: "var(--ps-muted)",
+  colorInput: "var(--ps-bg)",
+  colorInputForeground: "var(--ps-text)",
+  colorNeutral: "var(--ps-text)",
+  colorBorder: "var(--ps-line-strong)",
+  colorRing: "var(--ps-focus)",
+  colorDanger: "var(--ps-danger)",
+  colorWarning: "var(--ps-signal)",
+  borderRadius: "4px",
+  fontFamily: FONT_STACKS.text,
+} as const;
+
+const appearance = { variables: CLERK_VARIABLES };
 
 export function AuthProvider({ lang, children }: { readonly lang: Lang; readonly children: React.ReactNode }) {
   if (!clerkClientConfigured()) return <>{children}</>;

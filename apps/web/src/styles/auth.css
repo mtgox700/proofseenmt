@@ -3,8 +3,9 @@
  * in: the copy beside the Clerk widget. Apart from workspace.css so that these public pages do not download the frame
  * of the connected space.
  */
-.auth-page { padding-block: var(--ps-space-7) var(--ps-space-8); display: grid; gap: var(--ps-space-6); align-items: start; }
+.auth-page { padding-block: var(--ps-space-7) var(--ps-space-8); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); align-items: start; }
 @media (min-width: 64rem) { .auth-page { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .auth-copy { display: grid; gap: var(--ps-space-4); }
-.auth-copy h1 { font-size: var(--ps-step-5); letter-spacing: -0.03em; }
-.auth-widget { display: grid; justify-items: start; }
+/* A page title, on the scale of the brand (BRAND_BOOK section 4): step 5 is the title of the home page only. */
+.auth-copy h1 { font-size: var(--ps-step-4); line-height: var(--ps-lead-4); letter-spacing: var(--ps-track-4); }
+.auth-widget { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
