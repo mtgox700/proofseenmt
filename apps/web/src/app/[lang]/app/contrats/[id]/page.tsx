@@ -15,6 +15,7 @@ import { date, day, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
 import { contractFacts, dealSteps } from "@/lib/deal-steps";
 import { redirectStatus, showPayClosed, showPayForm, type PayContext } from "@/lib/pay-section";
+import { stripeAppearances } from "@/lib/stripe-appearance";
 import { cancelContract, completeContract, saveCostCenter, signContract, writeReview } from "../actions";
 import type { AccountDictionary } from "@/i18n/market/account-fr";
 import "@/styles/app-affaire.css";
@@ -216,7 +217,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
               <p className="muted small">
                 {c.pay.amountExclVat(money(contract.totalCents, contract.currency, lang))} {c.pay.commissionRule}
               </p>
-              <EscrowPayment lang={lang} contractId={contract.id} publishableKey={ui.publishableKey} testMode={ui.testMode} currency={contract.currency} p={c.pay.client} />
+              <EscrowPayment lang={lang} contractId={contract.id} publishableKey={ui.publishableKey} testMode={ui.testMode} currency={contract.currency} p={c.pay.client} appearance={stripeAppearances()} />
               <noscript>
                 <p className="test-note">{c.pay.noscript}</p>
               </noscript>

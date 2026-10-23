@@ -53,3 +53,12 @@ export const payoutState = (identity: { readonly payoutAccountOpened: boolean; r
   if (identity.payoutsReady) return "ready";
   return identity.payoutAccountOpened ? "incomplete" : "none";
 };
+
+/**
+ * The theme the payment form takes when it mounts, as the page's tokens decide it: an explicit `data-theme` on the root
+ * wins, otherwise the system preference, dark by default (the brand).
+ */
+export const appearanceTheme = (dataTheme: string | undefined, prefersLight: boolean): "dark" | "light" => {
+  if (dataTheme === "dark" || dataTheme === "light") return dataTheme;
+  return prefersLight ? "light" : "dark";
+};
