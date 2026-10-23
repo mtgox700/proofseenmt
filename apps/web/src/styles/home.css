@@ -124,7 +124,7 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-photo-f { left: 0; top: 0; }
 .hx-photo-f img { object-position: 36% 50%; }
 .hx-photo-e { right: 0; top: 11.4%; }
-.hx-photo-e img { object-position: 28% 50%; }
+.hx-photo-e img { object-position: 62% 50%; }
 /* The card covers the foot of the company's photo: its label sits on top. */
 .hx-photo-e figcaption { top: var(--ps-space-3); bottom: auto; }
 .hx-photo figcaption { position: absolute; left: var(--ps-space-3); bottom: var(--ps-space-3); padding: 0.25rem 0.6rem; border-radius: var(--ps-radius-pill); background: color-mix(in srgb, var(--ps-bg-deep) 86%, transparent);
@@ -151,7 +151,8 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-check circle { fill: var(--ps-raised); }
 .hx-fact-1 { color: var(--ps-text); }
 .hx-fact-2 { color: var(--ps-signal); }
-.hx-fact-3 .seal { gap: var(--ps-space-2); max-width: 100%; white-space: normal; }
+/* The brand's seal wears its own halo; here the card carries it, so nothing glows before the strike. */
+.hx-fact-3 .seal { gap: var(--ps-space-2); max-width: 100%; white-space: normal; box-shadow: none; }
 .hx-card-foot { font-size: var(--ps-step--2); color: var(--ps-faint); }
 
 /* Chronology from the first paint (STORYBOARD_V2 S1). Each animation holds its start until its delay ("both"); the
