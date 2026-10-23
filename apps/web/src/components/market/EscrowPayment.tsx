@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/i18n/types";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
 import { money } from "@/lib/format";
+import { appearanceTheme } from "@/lib/pay-section";
+import type { StripeAppearances } from "@/lib/stripe-appearance";
 import { loadStripe, type StripeClient, type StripeElements, type StripePaymentElement } from "@/lib/stripe-js";
 
 type PayStrings = DealsDictionary["contracts"]["pay"]["client"];
@@ -16,6 +18,8 @@ interface EscrowPaymentProps {
   readonly testMode: boolean;
   readonly currency: string;
   readonly p: PayStrings;
+  /** Stripe's appearance for each theme, drawn from the brand palette on the server: plain strings only. */
+  readonly appearance: StripeAppearances;
 }
 
 type State =
@@ -52,7 +56,7 @@ const opened = (body: unknown): { readonly clientSecret: string; readonly amount
  * secret), then Stripe's Payment Element takes the card or bank details inside Stripe's own frame. Confirming sends the
  * person to Stripe if their bank asks for it, then back to this contract, where the status follows the webhook.
  */
-export function EscrowPayment({ lang, contractId, publishableKey, testMode, currency, p }: EscrowPaymentProps) {
+export function EscrowPayment({ lang, contractId, publishableKey, testMode, currency, p, appearance }: EscrowPaymentProps) {
   const [state, setState] = useState<State>({ kind: "idle" });
   const target = useRef<HTMLDivElement>(null);
   const mounted = useRef<Mounted | null>(null);
@@ -77,7 +81,9 @@ export function EscrowPayment({ lang, contractId, publishableKey, testMode, curr
     }
     try {
       const stripe = await loadStripe(publishableKey, lang);
-      const elements = stripe.elements({ clientSecret: secret.clientSecret, locale: lang, appearance: { theme: "stripe" } });
+      // The theme in force now: the form is mounted once, in the colours of the page around it.
+      const theme = appearanceTheme(document.documentElement.dataset.theme, window.matchMedia("(prefers-color-scheme: light)").matches);
+      const elements = stripe.elements({ clientSecret: secret.clientSecret, locale: lang, appearance: appearance[theme] });
       const element = elements.create("payment", { layout: "tabs" });
       mounted.current?.element.destroy();
       if (target.current === null) throw new Error("payment target missing");
@@ -111,7 +117,7 @@ export function EscrowPayment({ lang, contractId, publishableKey, testMode, curr
   return (
     <div className="escrow-pay">
       {testMode ? (
-        <p className="form-ok" role="note">
+        <p className="test-note" role="note">
           {p.testMode} {p.testCard}
         </p>
       ) : null}

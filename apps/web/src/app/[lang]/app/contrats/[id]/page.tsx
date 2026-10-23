@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { contractView, invoices, payments, type ContractDetail } from "@proofseen/db";
+import { contractView, dealDates, invoices, payments, type ContractDetail } from "@proofseen/db";
+import { DealThread } from "@/components/market/DealThread";
 import { EscrowPayment } from "@/components/market/EscrowPayment";
 import { InvoiceList } from "@/components/market/InvoiceList";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
@@ -12,9 +13,12 @@ import { marketDictionary } from "@/i18n/market";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
 import { date, day, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { contractFacts, dealSteps } from "@/lib/deal-steps";
 import { redirectStatus, showPayClosed, showPayForm, type PayContext } from "@/lib/pay-section";
+import { stripeAppearances } from "@/lib/stripe-appearance";
 import { cancelContract, completeContract, saveCostCenter, signContract, writeReview } from "../actions";
 import type { AccountDictionary } from "@/i18n/market/account-fr";
+import "@/styles/app-affaire.css";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -121,7 +125,8 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
   const c = dict.deals.contracts;
   const contract = await contractView(market.db).find(market.actor, id);
   if (contract === null) notFound();
-  const [payment, allInvoices] = await Promise.all([payments(market.db).find(market.actor, id), invoices(market.db).listMine(market.actor)]);
+  const [payment, allInvoices, dates] = await Promise.all([payments(market.db).find(market.actor, id), invoices(market.db).listMine(market.actor), dealDates(market.db).contract(market.actor, id)]);
+  const steps = dealSteps(contractFacts({ contract, dates }));
   const mineInvoices = allInvoices.filter((invoice) => invoice.contractId === id);
   const { erreur, avis, redirect_status: stripeReturn } = await searchParams;
   const errors: Readonly<Record<string, string>> = { ...c.errors, trop: c.errors.tooMany };
@@ -142,7 +147,10 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
   return (
     <>
       <p>
-        <Link href={`/${lang}/app/contrats`}>← {c.back}</Link>
+        <Link className="back-link" href={`/${lang}/app/contrats`}>
+          <span aria-hidden="true">←&nbsp;</span>
+          {c.back}
+        </Link>
       </p>
       <header className="app-head">
         <h1>{contract.counterpart ?? c.sellerUnknown}</h1>
@@ -159,6 +167,15 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
           {error}
         </p>
       )}
+
+      <DealThread
+        lang={lang}
+        d={dict.deals.thread}
+        steps={steps}
+        side={contract.side}
+        headingLevel={2}
+        link={contract.conversationId === null ? undefined : { href: `/${lang}/app/messages/${contract.conversationId}`, label: c.conversation }}
+      />
 
       <dl className="meta-strip">
         <div>
@@ -183,11 +200,6 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
           </dd>
         </div>
       </dl>
-      {contract.conversationId === null ? null : (
-        <p>
-          <Link href={`/${lang}/app/messages/${contract.conversationId}`}>{c.conversation}</Link>
-        </p>
-      )}
       {contract.side === "freelance" && contract.repeatClient ? <p className="muted small">{c.repeat}</p> : null}
 
       <Signatures lang={lang} c={c} contract={contract} />
@@ -205,7 +217,10 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
               <p className="muted small">
                 {c.pay.amountExclVat(money(contract.totalCents, contract.currency, lang))} {c.pay.commissionRule}
               </p>
-              <EscrowPayment lang={lang} contractId={contract.id} publishableKey={ui.publishableKey} testMode={ui.testMode} currency={contract.currency} p={c.pay.client} />
+              <EscrowPayment lang={lang} contractId={contract.id} publishableKey={ui.publishableKey} testMode={ui.testMode} currency={contract.currency} p={c.pay.client} appearance={stripeAppearances()} />
+              <noscript>
+                <p className="test-note">{c.pay.noscript}</p>
+              </noscript>
             </div>
           ) : null}
           {contract.status === "active" && admin ? (

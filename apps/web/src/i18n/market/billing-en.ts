@@ -32,6 +32,12 @@ export const billingEn: BillingDictionary = {
     mismatch: "This SIRET is registered under another name than the declared legal name.",
     pending: "Register check pending.",
     checkedOn: "checked on",
+    /** Green, in a cartouche: a fact Proofseen checked in the official register, with its date. */
+    sealActive: (date: string) => `SIRET active in the official register, checked on ${date}`,
+    source: "Source",
+    sourceValue: "Official French business register (Recherche d'entreprises)",
+    nameMatch: "Name",
+    nameMatchValue: "matches the declared legal name",
   },
   payouts: {
     title: "Payout account",
@@ -50,6 +56,7 @@ export const billingEn: BillingDictionary = {
     expired: "The Stripe link expired: ask for a new one.",
     testMode: "Test mode: use Stripe's test data, no real money is paid out.",
     closed: "Payouts open soon: you will be told in this space.",
+    noscript: "Opening the payout account needs JavaScript: the link to Stripe is created on request.",
     errors: {
       generic: "The Stripe link could not be created. Try again in a moment.",
       identity: "Billing identity required: fill in your address and country below.",
@@ -65,6 +72,11 @@ export const billingEn: BillingDictionary = {
     declare: "Declare the certificate",
     states: { missing: "No certificate declared.", valid: "Certificate valid until", expired: "Certificate expired on" },
     verified: "verified by Proofseen",
+    /** Green, in a cartouche: an operator checked the code on the URSSAF site. */
+    sealVerified: (date: string) => `URSSAF certificate verified on ${date}`,
+    validUntil: "Valid until",
+    checkedBy: "Verified by",
+    checkedByValue: "Proofseen, on the URSSAF site",
     unverified: "awaiting verification",
     saved: "Certificate declared.",
     errors: { expired: "This certificate is more than six months old: download a new one.", future: "The issue date is in the future.", invalid: "Check the date and the security code." },

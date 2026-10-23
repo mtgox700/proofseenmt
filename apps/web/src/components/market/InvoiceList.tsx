@@ -40,7 +40,13 @@ export function InvoiceList({ lang, d, invoices, headingLevel }: InvoiceListProp
                 <td>{day(invoice.issuedAt, lang)}</td>
                 <td className="num num-col">{money(invoice.totalCents, invoice.currency, lang)}</td>
                 <td>
-                  <a href={`/api/invoices/${invoice.id}`}>{d.open}</a> · <a href={`/api/invoices/${invoice.id}?format=cii`}>{d.xml}</a>
+                  <a className="invoice-link" href={`/api/invoices/${invoice.id}`}>
+                    {d.open}
+                  </a>{" "}
+                  ·{" "}
+                  <a className="invoice-link" href={`/api/invoices/${invoice.id}?format=cii`}>
+                    {d.xml}
+                  </a>
                 </td>
               </tr>
             ))}
