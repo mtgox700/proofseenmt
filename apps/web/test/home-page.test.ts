@@ -266,6 +266,15 @@ describe("every link leads to a page that exists", () => {
     for (const expected of [`/${lang}/creer-un-compte`, `/${lang}/app/missions/nouvelle`, `/${lang}/freelances`, `/${lang}/barometre/tjm`, `/${lang}/simulateur`, `/${lang}/blog`, `/${lang}/inscription`, "#parcours"]) expect(hrefs).toContain(expected);
   });
 
+  it("keeps motion out of the first load: only the animated scene, fetched near the journey, imports it", () => {
+    const dir = join(web, "src", "components", "landing");
+    const users = readdirSync(dir).filter((f) => /from "motion\//.test(readFileSync(join(dir, f), "utf8")));
+    expect(users.sort()).toEqual(["MissionScene.tsx", "motion-features.ts"]);
+    const stage = readFileSync(join(dir, "MissionStage.tsx"), "utf8");
+    expect(stage).not.toMatch(/^import[^;]*["']\.\/MissionScene["']/m);
+    expect(stage).toContain('import("./MissionScene")');
+  });
+
   it("never prefetches a page from the home page: plain links, no next/link", () => {
     const sources = readdirSync(join(web, "src", "components", "landing")).map((f) => readFileSync(join(web, "src", "components", "landing", f), "utf8"));
     expect(sources.filter((code) => code.includes('from "next/link"'))).toEqual([]);
