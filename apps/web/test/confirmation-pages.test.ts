@@ -7,8 +7,9 @@ import { decideMissionConfirmation } from "../src/app/[lang]/app/confirmations/a
 import ConfirmationsPage from "../src/app/[lang]/app/confirmations/page";
 import { decideMissionByLink } from "../src/app/[lang]/confirmer-mission/[id]/actions";
 import ConfirmMissionPage from "../src/app/[lang]/confirmer-mission/[id]/page";
+import { confirmDeskFr } from "../src/i18n/market/confirm-desk-fr";
 import { confirmationsFr } from "../src/i18n/market/confirmations-fr";
-import { day } from "../src/lib/format";
+import { date, day } from "../src/lib/format";
 
 /*
  * The confirmation screens as the server sends them, on a real database. A decision is shown only when it is read in
@@ -41,6 +42,9 @@ afterAll(async () => {
 });
 
 const c = confirmationsFr;
+const ack = confirmDeskFr.ack;
+/** The cartouche the mission now carries on the profile, dated like the hub: the UTC day of the decision. */
+const sealOf = (text: (d: string) => string, at: Date): string => `<p class="seal"><time dateTime="${at.toISOString().slice(0, 10)}">${text(date(at.toISOString(), "fr"))}</time></p>`;
 const repo = () => missionConfirmations(t.db);
 const link = (): ConfirmationLink => ({ id: randomUUID(), token: randomBytes(32).toString("base64url") });
 
@@ -123,9 +127,11 @@ describe("public link: the decision is read with the token, never from the addre
     expect(to).not.toMatch(/fait=|etat=/);
     const html = text(await publicPage(l.id, { t: l.token }));
     expect(html).toContain(c.public.confirmedTitle);
-    expect(html).toContain(c.public.confirmedOn(day(await decidedAtOf(l.id), "fr")));
+    expect(html).toContain(sealOf(ack.seal.contact, await decidedAtOf(l.id)));
+    expect(html).toContain(ack.byValue.contact);
     expect(html).toContain("Lead data engineer");
-    // Something was struck: not the dashed outline of an empty place.
+    // Something was struck, just now: the poinçon, which strikes once, and not the dashed outline of an empty place.
+    expect(html).toContain('data-strike-once=""');
     expect(html).not.toContain("empty-mark");
     expect(html).not.toContain(c.decision.confirm);
   });
@@ -134,8 +140,11 @@ describe("public link: the decision is read with the token, never from the addre
     const l = await requested(await freelance());
     expect(await redirectOf(() => decideMissionByLink(form({ lang: "fr", id: l.id, t: l.token, decision: "refuse" })))).toBe(`/fr/confirmer-mission/${l.id}?t=${l.token}`);
     const html = text(await publicPage(l.id, { t: l.token }));
-    expect(html).toContain(c.public.refusedOn(day(await decidedAtOf(l.id), "fr")));
+    expect(html).toContain(ack.refusedOn(day(await decidedAtOf(l.id), "fr")));
     expect(html).not.toContain(c.public.confirmedTitle);
+    // Nothing was verified: no poinçon, no green.
+    expect(html).not.toContain('class="seal"');
+    expect(html).not.toContain("data-strike");
   });
 
   it("a crafted address, a wrong token or another request's token all get the invalid-link answer", async () => {
@@ -181,7 +190,10 @@ describe("company workspace: the redirect carries the request id, the page reads
     const to = await redirectOf(() => decideMissionConfirmation(form({ lang: "fr", id: l.id, decision: "confirm" })));
     expect(to).toBe(`/fr/app/confirmations?demande=${l.id}`);
     const html = text(await companyPage(acme.owner, { demande: l.id }));
-    expect(html).toContain(c.company.done.confirmed("Lead data engineer", day(await decidedAtOf(l.id), "fr")));
+    expect(html).toContain(ack.confirmedTitle("Lead data engineer"));
+    expect(html).toContain(sealOf(ack.seal.company, await decidedAtOf(l.id)));
+    expect(html).toContain(ack.byValue.company);
+    expect(html).toContain('data-strike-once=""');
   });
 
   it("someone else's company, an unknown id, a pending one or a crafted outcome show nothing more than the bare page", async () => {
@@ -206,5 +218,6 @@ describe("company workspace: the redirect carries the request id, the page reads
     expect(await companyPage(acme.owner, { demande: pending.id })).toBe(acmeBare);
     expect(await companyPage(acme.owner, { fait: "confirmee" })).toBe(acmeBare);
     expect(acmeBare).not.toContain("form-ok");
+    expect(acmeBare).not.toContain('class="seal"');
   });
 });
