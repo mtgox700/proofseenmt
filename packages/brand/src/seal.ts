@@ -7,26 +7,28 @@
  * - the React connected space imports seal.css, generated from here and kept in step by test/tokens.test.ts.
  *
  * The rule of green: `--ps-proof` touches the cartouche, the square and the line of a verified fact, and nothing else.
+ * v2 (BRAND_BOOK_V2 section 4): the cartouche and the filled squares of the poinçon wear the proof halo
+ * (`--ps-glow-proof`), set and never animated; nothing else glows green. An open square, still to come, does not.
  * Nothing starts hidden: the ring of ink rests as a transparent border, and the cartouche is drawn before it strikes.
  */
 
 /** The line of proof under a claim, its trace, and the cartouche with its poinçon corners where `corner-shape` exists. */
 export const SEAL_LINE = [
   ".proofline{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--ps-space-3) var(--ps-space-5);padding-top:var(--ps-space-4);border-top:1px dashed var(--ps-line)}",
-  ".proofline::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(var(--ps-space-4) + .55rem - 4px);width:8px;height:8px;background:var(--ps-proof)}",
+  ".proofline::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil) - 3.5px);top:calc(var(--ps-space-4) + .55rem - 4px);width:8px;height:8px;background:var(--ps-proof);box-shadow:var(--ps-glow-proof)}",
   ".trace{display:grid;gap:var(--ps-space-1);margin:0;font:var(--ps-weight-mono) var(--ps-step--2)/1.5 var(--ps-font-mono);color:var(--ps-muted)}",
   ".trace div{display:flex;flex-wrap:wrap;gap:0 var(--ps-space-2)}",
   ".trace dt{letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-faint)}",
   ".trace dd{margin:0;color:var(--ps-text);overflow-wrap:anywhere}",
-  ".seal{position:relative;display:inline-flex;align-items:center;min-height:2rem;padding:var(--ps-space-1) var(--ps-space-3);border:1px solid var(--ps-proof);border-radius:var(--ps-radius);background:var(--ps-proof-wash);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.35 var(--ps-font-mono)}",
+  ".seal{position:relative;display:inline-flex;align-items:center;min-height:2rem;padding:var(--ps-space-1) var(--ps-space-3);border:1px solid var(--ps-proof);border-radius:var(--ps-radius);background:var(--ps-proof-wash);color:var(--ps-proof);box-shadow:var(--ps-glow-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.35 var(--ps-font-mono)}",
   ".seal::after{content:\"\";position:absolute;inset:-1px;border:1px solid transparent;border-radius:inherit;pointer-events:none}",
   "@supports (corner-shape:scoop){.seal{border-radius:var(--ps-radius-seal);corner-shape:scoop}.seal::after{corner-shape:scoop}}",
 ] as const;
 
 /** The square of the poinçon (filled: verified; open: a line still to come) and the one-line stamp that carries it. */
 export const SEAL_SQUARE = [
-  ".sq{flex:none;display:inline-block;width:8px;height:8px;background:var(--ps-proof)}",
-  ".sq.open{background:none;border:1px solid var(--ps-line-strong)}",
+  ".sq{flex:none;display:inline-block;width:8px;height:8px;background:var(--ps-proof);box-shadow:var(--ps-glow-proof)}",
+  ".sq.open{background:none;border:1px solid var(--ps-line-strong);box-shadow:none}",
   ".stamp{display:flex;align-items:baseline;gap:var(--ps-space-2);color:var(--ps-proof);font:var(--ps-weight-mono) var(--ps-step--1)/1.4 var(--ps-font-mono)}",
 ] as const;
 
