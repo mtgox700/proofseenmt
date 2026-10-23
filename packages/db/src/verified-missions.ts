@@ -34,6 +34,11 @@ export interface VerifiedMissionRecord {
   readonly verifiedAt: Date;
   /** Publié seulement parce que le client l'a autorisé ; `null` sinon. */
   readonly clientName: string | null;
+  /**
+   * Qui a confirmé, comme la page publique le dit : l'entreprise inscrite (`company`) ou un contact chez le client par
+   * lien signé (`contact`) ; `null` pour une mission qui ne vient pas d'une confirmation. Le domaine lui-même ne sort pas.
+   */
+  readonly confirmedBy: "company" | "contact" | null;
 }
 
 export interface ConfirmedMission {
@@ -116,7 +121,7 @@ export const recordPaidMission = async (db: Db, contractId: string, now: Date): 
   return true;
 };
 
-const SELECT = { id: true, role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true, clientName: true } as const;
+const SELECT = { id: true, role: true, clientKind: true, durationMonths: true, summary: true, evidenceKind: true, verifiedAt: true, clientName: true, confirmedByDomain: true } as const;
 
 export interface VerifiedMissions {
   /** Les missions vérifiées du freelance connecté, les plus récentes d'abord. */
@@ -125,6 +130,11 @@ export interface VerifiedMissions {
 
 export const verifiedMissions = (db: Db): VerifiedMissions => ({
   async listMine(actor) {
-    return db.verifiedMission.findMany({ where: { profile: { userId: actor.userId } }, orderBy: [{ verifiedAt: "desc" }, { id: "desc" }], select: SELECT });
+    const rows = await db.verifiedMission.findMany({ where: { profile: { userId: actor.userId } }, orderBy: [{ verifiedAt: "desc" }, { id: "desc" }], select: SELECT });
+    // La règle de la page publique (public-profiles.ts) : un contact quand un domaine a confirmé, sinon l'entreprise.
+    return rows.map(({ confirmedByDomain, ...m }) => ({
+      ...m,
+      confirmedBy: m.evidenceKind !== "client_confirmation" ? null : confirmedByDomain === null ? "company" : "contact",
+    }));
   },
 });
