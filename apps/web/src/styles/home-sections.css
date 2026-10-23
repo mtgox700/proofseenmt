@@ -31,14 +31,14 @@
 .cv-stage { width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; perspective: 1200px; }
 .cv-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); box-shadow: var(--ps-glow-aura), var(--ps-shadow-2); }
 .cv-photo img { width: 100%; height: min(78svh, 46rem); object-fit: cover; object-position: 50% 45%; }
-.cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 50%, var(--ps-bg) 100%); pointer-events: none; }
+.cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, color-mix(in srgb, var(--ps-bg) 78%, transparent) 62%, var(--ps-bg) 86%); pointer-events: none; }
 .cv-copy { display: grid; justify-items: start; gap: var(--ps-space-5); padding-block: var(--ps-space-6) var(--ps-section-y); }
 .cv-copy h2 { max-width: 16ch; }
 .cv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
 .cv-actions .btn { min-height: 3.25rem; padding-inline: var(--ps-space-5); }
 @media (min-width: 64rem) {
   /* The text sits on the bottom of the photo, where the gradient is at least 88 % ink (BRAND_BOOK_V2 §6: 58 % minimum). */
-  .cv-copy { position: relative; margin-top: -14rem; padding-top: 0; }
+  .cv-copy { position: relative; margin-top: -12rem; padding-top: 0; }
 }
 @media (max-width: 40rem) { .cv-photo img { height: auto; aspect-ratio: 4 / 5; } .cv-actions { display: grid; width: 100%; } }
 @supports (animation-timeline: view()) {
@@ -52,13 +52,16 @@
 
 /* ---------- S8. The position: Aceternity UI "Lamp", in CSS, and the words that light up ---------- */
 .mf { overflow: clip; background: var(--ps-bg-deep); }
-.mf-lamp { position: absolute; left: 50%; top: 0; width: min(64rem, 100%); height: 16rem; translate: -50% 0; pointer-events: none; }
+/* The lamp hangs just above the statement, centred on it. */
+.mf-lamp { position: absolute; left: 50%; top: calc(var(--ps-section-y) - 5rem); width: min(64rem, 100%); height: 18rem; translate: -50% 0; pointer-events: none; }
 .mf-cone { position: absolute; top: 0; width: 50%; height: 100%; }
-.mf-cone-l { right: 50%; background: conic-gradient(from 70deg at 100% 0%, color-mix(in srgb, var(--ps-aura) 16%, transparent), transparent 40deg); }
-.mf-cone-r { left: 50%; background: conic-gradient(from 250deg at 0% 0%, transparent 320deg, color-mix(in srgb, var(--ps-aura) 16%, transparent) 360deg); }
+.mf-cone { -webkit-mask-image: linear-gradient(var(--ps-text), transparent 85%); mask-image: linear-gradient(var(--ps-text), transparent 85%); }
+.mf-cone-l { right: 50%; background: conic-gradient(from 70deg at 100% 0%, color-mix(in srgb, var(--ps-aura) 18%, transparent), transparent 40deg); transform-origin: 100% 0; }
+.mf-cone-r { left: 50%; background: conic-gradient(from 250deg at 0% 0%, transparent 320deg, color-mix(in srgb, var(--ps-aura) 18%, transparent) 360deg); transform-origin: 0 0; }
 .mf-bar { position: absolute; left: 50%; top: 0; width: 50%; height: 2px; translate: -50% 0; background: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
-.mf .wrap { position: relative; display: grid; justify-items: start; gap: var(--ps-space-6); }
-.mf-statement { max-width: 20ch; font-size: clamp(2.25rem, 1.3rem + 4vw, 4.75rem); line-height: 1.04; letter-spacing: -0.03em; }
+.mf .wrap { position: relative; display: grid; justify-items: center; gap: var(--ps-space-6); text-align: center; }
+.mf-columns, .mf-link { text-align: left; justify-self: start; }
+.mf-statement { max-width: 20ch; padding-top: var(--ps-space-6); font-size: clamp(2.25rem, 1.3rem + 4vw, 4.75rem); line-height: 1.04; letter-spacing: -0.03em; }
 .mf-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); width: 100%; margin-top: var(--ps-space-6); }
 @media (min-width: 64rem) { .mf-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; } .mf-columns > div { padding-inline: var(--ps-space-6); border-left: 1px solid var(--ps-line); } .mf-columns > div:first-child { padding-left: 0; border-left: 0; } }
 .mf-columns h3 { margin-bottom: var(--ps-space-2); font-size: var(--ps-step-1); }
@@ -134,7 +137,7 @@
 .dr-cta { margin-top: var(--ps-space-3); }
 .dr-door:focus-visible { outline-offset: -4px; }
 .dr-thread { position: absolute; left: 50%; top: 0; bottom: 0; display: none; width: 2px; translate: -50% 0; background: linear-gradient(transparent, var(--ps-aura-text) 30%, var(--ps-aura-text) 70%, transparent); box-shadow: var(--ps-glow-aura); pointer-events: none; transition: rotate var(--ps-dur-glow) var(--ps-ease-glow); }
-.dr-thread img { position: absolute; left: 50%; top: 50%; translate: -50% -50%; padding: 6px; border: 1px solid var(--ps-line-strong); border-radius: 12px; background: var(--ps-bg-deep); }
+.dr-thread img { max-width: none; width: 40px; height: 40px; box-sizing: content-box; position: absolute; left: 50%; top: 50%; translate: -50% -50%; padding: 6px; border: 1px solid var(--ps-line-strong); border-radius: 12px; background: var(--ps-bg-deep); }
 @media (min-width: 48rem) { .dr-thread { display: block; } }
 @media (hover: hover) and (pointer: fine) {
   .dr-door[data-spot-on]::after { opacity: 1; }

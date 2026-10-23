@@ -31,7 +31,7 @@ export function Doors({ lang, copy }: { readonly lang: Lang; readonly copy: Home
           </a>
         ))}
         <span className="dr-thread" aria-hidden="true">
-          <img src="/brand/ps-monogram-dark.svg" width="40" height="40" alt="" />
+          <img src="/brand/ps-monogram-dark.svg" width="40" height="40" alt="" loading="lazy" decoding="async" />
         </span>
       </div>
     </section>

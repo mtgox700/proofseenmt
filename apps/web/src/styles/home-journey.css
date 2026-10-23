@@ -35,7 +35,7 @@
 .mp-node-f { left: 14.3%; }
 .mp-node-e { left: 85.7%; }
 .mp-face, .mp-face img { display: block; width: clamp(3.5rem, 2rem + 4vw, 6rem); aspect-ratio: 1; border-radius: 50%; }
-.mp-face img { object-fit: cover; border: 1px solid var(--ps-line-strong); }
+.mp-face img { height: auto; object-fit: cover; border: 1px solid var(--ps-line-strong); }
 .mp-node:not(.is-on) .mp-face { opacity: 0.45; }
 .mp-node.is-on .mp-face img { border-color: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
 .mp-scene[data-verified] .mp-node .mp-face img { border-color: var(--ps-line-strong); box-shadow: none; }
@@ -75,7 +75,7 @@
 .mp-card.is-declared .mp-status { color: var(--ps-muted); }
 .mp-seal { gap: var(--ps-space-2); max-width: 100%; white-space: normal; }
 .mp-caret { display: inline-block; width: 1px; height: 1em; background: currentColor; }
-.mp-quote { right: -1.25rem; top: -0.9rem; }
+.mp-quote { left: -1.25rem; top: -0.9rem; }
 .mp-escrow { right: var(--ps-space-4); top: -0.9rem; border-color: var(--ps-signal); background: var(--ps-overlay); color: var(--ps-signal); }
 .mp-lock { position: relative; width: 0.7rem; height: 0.55rem; margin-top: 0.25rem; border: 1.5px solid currentColor; border-radius: 2px; }
 .mp-lock::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 0.42rem; height: 0.32rem; translate: -50% 0; border: 1.5px solid currentColor; border-bottom: 0; border-radius: 0.3rem 0.3rem 0 0; }
@@ -118,7 +118,7 @@
 /* ---------- Phone and tablet: a band that sticks under the top of the screen ---------- */
 @media (max-width: 63.99rem) {
   .mp-stage { position: sticky; top: 0; grid-template-columns: minmax(0, 1fr); grid-template-areas: "counter" "scene" "other"; gap: var(--ps-space-2); margin-inline: calc(var(--ps-gutter) * -1); padding: var(--ps-space-3) var(--ps-gutter);
-    background: color-mix(in srgb, var(--ps-bg-deep) 94%, transparent); border-bottom: 1px solid var(--ps-line); }
+    background: var(--ps-bg-deep); border-bottom: 1px solid var(--ps-line); }
   .mp-rail { display: none; }
   .mp-scene { width: 100%; aspect-ratio: auto; height: clamp(11rem, 26svh, 13rem); }
   .mp-beams, .mp-bubble, .mp-stack, .mp-invoice, .mp-node-label { display: none; }
@@ -131,7 +131,7 @@
   .mp-sign { width: 1rem; height: 1rem; }
   .mp-card { top: 3.25rem; width: 100%; padding: var(--ps-space-3) var(--ps-space-4); gap: 4px; }
   .mp-card-label { display: none; }
-  .mp-quote { right: var(--ps-space-2); }
+  .mp-quote { left: var(--ps-space-2); }
   .mp-other { width: 100%; font-size: var(--ps-step--1); }
   .mp-steps li { min-height: 60svh; scroll-margin-top: 40svh; }
 }

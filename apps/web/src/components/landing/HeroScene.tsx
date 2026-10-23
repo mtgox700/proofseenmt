@@ -10,13 +10,14 @@ import { Photo } from "./Photo";
  * 2 600 to 3 100 both; 3 100 the seal; 3 700 rest. Nothing loops.
  */
 
-/** Wide scene, 560 x 560: beams fall from the inner edge of each photo into the two ports on top of the card. */
+/** Wide scene, 560 x 560: beams leave the inner edge of each photo, run down the gap between them and enter the
+ * two ports on top of the card. */
 const WIDE = {
-  freelance: "M220 214 C 262 214, 238 262, 244 300",
-  company: "M340 236 C 300 236, 322 272, 316 300",
+  freelance: "M221 120 C 262 120, 250 200, 252 292",
+  company: "M339 176 C 300 176, 308 236, 308 292",
   ports: [
-    [244, 300],
-    [316, 300],
+    [252, 292],
+    [308, 292],
   ],
 } as const;
 
