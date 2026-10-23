@@ -266,6 +266,7 @@ export { INBOX_LIMIT, inbox, type Counterpart, type Inbox, type InboxThread, typ
 export { isUniqueViolation } from "./errors";
 export { billingView, type BillingView, type FreelanceIdentityView, type OrganisationIdentityView, type RegistryView } from "./billing-view";
 export { CONTRACT_LIST_LIMIT, contractView, type ContractDetail, type ContractSide, type ContractSummary, type ContractView } from "./contract-view";
+export { dealDates, type ContractDates, type ConversationDates, type DealDates } from "./deal-dates";
 export { organisationView, type MemberView, type OrganisationView } from "./organisation-view";
 export {
   MAX_OWNED_URL_LENGTH,

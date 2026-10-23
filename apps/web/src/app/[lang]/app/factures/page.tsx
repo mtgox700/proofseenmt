@@ -6,6 +6,7 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { pageMarket } from "@/lib/market";
+import "@/styles/app-affaire.css";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";

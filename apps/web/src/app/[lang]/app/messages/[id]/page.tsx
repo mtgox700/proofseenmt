@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { contracts, inbox, InvalidCursorError, messaging, organisations, quotes, readState, type MessageRecord } from "@proofseen/db";
+import { contracts, contractView, dealDates, inbox, InvalidCursorError, messaging, organisations, quotes, readState, type Actor, type Db, type MessageRecord } from "@proofseen/db";
 import { messageTime } from "@/components/live/message-time";
 import { ThreadMessages, type ThreadMessageView } from "@/components/live/ThreadMessages";
+import { DealThread } from "@/components/market/DealThread";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { QuotesSection } from "@/components/market/QuotesSection";
 import { StatusTag } from "@/components/market/StatusTag";
 import { isLang } from "@/i18n";
 import { marketDictionary, type MarketDictionary } from "@/i18n/market";
+import { contractFacts, conversationDeal, dealSteps, type DealFacts, type DealStep } from "@/lib/deal-steps";
 import { pageMarket } from "@/lib/market";
 import { closeConversation, decideConversation, postMessage } from "../actions";
+import "@/styles/app-affaire.css";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -55,6 +58,19 @@ const errorText = (code: string | undefined, m: MarketDictionary): string | null
   }
 };
 
+/**
+ * The thread of the deal this conversation carries: read from the contract once there is one (the same lines as on the
+ * contract page), from the conversation and its quotes before.
+ */
+async function threadOf(db: Db, actor: Actor, conversationId: string, deal: ReturnType<typeof conversationDeal>): Promise<readonly DealStep[]> {
+  if (deal.contractId !== null) {
+    const [contract, dates] = await Promise.all([contractView(db).find(actor, deal.contractId), dealDates(db).contract(actor, deal.contractId)]);
+    if (contract !== null) return dealSteps(contractFacts({ contract, dates }));
+  }
+  const facts: DealFacts = { conversation: await dealDates(db).conversation(actor, conversationId), quotes: deal.quotes, contract: null, approvedAt: [], payment: null, verifiedAt: null };
+  return dealSteps(facts);
+}
+
 /*
  * One conversation, for its two sides only (anyone else gets 404: a thread's existence is private). Messages read
  * oldest to newest; « older messages » pages back through the history.
@@ -91,11 +107,22 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
   const canCommit = myRole === "owner" || myRole === "admin";
   const contractOf = new Map(mine.flatMap((contract) => (contract.quoteId === null ? [] : [[contract.quoteId, contract.id] as const])));
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
+  const deal = conversationDeal(threadQuotes ?? [], contractOf);
+  const steps = await threadOf(market.db, market.actor, id, deal);
+  const quotesShown = head.status !== "pending" && head.status !== "declined";
+  const dealLink =
+    deal.contractId !== null ? { href: `/${lang}/app/contrats/${deal.contractId}`, label: m.deals.thread.toContract } : quotesShown ? { href: "#devis", label: m.deals.thread.toQuotes } : undefined;
+  const quotesSection = quotesShown ? (
+    <QuotesSection lang={lang} d={m.deals} conversationId={id} side={head.side} canCommit={canCommit} open={head.canPost} quotes={threadQuotes ?? []} contractOf={contractOf} error={quoteError} />
+  ) : null;
 
   return (
     <>
       <p>
-        <Link href={`/${lang}/app/messages`}>← {m.thread.back}</Link>
+        <Link className="back-link" href={`/${lang}/app/messages`}>
+          <span aria-hidden="true">←&nbsp;</span>
+          {m.thread.back}
+        </Link>
       </p>
       <header className="app-head">
         <h1>{counterpart}</h1>
@@ -109,9 +136,14 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
         {head.side === "company" && head.status === "pending" ? <p className="muted measure">{m.thread.waitingCompany}</p> : null}
       </header>
 
+      <DealThread lang={lang} d={m.deals.thread} steps={steps} side={head.side} headingLevel={2} link={dealLink} />
+
       {page.next === null ? null : (
         <p>
-          <Link href={`/${lang}/app/messages/${id}?avant=${encodeURIComponent(page.next)}`}>↑ {m.thread.older}</Link>
+          <Link className="back-link" href={`/${lang}/app/messages/${id}?avant=${encodeURIComponent(page.next)}`}>
+            <span aria-hidden="true">↑&nbsp;</span>
+            {m.thread.older}
+          </Link>
         </p>
       )}
 
@@ -149,6 +181,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
 
       {head.canPost ? (
         <>
+          {quotesSection}
           <form action={postMessage} className="reply">
             {hidden("lang", lang)}
             {hidden("conversationId", id)}
@@ -187,9 +220,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
         <p className="muted">{m.thread.closed}</p>
       ) : null}
 
-      {head.status === "pending" || head.status === "declined" ? null : (
-        <QuotesSection lang={lang} d={m.deals} conversationId={id} side={head.side} canCommit={canCommit} open={head.canPost} quotes={threadQuotes ?? []} contractOf={contractOf} error={quoteError} />
-      )}
+      {head.canPost ? null : quotesSection}
     </>
   );
 }

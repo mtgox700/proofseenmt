@@ -48,6 +48,8 @@ export interface VigilanceStatus {
   readonly state: "missing" | "valid" | "expired";
   readonly expiresOn: Date | null;
   readonly verified: boolean;
+  /** Quand un opérateur l'a vérifiée sur le site de l'URSSAF ; `null` tant qu'elle ne l'est pas. */
+  readonly verifiedAt: Date | null;
 }
 
 export const vigilance = (db: Db) => ({
@@ -67,9 +69,9 @@ export const vigilance = (db: Db) => ({
 
   async status(profileId: string, now: Date): Promise<VigilanceStatus> {
     const row = await db.vigilanceAttestation.findUnique({ where: { profileId }, select: { issuedOn: true, verifiedAt: true } });
-    if (row === null) return { state: "missing", expiresOn: null, verified: false };
+    if (row === null) return { state: "missing", expiresOn: null, verified: false, verifiedAt: null };
     const expiresOn = vigilanceExpiresOn(row.issuedOn);
-    return { state: expiresOn.getTime() > now.getTime() ? "valid" : "expired", expiresOn, verified: row.verifiedAt !== null };
+    return { state: expiresOn.getTime() > now.getTime() ? "valid" : "expired", expiresOn, verified: row.verifiedAt !== null, verifiedAt: row.verifiedAt };
   },
 
   /** Ce qu'un opérateur doit contrôler sur le site de l'URSSAF : date de délivrance et code de sécurité. */
