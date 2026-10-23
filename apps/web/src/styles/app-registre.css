@@ -1,0 +1,105 @@
+/* Lot 2 of the connected redesign, "le registre du freelance" (CONNECTED_PLAN §2.1): the home, /app/preuves, /app/profil
+   and /app/visibilite, imported by their components only. Built on the workspace and market primitives and on
+   @proofseen/brand/seal.css (.seal, .sealed, .trace, .sq, .stamp): only what those do not cover lives here.
+   Rules held here: green only on a verified fact (the square, the poinçon) or a cited answer of the register; nothing
+   starts hidden; every motion waits under prefers-reduced-motion: no-preference and plays once; no line wider than
+   the phone, every long sentence may wrap. */
+
+/* ---------- The summary of the public rail: the same counts, the way in to the register ---------- */
+.reg-home-standing > h2 { font-size: var(--ps-step-1); }
+.reg-standing { display: grid; gap: var(--ps-space-2); justify-items: start; min-width: 0; }
+.reg-tally { display: inline-flex; align-items: baseline; gap: var(--ps-space-3); max-width: 100%; min-height: 2.75rem; margin: 0; padding: var(--ps-space-2) var(--ps-space-4);
+  border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); background: var(--ps-surface); color: var(--ps-text);
+  font: var(--ps-weight-mono) var(--ps-step--1) / 1.45 var(--ps-font-mono); overflow-wrap: anywhere; }
+.reg-tally .sq { align-self: center; }
+a.reg-tally { text-decoration: underline; text-decoration-color: var(--ps-line-strong); text-underline-offset: 0.3em;
+  transition: border-color var(--ps-dur-ui) var(--ps-ease-out), text-decoration-color var(--ps-dur-ui) var(--ps-ease-out); }
+a.reg-tally:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { a.reg-tally:hover { border-color: var(--ps-text); text-decoration-color: currentColor; } }
+.reg-standing-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-1) var(--ps-space-4); margin: 0; }
+.reg-standing-links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
+/* ---------- What is verified: each fact under its poinçon ---------- */
+.reg-group { margin-top: var(--ps-space-2); font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.reg-pieces { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--ps-line); }
+.reg-piece { display: grid; gap: var(--ps-space-3); min-width: 0; padding: var(--ps-space-4) 0; border-bottom: 1px solid var(--ps-line); }
+.reg-claim { display: grid; gap: var(--ps-space-1); min-width: 0; }
+.reg-claim h4 { margin: 0; font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); letter-spacing: var(--ps-track-1); overflow-wrap: anywhere; }
+.reg-when { margin: 0; font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); color: var(--ps-muted); overflow-wrap: anywhere; }
+.reg-summary { margin: 0; max-width: var(--ps-measure); color: var(--ps-muted); }
+.reg-url, .reg-what { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.reg-url { font: var(--ps-weight-mono) var(--ps-step--1) / 1.45 var(--ps-font-mono); }
+.reg-what { display: flex; align-items: baseline; gap: var(--ps-space-3); }
+.reg-what .sq { align-self: center; }
+/* A long sentence of a seal wraps inside its cartouche, never past the phone (CONNECTED_PLAN §1.1, the tag line). */
+.reg-piece .seal { max-width: 100%; }
+.reg-piece .seal time { min-width: 0; overflow-wrap: anywhere; }
+.reg-piece .trace { min-width: 0; }
+
+/* The strike of a fact this device has not seen (components/proof/StrikeOnce.tsx): 80 ms between two seals, at most three. */
+@media (prefers-reduced-motion: no-preference) {
+  .seal[data-strike][data-strike-i="1"], .seal[data-strike][data-strike-i="1"]::after { animation-delay: -560ms; }
+  .seal[data-strike][data-strike-i="2"], .seal[data-strike][data-strike-i="2"]::after { animation-delay: -480ms; }
+}
+
+/* ---------- On trial: the requests waiting for a client ---------- */
+.reg-requests { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--ps-line); }
+.reg-request { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-1) var(--ps-space-4); align-items: center; padding: var(--ps-space-3) 0; border-bottom: 1px solid var(--ps-line); }
+.reg-request > p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.reg-request-state .tag { white-space: normal; }
+.reg-request form .btn { min-height: 2.75rem; padding-inline: 0; }
+@media (min-width: 48rem) {
+  .reg-request { grid-template-columns: minmax(0, 1fr) auto; }
+  .reg-request > p { grid-column: 1; }
+  .reg-request > form { grid-column: 2; grid-row: 1 / span 3; }
+}
+.reg-closed summary { display: inline-flex; align-items: center; gap: var(--ps-space-1); min-height: 2.75rem; cursor: pointer; font-weight: var(--ps-weight-strong); }
+.reg-closed[open] summary { margin-bottom: var(--ps-space-2); }
+.reg-request-form { padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
+.reg-request-form h3, .reg-add h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.reg-add { display: grid; gap: var(--ps-space-4); padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
+.reg-add .btn { justify-self: start; }
+@media (max-width: 40rem) {
+  .reg-request-form .btn-primary, .reg-add .btn-primary { width: 100%; min-height: 3rem; justify-content: center; }
+}
+
+/* ---------- Declared: the head of the profile, in the trace face, with the open square ---------- */
+.reg-declared { display: inline-flex; align-items: center; gap: var(--ps-space-3); margin: 0; font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+
+/* ---------- The figures of the home: lower and calmer ---------- */
+.reg-figures { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-6); padding-top: var(--ps-space-6); border-top: 1px solid var(--ps-line); }
+.reg-figures > .ws-block > h2, .reg-figures > section > h2 { font-size: var(--ps-step-1); }
+/* One track that may shrink below its content: a folded table opens and scrolls inside its box, never the page. */
+.reg-figures .ws-block, .reg-figures .chart { grid-template-columns: minmax(0, 1fr); }
+
+/* Targets of at least 44 px under the finger: the folded tables of the figures and the links at the foot of a tile. */
+.reg-figures details > summary { display: flex; align-items: center; min-height: 2.75rem; }
+.reg-figures a.tile-foot { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
+/* ---------- The register of the answers (/app/visibilite) ---------- */
+.cr { display: grid; gap: var(--ps-space-4); margin: 0; min-width: 0; }
+.cr-caption { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); letter-spacing: var(--ps-track-1); }
+.cr-cols { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-5) var(--ps-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr)); max-width: 42rem; align-items: start; }
+.cr-col { display: grid; gap: var(--ps-space-2); min-width: 0; }
+.cr-engine { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 var(--ps-space-2); margin: 0;
+  font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; }
+.cr-engine b { font-weight: inherit; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ps-muted); }
+.cr-svg { width: 100%; height: auto; overflow: visible; }
+.cr-frame { fill: none; stroke: var(--ps-line-strong); stroke-width: 1; }
+/* An answer that does not cite: a short mark in the secondary ink, so the cited ones read by height as well as tone. */
+.cr-rest { fill: none; stroke: var(--ps-muted); }
+/* The storefront's .rg-you: an answer that cites the person with a link, a fact measured, dated and sourced. */
+.cr-cited { fill: none; stroke: var(--ps-proof); }
+.cr-rule { fill: none; stroke: var(--ps-text); stroke-width: 1.5; }
+.cr-key { margin: 0; max-width: 60ch; font-size: var(--ps-step--1); color: var(--ps-muted); }
+.cr-none { display: flex; align-items: center; gap: var(--ps-space-3); margin: 0; }
+.cr-blank { flex: none; width: 2.75rem; height: 1.25rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+@supports (corner-shape: scoop) { .cr-blank { border-radius: 6px; corner-shape: scoop; } }
+.cr-table summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* The reading rule runs down each column once, from the head rule to the foot rule where it rests (BRAND_BOOK §7,
+   "tracer"). Without motion, and before it starts, it is already drawn: at the head while it waits, at the foot after. */
+@media (prefers-reduced-motion: no-preference) {
+  .cr-rule { animation: cr-descend 1200ms var(--ps-ease-in-out) 400ms both; }
+}
+@keyframes cr-descend { from { transform: translateY(var(--cr-rise)); } to { transform: none; } }

@@ -106,6 +106,10 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         "home.css: .specimen-stamp",
         "home.css: .specimen-dot",
         "home.css: @keyframes pc-ink > from",
+        // Lot 2: an answer of the person's own register that cites them with a link (the storefront's .rg-you), and
+        // the same count as the bar of its funnel step. A measured fact, dated, whose source is the answer.
+        "app-registre.css: .cr-cited",
+        'visibility.css: .vis-step[data-step="cited"] .vis-bar span',
       ].sort(),
     );
   });

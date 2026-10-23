@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { measurements, MEASUREMENT_WINDOW_DAYS, MEASUREMENTS_PER_WINDOW, profiles, visibility, type Eligibility, type MeasurementView, type WaveView } from "@proofseen/db";
 import { configuredEngines, measurementsEnabled } from "@proofseen/measure";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
+import { CitationRegister } from "@/components/visibility/CitationRegister";
 import { engineLabel } from "@/components/visibility/engine-label";
 import { FirstSteps } from "@/components/visibility/FirstSteps";
 import { LatestWave } from "@/components/visibility/LatestWave";
@@ -99,13 +100,17 @@ function Requests({ lang, v, rows }: { readonly lang: Lang; readonly v: Visibili
   );
 }
 
-/** The measured result first: the latest wave and its change since the one before; the first steps until there is one. */
+/**
+ * The measured result first: the register of the latest wave (one slot per answer), its funnel, and its change since
+ * the one before; the first steps until there is one.
+ */
 function Results({ lang, v, waves, steps }: { readonly lang: Lang; readonly v: VisibilityDictionary; readonly waves: readonly WaveView[]; readonly steps: readonly FirstStep[] }) {
   const [latest] = waves;
   if (latest === undefined) return <FirstSteps lang={lang} v={v} steps={steps} />;
   const evolution = evolutionOf(waves);
   return (
     <>
+      <CitationRegister lang={lang} v={v} wave={latest} />
       <LatestWave lang={lang} v={v} wave={latest} />
       {evolution === null ? (
         <section className="panel" aria-labelledby="wave-evolution">
