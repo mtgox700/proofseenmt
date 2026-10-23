@@ -45,9 +45,8 @@ export const pageHead = (o: PageHeadOptions): string[] => {
   return [
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-    '<meta name="color-scheme" content="dark light">',
-    `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`,
-    `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
+    '<meta name="color-scheme" content="dark">',
+    `<meta name="theme-color" content="${THEME_COLOR}">`,
     `<title>${e(o.title)}</title>`,
     `<meta name="description" content="${e(o.description)}">`,
     ...(o.canonical === null ? [] : [`<link rel="canonical" href="${e(o.canonical)}">`]),

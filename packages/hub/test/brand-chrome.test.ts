@@ -87,13 +87,15 @@ const PAGES: Readonly<Record<string, string>> = {
 const head = (html: string): string => /<head>([\s\S]*?)<\/head>/.exec(html)?.[1] ?? "";
 
 describe("the head of every public page", () => {
-  it.each(Object.entries(PAGES))("%s: preloads the display font, one theme-color per theme, the share card", (_name, html) => {
+  it.each(Object.entries(PAGES))("%s: preloads the display font, one theme-color, dark only, the share card", (_name, html) => {
     const h = head(html);
     expect(h).toContain(`<link rel="preload" href="${FONT_FILES.display}" as="font" type="font/woff2" crossorigin>`);
     expect(h).not.toContain(`rel="preload" href="${FONT_FILES.mono}"`);
-    expect(h).toContain(`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`);
-    expect(h).toContain(`<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`);
-    expect(h).toContain('<meta name="color-scheme" content="dark light">');
+    expect(h).toContain(`<meta name="theme-color" content="${THEME_COLOR}">`);
+    expect(h.match(/name="theme-color"/g)).toHaveLength(1);
+    expect(h).toContain('<meta name="color-scheme" content="dark">');
+    // No light theme in any form: no media query for it, no theme switch, no light scheme, no light lockup.
+    expect(html).not.toMatch(/prefers-color-scheme\s*:\s*light|data-theme|color-scheme\s*:\s*light|lockup-light/);
     expect(h).toMatch(/<meta property="og:image" content="https:\/\/proofseen\.com\/brand\/og-(fr|en)\.png">/);
     expect(h).toContain('<meta name="twitter:card" content="summary_large_image">');
     expect(h).toContain('<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">');
@@ -178,9 +180,11 @@ describe("the shared chrome", () => {
     expect(STYLES).not.toContain("58rem");
   });
 
-  it("follows the system theme without a theme switch, and the static site loads no web font", () => {
-    expect(STYLES).toContain(`@media (prefers-color-scheme:light){:root{color-scheme:light;--ps-bg:${PALETTE.light.bg};`);
-    expect(STYLES).not.toContain("data-theme");
+  it("is dark only, whatever the system asks, and the static site loads no web font", () => {
+    for (const css of [STYLES, STANDALONE_STYLES]) {
+      expect(css).toContain(`:root{color-scheme:dark;--ps-bg-deep:${PALETTE.dark.bgDeep};--ps-bg:${PALETTE.dark.bg};`);
+      expect(css).not.toMatch(/prefers-color-scheme|data-theme|color-scheme:\s*light/);
+    }
     expect(STANDALONE_STYLES).not.toContain("url(");
   });
 });

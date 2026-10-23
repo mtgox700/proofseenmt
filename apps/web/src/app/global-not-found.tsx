@@ -31,11 +31,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "dark light",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
-    { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
-  ],
+  colorScheme: "dark",
+  themeColor: THEME_COLOR,
 };
 
 export default async function GlobalNotFound() {

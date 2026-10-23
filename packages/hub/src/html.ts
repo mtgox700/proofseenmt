@@ -74,7 +74,7 @@ ul.tags li{border:1px solid var(--ps-line);border-radius:var(--ps-radius);paddin
 `;
 
 /** Every public page of the marketplace (served next to /fonts/ and /brand/): tokens, chrome, reading rules. */
-export const STYLES = `${renderTokensCss({ themeAttributes: false })}${CHROME_CSS}${BASE_STYLES}`;
+export const STYLES = `${renderTokensCss()}${CHROME_CSS}${BASE_STYLES}`;
 
 /** The static site of `hub:build` (published on its own domain, without /fonts/): the same, on the calibrated fallbacks. */
-export const STANDALONE_STYLES = `${renderTokensCss({ themeAttributes: false, webFonts: false })}${CHROME_CSS}${BASE_STYLES}`;
+export const STANDALONE_STYLES = `${renderTokensCss({ webFonts: false })}${CHROME_CSS}${BASE_STYLES}`;

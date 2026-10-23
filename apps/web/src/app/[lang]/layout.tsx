@@ -24,12 +24,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Dark is the brand; light follows the system (BRAND_BOOK.md, section 5). The browser chrome matches each.
-  colorScheme: "dark light",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
-    { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
-  ],
+  // Dark only (BRAND_BOOK_V2, section 2): one scheme, one browser colour, the page background.
+  colorScheme: "dark",
+  themeColor: THEME_COLOR,
 };
 
 /*

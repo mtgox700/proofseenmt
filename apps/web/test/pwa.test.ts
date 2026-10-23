@@ -33,7 +33,7 @@ describe("web app manifest", () => {
     expect(webAppManifest("en").shortcuts.map((s) => s.name)).toEqual(["Messages", "Missions", "Notifications"]);
   });
 
-  it("takes its colours from the brand palette (dark, the brand theme)", () => {
+  it("takes its colours from the brand palette (dark only)", () => {
     expect(PWA_BACKGROUND).toBe(PALETTE.dark.bg);
     expect(webAppManifest("fr")).toMatchObject({ theme_color: PALETTE.dark.bg, background_color: PALETTE.dark.bg });
   });
@@ -63,16 +63,15 @@ describe("offline page", () => {
     expect(html).toContain('<meta name="robots" content="noindex">');
   });
 
-  it("writes the brand palette into the page, dark by default and light when the system asks", () => {
+  it("writes the brand palette into the page, dark only, with one browser colour", () => {
     const html = offlinePage();
-    for (const name of ["bg", "surface", "text", "muted", "line"] as const) {
-      expect(html).toContain(`--ps-${name}:${PALETTE.dark[name]};`);
-      expect(html).toContain(`--ps-${name}:${PALETTE.light[name]};`);
-    }
-    expect(html).toContain(`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${PALETTE.dark.bg}">`);
+    for (const name of ["bg", "surface", "text", "muted", "line"] as const) expect(html).toContain(`--ps-${name}:${PALETTE.dark[name]};`);
+    expect(html).toContain(`<meta name="theme-color" content="${PALETTE.dark.bg}">`);
+    expect(html).toContain('<meta name="color-scheme" content="dark">');
+    expect(html).not.toMatch(/prefers-color-scheme|color-scheme:\s*light|data-theme/);
+    expect(html.match(/name="theme-color"/g)).toHaveLength(1);
     // The way back is paper on ink, like every call to action: green is kept for what is verified.
     expect(html).not.toContain(PALETTE.dark.proof);
-    expect(html).not.toContain(PALETTE.light.proof);
   });
 
   it("carries the brand: the poinçon inline in its monochrome version, the trace, safe areas", () => {
