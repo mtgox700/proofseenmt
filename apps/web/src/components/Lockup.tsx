@@ -5,8 +5,12 @@ import { LOCKUP } from "@proofseen/brand";
  * fixed size so nothing moves while it loads. The same markup as the header of the HTML hub (packages/hub, market-shell.ts).
  */
 export function Lockup() {
+  // A plain <img>: an SVG at a fixed size, next/image would add nothing but a wrapper. The <picture> around it, now
+  // without a second source, keeps React from hoisting an image preload into the head: the display font stays the
+  // one thing preloaded (LCP), and the markup stays the hub's, element for element.
   return (
-    // A plain <img>: an SVG at a fixed size, next/image would add nothing but a wrapper.
-    <img src={LOCKUP.dark} width={LOCKUP.width} height={LOCKUP.height} alt="Proofseen" />
+    <picture>
+      <img src={LOCKUP.dark} width={LOCKUP.width} height={LOCKUP.height} alt="Proofseen" />
+    </picture>
   );
 }

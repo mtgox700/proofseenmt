@@ -52,8 +52,11 @@ export const publicMenu = (lang: Lang): PublicMenu => {
   };
 };
 
-/** Le poinçon et le mot, en image de taille fixe (aucun décalage) : papier et vert sur la nuit, le seul thème. */
-export const lockup = (): string => `<img src="${LOCKUP.dark}" width="${LOCKUP.width}" height="${LOCKUP.height}" alt="Proofseen">`;
+/**
+ * Le poinçon et le mot, en image de taille fixe (aucun décalage) : papier et vert sur la nuit, le seul thème. Le
+ * `<picture>` sans seconde source reste, pour que React (même balisage) ne remonte pas un préchargement d'image.
+ */
+export const lockup = (): string => `<picture><img src="${LOCKUP.dark}" width="${LOCKUP.width}" height="${LOCKUP.height}" alt="Proofseen"></picture>`;
 
 /**
  * Le lien d'évitement et l'en-tête public : la marque, le menu, l'inscription, le lien vers la même page dans l'autre
