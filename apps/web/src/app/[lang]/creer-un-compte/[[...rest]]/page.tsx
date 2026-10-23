@@ -1,3 +1,4 @@
+import "@/styles/auth.css";
 import { SignUp } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";

@@ -9,7 +9,9 @@ import { ThreadMessages, type ThreadMessageView } from "../src/components/live/T
 /*
  * Kensa m4, the rule of the brand in the connected space: nothing is hidden while it waits for an animation, and a
  * figure does not count up, it is true at once. Motion may only settle something already visible, briefly, and under
- * `prefers-reduced-motion: no-preference`. The storefront (home.css) is held by its own tests.
+ * `prefers-reduced-motion: no-preference`, and nothing loops (lot 1 of the connected redesign removed the last loop,
+ * the halo of the active step of a file). The storefront (home.css) is held by its own tests; the sheets of
+ * @proofseen/brand that React imports are held to the same rules here.
  */
 
 const src = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
@@ -20,19 +22,22 @@ const filesUnder = (dir: string): string[] =>
   });
 const rel = (path: string): string => relative(src, path).replace(/\\/g, "/");
 const code = filesUnder(src).filter((f) => /\.tsx?$/.test(f));
-const stylesheets = readdirSync(join(src, "styles")).filter((f) => f.endsWith(".css") && f !== "home.css");
+const brand = join(src, "..", "..", "..", "packages", "brand");
+const stylesheets = [
+  ...readdirSync(join(src, "styles"))
+    .filter((f) => f.endsWith(".css") && f !== "home.css")
+    .map((f) => join("styles", f)),
+  ...readdirSync(brand)
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => join("@proofseen", "brand", f)),
+].map((f) => f.replace(/\\/g, "/"));
 
-/** The halo of the active step is a pseudo-element that fades out around a mark which stays drawn. */
-const ALLOWED_KEYFRAMES = new Set(["dossier-ping"]);
-
-const withoutAllowedKeyframes = (css: string): string =>
-  css.replace(/@keyframes\s+([\w-]+)\s*\{(?:[^{}]*\{[^}]*\})*\s*\}/g, (block, name: string) => (ALLOWED_KEYFRAMES.has(name) ? "" : block));
-
-const read = (file: string): string => readFileSync(join(src, "styles", file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const read = (file: string): string =>
+  readFileSync(file.startsWith("@proofseen/") ? join(brand, file.slice("@proofseen/brand/".length)) : join(src, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("the connected space shows its final state from the first paint (Kensa m4)", () => {
   it.each(stylesheets)("%s starts nothing invisible, empty or at zero", (file) => {
-    const css = withoutAllowedKeyframes(read(file));
+    const css = read(file);
     expect(css).not.toMatch(/opacity:\s*0(?:\.0+)?\s*[;}]/);
     expect(css).not.toMatch(/visibility:\s*hidden/);
     expect(css).not.toMatch(/scale[XY]?\(\s*0\s*\)/);
@@ -41,7 +46,7 @@ describe("the connected space shows its final state from the first paint (Kensa 
   });
 
   it.each(stylesheets)("%s: every keyframe starts from something readable", (file) => {
-    const css = withoutAllowedKeyframes(read(file));
+    const css = read(file);
     for (const [, start] of css.matchAll(/(?:from|0%)\s*\{([^}]*)\}/g)) {
       const opacity = /opacity:\s*([\d.]+)/.exec(start ?? "")?.[1];
       if (opacity !== undefined) expect(Number(opacity), `${file}: ${start}`).toBeGreaterThanOrEqual(0.5);
@@ -71,6 +76,11 @@ describe("the connected space shows its final state from the first paint (Kensa 
     expect(bare).toEqual([]);
   });
 
+  it.each(stylesheets)("%s loops nothing, except the skeleton that stands for a real wait", (file) => {
+    const loops = [...read(file).matchAll(/([^{};]+)\{[^{}]*\binfinite\b/g)].map((m) => (m[1] ?? "").trim());
+    expect(loops).toEqual(file === "styles/states.css" ? [".sk-bar"] : []);
+  });
+
   it("counts nothing up: no CountUp, no reveal-on-scroll wrapper, no animation frame outside the storefront", () => {
     expect(code.filter((f) => /\bCountUp\b|\bInView\b|data-armed|dataset\.armed/.test(readFileSync(f, "utf8"))).map(rel)).toEqual([]);
     expect(code.filter((f) => !rel(f).startsWith("components/landing/") && readFileSync(f, "utf8").includes("requestAnimationFrame")).map(rel)).toEqual([]);
@@ -92,6 +102,6 @@ describe("the connected space shows its final state from the first paint (Kensa 
     expect(html).toContain("Message a");
     expect(html).toContain("Message b");
     expect(html).not.toContain("data-new");
-    expect(read("workspace.css")).toMatch(/\.bubbles li\[data-new\]\s*\{\s*animation:/);
+    expect(read("styles/workspace.css")).toMatch(/\.bubbles li\[data-new\]\s*\{\s*animation:/);
   });
 });

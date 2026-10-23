@@ -1,3 +1,5 @@
+import "@/styles/workspace.css";
+import "@/styles/auth.css";
 import "@/styles/market.css";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";

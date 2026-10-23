@@ -334,11 +334,6 @@ export const en: Dictionary = {
     signUpTitle: "Create an account",
     signInLead: "A code arrives by email. No password to remember.",
     nav: {
-      home: "Dashboard",
-      file: "My file",
-      directory: "Directory",
-      messages: "Messages",
-      site: "Back to the site",
       label: "Space navigation",
     },
     roles: { operator: "Operator", freelance: "Freelancer", company: "Company" } as Record<string, string>,

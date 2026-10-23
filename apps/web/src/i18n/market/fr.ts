@@ -21,6 +21,7 @@ import { settingsFr } from "./settings-fr";
 import { standingFr } from "./standing-fr";
 import { teamFr } from "./team-fr";
 import { visibilityFr } from "./visibility-fr";
+import { workspaceNavFr } from "./workspace-nav-fr";
 
 /*
  * Textes de l'espace connecté de la marketplace (missions, messages, devis, contrats, factures, entreprise). Séparés du
@@ -64,6 +65,7 @@ export const marketFr = {
   standing: standingFr,
   team: teamFr,
   visibility: visibilityFr,
+  workspaceNav: workspaceNavFr,
   nav: {
     messages: "Messages",
     missions: "Missions",
