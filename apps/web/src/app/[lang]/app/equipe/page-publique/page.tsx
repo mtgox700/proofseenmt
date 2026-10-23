@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { companyPages } from "@proofseen/db";
@@ -35,12 +36,14 @@ export default async function CompanyPublicPageSettings({ params, searchParams }
   return (
     <>
       <p>
-        <Link href={`/${lang}/app/equipe`}>← {dict.team.nav}</Link>
+        <Link className="back-link" href={`/${lang}/app/equipe`}>
+          <span aria-hidden="true">←</span> {dict.team.nav}
+        </Link>
       </p>
       <header className="app-head">
         <h1>{c.title}</h1>
         <p className="muted measure">{c.lead}</p>
-        <p className="thread-meta">
+        <p className="thread-meta link-row">
           <span className={settings.enabled ? "tag tag-done" : "tag tag-quiet"}>{settings.enabled ? c.enabled : c.disabled}</span>
           {settings.enabled && settings.slug !== null ? (
             <a href={`/${lang}/entreprises/${settings.slug}`}>{c.view}</a>

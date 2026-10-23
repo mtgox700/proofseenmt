@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb, invitationAnswers, type InvitationView } from "@proofseen/db";

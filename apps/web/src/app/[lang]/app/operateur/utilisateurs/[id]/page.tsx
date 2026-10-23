@@ -34,7 +34,9 @@ export default async function UserPage({ params, searchParams }: PageProps) {
   return (
     <>
       <header className="app-head">
-        <Link href={`/${lang}/app/operateur/utilisateurs`}>{u.back}</Link>
+        <Link className="back-link" href={`/${lang}/app/operateur/utilisateurs`}>
+          <span aria-hidden="true">←</span> {u.back}
+        </Link>
         <h1>{summary.email}</h1>
         <p className="muted measure">
           {summary.displayName} · {u.created} {day(summary.createdAt, lang)} · {u.lang} {summary.lang}

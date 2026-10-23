@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import { notFound } from "next/navigation";
 import { invitationAnswers, invitations, talentPool, type InvitationView, type JoinedPool, type SentEmailInvitation } from "@proofseen/db";
 import { InvitationSendForm, JoinedPools, NoticeBanner, noticeText, ReceivedInvitations, SentInvitations } from "@/components/market/Invitations";

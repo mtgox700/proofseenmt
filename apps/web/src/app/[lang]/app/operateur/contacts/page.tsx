@@ -7,6 +7,7 @@ import { marketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { operatorPage } from "@/lib/operator";
 import { clearContact, closeContact } from "../contact-actions";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function ContactsPage({ params, searchParams }: PageProps) 
       </header>
       <Outcome flag={etat} o={o} />
       {pending.length === 0 ? (
-        <p className="muted">{o.common.empty}</p>
+        <EmptyNote>{o.common.empty}</EmptyNote>
       ) : (
         <ul className="op-list">
           {pending.map((item) => (

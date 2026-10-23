@@ -3,6 +3,7 @@ import type { Lang } from "@/i18n";
 import type { InvitationsDictionary } from "@/i18n/market/invitations-fr";
 import { day } from "@/lib/format";
 import type { Notice } from "@/lib/invitations";
+import { EmptyNote } from "@/components/EmptyState";
 
 /*
  * The invitations screen (C23): send form, sent list (state, revoke, one reminder) and received list (accept, decline).
@@ -131,9 +132,9 @@ export function SentInvitations(props: { readonly lang: Lang; readonly d: Invita
     <section className="panel" aria-labelledby="sent-title">
       <h2 id="sent-title">{d.sentTitle}</h2>
       {sent.length === 0 ? (
-        <p className="muted">{d.sentEmpty}</p>
+        <EmptyNote>{d.sentEmpty}</EmptyNote>
       ) : (
-        <ul className="threads">
+        <ul className="threads invitations-sent">
           {sent.map((invitation) => (
             <SentRow key={invitation.id} lang={lang} d={d} invitation={invitation} revoke={props.revoke} remind={props.remind} />
           ))}

@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleForm } from "@/components/market/ArticleForm";
@@ -24,7 +25,9 @@ export default async function NewArticlePage({ params }: PageProps) {
   return (
     <>
       <header className="app-head">
-        <Link href={`/${lang}/app/articles`}>{a.back}</Link>
+        <Link className="back-link" href={`/${lang}/app/articles`}>
+          <span aria-hidden="true">←</span> {a.back}
+        </Link>
         <h1>{a.newTitle}</h1>
         <p className="muted measure">{a.lead}</p>
       </header>

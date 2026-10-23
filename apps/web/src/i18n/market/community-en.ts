@@ -31,6 +31,8 @@ export const communityEn: CommunityDictionary = {
     submit: "Post",
     needProfile: "Publish your profile (named or pseudonymous) to write in the feed.",
     needCompany: "Create or join a company to post on its behalf.",
+    toProfile: "Open my profile",
+    toCompany: "Create or choose my company",
   },
   errors: {
     text_contact: "The text contains contact details (address, phone, messaging app, link). They are exchanged once the mission is paid on Proofseen; a link goes in its own field.",

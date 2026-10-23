@@ -1,0 +1,19 @@
+/*
+ * Lot 6 of the connected redesign: the network (feed, follows, invitations), the account (notifications, alerts,
+ * settings, team, suspension) and the articles. Only what market.css, workspace.css and community.css do not cover,
+ * and always under a class these pages carry, so that the sheet changes nothing elsewhere once the browser has it.
+ * Nothing moves here, nothing is green: these screens hold no verified fact.
+ */
+
+/* Every stand-alone link is a 44 px target: the way back, a link alone on its line, a name in a list. */
+.back-link, .link-row a, .follow-list a, .post-head a { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; text-underline-offset: 3px; }
+.post-tools > summary { min-width: 2.75rem; }
+
+/* Choices: the whole line of a checkbox or a radio is the target, at least 44 px high. */
+.choice-list .field-inline { min-height: 2.75rem; align-items: center; }
+.choice-list .field-inline input[type="checkbox"], .choice-list .field-inline input[type="radio"] { margin-top: 0; }
+.composer fieldset label { display: flex; align-items: center; gap: var(--ps-space-3); min-height: 2.75rem; }
+.composer input[type="file"] { min-height: 2.75rem; max-width: 100%; }
+
+/* An address can be longer than a phone is wide: it wraps, it never widens the page. */
+.invitations-sent .thread-who { min-width: 0; overflow-wrap: anywhere; }

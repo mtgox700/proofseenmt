@@ -1,10 +1,20 @@
 /* Back office (C19): dense, legible, nothing decorative. Built on the market tokens. */
-.op { display: grid; gap: var(--ps-space-4); }
-.op-nav ul { display: flex; flex-wrap: wrap; gap: var(--ps-space-2) var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
-.op-nav a { color: var(--ps-muted); text-underline-offset: 3px; }
+/* One column that may shrink: a long address or a wide table never widens the page (375 px). */
+.op { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
+.op-nav ul { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+/* Every link of the back office is a 44 px target: the section links, the pages of a list, the way back. */
+.op-nav a, .op .row-actions a, .op .back-link { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; text-underline-offset: 3px; }
+.op-nav a { color: var(--ps-muted); }
 @media (hover: hover) and (pointer: fine) { .op-nav a:hover { color: var(--ps-text); } }
 .op-tiles { display: grid; gap: var(--ps-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); margin: 0; }
-.op-tiles div { padding: var(--ps-space-3); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.op-tiles div { position: relative; padding: var(--ps-space-3); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+/* The whole tile opens its queue: the link stretches over it, its text stays the accessible name. */
+.op-tiles dt a::after { content: ""; position: absolute; inset: 0; }
+@media (hover: hover) and (pointer: fine) { .op-tiles div:has(a:hover) { border-color: var(--ps-line-strong); } }
+.op .field-inline { min-height: 2.75rem; align-items: center; }
+.op-item p, .op-item code { overflow-wrap: anywhere; }
+/* The acknowledgement of a verified certificate: the cartouche and its trace, above the queue it came from. */
+.op-ack { padding: var(--ps-space-3) 0; border-bottom: 1px dashed var(--ps-line); }
 .op-tiles dt { color: var(--ps-muted); font-size: var(--ps-step--1); }
 .op-tiles dd { margin: 0; font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); font-variant-numeric: tabular-nums; }
 .op-list { display: grid; gap: var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
@@ -12,9 +22,11 @@
 .op-item blockquote { margin: 0; padding-left: var(--ps-space-3); border-left: 2px solid var(--ps-line-strong); white-space: pre-wrap; overflow-wrap: anywhere; }
 .op-forms { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); align-items: end; }
 .op-forms form { display: grid; gap: var(--ps-space-2); flex: 1 1 16rem; }
-.op-table-wrap { overflow-x: auto; }
+.op .panel { grid-template-columns: minmax(0, 1fr); }
+.op-table-wrap { overflow-x: auto; max-width: 100%; }
 .op-table { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); }
-.op-table th, .op-table td { padding: 0.5rem 0.75rem 0.5rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ps-line); overflow-wrap: anywhere; }
+/* A cell breaks between words, never inside one: on a phone the table scrolls in its frame instead of stacking letters. */
+.op-table th, .op-table td { padding: 0.5rem 0.75rem 0.5rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ps-line); overflow-wrap: break-word; }
 .op-table th { color: var(--ps-muted); font-weight: 500; }
 .op-num { font-variant-numeric: tabular-nums; }
 .op select { min-height: 2.75rem; padding: 0.4rem 0.6rem; font: inherit; font-size: max(16px, var(--ps-step-0)); background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }

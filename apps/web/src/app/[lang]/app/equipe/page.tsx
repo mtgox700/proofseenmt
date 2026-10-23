@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { apiKeys, largeAccounts, organisationView, type ApiKeySummary, type MemberView, type PoolMember } from "@proofseen/db";
@@ -8,6 +9,7 @@ import { marketDictionary, type MarketDictionary } from "@/i18n/market";
 import { date, day } from "@/lib/format";
 import { currentOrganisation, pageMarket } from "@/lib/market";
 import { addMember, removeFromPool, removeMember, revokeApiKey, setApprovalLevels } from "./actions";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -86,7 +88,7 @@ function Approvals({ lang, m, levels, owner, error }: { readonly lang: Lang; rea
       )}
       <form action={setApprovalLevels} className="panel-grid">
         <Hidden name="lang" value={lang} />
-        <fieldset className="fieldset" disabled={!owner}>
+        <fieldset className="fieldset choice-list" disabled={!owner}>
           <legend className="sr-only">{a.title}</legend>
           {([1, 2] as const).map((value) => (
             <div key={value} className="field field-inline">
@@ -108,7 +110,7 @@ function Pool({ lang, m, pool, admin }: { readonly lang: Lang; readonly m: Marke
       <h2 id="pool-title">{p.title}</h2>
       <p className="muted measure">{p.lead}</p>
       {pool.length === 0 ? (
-        <p className="muted">{p.empty}</p>
+        <EmptyNote>{p.empty}</EmptyNote>
       ) : (
         <ul className="threads">
           {pool.map((freelance) => (
@@ -214,7 +216,7 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
       <header className="app-head">
         <h1>{m.team.title}</h1>
         <p className="muted measure">{m.team.lead}</p>
-        <p>
+        <p className="link-row">
           <Link href={`/${lang}/app/equipe/page-publique`}>{m.missionsSpace.companyPage.link}</Link>
         </p>
       </header>

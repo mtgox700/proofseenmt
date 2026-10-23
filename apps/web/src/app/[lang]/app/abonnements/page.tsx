@@ -1,4 +1,5 @@
 import "@/styles/community.css";
+import "@/styles/app-compte.css";
 import { notFound } from "next/navigation";
 import { peopleFollows } from "@proofseen/db";
 import { EmptyNote } from "@/components/EmptyState";
@@ -115,7 +116,7 @@ export default async function FollowsPage({ params, searchParams }: PageProps) {
             ))}
           </ul>
         )}
-        <p>
+        <p className="link-row">
           <a href={`/${lang}/app/entreprises-suivies`}>{c.follows.companiesLink}</a>
         </p>
       </section>
@@ -124,7 +125,7 @@ export default async function FollowsPage({ params, searchParams }: PageProps) {
         {followers === null ? (
           <p className="muted">{c.follows.noProfile}</p>
         ) : followers.total === 0 ? (
-          <p className="muted">{c.follows.noFollowers}</p>
+          <EmptyNote>{c.follows.noFollowers}</EmptyNote>
         ) : (
           <>
             <p>{c.follows.followersTotal(followers.total)}</p>

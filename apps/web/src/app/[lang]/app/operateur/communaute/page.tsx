@@ -9,6 +9,7 @@ import type { OperatorDictionary } from "@/i18n/market/operator-fr";
 import { day } from "@/lib/format";
 import { operatorPage } from "@/lib/operator";
 import { hideCommunityItem, restoreCommunityItem } from "../community-actions";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -64,7 +65,7 @@ export default async function CommunityModerationPage({ params, searchParams }: 
       <section className="panel" aria-labelledby="community-hidden">
         <h2 id="community-hidden">{c.operator.hidden}</h2>
         {hidden.length === 0 ? (
-          <p className="muted">{o.common.empty}</p>
+          <EmptyNote>{o.common.empty}</EmptyNote>
         ) : (
           <ul className="op-list">
             {hidden.map((item) => (
@@ -76,7 +77,7 @@ export default async function CommunityModerationPage({ params, searchParams }: 
       <section className="panel" aria-labelledby="community-recent">
         <h2 id="community-recent">{c.operator.recent}</h2>
         {recent.length === 0 ? (
-          <p className="muted">{o.common.empty}</p>
+          <EmptyNote>{o.common.empty}</EmptyNote>
         ) : (
           <ul className="op-list">
             {recent.map((item) => (

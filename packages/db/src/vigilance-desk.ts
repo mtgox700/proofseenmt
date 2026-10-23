@@ -21,12 +21,22 @@ export interface PendingAttestation {
   readonly siret: string | null;
 }
 
+/** Une attestation vérifiée, relue en base : ce que l'accusé de l'opérateur montre, jamais ce que dit une adresse. */
+export interface VerifiedAttestation {
+  readonly reference: string;
+  readonly issuedOn: Date;
+  readonly expiresOn: Date;
+  readonly verifiedAt: Date;
+}
+
 export interface VigilanceDesk {
   /** Les attestations déclarées, en cours de validité, ni vérifiées ni refusées ; les plus anciennes d'abord. */
   pending(now: Date): Promise<readonly PendingAttestation[]>;
   pendingCount(now: Date): Promise<number>;
   verify(reference: string, securityCode: string, now: Date): Promise<OperatorResult>;
   reject(reference: string, reason: string, now: Date): Promise<OperatorResult>;
+  /** L'attestation de ce profil si elle est vérifiée et non refusée ; `null` sinon, ou pour une référence mal formée. */
+  verified(reference: string): Promise<VerifiedAttestation | null>;
 }
 
 const MAX_PENDING = 200;
@@ -84,6 +94,17 @@ export const vigilanceDesk = (db: Db, operator: Operator): VigilanceDesk => {
         await notifyAccount(tx, [row.profile.userId], "vigilance_rejected", reason);
         return "done";
       });
+    },
+
+    async verified(rawReference) {
+      const reference = ProfileReferenceInputSchema.safeParse(rawReference);
+      if (!reference.success) return null;
+      const row = await db.vigilanceAttestation.findFirst({
+        where: { profile: { reference: reference.data }, verifiedAt: { not: null }, rejectedAt: null },
+        select: { issuedOn: true, verifiedAt: true },
+      });
+      if (row === null || row.verifiedAt === null) return null;
+      return { reference: reference.data, issuedOn: row.issuedOn, expiresOn: vigilanceExpiresOn(row.issuedOn), verifiedAt: row.verifiedAt };
     },
   };
 };

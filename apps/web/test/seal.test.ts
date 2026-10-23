@@ -68,6 +68,8 @@ describe("the seal of a verified fact", () => {
       "components/market/ConfirmationAck.tsx",
       // Lot 4: the last line of the thread of a deal, only when the verified mission (paid on Proofseen) is in the database.
       "components/market/DealThread.tsx",
+      // Lot 6: the operator's acknowledgement of a URSSAF certificate, read back by vigilanceDesk.verified().
+      "components/operator/VerificationQueues.tsx",
     ]);
   });
 });

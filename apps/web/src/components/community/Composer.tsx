@@ -15,10 +15,14 @@ interface ComposerProps {
 export function Composer({ lang, c, speaker, role, back }: ComposerProps) {
   if (speaker === null) {
     return (
-      <p className="panel muted">
-        {role === "freelance" ? c.composer.needProfile : c.composer.needCompany}{" "}
-        <a href={`/${lang}/app/${role === "freelance" ? "profil" : "equipe"}`}>→</a>
-      </p>
+      <div className="panel stack">
+        <p className="muted">{role === "freelance" ? c.composer.needProfile : c.composer.needCompany}</p>
+        <p>
+          <a className="btn" href={`/${lang}/app/${role === "freelance" ? "profil" : "equipe"}`}>
+            {role === "freelance" ? c.composer.toProfile : c.composer.toCompany}
+          </a>
+        </p>
+      </div>
     );
   }
   return (

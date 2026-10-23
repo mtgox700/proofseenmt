@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import { notFound } from "next/navigation";
 import { appNotifications, messageDigests, pushSubscriptions } from "@proofseen/db";
 import { EmptyState } from "@/components/EmptyState";

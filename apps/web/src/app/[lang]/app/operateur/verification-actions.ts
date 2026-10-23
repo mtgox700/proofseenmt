@@ -23,10 +23,20 @@ export async function searchCompanies(_previous: CompanySearchState, formData: F
 
 const backTo = (lang: string, flag: string, anchor = ""): never => redirect(`/${lang}/app/operateur/verifications?etat=${flag}${anchor}`);
 
+/*
+ * After a verification, the page shows the acknowledgement: the address only names which certificate to read back, the
+ * page reads its state and date from the database (`vigilanceDesk.verified`), so a forged address strikes nothing.
+ */
+const REFERENCE = /^FR-[A-Z2-9]{5,8}$/;
+const acknowledge = (lang: string, reference: string): never =>
+  REFERENCE.test(reference) ? redirect(`/${lang}/app/operateur/verifications?etat=${OUTCOME_FLAGS.done}&verifiee=${reference}#vigilance-title`) : backTo(lang, OUTCOME_FLAGS.done);
+
 export async function verifyVigilance(formData: FormData): Promise<void> {
   const { lang, db, operator, limited } = await operatorAction(formData, "verifications");
   if (limited) backTo(lang, OUTCOME_FLAGS.too_many);
-  const result = await vigilanceDesk(db, operator).verify(field(formData, "reference"), field(formData, "code"), new Date());
+  const reference = field(formData, "reference").trim().toUpperCase();
+  const result = await vigilanceDesk(db, operator).verify(reference, field(formData, "code"), new Date());
+  if (result === "done") acknowledge(lang, reference);
   backTo(lang, OUTCOME_FLAGS[result]);
 }
 

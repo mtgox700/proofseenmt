@@ -11,7 +11,7 @@ export const articlesEn: ArticlesDictionary = {
   categories: { guide: "Guide", actualite: "News", etude: "Study" },
   audiences: { freelance: "Freelancers", entreprise: "Companies", tous: "Everyone" },
   langs: { fr: "Français", en: "English" },
-  back: "← All articles",
+  back: "All articles",
   newTitle: "New article",
   defaultAuthor: "Proofseen team",
   editTitle: "Edit the article",

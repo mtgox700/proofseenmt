@@ -37,10 +37,12 @@
 .stage-publish { margin-top: var(--ps-space-4); padding-top: var(--ps-space-3); border-top: 1px solid var(--ps-line); }
 
 /* ---------- Settings ---------- */
-.settings-danger { border-color: color-mix(in srgb, var(--ps-signal) 45%, var(--ps-line)); }
+/* Erasure is blocking and cannot be undone: the danger colour (BRAND_BOOK section 5), not the amber of "to correct".
+   The word typed by the person and the button text say it too; the colour is never alone. */
+.settings-danger { border-color: color-mix(in srgb, var(--ps-danger) 45%, var(--ps-line)); }
 .settings-row { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
 .settings-row .field { margin: 0; }
 .settings-clerk { overflow-x: auto; }
-.btn-danger { border-color: var(--ps-signal); color: var(--ps-signal); }
-@media (hover: hover) and (pointer: fine) { .btn-danger:hover:not(:disabled) { background: var(--signal-wash); } }
-.btn-danger:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-danger { border-color: var(--ps-danger); color: var(--ps-danger); }
+@media (hover: hover) and (pointer: fine) { .btn-danger:hover:not(:disabled) { border-color: var(--ps-danger); background: color-mix(in srgb, var(--ps-danger) 12%, transparent); } }
+/* Disabled until the word is typed: the dashed state of every brand button (chrome.css), never a faded one. */
