@@ -10,7 +10,7 @@ export const articlesFr = {
   categories: { guide: "Guide", actualite: "Actualité", etude: "Étude" },
   audiences: { freelance: "Freelances", entreprise: "Entreprises", tous: "Tous" },
   langs: { fr: "Français", en: "English" },
-  back: "← Tous les articles",
+  back: "Tous les articles",
   newTitle: "Nouvel article",
   defaultAuthor: "Équipe Proofseen",
   editTitle: "Modifier l'article",

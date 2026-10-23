@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import { notFound, redirect } from "next/navigation";
 import { getDb } from "@proofseen/db";
 import { accountUsers } from "@/data/accounts";
@@ -41,7 +42,7 @@ export default async function SuspendedPage({ params }: PageProps) {
         <p className="muted small">{s.since(day(suspension.at, lang))}</p>
         <AppealForm s={s} id="suspension-appeal" />
       </section>
-      <p>
+      <p className="link-row">
         {/* A suspension never takes away the person's GDPR rights: their own export stays one click away. */}
         <a href="/api/me" download>
           {s.exportData}

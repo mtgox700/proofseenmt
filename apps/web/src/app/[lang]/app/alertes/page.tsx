@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import { notFound } from "next/navigation";
 import { missionAlerts, notifications, type AlertRecord, type NotificationKind } from "@proofseen/db";
 import { EmptyNote } from "@/components/EmptyState";
@@ -69,7 +70,7 @@ function Alerts({ lang, m, alerts, error }: { readonly lang: Lang; readonly m: M
         <h3 id="alert-new" className="panel-span">
           {a.createTitle}
         </h3>
-        <fieldset className="fieldset">
+        <fieldset className="fieldset choice-list">
           <legend>{a.workModes}</legend>
           {MODES.map((mode) => (
             <div key={mode} className="field field-inline">
@@ -142,7 +143,7 @@ export default async function AlertsPage({ params, searchParams }: PageProps) {
         <input type="hidden" name="lang" value={lang} />
         <h2 id="emails-title">{e.title}</h2>
         <p className="muted measure">{e.lead}</p>
-        <fieldset className="fieldset">
+        <fieldset className="fieldset choice-list">
           <legend className="sr-only">{e.title}</legend>
           {KINDS[side].map((kind) => (
             <div key={kind} className="field field-inline">

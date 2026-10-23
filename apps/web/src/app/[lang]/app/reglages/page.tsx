@@ -1,4 +1,5 @@
 import "@/styles/insights.css";
+import "@/styles/app-compte.css";
 import { UserProfile } from "@clerk/nextjs";
 import Link from "next/link";
 import { notFound } from "next/navigation";

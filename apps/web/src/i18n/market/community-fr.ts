@@ -30,6 +30,8 @@ export const communityFr = {
     submit: "Publier",
     needProfile: "Publiez votre profil (nominatif ou pseudonyme) pour écrire dans le fil.",
     needCompany: "Créez ou rejoignez une entreprise pour publier en son nom.",
+    toProfile: "Ouvrir mon profil",
+    toCompany: "Créer ou choisir mon entreprise",
   },
   errors: {
     text_contact: "Le texte contient des coordonnées (adresse, téléphone, messagerie, lien). Elles s'échangent une fois la mission payée sur Proofseen\u202f; un lien va dans le champ prévu.",

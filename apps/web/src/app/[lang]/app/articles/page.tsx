@@ -1,3 +1,4 @@
+import "@/styles/app-compte.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { articleDesk } from "@proofseen/db";
@@ -6,6 +7,7 @@ import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -33,7 +35,7 @@ export default async function ArticlesPage({ params }: PageProps) {
       <section className="panel" aria-labelledby="articles-title">
         <h2 id="articles-title">{a.title}</h2>
         {list.length === 0 ? (
-          <p className="muted">{a.empty}</p>
+          <EmptyNote>{a.empty}</EmptyNote>
         ) : (
           <ul className="plain-list">
             {list.map((article) => (

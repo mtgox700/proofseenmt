@@ -4,7 +4,7 @@ import { deletePost, editPost, sharePost } from "@/app/[lang]/app/fil/actions";
 import { followProfile } from "@/app/[lang]/app/abonnements/actions";
 import type { Lang } from "@/i18n";
 import type { CommunityDictionary } from "@/i18n/market/community-fr";
-import { day } from "@/lib/format";
+import { colon, day } from "@/lib/format";
 import { AuthorLine } from "./AuthorLine";
 import { ReactionBar } from "./ReactionBar";
 
@@ -24,12 +24,13 @@ function Body({ body }: { readonly body: string }) {
   return <div className="post-body" dangerouslySetInnerHTML={{ __html: renderPostBody(body) }} />;
 }
 
-function Attachments({ c, item }: { readonly c: CommunityDictionary; readonly item: Pick<SharedOriginal, "linkUrl" | "imageFileId" | "author"> }) {
+function Attachments({ lang, c, item }: { readonly lang: Lang; readonly c: CommunityDictionary; readonly item: Pick<SharedOriginal, "linkUrl" | "imageFileId" | "author"> }) {
   return (
     <>
       {item.linkUrl === null ? null : (
         <p className="small">
-          {c.post.link} :{" "}
+          {c.post.link}
+          {colon(lang)}
           <a href={item.linkUrl} rel="nofollow ugc noopener noreferrer">
             {item.linkUrl}
           </a>
@@ -49,7 +50,7 @@ function Shared({ lang, c, shared }: { readonly lang: Lang; readonly c: Communit
         <AuthorLine lang={lang} author={shared.author} /> · <a href={`/${lang}/app/fil/${shared.id}`}>{day(shared.createdAt, lang)}</a>
       </p>
       <Body body={shared.body} />
-      <Attachments c={c} item={shared} />
+      <Attachments lang={lang} c={c} item={shared} />
     </div>
   );
 }
@@ -159,7 +160,7 @@ export function PostCard(props: PostCardProps) {
         </p>
       )}
       <Body body={post.body} />
-      <Attachments c={c} item={post} />
+      <Attachments lang={lang} c={c} item={post} />
       <Shared lang={lang} c={c} shared={post.shared} />
       <p className="muted small">
         {c.reactions.total(total)} · {c.post.counts(post.counts.comments, post.counts.shares)}

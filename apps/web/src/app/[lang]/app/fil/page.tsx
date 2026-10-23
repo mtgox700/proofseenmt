@@ -1,4 +1,5 @@
 import "@/styles/community.css";
+import "@/styles/app-compte.css";
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { notFound } from "next/navigation";

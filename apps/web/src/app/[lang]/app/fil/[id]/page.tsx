@@ -1,4 +1,5 @@
 import "@/styles/community.css";
+import "@/styles/app-compte.css";
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
@@ -41,7 +42,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
       <header className="app-head">
         <p>
           <a className="btn btn-quiet" href={`/${lang}/app/fil`}>
-            ← {c.title}
+            <span aria-hidden="true">←</span> {c.title}
           </a>
         </p>
         <h1>{post.author.name}</h1>
