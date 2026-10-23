@@ -12,11 +12,9 @@ const PAGES: ReadonlySet<string> = new Set([
   "/contact/",
   "/methode/",
   "/n/ayoub-hammoudi/",
-  "/p/FR-7H2XK/",
   "/en/contact/",
   "/en/method/",
   "/en/n/ayoub-hammoudi/",
-  "/en/p/FR-7H2XK/",
 ]);
 
 const FILES: Readonly<Record<string, string>> = { "/api/profiles.json": "/legacy/api/profiles.json" };
@@ -31,6 +29,18 @@ const RETIRED: readonly { readonly pattern: RegExp; readonly to: (lang: string) 
   { pattern: /^\/(fr|en)\/freelance(?:\/.*)?$/, to: (lang) => `/${lang}/app` },
   { pattern: /^\/(fr|en)\/entreprise(?:\/.*)?$/, to: (lang) => `/${lang}/freelances` },
 ];
+
+/*
+ * The pseudonymous page of the founder's profile repeated his named page word for word, so it named him anyway and
+ * contradicted the promise of a pseudonymous profile. Decision of 2026-10-23: the named page stays, the twin leads
+ * to it with a permanent redirect.
+ */
+const MERGED: Readonly<Record<string, string>> = {
+  "/p/FR-7H2XK/": "/n/ayoub-hammoudi/",
+  "/p/FR-7H2XK": "/n/ayoub-hammoudi/",
+  "/en/p/FR-7H2XK/": "/en/n/ayoub-hammoudi/",
+  "/en/p/FR-7H2XK": "/en/n/ayoub-hammoudi/",
+};
 
 export type LegacyRoute = { readonly kind: "serve"; readonly file: string } | { readonly kind: "redirect"; readonly to: string } | { readonly kind: "none" };
 
@@ -54,6 +64,7 @@ export const legacyRoute = (pathname: string): LegacyRoute => {
   if (file !== undefined) return { kind: "serve", file };
   const gone = retired(pathname);
   if (gone !== null) return gone;
+  if (Object.hasOwn(MERGED, pathname)) return { kind: "redirect", to: MERGED[pathname] as string };
   if (PAGES.has(pathname)) return { kind: "serve", file: `/legacy${pathname}index.html` };
   // The indexed address has the slash: the bare one goes there, so each page has a single address.
   if (PAGES.has(`${pathname}/`)) return { kind: "redirect", to: `${pathname}/` };

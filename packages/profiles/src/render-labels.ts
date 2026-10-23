@@ -11,7 +11,7 @@ const missionsEn = (n: number): string => `${n} verified mission${n === 1 ? "" :
 export const LABELS = {
   fr: {
     brand: "Proofseen",
-    available: "Disponible",
+    available: (d: string) => `Disponible, déclaré le ${d}`,
     availableFrom: (d: string) => `Disponible à partir du ${d}`,
     unavailable: "Indisponible pour le moment",
     seniority: "Expérience",
@@ -119,7 +119,7 @@ export const LABELS = {
   },
   en: {
     brand: "Proofseen",
-    available: "Available",
+    available: (d: string) => `Available, stated on ${d}`,
     availableFrom: (d: string) => `Available from ${d}`,
     unavailable: "Not available at the moment",
     seniority: "Experience",

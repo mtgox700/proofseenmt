@@ -17,11 +17,9 @@ const PAGES = [
   "contact/index.html",
   "methode/index.html",
   "n/ayoub-hammoudi/index.html",
-  "p/FR-7H2XK/index.html",
   "en/contact/index.html",
   "en/method/index.html",
   "en/n/ayoub-hammoudi/index.html",
-  "en/p/FR-7H2XK/index.html",
 ];
 
 const rendered = (): ReadonlyMap<string, string> => {

@@ -27,6 +27,8 @@ const config: NextConfig = {
       // which the sitemaps, llms.txt and the blog already list. The address itself is in no sitemap.
       { source: "/:lang(fr|en)/barometre", destination: "/:lang/barometre/tjm", permanent: true },
       { source: "/barometre", destination: "/fr/barometre/tjm", permanent: true },
+      // The order page and its prices are retired (founder, 2026-10-23): no price is public. Its address leads home.
+      { source: "/:lang(fr|en)/commande", destination: "/:lang", permanent: true },
     ];
   },
   // Browsers and crawlers ask for /favicon.ico on their own: the brand icon answers, from its single copy.

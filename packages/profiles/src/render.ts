@@ -81,11 +81,22 @@ const layout = ({ locale, baseUrl, path, otherPath, title, description, noindex,
   );
 };
 
+/** A date of the profile as a reader writes it (24 septembre 2026), never the ISO form of the data. */
+const day = (iso: string, locale: Locale): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date);
+};
+
+/*
+ * The availability as it was stated, with the day it was stated: these pages are saved, not live, so "Disponible"
+ * alone would go on claiming today what was true on that day.
+ */
 const availabilityText = (p: PublicProfile, locale: Locale): string => {
   const l = LABELS[locale];
   if (p.availability.status === "unavailable") return l.unavailable;
-  if (p.availability.status === "available_from" && p.availability.from !== null) return l.availableFrom(p.availability.from);
-  return l.available;
+  if (p.availability.status === "available_from" && p.availability.from !== null) return l.availableFrom(day(p.availability.from, locale));
+  return l.available(day(p.availability.updatedAt, locale));
 };
 
 /**
@@ -190,7 +201,7 @@ export const renderProfilePage = ({ profile: p, locale, baseUrl, intents, noinde
       : `<h2>${l.relatedProfiles}</h2><p class="muted note-line">${e(RELATED_NOTE[locale])}</p>` +
         `<ul class="cards">${related.map((other) => profileCard(other, locale)).join("")}</ul>`,
     named === undefined ? `<h2>${l.why}</h2><p class="lede">${e(l.whyText)} ${e(l.contactNote)}</p>` : "",
-    `<p class="muted updated">${e(l.updated(p.availability.updatedAt))}</p>`,
+    `<p class="muted updated">${e(l.updated(day(p.availability.updatedAt, locale)))}</p>`,
   ];
   const join = (blocks: readonly string[]): string => blocks.filter((block) => block !== "").join("\n");
   const body =

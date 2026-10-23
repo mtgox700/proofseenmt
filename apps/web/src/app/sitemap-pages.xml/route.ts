@@ -6,7 +6,7 @@ import { publicBaseUrl } from "../../lib/public-url";
  * net income simulator, the three legal pages, and the pages kept from the former static site.
  */
 
-const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/fr/freelances", "/en/freelances", "/fr/entreprises", "/en/entreprises", "/fr/metiers", "/en/metiers", "/fr/postes", "/en/postes", "/fr/simulateur", "/en/simulateur", "/fr/mentions-legales", "/en/mentions-legales", "/fr/confidentialite", "/en/confidentialite", "/fr/conditions", "/en/conditions", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/p/FR-7H2XK/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/", "/en/p/FR-7H2XK/"] as const;
+const PATHS = ["/fr", "/en", "/fr/missions", "/en/missions", "/fr/freelances", "/en/freelances", "/fr/entreprises", "/en/entreprises", "/fr/metiers", "/en/metiers", "/fr/postes", "/en/postes", "/fr/simulateur", "/en/simulateur", "/fr/mentions-legales", "/en/mentions-legales", "/fr/confidentialite", "/en/confidentialite", "/fr/conditions", "/en/conditions", "/contact/", "/methode/", "/n/ayoub-hammoudi/", "/en/contact/", "/en/method/", "/en/n/ayoub-hammoudi/"] as const;
 
 export function GET(request: Request): Response {
   const base = publicBaseUrl(request);
