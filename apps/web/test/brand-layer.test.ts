@@ -73,8 +73,9 @@ describe("colours come from the brand tokens only", () => {
 });
 
 describe("the green marks a verified fact or the poinçon, nothing else (Kensa M5)", () => {
-  // Every innermost block that reads --ps-proof (or --ps-proof-wash), named by its selector path. Reads, not
-  // declarations: the brand's tokens.css declares the colour, and declaring it marks nothing.
+  // Every innermost block that reads --ps-proof (or --ps-proof-wash), or one of the green lights of v2 (the proof halo,
+  // its strike, the green halo, the green edge spot), named by its selector path. Reads, not declarations: the brand's
+  // tokens.css declares the colour and the lights, and declaring them marks nothing.
   const greenRules = (css: string): string[] => {
     const found: string[] = [];
     const stack: string[] = [];
@@ -84,7 +85,7 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         stack.push(buffer.trim().replace(/\s+/g, " "));
         buffer = "";
       } else if (char === "}") {
-        if (/var\(--ps-proof/.test(buffer)) found.push(stack.join(" > "));
+        if (/var\(--ps-(?:proof|glow-proof|halo-proof|edge-spot-proof)/.test(buffer)) found.push(stack.join(" > "));
         stack.pop();
         buffer = "";
       } else {
@@ -124,7 +125,8 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         // The card's register: the square of a verified fact, and the key of the legend that names it.
         "profile-card.css: .ps-legend .k-proof::before,.fc-proof li::before",
         // The poinçon: the square at the end of the line of proof, the cartouche, the square and stamp of a proven
-        // address, and the ring of ink at the moment of the strike.
+        // address, and the ring of ink at the moment of the strike. v2: the first three also wear the proof halo, in
+        // the same rules; no other rule may read a green light.
         "seal.css: .proofline::before",
         "seal.css: .seal",
         "seal.css: .sq",
@@ -144,7 +146,7 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
     expect(users).toEqual(["components/visibility/ProfileChecklist.tsx"]);
   });
 
-  it("draws every focus ring of a field in the focus colour, at AA contrast in both themes", () => {
+  it("draws every focus ring of a field in the focus colour, at 3:1 on every ground of the one theme", () => {
     for (const file of styles) {
       const css = read(src, "styles", file).replace(/\/\*[\s\S]*?\*\//g, "");
       for (const rule of css.match(/[^{}]*:focus(?:-visible)?[^{}]*\{[^}]*\}/g) ?? []) {
@@ -152,10 +154,48 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         if (/outline:/.test(body) && !/outline:\s*(?:none|0)\b/.test(body)) expect(body, `${file}: ${rule.trim()}`).toMatch(/var\(--ps-focus\)/);
       }
     }
-    for (const theme of ["dark", "light"] as const) {
-      const p = PALETTE[theme];
-      for (const ground of [p.bg, p.surface, p.raised]) expect(contrastRatio(p.focus, ground)).toBeGreaterThanOrEqual(3);
+    const p = PALETTE.dark;
+    for (const ground of [p.bgDeep, p.bg, p.surface, p.raised, p.overlay]) expect(contrastRatio(p.focus, ground)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("dark only, lit with meaning (BRAND_BOOK_V2)", () => {
+  const sources = filesUnder(src).filter((f) => /\.(?:css|tsx?)$/.test(f));
+  const LIGHT_THEME = /prefers-color-scheme\s*:\s*light|data-theme|color-scheme\s*:\s*light|colorScheme:\s*["'][^"']*light|THEME_COLOR\.light|PALETTE\.light|LOCKUP\.light|lockup-light/;
+
+  it("brings back no light theme in any style, component or module of the application", () => {
+    const offenders = sources.filter((f) => LIGHT_THEME.test(readFileSync(f, "utf8"))).map((f) => relative(src, f).replace(/\\/g, "/"));
+    expect(offenders).toEqual([]);
+  });
+
+  it("declares one scheme and one browser colour in each root layout", () => {
+    for (const layout of [read(app, "[lang]", "layout.tsx"), read(app, "global-not-found.tsx")]) {
+      expect(layout).toContain('colorScheme: "dark",');
+      expect(layout).toContain("themeColor: THEME_COLOR,");
     }
+  });
+
+  it("animates no box-shadow and no filter: a light is set, or its pseudo-element fades", () => {
+    for (const file of styles) {
+      const css = read(src, "styles", file).replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const m of css.matchAll(/transition(?:-property)?\s*:([^;}]*)/g)) expect(m[1], file).not.toMatch(/box-shadow|filter|\ball\b/);
+      for (const m of css.matchAll(/@keyframes[^{]*\{((?:[^{}]*\{[^}]*\})*)\}/g)) expect(m[1], file).not.toMatch(/box-shadow|filter/);
+    }
+  });
+
+  it("lights the edge of every card that opens under the pointer, never with a grey border", () => {
+    const lit = styles.flatMap((file) =>
+      [...read(src, "styles", file).matchAll(/([^{}]+):hover\)?\s*\{([^}]*)\}/g)]
+        .filter((m) => /var\(--edge-lit\)/.test(m[2] ?? ""))
+        .map((m) => `${file}: ${(m[1] ?? "").trim()}`),
+    );
+    expect(lit.sort()).toEqual(
+      ["discovery.css: .pcard", "operator.css: .op-tiles div:has(a", "workspace.css: .thread-row", "workspace.css: .welcome-choice"].sort(),
+    );
+    for (const file of styles) {
+      expect(read(src, "styles", file), file).not.toMatch(/(?:\.pcard|\.thread-row|\.welcome-choice|\.op-tiles div:has\(a):hover\)?\s*\{\s*border-color:\s*var\(--ps-(?:line-strong|text)\)/);
+    }
+    expect(read(src, "styles", "tokens.css")).toMatch(/--edge-lit:\s*linear-gradient\(var\(--ps-surface\), var\(--ps-surface\)\) padding-box, var\(--ps-edge-spot\) border-box,/);
   });
 });
 

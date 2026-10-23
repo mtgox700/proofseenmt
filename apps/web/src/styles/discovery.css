@@ -12,7 +12,7 @@
 .search-main { display: grid; gap: var(--ps-space-4); align-content: start; min-width: 0; }
 
 /* ---------- The filter panel ---------- */
-.drawer { background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.drawer { background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .drawer > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--ps-space-2); min-height: 2.75rem; padding: var(--ps-space-3) var(--ps-space-4); font-weight: 600; }
 .drawer > summary::-webkit-details-marker { display: none; }
 .drawer > summary::after { content: "+"; font: 500 var(--ps-step-1)/1 var(--ps-font-mono); color: var(--ps-muted); }
@@ -43,7 +43,7 @@
 .check .n { align-self: center; }
 .n { margin-left: auto; min-width: 1.75rem; padding: 0.05rem 0.4rem; border-radius: var(--ps-radius); text-align: center; font: 500 var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-muted); background: var(--ps-surface); }
 .side-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-1) var(--ps-space-2); }
-.side-links a { display: inline-flex; align-items: center; gap: var(--ps-space-1); min-height: 2.75rem; padding: 0.15rem 0.55rem; border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font-size: var(--ps-step--2); color: var(--ps-text); text-decoration: none; }
+.side-links a { display: inline-flex; align-items: center; gap: var(--ps-space-1); min-height: 2.75rem; padding: 0.15rem 0.55rem; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-pill); font-size: var(--ps-step--2); color: var(--ps-text); text-decoration: none; }
 .side-links a[aria-current] { border-color: var(--ps-text); color: var(--ps-text); }
 .side-links .n { margin-left: 0; min-width: 0; background: transparent; padding: 0; }
 .side-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); padding-top: var(--ps-space-2); }
@@ -52,7 +52,7 @@
 }
 
 /* ---------- Saved searches ---------- */
-.side-card { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.side-card { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .side-card h2 { margin: 0; font: 600 var(--ps-step-0) / 1.3 var(--ps-font-text); letter-spacing: 0; }
 .save-search > summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; color: var(--ps-text); font-weight: 500; text-decoration: underline; text-underline-offset: 0.25em; }
 .save-search .side-form { padding: 0; }
@@ -69,7 +69,7 @@
 .sort-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); font-size: var(--ps-step--1); }
 .sort-bar select { min-height: 2.75rem; padding: 0.35rem 0.6rem; font: inherit; color: var(--ps-text); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
-.chip { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; padding: 0.2rem 0.7rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); background: var(--ps-raised); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; transition: border-color var(--ps-dur-ui) var(--ps-ease-out), background-color var(--ps-dur-ui) var(--ps-ease-out); }
+.chip { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; padding: 0.2rem 0.7rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-raised); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; transition: border-color var(--ps-dur-ui) var(--ps-ease-out), background-color var(--ps-dur-ui) var(--ps-ease-out); }
 .chip span[aria-hidden] { color: var(--ps-muted); font-size: var(--ps-step-0); line-height: 1; }
 .chip-clear { border-color: transparent; background: transparent; color: var(--ps-muted); text-decoration: underline; text-underline-offset: 3px; }
 .chip:focus-visible { outline: 2px solid var(--ps-focus); outline-offset: 2px; }
@@ -93,13 +93,13 @@
 /* The freelancer card itself is the marketplace's one card (@proofseen/brand/profile-card.css); the rules below serve the company cards. */
 .pcard {
   position: relative; display: flex; flex-direction: column; gap: var(--ps-space-3); width: 100%; padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-3);
-  border: 1px solid var(--ps-line); border-radius: var(--ps-radius);
+  border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card);
   background: var(--ps-surface);
   transition: border-color var(--ps-dur-ui) var(--ps-ease-out);
 }
 .pcard:focus-within { border-color: color-mix(in srgb, var(--ps-focus) 60%, var(--ps-line)); }
 @media (hover: hover) and (pointer: fine) {
-  .pcard:hover { border-color: var(--ps-line-strong); }
+  .pcard:hover { border-color: transparent; background: var(--edge-lit); }
 }
 @media (prefers-reduced-motion: reduce) {
   .pcard, .chip { transition: none; }

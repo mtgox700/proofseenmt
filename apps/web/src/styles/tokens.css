@@ -1,6 +1,6 @@
 /* The tokens of the application, on top of the brand (@proofseen/brand/tokens.css, imported first by the root layout:
-   palette, type scale, space, radius, motion). Nothing here is a new colour: every value is mixed from a brand token,
-   so it follows the dark and the light theme. A test refuses any colour literal in apps/web/src/styles. */
+   palette, type scale, space, radius, motion). Nothing here is a new colour: every value is mixed from a brand token
+   of the one dark palette (BRAND_BOOK_V2). A test refuses any colour literal in apps/web/src/styles. */
 :root {
   /* Source families of the answer field, from the strongest ink to the faintest. The proof green stays reserved for
      "you", and absence (no source) is drawn hollow, not coloured. */
@@ -14,4 +14,10 @@
   /* Derived tints. */
   --signal-wash: color-mix(in srgb, var(--ps-signal) 12%, transparent);
   --scrim: color-mix(in srgb, var(--ps-bg) 92%, transparent);
+
+  /* The lit edge of a card under the pointer (BRAND_BOOK_V2 section 4.2), the same layers as edgeSpotCss() of
+     @proofseen/brand: the card's surface inside, the violet spot over the 3:1 edge in the border. Set on hover with
+     border-color: transparent; border-color is the only thing that moves. */
+  --edge-lit: linear-gradient(var(--ps-surface), var(--ps-surface)) padding-box, var(--ps-edge-spot) border-box,
+    linear-gradient(var(--ps-line-strong), var(--ps-line-strong)) border-box;
 }

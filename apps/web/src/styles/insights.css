@@ -3,7 +3,7 @@
 
 /* ---------- Charts ---------- */
 .chart-grid { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
-.chart { display: grid; gap: var(--ps-space-2); margin: 0; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.chart { display: grid; gap: var(--ps-space-2); margin: 0; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .chart-title { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); color: var(--ps-muted); }
 .chart-title b { font: 500 var(--ps-step-2) / 1 var(--ps-font-display); color: var(--ps-text); letter-spacing: -0.02em; }
 .chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -25,7 +25,7 @@
 .insight-columns { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
 .insight-note { padding: var(--ps-space-3) var(--ps-space-4); background: var(--signal-wash); border-left: 3px solid var(--ps-signal); border-radius: var(--ps-radius); }
 .insight-facts { display: grid; gap: var(--ps-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); margin: var(--ps-space-3) 0; }
-.insight-facts > div { display: grid; gap: var(--ps-space-1); align-content: start; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.insight-facts > div { display: grid; gap: var(--ps-space-1); align-content: start; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .insight-facts dt { font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); }
 .insight-facts dd { margin: 0; }
 .insight-facts dd.num { font: 500 var(--ps-step-2) / 1.1 var(--ps-font-display); letter-spacing: -0.02em; }
