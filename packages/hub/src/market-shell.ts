@@ -52,10 +52,8 @@ export const publicMenu = (lang: Lang): PublicMenu => {
   };
 };
 
-/** Le poinçon et le mot, en image de taille fixe (aucun décalage), dans la version du thème du visiteur. */
-export const lockup = (): string =>
-  `<picture><source srcset="${LOCKUP.light}" media="(prefers-color-scheme: light)">` +
-  `<img src="${LOCKUP.dark}" width="${LOCKUP.width}" height="${LOCKUP.height}" alt="Proofseen"></picture>`;
+/** Le poinçon et le mot, en image de taille fixe (aucun décalage) : papier et vert sur la nuit, le seul thème. */
+export const lockup = (): string => `<img src="${LOCKUP.dark}" width="${LOCKUP.width}" height="${LOCKUP.height}" alt="Proofseen">`;
 
 /**
  * Le lien d'évitement et l'en-tête public : la marque, le menu, l'inscription, le lien vers la même page dans l'autre

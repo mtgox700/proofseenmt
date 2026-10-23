@@ -7,7 +7,7 @@
 .order-head { display: grid; gap: var(--ps-space-4); }
 .order-head h1 { font-size: var(--ps-step-5); max-width: 18ch; }
 .order-offers { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); align-items: start; scroll-margin-top: 6rem; }
-.order-offer { display: grid; gap: var(--ps-space-5); padding: clamp(1.5rem, 3vw, 2.2rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
+.order-offer { display: grid; gap: var(--ps-space-5); padding: clamp(1.5rem, 3vw, 2.2rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); scroll-margin-top: 6rem; }
 .order-offer[data-featured] { border-color: var(--ps-line-strong); }
 .order-offer header { display: grid; gap: var(--ps-space-3); }
 .order-offer h2 { font-size: var(--ps-step-2); }

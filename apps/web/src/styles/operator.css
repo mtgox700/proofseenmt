@@ -7,10 +7,10 @@
 .op-nav a { color: var(--ps-muted); }
 @media (hover: hover) and (pointer: fine) { .op-nav a:hover { color: var(--ps-text); } }
 .op-tiles { display: grid; gap: var(--ps-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); margin: 0; }
-.op-tiles div { position: relative; padding: var(--ps-space-3); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.op-tiles div { position: relative; padding: var(--ps-space-3); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); transition: border-color var(--ps-dur-ui) var(--ps-ease-out); }
 /* The whole tile opens its queue: the link stretches over it, its text stays the accessible name. */
 .op-tiles dt a::after { content: ""; position: absolute; inset: 0; }
-@media (hover: hover) and (pointer: fine) { .op-tiles div:has(a:hover) { border-color: var(--ps-line-strong); } }
+@media (hover: hover) and (pointer: fine) { .op-tiles div:has(a:hover) { border-color: transparent; background: var(--edge-lit); } }
 .op .field-inline { min-height: 2.75rem; align-items: center; }
 .op-item p, .op-item code { overflow-wrap: anywhere; }
 /* The acknowledgement of a verified certificate: the cartouche and its trace, above the queue it came from. */

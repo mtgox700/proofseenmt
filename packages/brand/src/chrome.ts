@@ -33,8 +33,11 @@ const BUTTONS = [
   // The call to action is paper on ink: the strongest contrast, and the green stays for what is verified.
   ".btn-primary,.cta{background:var(--ps-text);border-color:var(--ps-text);color:var(--ps-bg)}",
   ".btn:disabled,.btn[aria-disabled=true]{cursor:not-allowed;border-style:dashed;background:transparent;color:var(--ps-muted);border-color:var(--ps-line-strong)}",
+  // v2: the main button lights up instead of greying out. The violet halo is set, never animated (box-shadow is in no
+  // transition): one paint on hover or focus, nothing per frame.
+  ".btn-primary:focus-visible,.cta:focus-visible{box-shadow:var(--ps-glow-cta)}",
   "@media (hover:hover) and (pointer:fine){.btn:hover:not(:disabled){border-color:var(--ps-text)}" +
-    ".btn-primary:hover:not(:disabled),.cta:hover{background:var(--ps-muted);border-color:var(--ps-muted)}}",
+    ".btn-primary:hover:not(:disabled),.cta:hover{box-shadow:var(--ps-glow-cta)}}",
 ];
 
 /*
@@ -64,14 +67,18 @@ const HEADER = [
   ".lang{grid-area:lang;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);" +
     "font:var(--ps-weight-mono) var(--ps-step--2)/1 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;text-decoration:none}",
   "@media (hover:hover) and (pointer:fine){.nav a:hover,.lang:hover{color:var(--ps-text)}}",
+  // Sticky on a wide screen: over a photo or an ambience it keeps 90 % of ink at least (BRAND_BOOK_V2 section 2.2), and
+  // blurs what passes under it only where the browser can; anywhere else it stays opaque.
   "@media (min-width:64rem){.top{position:sticky;top:0}" +
+    "@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.top{background:var(--ps-header-ink);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}" +
     ".top .chrome{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:\"brand nav signup lang\";min-height:4rem}" +
     ".top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:\"brand lang\"}" +
     ".nav{overflow:visible;margin-left:var(--ps-space-5);padding-inline-end:0;-webkit-mask-image:none;mask-image:none}}",
 ];
 
+// The end of the night: the deepest ground under a faint azure light (8 %, under the caps of the ambience).
 const FOOTER = [
-  ".foot{margin-top:var(--ps-space-8);border-top:var(--ps-border) solid var(--ps-line);color:var(--ps-muted);font-size:var(--ps-step--1);line-height:var(--ps-lead--1);" +
+  ".foot{margin-top:var(--ps-space-8);border-top:var(--ps-border) solid var(--ps-line);background:var(--ps-ambient-deep),var(--ps-bg-deep);color:var(--ps-muted);font-size:var(--ps-step--1);line-height:var(--ps-lead--1);" +
     "padding:var(--ps-space-7) env(safe-area-inset-right) calc(var(--ps-space-7) + env(safe-area-inset-bottom)) env(safe-area-inset-left)}",
   ".foot .chrome{display:grid;gap:var(--ps-space-4)}",
   ".foot .brand{grid-area:auto;min-height:2.75rem;margin:0}.foot .brand img{height:1.25rem}",
@@ -85,10 +92,21 @@ export const CHROME_CSS = [...BASE, ...SKIP, ...BUTTONS, ...HEADER, ...FOOTER].j
 export const renderChromeCss = (): string =>
   ["/* Generated from packages/brand/src/chrome.ts: do not edit by hand. */", CHROME_CSS, ""].join("\n");
 
-/** The lockup files of the header and footer, one per theme, and their size at 24 px high (no layout shift). */
+/*
+ * The lit edge of a card under the pointer (BRAND_BOOK_V2 section 4.2), in CSS only. On hover the 1 px border turns
+ * transparent (a transition of border-color, the only thing that moves) and lets two layers drawn under it show: the
+ * violet spot of `--ps-edge-spot` over the 3:1 edge. The inside is repainted with `--edge-fill`, the card's own ground
+ * (`--ps-surface` unless the card sets it). Without a script the spot sits at the top centre; a page that tracks the
+ * pointer moves it through `--spot-x` and `--spot-y`. Only where hover exists; reduced motion changes nothing here.
+ */
+export const edgeSpotCss = (selectors: readonly string[]): string =>
+  `@media (hover:hover) and (pointer:fine){${selectors.map((s) => `${s}:hover`).join(",")}{border-color:transparent;` +
+  "background:linear-gradient(var(--edge-fill,var(--ps-surface)),var(--edge-fill,var(--ps-surface))) padding-box," +
+  "var(--ps-edge-spot) border-box,linear-gradient(var(--ps-line-strong),var(--ps-line-strong)) border-box}}";
+
+/** The lockup file of the header and footer (paper and green on the night), and its size at 24 px high (no layout shift). */
 export const LOCKUP = {
   dark: "/brand/ps-lockup-dark.svg",
-  light: "/brand/ps-lockup-light.svg",
   /** viewBox 558.46 x 107.2: 24 px high is 125 px wide. */
   width: 125,
   height: 24,

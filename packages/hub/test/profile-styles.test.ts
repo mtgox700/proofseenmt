@@ -8,7 +8,8 @@ import { PROFILE_STYLES } from "../src/profile-styles";
 /*
  * Lot 1 de l'espace connecté : le poinçon (cartouche, ligne de preuve, trace, carré, frappe et encre) est écrit une
  * fois dans @proofseen/brand (`seal.ts`) et partagé avec React. Le hub doit émettre exactement la feuille d'avant le
- * déplacement : `fixtures/profile-styles.css` est `PROFILE_STYLES` tel que `main` le rendait au commit aa44926. Un
+ * déplacement : `fixtures/profile-styles.css` est `PROFILE_STYLES` tel que `main` le rendait au commit aa44926, mis à
+ * jour par la marque v2 (halo vert du cartouche et des carrés, rayons des cartes, fond du déclaré). Un
  * changement voulu du registre met cette pièce à jour dans le même commit, et la relecture le voit.
  */
 

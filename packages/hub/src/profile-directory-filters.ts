@@ -192,7 +192,7 @@ export const FILTER_STYLES = [
   ".dir-active{display:grid;gap:var(--ps-space-2);margin-bottom:var(--ps-space-5)}",
   ".dir-active .lbl{font:var(--ps-weight-mono) var(--ps-step--2)/1.2 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;color:var(--ps-muted)}",
   ".dir-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--ps-space-2)}",
-  ".dir-chips a{display:inline-flex;align-items:center;gap:var(--ps-space-2);min-height:2.75rem;padding:0 var(--ps-space-3);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius);" +
+  ".dir-chips a{display:inline-flex;align-items:center;gap:var(--ps-space-2);min-height:2.75rem;padding:0 var(--ps-space-4);border:1px solid var(--ps-line-strong);border-radius:var(--ps-radius-pill);" +
     "font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-text);text-decoration:none;overflow-wrap:anywhere}",
   ".dir-chips a.clear{border-style:dashed;color:var(--ps-muted)}",
   "@media (hover:hover) and (pointer:fine){.dir-chips a:hover{border-color:var(--ps-text)}}",

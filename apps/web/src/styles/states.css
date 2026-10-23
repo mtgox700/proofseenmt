@@ -74,7 +74,7 @@
 @keyframes sk-breathe { to { opacity: 0.45; } }
 
 /* ---------- Honest empty state: the cartouche outline, dashed, nothing struck inside ---------- */
-.empty { display: grid; gap: var(--ps-space-3); justify-items: start; padding: clamp(1.5rem, 4vw, 2.5rem); background: var(--ps-surface); border: var(--ps-border) solid var(--ps-line); border-radius: var(--ps-radius); }
+.empty { display: grid; gap: var(--ps-space-3); justify-items: start; padding: clamp(1.5rem, 4vw, 2.5rem); background: var(--ps-surface); border: var(--ps-border) solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .empty-mark { flex: none; fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; stroke-dasharray: 3 2.5; }
 .empty-title { font: var(--ps-weight-display) var(--ps-step-2) / var(--ps-lead-2) var(--ps-font-display); letter-spacing: var(--ps-track-2); }
 .empty-body { display: grid; gap: var(--ps-space-3); max-width: 62ch; color: var(--ps-muted); }
