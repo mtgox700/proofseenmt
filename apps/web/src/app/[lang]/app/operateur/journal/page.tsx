@@ -6,6 +6,7 @@ import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { operatorPage } from "@/lib/operator";
 import { periodOf } from "@/lib/operator-period";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -89,7 +90,7 @@ export default async function JournalPage({ params, searchParams }: PageProps) {
         </button>
       </form>
       {items.length === 0 ? (
-        <p className="muted">{m.operator.common.empty}</p>
+        <EmptyNote>{m.operator.common.empty}</EmptyNote>
       ) : (
         <div className="op-table-wrap">
           <table className="op-table">
@@ -121,8 +122,16 @@ export default async function JournalPage({ params, searchParams }: PageProps) {
         </div>
       )}
       <p className="row-actions">
-        {page > 1 ? <Link href={link(page - 1)}>{m.operator.common.previous}</Link> : null}
-        {hasMore ? <Link href={link(page + 1)}>{m.operator.common.next}</Link> : null}
+        {page > 1 ? (
+          <Link href={link(page - 1)}>
+            <span aria-hidden="true">←</span> {m.operator.common.previous}
+          </Link>
+        ) : null}
+        {hasMore ? (
+          <Link href={link(page + 1)}>
+            {m.operator.common.next} <span aria-hidden="true">→</span>
+          </Link>
+        ) : null}
       </p>
     </>
   );

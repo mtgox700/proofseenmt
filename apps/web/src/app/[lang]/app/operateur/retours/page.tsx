@@ -8,6 +8,7 @@ import { marketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { operatorPage } from "@/lib/operator";
 import { triageFeedback } from "../feedback-actions";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -65,7 +66,7 @@ export default async function FeedbackPage({ params, searchParams }: PageProps) 
         </button>
       </form>
       {items.length === 0 ? (
-        <p className="muted">{o.common.empty}</p>
+        <EmptyNote>{o.common.empty}</EmptyNote>
       ) : (
         <ul className="op-list">
           {items.map((item) => (
@@ -107,8 +108,16 @@ export default async function FeedbackPage({ params, searchParams }: PageProps) 
         </ul>
       )}
       <p className="row-actions">
-        {page > 1 ? <Link href={link(page - 1)}>{o.common.previous}</Link> : null}
-        {hasMore ? <Link href={link(page + 1)}>{o.common.next}</Link> : null}
+        {page > 1 ? (
+          <Link href={link(page - 1)}>
+            <span aria-hidden="true">←</span> {o.common.previous}
+          </Link>
+        ) : null}
+        {hasMore ? (
+          <Link href={link(page + 1)}>
+            {o.common.next} <span aria-hidden="true">→</span>
+          </Link>
+        ) : null}
       </p>
     </>
   );

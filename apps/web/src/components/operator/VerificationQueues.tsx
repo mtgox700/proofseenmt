@@ -1,27 +1,57 @@
-import type { PendingAttestation, ProofDispute } from "@proofseen/db";
+import type { PendingAttestation, ProofDispute, VerifiedAttestation } from "@proofseen/db";
+import { Seal } from "@/components/proof/Seal";
 import { rejectVigilance, revokeProof, verifyVigilance } from "@/app/[lang]/app/operateur/verification-actions";
 import type { Lang } from "@/i18n";
 import type { OperatorDictionary } from "@/i18n/market/operator-fr";
 import { colon, day } from "@/lib/format";
 import { LangField, ReasonField } from "./OperatorParts";
+import { EmptyNote } from "@/components/EmptyState";
 
 interface Props {
   readonly lang: Lang;
   readonly o: OperatorDictionary;
   readonly attestations: readonly PendingAttestation[];
   readonly disputes: readonly ProofDispute[];
+  /** The certificate this operator has just verified, read back from the database; `null` without one. */
+  readonly verified?: VerifiedAttestation | null;
+  readonly now?: Date;
+}
+
+/** The strike plays for the verification that just happened, not for an old address opened again. */
+const STRIKE_WINDOW_MS = 120_000;
+
+/**
+ * The acknowledgement of a verification: a third party (the operator) has checked the certificate, so it is the one
+ * green of this screen, with its date and its trace, as on the profile register.
+ */
+function VerifiedSeal({ lang, o, verified, now }: { readonly lang: Lang; readonly o: OperatorDictionary; readonly verified: VerifiedAttestation; readonly now: Date }) {
+  const v = o.verifications;
+  return (
+    <div className="op-ack">
+      <Seal
+        text={v.verifiedSeal(verified.reference, day(verified.verifiedAt, lang))}
+        date={verified.verifiedAt}
+        trace={[
+          { label: v.sealCheck, value: v.sealCheckValue },
+          { label: v.sealUntil, value: day(verified.expiresOn, lang) },
+        ]}
+        strike={now.getTime() - verified.verifiedAt.getTime() < STRIKE_WINDOW_MS}
+      />
+    </div>
+  );
 }
 
 /** The two manual verification queues: URSSAF certificates, then contested address proofs. */
-export function VerificationQueues({ lang, o, attestations, disputes }: Props) {
+export function VerificationQueues({ lang, o, attestations, disputes, verified = null, now = new Date() }: Props) {
   const v = o.verifications;
   return (
     <>
       <section className="panel" aria-labelledby="vigilance-title">
         <h2 id="vigilance-title">{v.vigilanceTitle}</h2>
         <p className="muted measure">{v.vigilanceLead}</p>
+        {verified === null ? null : <VerifiedSeal lang={lang} o={o} verified={verified} now={now} />}
         {attestations.length === 0 ? (
-          <p className="muted">{o.common.empty}</p>
+          <EmptyNote>{o.common.empty}</EmptyNote>
         ) : (
           <ul className="op-list">
             {attestations.map((a) => (
@@ -64,7 +94,7 @@ export function VerificationQueues({ lang, o, attestations, disputes }: Props) {
         <h2 id="disputes-title">{v.disputesTitle}</h2>
         <p className="muted measure">{v.disputesLead}</p>
         {disputes.length === 0 ? (
-          <p className="muted">{o.common.empty}</p>
+          <EmptyNote>{o.common.empty}</EmptyNote>
         ) : (
           <ul className="op-list">
             {disputes.map((d) => (

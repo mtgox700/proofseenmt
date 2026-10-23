@@ -7,6 +7,7 @@ import { marketDictionary } from "@/i18n/market";
 import { day } from "@/lib/format";
 import { operatorPage } from "@/lib/operator";
 import { hideContent, restoreContent } from "../moderation-actions";
+import { EmptyNote } from "@/components/EmptyState";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -60,7 +61,7 @@ export default async function ModerationPage({ params, searchParams }: PageProps
       <section className="panel" aria-labelledby="hidden-title">
         <h2 id="hidden-title">{o.moderation.hiddenTitle}</h2>
         {hidden.length === 0 ? (
-          <p className="muted">{o.common.empty}</p>
+          <EmptyNote>{o.common.empty}</EmptyNote>
         ) : (
           <ul className="op-list">
             {hidden.map((item) => (

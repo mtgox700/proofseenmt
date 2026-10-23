@@ -58,6 +58,9 @@ describe("the seal of a verified fact", () => {
       .map((f) => relative(src, f).replace(/\\/g, "/"))
       .sort();
     // Lots 2 to 4 add their screens here, each with the fact read from the database that earns the green.
-    expect(users).toEqual([]);
+    expect(users).toEqual([
+      // Lot 6: the operator's acknowledgement of a URSSAF certificate, read back by vigilanceDesk.verified().
+      "components/operator/VerificationQueues.tsx",
+    ]);
   });
 });
