@@ -92,7 +92,7 @@ export const HomeCopySchema = z.object({
   ai: z.object({ kicker: text, title: text, lead: text, fact: text, source: text, condition: text, link: text }),
   resources: z.object({ kicker: text, title: text, barometer: titled.extend({ link: text }), simulator: titled.extend({ link: text }), blog: titled.extend({ link: text }) }),
   faq: z.object({ title: text, write: text, items: z.array(z.object({ q: text, a: text })).length(6) }),
-  doors: z.object({ label: text, freelance: titled.extend({ cta: text, alt: text }), company: titled.extend({ cta: text, alt: text }) }),
+  doors: z.object({ label: text, freelance: titled.extend({ cta: text }), company: titled.extend({ cta: text }) }),
 });
 
 export type HomeCopy = z.infer<typeof HomeCopySchema>;

@@ -36,11 +36,11 @@
 .mp-node-e { left: 85.7%; }
 .mp-face, .mp-face img { display: block; width: clamp(3.5rem, 2rem + 4vw, 6rem); aspect-ratio: 1; border-radius: 50%; }
 .mp-face img { object-fit: cover; border: 1px solid var(--ps-line-strong); }
-.mp-node:not(.is-on) .mp-face { opacity: 0.5; filter: grayscale(1); }
+.mp-node:not(.is-on) .mp-face { opacity: 0.45; }
 .mp-node.is-on .mp-face img { border-color: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
 .mp-scene[data-verified] .mp-node .mp-face img { border-color: var(--ps-line-strong); box-shadow: none; }
 .mp-node-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
-.mp-face { transition: opacity var(--ps-dur-glow) var(--ps-ease-glow), filter var(--ps-dur-glow) var(--ps-ease-glow); }
+.mp-face { transition: opacity var(--ps-dur-glow) var(--ps-ease-glow); }
 /* A signature: a tick on the node, in ink (a signature is a fact of the contract, not a verification). */
 .mp-sign { position: absolute; right: -2px; top: -2px; width: 1.5rem; height: 1.5rem; border: 1px solid var(--ps-text); border-radius: 50%; background: var(--ps-text); }
 .mp-sign::after { content: ""; position: absolute; left: 50%; top: 45%; width: 0.35rem; height: 0.6rem; translate: -50% -50%; rotate: 45deg; border-right: 2px solid var(--ps-bg); border-bottom: 2px solid var(--ps-bg); }
@@ -55,9 +55,14 @@
 
 .mp-card { position: absolute; left: 50%; top: 56.2%; width: 62%; translate: -50% 0; display: grid; gap: var(--ps-space-2); padding: var(--ps-space-4) var(--ps-space-5);
   background: var(--ps-surface); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-card); box-shadow: var(--ps-shadow-2);
-  transition: border-color var(--ps-dur-glow) var(--ps-ease-glow), box-shadow var(--ps-dur-glow) var(--ps-ease-glow); }
-.mp-scene[data-verified] .mp-card { border-color: var(--ps-proof); box-shadow: var(--ps-glow-proof); }
-.mp-card.is-held { border-color: var(--ps-signal); box-shadow: 0 0 0 1px var(--ps-signal), 0 0 32px -8px var(--ps-signal); }
+  transition: border-color var(--ps-dur-glow) var(--ps-ease-glow); }
+/* The two halos of the card are set on pseudo-elements and fade in opacity: a shadow is never animated. */
+.mp-card::before, .mp-card::after { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity var(--ps-dur-glow) var(--ps-ease-glow); }
+.mp-card::before { box-shadow: 0 0 0 1px var(--ps-signal), 0 0 32px -8px var(--ps-signal); }
+.mp-card::after { box-shadow: var(--ps-glow-proof); }
+.mp-scene[data-verified] .mp-card { border-color: var(--ps-proof); }
+.mp-scene[data-verified] .mp-card::after, .mp-card.is-held::before { opacity: 1; }
+.mp-card.is-held { border-color: var(--ps-signal); }
 .mp-card.is-declared { border-style: dashed; border-color: var(--ps-line-strong); }
 .mp-ring { position: absolute; inset: -1px; border: 1px solid var(--ps-proof); border-radius: inherit; pointer-events: none; }
 .mp-card-label, .mp-card-meta { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }

@@ -21,7 +21,8 @@ export function Doors({ lang, copy }: { readonly lang: Lang; readonly copy: Home
       <div className="dr-doors">
         {doors.map(({ key, door, href, photo }) => (
           <a key={key} className={`dr-door dr-${key}`} href={href} data-spot="">
-            <Photo name={photo} alt={door.alt} sizes="(min-width: 48rem) 50vw, 100vw" className="dr-photo" />
+            {/* Behind the words of a link: decorative, so the name of the link stays its title, text and action. */}
+            <Photo name={photo} alt="" sizes="(min-width: 48rem) 50vw, 100vw" className="dr-photo" />
             <span className="dr-copy">
               <span className="dr-title">{door.title}</span>
               <span className="dr-text">{door.text}</span>

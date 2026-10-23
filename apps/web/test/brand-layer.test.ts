@@ -107,6 +107,8 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         // The example mission of the opening, verified by its payment: its card, the two beams that fed it, their
         // ports, and the poinçon's square before the one point that speaks of verification.
         "home.css: .hx-card",
+        "home.css: .hx-card-glow",
+        "home.css: .hx-card-ring",
         "home.css: .beam",
         "home.css: .beam-port",
         "home.css: .hx-points .hx-point-proof::before",
@@ -125,6 +127,7 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         "home-journey.css: .mp-fill",
         "home-journey.css: .mp-stack",
         "home-journey.css: .mp-scene[data-verified] .mp-card",
+        "home-journey.css: .mp-card::after",
         "home-journey.css: .mp-ring",
         "home-journey.css: @media (max-width: 63.99rem) > .mp-scene[data-verified]::before",
         // Lot 2: an answer of the person's own register that cites them with a link (the storefront's .rg-you), and

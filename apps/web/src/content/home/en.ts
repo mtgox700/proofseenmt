@@ -206,7 +206,7 @@ export const homeEn = {
   },
   doors: {
     label: "Where to start",
-    freelance: { title: "I am a freelancer", text: "Show what you delivered.", cta: "Create my profile", alt: "Hands on a laptop, a mug on a wooden table." },
-    company: { title: "I am hiring", text: "Find people on facts.", cta: "Post a mission", alt: "Two people shake hands in the half-light." },
+    freelance: { title: "I am a freelancer", text: "Show what you delivered.", cta: "Create my profile" },
+    company: { title: "I am hiring", text: "Find people on facts.", cta: "Post a mission" },
   },
 };

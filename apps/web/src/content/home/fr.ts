@@ -221,7 +221,7 @@ export const homeFr = {
   },
   doors: {
     label: "Par où commencer",
-    freelance: { title: "Je suis freelance", text: "Montrez ce que vous avez livré.", cta: "Créer mon profil", alt: "Des mains sur un ordinateur portable, une tasse posée sur une table en bois." },
-    company: { title: "Je recrute", text: "Trouvez sur des faits.", cta: "Publier une mission", alt: "Deux personnes se serrent la main dans la pénombre." },
+    freelance: { title: "Je suis freelance", text: "Montrez ce que vous avez livré.", cta: "Créer mon profil" },
+    company: { title: "Je recrute", text: "Trouvez sur des faits.", cta: "Publier une mission" },
   },
 };

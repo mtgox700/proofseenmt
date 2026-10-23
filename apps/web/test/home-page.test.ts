@@ -162,7 +162,7 @@ describe("every scene is in the server HTML, in its final state", () => {
       .map((m) => (m[1] ?? "").trim().replace(/\s+/g, " "))
       .filter((selector) => !/^(?:@keyframes .+|from|to|[\d.]+%(?:,\s*[\d.]+%)*)$/.test(selector));
     // Each of these is a layer of light or a pulse, aria-hidden, with no text: the halo of the strike, the dash of
-    // a beam, the dots lit under the pointer, the edge light of a card or a door.
+    // a beam, the dots lit under the pointer, the edge light of a card or a door, the two halos of the journey's card.
     expect(zero.sort()).toEqual(
       [
         ".beam-glow",
@@ -170,6 +170,7 @@ describe("every scene is in the server HTML, in its final state", () => {
         ".dr-door::after",
         ".hx-card-ring",
         ".hx-dots-lit",
+        ".mp-card::before, .mp-card::after",
         ".tile::after, .rs-card::after",
         ".tile::before, .rs-card::before",
       ].sort(),
