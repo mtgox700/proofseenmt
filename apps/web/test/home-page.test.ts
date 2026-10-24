@@ -277,6 +277,19 @@ describe("photos: real dimensions, two at once, the rest when near", () => {
   });
 });
 
+describe("no photo is shipped without being shown (Kensa N6)", () => {
+  it("serves only the photos the home page displays", () => {
+    const names = [...new Set(readdirSync(join(web, "public", "images", "v2")).map((f) => f.replace(/-\d+\.(?:avif|webp)$/, "")))];
+    const landing = readdirSync(join(web, "src", "components", "landing"))
+      .map((f) => readFileSync(join(web, "src", "components", "landing", f), "utf8"))
+      .join("\n");
+    for (const name of names) expect(landing, name).toMatch(new RegExp(`(?:name=|photo: )"${name}"`));
+    const credits = readFileSync(join(web, "CREDITS.md"), "utf8");
+    for (const name of names) expect(credits, name).toContain(`images/v2/${name}-`);
+    expect((credits.match(/images\/v2\/[a-z-]+-\{/g) ?? []).length).toBe(names.length);
+  });
+});
+
 describe("every link leads to a page that exists", () => {
   const app = join(web, "src", "app", "[lang]");
   const exists = (href: string): boolean => {
