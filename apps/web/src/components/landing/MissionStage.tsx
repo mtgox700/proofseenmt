@@ -113,15 +113,19 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
     const onScroll = (): void => {
       if (frame === 0) frame = requestAnimationFrame(measure);
     };
-    const observer = new IntersectionObserver(([entry]) => {
+    // The last record of a batch is the current one: after a long jump the browser may queue the exit and the entry.
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
       setInView(entry?.isIntersecting ?? false);
       if (entry?.isIntersecting) {
         window.addEventListener("scroll", onScroll, { passive: true });
-        onScroll();
+        measure();
       } else {
         window.removeEventListener("scroll", onScroll);
       }
     });
+    // After any jump (an anchor, a key, a programmatic scroll), measure once the scroll has ended (Kensa N5).
+    window.addEventListener("scrollend", onScroll, { passive: true });
     observer.observe(section);
     // A change of size (the band of a phone, a font that arrives) moves the steps without a scroll: measure again.
     const resized = new ResizeObserver(onScroll);
@@ -131,6 +135,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
     return () => {
       observer.disconnect();
       resized.disconnect();
+      window.removeEventListener("scrollend", onScroll);
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(frame);
     };
@@ -186,8 +191,13 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
           setWay("payment");
           setStep(1);
         });
-        // Land on the scene itself, so the card is seen arriving; the hash still names the section.
-        document.getElementById(listId)?.scrollIntoView({ behavior: "instant", block: "start" });
+        // Land with the first step in the middle of the screen (Kensa N4): the scene shows « Publiée », and the card is
+        // seen arriving. Computed, not scrollIntoView: the steps' scroll margin would shift a centred jump.
+        const first = document.getElementById(`${listId}-1`);
+        if (first !== null) {
+          const box = first.getBoundingClientRect();
+          window.scrollTo({ top: window.scrollY + box.top + box.height / 2 - window.innerHeight / 2, behavior: "instant" });
+        }
         if (window.location.hash !== `#${sectionId}`) history.pushState(null, "", `#${sectionId}`);
       });
       window.clearTimeout(focusTimer);

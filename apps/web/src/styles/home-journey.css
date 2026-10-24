@@ -48,9 +48,9 @@
 .mp-sign { position: absolute; right: -2px; top: -2px; width: 1.5rem; height: 1.5rem; border: 1px solid var(--ps-text); border-radius: 50%; background: var(--ps-text); }
 .mp-sign::after { content: ""; position: absolute; left: 50%; top: 45%; width: 0.35rem; height: 0.6rem; translate: -50% -50%; rotate: 45deg; border-right: 2px solid var(--ps-bg); border-bottom: 2px solid var(--ps-bg); }
 .mp-chip { position: absolute; display: inline-flex; align-items: center; gap: 6px; padding: 0.25rem 0.6rem; white-space: nowrap; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-overlay); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); color: var(--ps-text); }
-/* Beside the node, never on the beam that leaves from under it (Kensa m7). */
-.mp-invoice { top: 38%; left: calc(100% - 1.25rem); translate: 0 -50%; border-color: var(--ps-aura); color: var(--ps-aura-text); }
-.mp-stack { position: absolute; top: calc(38% + 2.1rem); left: calc(100% - 1.25rem); translate: 0 -50%; display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.65rem; white-space: nowrap;
+/* Beside the node, never on the beam that leaves from under it (Kensa m7) nor on its photo (Kensa N2). */
+.mp-invoice { top: 38%; left: calc(100% + var(--ps-space-2)); translate: 0 -50%; border-color: var(--ps-aura); color: var(--ps-aura-text); }
+.mp-stack { position: absolute; top: calc(38% + 2.1rem); left: calc(100% + var(--ps-space-2)); translate: 0 -50%; display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.65rem; white-space: nowrap;
   border: 1px solid var(--ps-proof); border-radius: var(--ps-radius); background: var(--ps-proof-wash); color: var(--ps-proof); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); }
 .mp-bubble { position: absolute; top: 2%; width: 2.25rem; height: 1.6rem; border-radius: 0.8rem 0.8rem 0.8rem 0.2rem; background: var(--ps-raised); border: 1px solid var(--ps-line-strong); }
 .mp-bubble::after { content: ""; position: absolute; inset: 40% 25% auto; height: 2px; border-radius: 1px; background: var(--ps-muted); box-shadow: 0 5px 0 var(--ps-muted); }
@@ -118,6 +118,9 @@
 @media (min-width: 64rem) {
   .mp-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--ps-space-8); align-items: start; }
   .mp-stage { position: sticky; top: 4rem; height: calc(100svh - 4rem); }
+  /* The card hangs below the board on a narrow column (1024 to 1280 px): room under the scene, so it never covers the
+     other way's button. */
+  .mp-scene { margin-bottom: clamp(0px, 12rem - 12vw, 5rem); }
   /* Bands of 42 % of the screen: the step before and the step after stay in view, in the secondary ink, around the
      active one that faces the scene. No empty column above the text. */
   /* Compact (Kensa M8, under three screens at 1440): a band of a quarter of the screen per step, the steps before

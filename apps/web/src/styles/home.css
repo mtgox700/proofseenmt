@@ -107,7 +107,8 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-copy { display: grid; justify-items: start; gap: var(--ps-space-5); min-width: 0; }
 /* The LCP: painted at once, never animated. The one gradient text of the site; `color` stays the full ink for any
    reader that does not paint the gradient. */
-/* Four lines reserved: with the fallback face the title may hold in three, with PS Display in four (Kensa B2). */
+/* The lines the title takes with PS Display, reserved so the fallback face moves nothing when the font arrives (Kensa
+   B2): four in French at every width, three in English (Kensa N3). */
 .hx-title { min-height: 4lh; max-width: 13ch; font-size: clamp(2.6rem, 1.4rem + 4.4vw, 5.25rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.035em; color: var(--ps-text); }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .hx-title { background: linear-gradient(100deg, var(--ps-text) 38%, var(--ps-aura-text)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
@@ -118,6 +119,7 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
     -webkit-mask-image: linear-gradient(var(--ps-text) 55%, transparent); mask-image: linear-gradient(var(--ps-text) 55%, transparent); }
   .hx-banner img { width: 100%; height: 100%; object-fit: cover; object-position: 45% 35%; }
 }
+.hx-title:lang(en) { min-height: 3lh; }
 .hx-lead { max-width: 36rem; font-size: var(--ps-step-1); line-height: 1.5; color: var(--ps-muted); }
 .hx-ctas { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); margin-top: var(--ps-space-2); }
 .hx-ctas .btn { min-height: 3.25rem; padding-inline: var(--ps-space-5); font-size: var(--ps-step-0); }
