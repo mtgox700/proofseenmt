@@ -94,7 +94,9 @@
 }
 @keyframes mp-trace { from { transform: scaleY(0.02); } to { transform: none; } }
 .mp-steps { list-style: none; margin: 0; padding: 0; }
-.mp-steps li { display: grid; align-content: center; gap: var(--ps-space-3); min-height: 60svh; padding-block: var(--ps-space-6); scroll-margin-top: 30svh; }
+/* Each step is a band of the screen's height around its text, so the text of the active step faces the scene; a
+   jump to a step (the rail) lands it in the middle of the screen. */
+.mp-steps li { display: grid; align-content: center; gap: var(--ps-space-3); min-height: 60svh; padding-block: var(--ps-space-6); scroll-margin-top: 20svh; }
 .mp-n { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); letter-spacing: var(--ps-track-label); color: var(--ps-aura-text); }
 .mp-steps h3 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
 .mp-steps p { max-width: 30rem; color: var(--ps-muted); }
@@ -112,7 +114,11 @@
 @media (min-width: 64rem) {
   .mp-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--ps-space-8); align-items: start; }
   .mp-stage { position: sticky; top: 4rem; height: calc(100svh - 4rem); }
-  .mp-steps li { min-height: 72svh; }
+  /* Bands of 42 % of the screen: the step before and the step after stay in view, in the secondary ink, around the
+     active one that faces the scene. No empty column above the text. */
+  .mp-steps li { min-height: 42svh; scroll-margin-top: 29svh; }
+  /* The first step starts level with the scene, not one band lower. */
+  .mp-steps li:first-child { min-height: calc(100svh - 4rem); align-content: center; }
 }
 
 /* ---------- Phone and tablet: a band that sticks under the top of the screen ---------- */
