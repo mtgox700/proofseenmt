@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { renderCityPage } from "../src/city-page";
 import { NO_COMPANY_FILTERS, renderCompanyDirectory } from "../src/company-directory";
@@ -139,7 +140,7 @@ describe("lot e : aucune page ne porte de script hors JSON-LD ni de texte caché
     for (const [, attrs] of html.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toContain('type="application/ld+json"');
     expect(html).not.toMatch(/\son[a-z]+=/i);
     const css = html.replace(/[.>\w]*::-webkit-details-marker\{display:none\}/g, "");
-    expect(css).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(withoutHeaderSwitch(css)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(html).not.toContain(String.fromCodePoint(0x2014));
     // Un survol n'existe que là où il existe (ou s'annule en mouvement réduit).
     for (const line of html.split(/(?=@media)/).filter((l) => /:hover/.test(l))) expect(line).toMatch(/^@media \((hover:hover\) and \(pointer:fine\)|prefers-reduced-motion)/);

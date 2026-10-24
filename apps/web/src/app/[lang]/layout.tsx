@@ -7,7 +7,6 @@ import "@/styles/states.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { FONT_FILES, THEME_COLOR } from "@proofseen/brand";
-import { AuthProvider } from "@/components/auth/AuthProvider";
 import { dictionary, isLang, LANGS, type Lang } from "@/i18n";
 import { BRAND_ICONS, shareMetadata, siteOrigin } from "@/lib/brand-metadata";
 
@@ -24,12 +23,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Dark is the brand; light follows the system (BRAND_BOOK.md, section 5). The browser chrome matches each.
-  colorScheme: "dark light",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
-    { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
-  ],
+  // Dark only (BRAND_BOOK_V2, section 2): one scheme, one browser colour, the page background.
+  colorScheme: "dark",
+  themeColor: THEME_COLOR,
 };
 
 /*
@@ -66,7 +62,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         <a className="skip" href="#contenu">
           {t.skip}
         </a>
-        <AuthProvider lang={lang}>{children}</AuthProvider>
+        {/* No Clerk here: the home page and the public pages load none of it (STORYBOARD_V2 §8). The connected space
+            and the sign-in and sign-up pages wrap themselves in AuthProvider. */}
+        {children}
       </body>
     </html>
   );

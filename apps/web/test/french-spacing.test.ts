@@ -18,6 +18,8 @@ import { marketDictionary } from "../src/i18n/market";
 const i18n = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "i18n");
 const FRENCH_FILES = [
   join(i18n, "fr.ts"),
+  // The copy of the home page v2, typed apart from the dictionary (src/content/home).
+  join(i18n, "..", "content", "home", "fr.ts"),
   join(i18n, "states.ts"),
   join(i18n, "market", "fr.ts"),
   ...readdirSync(join(i18n, "market"))

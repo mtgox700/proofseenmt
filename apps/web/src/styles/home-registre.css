@@ -1,0 +1,88 @@
+/* The home page v2, part 5: S9, the register of the 780 real answers of the J0 wave (components/landing/Registre.tsx),
+   carried over from the v1 home page with its rules: one track that may shrink (B1), the filter read by :has() without
+   script, no slot green but "you", the reading rule waiting only where a script will start it. The frame takes the
+   surface of the v2 cards; the reading rule is the violet of the measure. */
+
+/* ---------- The register (M1, "le relevé") ---------- */
+/* One track that may shrink below its content: the open table scrolls inside .rg-scroll, never the page (B1). */
+.registre { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); min-width: 0; }
+@media (min-width: 48rem) { .registre { padding: clamp(1.25rem, 0.5rem + 1.5vw, 2rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); box-shadow: var(--ps-shadow-2); } }
+.rg-head { display: grid; gap: var(--ps-space-2); }
+.rg-head strong { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); letter-spacing: var(--ps-track-1); }
+.rg-trace, .rg-engines, .rg-key { font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); color: var(--ps-muted); }
+.rg-trace, .rg-engines span { text-transform: uppercase; }
+.rg-board { display: grid; gap: var(--ps-space-2); }
+/* The same proportions as the viewBox of the SVG (-4, three columns of 100 with gutters of 22, +4): labels sit on their column. */
+.rg-engines { display: grid; grid-template-columns: 4fr 100fr 22fr 100fr 22fr 100fr 4fr; }
+.rg-engines > span { display: grid; gap: 2px; min-width: 0; color: var(--ps-text); }
+.rg-engines > span:nth-child(1) { grid-column: 2; }
+.rg-engines > span:nth-child(2) { grid-column: 4; }
+.rg-engines > span:nth-child(3) { grid-column: 6; }
+.rg-engines small { font-size: inherit; text-transform: none; letter-spacing: 0; color: var(--ps-muted); }
+.rg-svg { width: 100%; height: auto; overflow: visible; }
+.rg-frame { fill: none; stroke: var(--ps-line-strong); stroke-width: 1; }
+.rg-cat { fill: none; transition: opacity var(--ps-dur-ui) var(--ps-ease-out); }
+/* Tone and height together tell the source (BRAND_BOOK §5: never colour alone). No slot is ever green but "you". */
+.rg-you { stroke: var(--ps-proof); }
+.rg-malt { stroke: var(--ps-text); }
+.rg-linkedin { stroke: var(--ps-muted); }
+.rg-code { stroke: var(--ps-muted); }
+.rg-platform { stroke: var(--ps-faint); }
+.rg-other, .rg-none { stroke: var(--ps-line-strong); }
+.rg-rule { fill: none; stroke: var(--ps-aura-text); stroke-width: 1.5; }
+.rg-key { max-width: 60ch; }
+
+/* The filter, without script: a radio group read by :has(). Only the slots dim, never the text. */
+.registre:has(input[value="you"]:checked) .rg-cat:not(.rg-you),
+.registre:has(input[value="malt"]:checked) .rg-cat:not(.rg-malt),
+.registre:has(input[value="linkedin"]:checked) .rg-cat:not(.rg-linkedin),
+.registre:has(input[value="code"]:checked) .rg-cat:not(.rg-code),
+.registre:has(input[value="platform"]:checked) .rg-cat:not(.rg-platform),
+.registre:has(input[value="other"]:checked) .rg-cat:not(.rg-other),
+.registre:has(input[value="none"]:checked) .rg-cat:not(.rg-none) { opacity: 0.14; }
+
+.rg-legend { margin: 0; padding: 0; border: 0; min-width: 0; }
+.rg-legend legend { padding: 0; margin-bottom: var(--ps-space-2); font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.rg-chips { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.rg-chips label { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); color: var(--ps-muted); font-size: var(--ps-step--1); cursor: pointer; user-select: none; -webkit-user-select: none;
+  transition: color var(--ps-dur-ui) var(--ps-ease-out), background-color var(--ps-dur-ui) var(--ps-ease-out), border-color var(--ps-dur-ui) var(--ps-ease-out); }
+.rg-chips label:has(:checked) { color: var(--ps-text); border-color: var(--ps-text); background: var(--ps-raised); }
+.rg-chips label:has(:focus-visible) { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.rg-chips b { font: var(--ps-weight-mono) var(--ps-step--2) / 1 var(--ps-font-mono); font-variant-numeric: tabular-nums; }
+@media (hover: hover) and (pointer: fine) { .rg-chips label:hover { color: var(--ps-text); border-color: var(--ps-text); } }
+/* The swatch draws the slot: three slots of the category's height and tone. */
+.rg-sw { flex: none; width: 14px; height: 10px; background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 5px) left bottom / 100% var(--h) no-repeat; }
+.rg-sw-you { color: var(--ps-proof); --h: 10px; }
+.rg-sw-malt { color: var(--ps-text); --h: 10px; }
+.rg-sw-linkedin { color: var(--ps-muted); --h: 7px; }
+.rg-sw-code { color: var(--ps-muted); --h: 4px; }
+.rg-sw-platform { color: var(--ps-faint); --h: 4px; }
+.rg-sw-other { color: var(--ps-line-strong); --h: 4px; }
+.rg-sw-none { color: var(--ps-line-strong); --h: 1px; }
+
+/* The founder's line: an empty cartouche. Nothing verified, nothing green. */
+.rg-founder { display: flex; align-items: center; gap: var(--ps-space-3); font-size: var(--ps-step--1); }
+.rg-founder b { font: var(--ps-weight-mono) var(--ps-step--1) / 1.3 var(--ps-font-mono); }
+.rg-cartouche { flex: none; width: 2.75rem; height: 1.25rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+@supports (corner-shape: scoop) { .rg-cartouche { border-radius: 6px; corner-shape: scoop; } }
+
+.rg-table summary { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: var(--ps-step--1); text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
+.rg-table { min-width: 0; }
+.rg-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; container-type: inline-size; }
+.rg-scroll:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.rg-table table { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); font-variant-numeric: tabular-nums; }
+/* The caption wraps at the width of the box and stays in view while the columns scroll under it. */
+.rg-table caption { position: sticky; left: 0; max-width: 100cqi; padding-bottom: var(--ps-space-3); text-align: left; color: var(--ps-muted); }
+.rg-table th, .rg-table td { padding: var(--ps-space-2) var(--ps-space-3) var(--ps-space-2) 0; border-bottom: 1px solid var(--ps-line); text-align: right; white-space: nowrap; }
+.rg-table th:first-child { text-align: left; font-weight: var(--ps-weight-strong); }
+.rg-table thead th, .rg-table tfoot th, .rg-table tfoot td { font-weight: var(--ps-weight-strong); }
+
+/* M1: the reading rule waits on the head rule, then runs down its column once (BRAND_BOOK §7, "tracer"). Without
+   script it never waits: it rests on the foot rule, which is also the reduced-motion state. 800 ms at the earliest,
+   1 200 ms per column, 120 ms between columns: it settles at 2 240 ms. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .rg-play:not([data-play]) .rg-rule { transform: translateY(var(--rg-rise)); }
+  .rg-play[data-play] .rg-rule { animation: rg-descend 1200ms var(--ps-ease-in-out) calc(var(--i) * 120ms) both; }
+}
+@keyframes rg-descend { from { transform: translateY(var(--rg-rise)); } to { transform: none; } }
+

@@ -1,14 +1,14 @@
 /*
- * Copy sourced from foundations/MARQUE.md §4-§8, presale/OFFRE_PREVENTE.md and the landing texts already validated.
- * No figure is written here: every number on screen comes from the data snapshot, the offer terms, or the J0 facts
- * approved by the founder (MESURE_J0 below).
+ * Copy sourced from foundations/MARQUE.md §4-§8 and the texts already validated. The home page has its own copy,
+ * typed and checked in src/content/home. No figure is written here: every number on screen comes from the data
+ * snapshot or the J0 facts approved by the founder.
  */
 
 export const fr = {
   meta: {
-    title: "Proofseen\u202f: la preuve de ce qu'un freelance a vraiment livré",
+    title: "Proofseen\u202f: la marketplace freelance tech où chaque mission se prouve",
     description:
-      "Des missions de freelances tech confirmées par leur client ou payées sur Proofseen, et datées, sans score ni classement. Et la mesure de leur visibilité quand un recruteur cherche avec une IA.",
+      "Profils riches, missions, messagerie, devis, contrat et paiement sous séquestre pour freelances tech et entreprises. Une mission n'est vérifiée que si son client la confirme ou si elle est payée sur Proofseen. Aucune note sur les personnes.",
   },
   skip: "Aller au contenu",
   nav: {
@@ -25,18 +25,13 @@ export const fr = {
     otherLangLabel: "Read this page in English",
     home: "Proofseen, accueil",
   },
-  hero: {
-    title: "La preuve de ce qu'un freelance a vraiment livré.",
-    lead: "Sur Proofseen, une mission n'est marquée vérifiée qu'une fois confirmée par son client ou payée sur la plateforme, et la marque porte sa date. Nous mesurons aussi si un freelance ressort quand un recruteur interroge une IA, et nous avons commencé par nous-mêmes.",
-    primary: "Faire mesurer ma visibilité",
-    secondary: "Voir les freelances",
-  },
   field: {
     engines: { openai: "OpenAI", anthropic: "Anthropic", perplexity: "Perplexity" } as Record<string, string>,
     title: "{n} réponses d'IA, une case chacune.",
     trace: "Vague J0 · 23 et 24 septembre 2026 · OpenAI, Anthropic, Perplexity",
     noSource: "{pct} sans source",
     key: "Une ligne par offre\u202f: {targets} offres cibles, puis {controls} offres témoins sous le filet. Une case par réponse\u202f; sa hauteur dit la source citée.",
+    keyCompact: "Une ligne par offre, les offres témoins sous le filet. Une case par réponse\u202f; sa hauteur dit la source citée.",
     founder: "Notre fondateur\u202f:",
     founderCount: "cité {hits} fois sur {n}",
     categories: {
@@ -55,152 +50,6 @@ export const fr = {
     tableTotal: "Total",
     summary:
       "780 réponses réelles, réparties entre OpenAI, Anthropic et Perplexity. Les sources les plus citées sont malt.fr et linkedin.com. 90,8 % des réponses d'Anthropic ne citent aucune source. Notre fondateur n'apparaît dans aucune.",
-  },
-  journey: {
-    title: "Une question, suivie jusqu'au compte.",
-    lead: "Le recruteur pose sa question. L'IA répond, cite ses sources, propose cinq profils. Nous recommençons deux cents fois par moteur, et la fourchette se resserre à chaque réponse.",
-  },
-  sim: {
-    label: "Relecture de notre propre mesure",
-    engine: "Moteur d'OpenAI, recherche web activée",
-    question: "Question du recruteur",
-    prompt:
-      "Je cherche un développeur fullstack TypeScript freelance, disponible, à Paris ou à distance. Donne-moi les cinq profils les plus pertinents.",
-    answer: "Réponse de l'IA",
-    intro: "Voici cinq profils qui correspondent à votre recherche\u202f:",
-    masked: "nom masqué",
-    rows: ["malt.fr", "linkedin.com", "malt.fr", "github.com", "linkedin.com"],
-    // The replay is the founder's measure, not the visitor's: it names him, never "vous".
-    verdict: "Notre fondateur\u202f: absent de cette réponse",
-    appear: "Notre fondateur apparaît",
-    interval: "Fourchette du taux réel",
-    times: "{hits} fois sur {n}",
-    same: "Même compte sur les trois moteurs mesurés.",
-    replay: "Rejouer",
-    disclosure:
-      "Le texte de la réponse est un exemple\u202f: nous ne gardons pas les réponses, et les noms des autres professionnels sont masqués avant tout stockage. Les comptes sont réels\u202f: vague J0, 23 et 24 septembre 2026.",
-  },
-  method: {
-    kicker: "La méthode",
-    title: "Cinq étapes entre une question et votre nom.",
-    lead: "Nous mesurons chaque étape séparément, pour chaque moteur. La correction commence toujours par la plus en amont qui bloque.",
-    stages: [
-      { code: "E1", name: "Indexé", question: "Vos pages sont-elles connues des moteurs\u202f?" },
-      { code: "E2", name: "Retrouvé", question: "Vos pages sont-elles retrouvées pour ce genre d'offre\u202f?" },
-      { code: "E3", name: "Nommé", question: "Êtes-vous nommé dans la réponse\u202f?" },
-      { code: "E4", name: "Cinq premiers", question: "Êtes-vous parmi les cinq premiers cités\u202f?" },
-      { code: "E5", name: "Cité", question: "La réponse renvoie-t-elle vers vous\u202f?" },
-    ],
-    diagramNote: "Le rétrécissement est un schéma de la méthode, pas une mesure.",
-    rules: [
-      { title: "Plusieurs tirages", text: "Une IA ne répond jamais deux fois de la même façon. Chaque question est posée plusieurs fois à chaque moteur, puis nous comptons." },
-      { title: "Une fourchette par taux", text: "Chaque taux est donné avec son compte brut et sa fourchette à 95 %. Un pourcentage seul ment par omission." },
-      { title: "Des offres témoins", text: "Des offres qui ne vous correspondent pas servent de référence\u202f: si leur taux bouge, ce sont les moteurs qui ont changé, pas vous." },
-    ],
-  },
-  study: {
-    kicker: "Mesuré sur nous-mêmes, d'abord",
-    title: "780 réponses d'IA. Notre fondateur n'y apparaît pas une seule fois.",
-    lead:
-      "Avant de vendre quoi que ce soit, nous avons appliqué la méthode à notre propre fondateur, avec un protocole figé à l'avance. C'est notre point de départ, et nous l'assumons.",
-    facts: {
-      answers: { value: "780", label: "réponses d'IA analysées, pour 15,79 $ de coût de mesure" },
-      zero: { value: "0 %", range: "[0 %\u202f; 1,9 %]", label: "de citations du fondateur, fourchette à 95 % sur chaque moteur" },
-      // Counts from data/j0-citations.ts: each share carries its raw count and the same total, with the wave and its dates.
-      sources: {
-        label: "Part des {total} citations relevées dans les {answers} réponses, par domaine. Vague J0, 23 et 24 septembre 2026.",
-        count: "{hits} citations sur {total}",
-      },
-      silent: { value: "90,8 %", label: "des réponses d'Anthropic ne consultent aucune source\u202f: être vu dépend du moteur" },
-      agreement: { value: "20/20", label: "d'accord entre nos mesures par API et les applications grand public" },
-    },
-    source: "Vague J0, 23 et 24 septembre 2026. Protocole figé avant la mesure, empreinte 1bc9f85f. Réponses brutes supprimées après analyse.",
-    limits:
-      "Ces chiffres décrivent un profil, ces offres, ces moteurs, à cette date. Ils ne prédisent pas vos résultats. Nous les publions parce qu'un vendeur qui ne se mesure pas lui-même ne prouve rien.",
-  },
-  deliverable: {
-    title: "Ce que vous recevez, et rien de plus.",
-    lead: "Un rapport daté, chiffré, reproductible. Chaque action vient d'un chiffre de votre mesure\u202f: nous ne récitons pas de bonnes pratiques.",
-    contents: [
-      "L'étape exacte où votre profil décroche, pour chaque moteur.",
-      "Le compte brut et la fourchette de chaque taux, jamais un pourcentage seul.",
-      "La carte des plateformes que les IA lisent pour ce genre d'offre.",
-      "Au plus huit actions classées, chacune avec sa raison, son lieu, son effort et le chiffre qui la justifie.",
-      "Ce sur quoi vous ne pouvez rien, dit clairement au lieu d'être vendu.",
-      "Le modèle interrogé, la date, et l'empreinte du protocole figé avant la mesure.",
-    ],
-    sampleCaption: "Nous ne montrons pas de rapport client\u202f: nous n'en avons pas encore.",
-  },
-  piece: {
-    kicker: "La preuve",
-    title: "Une mission n'est vérifiée que par un tiers.",
-    lead: "Le freelance déclare. Son client confirme, ou la mission est payée sur Proofseen. Alors seulement, elle porte sa marque, avec sa date.",
-    evidenceTitle: "Ce qui reste déclaré",
-    evidence: ["Une mission sans confirmation ni paiement", "Les compétences et le TJM", "Tout ce qui ne cite pas sa source"],
-    confirmTitle: "Qui peut confirmer",
-    confirm: ["Le client, depuis son compte", "Un contact chez le client, par lien signé, sans compte", "Le paiement de la mission sur Proofseen"],
-    factsTitle: "Les faits vérifiés d'un profil",
-    facts: [
-      "Entreprise active au répertoire officiel\u202f: le SIRET est contrôlé, jamais publié",
-      "Identité vérifiée par le prestataire de paiement",
-      "Attestation de vigilance URSSAF",
-      "Payé sur Proofseen par une ou plusieurs entreprises",
-    ],
-    rule: "Chaque mission vérifiée dit qui l'a confirmée et quand\u202f; le nom du client n'apparaît que s'il l'a autorisé.",
-    link: "Voir les profils publiés",
-    replay: "Rejouer la frappe",
-    specimen: {
-      label: "Spécimen. Exemple illustratif, données fictives.",
-      role: "Lead développeur TypeScript",
-      context: "PME · logistique · 6 mois",
-      summary: "Refonte de l'API de suivi des colis et reprise de la couverture de tests.",
-      evidence: "Preuve\u202f: le client a confirmé depuis son compte",
-      stamp: "Vérifiée le 12 octobre 2026",
-    },
-  },
-  companies: {
-    title: "Recrutez des freelances dont les missions sont vérifiées.",
-    text: "Des profils pseudonymes, des missions confirmées par leur client ou payées sur Proofseen, une méthode publique. Aucun score, aucun classement de personnes\u202f: l'annuaire liste les profils publiés du plus récemment mis à jour au plus ancien.",
-    points: ["Possession des profils prouvée", "Méthode de vérification affichée pour chaque mission", "Disponibilité datée", "Identité communiquée après accord du freelance"],
-    cta: "Voir les freelances",
-    publish: "Publier une mission",
-  },
-  exit: {
-    label: "Par où commencer",
-    freelance: {
-      title: "Vous êtes freelance",
-      text: "Publiez vos missions, faites-les confirmer par vos clients, et sachez si une IA vous cite quand un recruteur la questionne.",
-      cta: "Faire mesurer ma visibilité",
-    },
-    company: {
-      title: "Vous recrutez",
-      text: "Parcourez les profils publiés, sans score ni classement\u202f: ils sont rangés par date de mise à jour.",
-      cta: "Voir les freelances",
-    },
-  },
-  charter: {
-    title: "Notre charte d'honnêteté.",
-    items: [
-      { title: "Nous mesurons, nous ne promettons pas.", text: "Nos résultats sont des tendances avec leur fourchette, jamais une garantie de rang ou de mission." },
-      { title: "Aucune manipulation des IA.", text: "Pas de texte caché, pas d'instruction adressée aux IA, pas de contenu différent selon qui regarde la page." },
-      { title: "Uniquement des informations vraies.", text: "Nous refusons de générer une compétence, une expérience, un chiffre ou un témoignage que vous n'avez pas." },
-      { title: "Vos comptes restent les vôtres.", text: "Nous ne publions jamais à votre place sur LinkedIn, Malt ou GitHub, et nous ne collectons pas de données sur ces plateformes." },
-      { title: "Les autres personnes sont protégées.", text: "Les noms des autres professionnels cités par les IA sont effacés avant tout stockage. Nous ne vous montrons jamais qui apparaît à votre place." },
-      { title: "Vos résultats sont à vous.", text: "Même si votre entreprise vous offre Proofseen, elle ne voit jamais vos résultats individuels, seulement des statistiques de groupe." },
-      { title: "Méthode publique.", text: "Notre protocole de mesure est publié et daté, à la mise en ligne." },
-      { title: "Nous vérifions nos clients.", text: "Nous vérifions que vous êtes propriétaire des profils mesurés, et nous refusons tout profil où nous détectons une manipulation." },
-    ],
-  },
-  faq: {
-    title: "Questions fréquentes",
-    items: [
-      { q: "Pouvez-vous me garantir la première place\u202f?", a: "Non, et personne d'honnête ne le peut. Nous mesurons une probabilité avec sa fourchette, nous vous aidons à corriger, puis nous mesurons à nouveau." },
-      { q: "Pourquoi poser la même question plusieurs fois\u202f?", a: "Parce qu'une IA ne donne jamais deux fois exactement la même réponse. Une seule réponse ne veut rien dire\u202f; une série de réponses dessine une tendance." },
-      { q: "Mesurez-vous toutes les IA\u202f?", a: "Nous mesurons par API les moteurs dont les conditions d'utilisation autorisent l'analyse des réponses\u202f: OpenAI, Anthropic et Perplexity. Gemini et Copilot ne sont pas couverts." },
-      { q: "Est-ce du référencement «\u202fblack-hat\u202f»\u202f?", a: "Non. Nous ne travaillons qu'avec des informations vraies, publiées par vous, sur vos propres profils. Voir la charte." },
-      { q: "Et si mon audit montre que je n'apparais nulle part\u202f?", a: "C'est un résultat utile\u202f: le rapport montre à quelle étape votre profil décroche et par quoi commencer. Notre propre mesure commence exactement là." },
-      { q: "Que devient ma vie privée\u202f?", a: "Vous prouvez que les profils mesurés sont bien les vôtres. Les réponses brutes sont chiffrées puis supprimées au bout de 72 heures." },
-    ],
   },
   // The legal links come from the hub (LEGAL_PAGES, LEGAL_LABELS); this sentence is the hub's, word for word.
   footer: {

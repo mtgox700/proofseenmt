@@ -115,3 +115,5 @@ export { LEGAL_LABELS, LEGAL_PAGES, marketFooter, marketHeader, publicMenu, type
 export { pageHead, withBrand, type PageHeadOptions } from "./head";
 export { notFoundPage, statusLang, unavailablePage, type StatusPageOptions } from "./status-pages";
 export { frenchSpacing, typeset } from "./typography";
+// The rules that hide one copy of the header links (row or sheet): what tests of « nothing hidden » may strip.
+export { withoutHeaderSwitch } from "@proofseen/brand";

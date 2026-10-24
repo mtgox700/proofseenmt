@@ -1,3 +1,4 @@
+import { edgeSpotCss } from "@proofseen/brand";
 import { escapeHtml as e } from "./html";
 
 /*
@@ -57,14 +58,16 @@ export const LEDGER_STYLES = [
   // Une fiche de liste (mission, article) : toute la carte mène au lien du titre, un seul arrêt de tabulation.
   ".entries{list-style:none;margin:0;padding:0;display:grid;gap:var(--ps-space-4)}",
   ".trace+.entries,.part-note+.entries,.trace+.lines{margin-top:var(--ps-space-4)}",
-  ".entry{position:relative;display:grid;gap:var(--ps-space-2);padding:var(--ps-space-5);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}",
+  ".entry{position:relative;display:grid;gap:var(--ps-space-2);padding:var(--ps-space-5);background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}",
   ".entry h3{font-size:var(--ps-step-2);line-height:var(--ps-lead-2);letter-spacing:var(--ps-track-2);overflow-wrap:anywhere}",
   ".entry h3 a{text-decoration:none}",
-  ".entry h3 a::after{content:\"\";position:absolute;inset:0;border-radius:var(--ps-radius)}",
+  ".entry h3 a::after{content:\"\";position:absolute;inset:0;border-radius:var(--ps-radius-card)}",
   ".entry h3 a:focus-visible{outline:none}.entry h3 a:focus-visible::after{outline:var(--ps-ring) solid var(--ps-focus);outline-offset:2px}",
   ".entry .over{position:relative;z-index:1}",
   ".entry .foot-line{margin-top:var(--ps-space-1);padding-top:var(--ps-space-3);border-top:1px solid var(--ps-line)}",
-  "@media (hover:hover) and (pointer:fine){.entry:hover{border-color:var(--ps-line-strong)}.entry:hover h3 a{text-decoration:underline}}",
+  // v2 : le bord de la fiche s'allume en violet sous le pointeur (BRAND_BOOK_V2, section 4.2), le titre se souligne.
+  edgeSpotCss([".entry"]),
+  "@media (hover:hover) and (pointer:fine){.entry:hover h3 a{text-decoration:underline}}",
   ".pager{display:flex;justify-content:space-between;gap:var(--ps-space-4);margin-top:var(--ps-space-6)}",
   ".pager .crumb{display:inline-flex;align-items:center;min-height:2.75rem}",
 ].join("\n");

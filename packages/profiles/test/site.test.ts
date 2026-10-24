@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/hub";
 import { describe, expect, it } from "vitest";
 import { AI_SEARCH_BOTS } from "@proofseen/hub";
 import { MIN_PROFILES_PER_INTENT, PrivateIdentitySchema, PublicProfileSchema, assertNoLeaks, buildProfilesSite, findLeaks, type PublicProfile } from "../src";
@@ -53,7 +54,7 @@ describe("public site: what a crawler reads", () => {
     htmlFiles(site()).forEach(({ content }) => {
       [...content.matchAll(/<script\b([^>]*)>/gi)].forEach((m) => expect(m[1]).toContain('type="application/ld+json"'));
       expect(content).not.toMatch(/\son[a-z]+=/i);
-      expect(content).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+      expect(withoutHeaderSwitch(content)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     });
   });
 

@@ -108,7 +108,7 @@ export const renderSkillBarometer = (b: SkillBarometerView, o: { readonly baseUr
       variables: [{ name: "skill" }, { name: "missions" }],
     }),
     otherHref: `/${other}/barometre/competences`,
-    menu: "blog",
+    // The barometer is not a rubric of the menu: no item of the header is marked current here (Kensa m11).
     styles: `${LEDGER_STYLES}${BAROMETER_STYLES}`,
     extraHead: [`<link rel="alternate" type="text/csv" href="${e(csvUrl)}">`, `<link rel="alternate" type="application/json" href="${e(jsonUrl)}">`],
     main: [

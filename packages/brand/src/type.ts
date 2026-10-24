@@ -67,16 +67,21 @@ export interface TypeStep {
 const VIEW_MIN = 375;
 const VIEW_MAX = 1440;
 
-/** Minor third (1.2) on phones, perfect fourth (1.333) on wide screens, from a 16 to 17 px body. */
+/*
+ * v2 (BRAND_BOOK_V2 section 5): the body grows to 18 px on wide screens (light text on a dark ground reads thinner and
+ * smaller, so the size compensates, never the weight), and the titles take room: a new step 6 for the hero, 5 to 3
+ * pushed up. Steps -2 to 2 keep the v1 values.
+ */
 export const TYPE_SCALE: readonly TypeStep[] = [
   { name: "-2", min: 12, max: 12.5, tracking: 0.01, leading: 1.45 },
   { name: "-1", min: 14, max: 14.5, tracking: 0.005, leading: 1.5 },
-  { name: "0", min: 16, max: 17, tracking: 0, leading: 1.6 },
-  { name: "1", min: 19.2, max: 22.67, tracking: -0.006, leading: 1.3 },
+  { name: "0", min: 16, max: 18, tracking: 0, leading: 1.65 },
+  { name: "1", min: 19.2, max: 22.67, tracking: -0.006, leading: 1.35 },
   { name: "2", min: 23.04, max: 30.21, tracking: -0.012, leading: 1.18 },
-  { name: "3", min: 27.65, max: 40.27, tracking: -0.018, leading: 1.1 },
-  { name: "4", min: 33.18, max: 53.68, tracking: -0.024, leading: 1.05 },
-  { name: "5", min: 39.81, max: 71.56, tracking: -0.028, leading: 1.0 },
+  { name: "3", min: 28, max: 44, tracking: -0.018, leading: 1.1 },
+  { name: "4", min: 34, max: 60, tracking: -0.024, leading: 1.06 },
+  { name: "5", min: 40, max: 80, tracking: -0.03, leading: 1.02 },
+  { name: "6", min: 48, max: 112, tracking: -0.035, leading: 0.98 },
 ];
 
 const rem = (px: number): string => `${+(px / 16).toFixed(4)}rem`;

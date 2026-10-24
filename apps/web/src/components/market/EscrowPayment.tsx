@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/i18n/types";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
 import { money } from "@/lib/format";
-import { appearanceTheme } from "@/lib/pay-section";
-import type { StripeAppearances } from "@/lib/stripe-appearance";
+import type { StripeAppearance } from "@/lib/stripe-appearance";
 import { loadStripe, type StripeClient, type StripeElements, type StripePaymentElement } from "@/lib/stripe-js";
 
 type PayStrings = DealsDictionary["contracts"]["pay"]["client"];
@@ -18,8 +17,8 @@ interface EscrowPaymentProps {
   readonly testMode: boolean;
   readonly currency: string;
   readonly p: PayStrings;
-  /** Stripe's appearance for each theme, drawn from the brand palette on the server: plain strings only. */
-  readonly appearance: StripeAppearances;
+  /** Stripe's appearance, drawn from the brand palette on the server (dark only): plain strings only. */
+  readonly appearance: StripeAppearance;
 }
 
 type State =
@@ -81,9 +80,8 @@ export function EscrowPayment({ lang, contractId, publishableKey, testMode, curr
     }
     try {
       const stripe = await loadStripe(publishableKey, lang);
-      // The theme in force now: the form is mounted once, in the colours of the page around it.
-      const theme = appearanceTheme(document.documentElement.dataset.theme, window.matchMedia("(prefers-color-scheme: light)").matches);
-      const elements = stripe.elements({ clientSecret: secret.clientSecret, locale: lang, appearance: appearance[theme] });
+      // The form is mounted once, in the colours of the page around it (the brand is dark only).
+      const elements = stripe.elements({ clientSecret: secret.clientSecret, locale: lang, appearance });
       const element = elements.create("payment", { layout: "tabs" });
       mounted.current?.element.destroy();
       if (target.current === null) throw new Error("payment target missing");

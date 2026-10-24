@@ -1,4 +1,4 @@
-import { MONOGRAM_SMALL_PATH, PALETTE, THEME_COLOR } from "@proofseen/brand";
+import { MONOGRAM_SMALL_PATH, PALETTE, PAPER_INKS, THEME_COLOR } from "@proofseen/brand";
 import { escapeHtml as e, safeJsonLd, STANDALONE_STYLES } from "./html";
 import { availabilityText, formatDate, formatMonth, LABELS } from "./i18n";
 import type { HubProfile, Locale, Mission } from "./schema";
@@ -7,13 +7,14 @@ import { typeset } from "./typography";
 const OTHER: Readonly<Record<Locale, Locale>> = { fr: "en", en: "fr" };
 
 /**
- * Inline SVG favicon (the poincon, small master, in the green of each theme): this static site is published on its own
+ * Inline SVG favicon (the poincon, small master, in the green of the browser tab: the paper green on a light tab, the
+ * night green on a dark one; the pages themselves are dark only): this static site is published on its own
  * domain, without the /brand/ folder, so the icon travels in the page. No extra request, no 404 on /favicon.ico.
  */
 export const FAVICON =
   "data:image/svg+xml," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:${PALETTE.light.proof}}` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:${PAPER_INKS.proof}}` +
       `@media (prefers-color-scheme:dark){path{fill:${PALETTE.dark.proof}}}</style><path fill-rule="evenodd" d="${MONOGRAM_SMALL_PATH}"/></svg>`,
   );
 
@@ -44,9 +45,8 @@ const layout = ({ profile, locale, slug, title, description, body, jsonLd }: Lay
       "<head>",
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-      '<meta name="color-scheme" content="dark light">',
-      `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${THEME_COLOR.dark}">`,
-      `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${THEME_COLOR.light}">`,
+      '<meta name="color-scheme" content="dark">',
+      `<meta name="theme-color" content="${THEME_COLOR}">`,
       `<link rel="icon" href="${FAVICON}">`,
       `<title>${e(title)}</title>`,
       `<meta name="description" content="${e(description)}">`,

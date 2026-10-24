@@ -105,7 +105,7 @@ describe("head of every page", () => {
     for (const file of buildProfilesSite(trio, { baseUrl: BASE }).filter((f) => f.path.endsWith(".html"))) {
       expect(file.content, file.path).toContain('<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">');
       expect(file.content, file.path).toContain('<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
-      expect(file.content, file.path).toContain('<header class="top">');
+      expect(file.content, file.path).toContain('<header class="top has-sheet">');
       expect(file.content, file.path).toContain('<footer class="foot">');
       expect(file.content, file.path).toContain("--ps-bg:");
       expect(file.content, file.path).not.toMatch(/#070b14|#3fcf9c|--accent/i);

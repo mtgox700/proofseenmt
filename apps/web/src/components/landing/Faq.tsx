@@ -1,15 +1,22 @@
-import type { Dictionary } from "@/i18n";
+import type { HomeCopy } from "@/content/home";
+import { CONTACT_HREF } from "./routes";
 
-export function Faq({ t }: { readonly t: Dictionary }) {
+/* S11, the questions: native <details>, opened in CSS (interpolate-size where it exists), no script. */
+export function Faq({ copy }: { readonly copy: HomeCopy["faq"] }) {
   return (
-    <section className="section" id="faq" aria-labelledby="faq-title">
-      <div className="wrap faq">
-        <h2 id="faq-title">{t.faq.title}</h2>
-        <div>
-          {t.faq.items.map((item) => (
+    <section className="section fq" id="faq" aria-labelledby="faq-title">
+      <div className="wrap fq-grid">
+        <div className="fq-head">
+          <h2 id="faq-title">{copy.title}</h2>
+          <a className="text-link" href={CONTACT_HREF}>
+            {copy.write}
+          </a>
+        </div>
+        <div className="fq-list">
+          {copy.items.map((item) => (
             <details key={item.q}>
               <summary>{item.q}</summary>
-              <p className="muted">{item.a}</p>
+              <p>{item.a}</p>
             </details>
           ))}
         </div>

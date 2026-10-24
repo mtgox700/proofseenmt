@@ -71,7 +71,7 @@ export const BAROMETER_STYLES =
   ".lede{font-size:var(--ps-step-0);line-height:1.65;max-width:var(--ps-measure)}" +
   "h3.sub{margin:var(--ps-space-6) 0 var(--ps-space-2)}" +
   ".fig+h3.sub{margin-top:var(--ps-space-7)}" +
-  ".fig{margin:var(--ps-space-4) 0 0;padding:var(--ps-space-5);border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-surface);display:grid;gap:var(--ps-space-3)}" +
+  ".fig{margin:var(--ps-space-4) 0 0;padding:var(--ps-space-5);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);background:var(--ps-surface);display:grid;gap:var(--ps-space-3)}" +
   ".fig .big{margin:0;font:var(--ps-weight-display-light) var(--ps-step-4)/1 var(--ps-font-display);letter-spacing:var(--ps-track-4);font-variant-numeric:tabular-nums}" +
   ".fig .big span{font:var(--ps-weight-text) var(--ps-step-0)/1 var(--ps-font-text);letter-spacing:0;color:var(--ps-muted)}" +
   ".fig figcaption{max-width:var(--ps-measure)}" +

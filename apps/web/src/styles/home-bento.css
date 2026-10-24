@@ -1,0 +1,203 @@
+/* The home page v2, part 2: S2 the band of capabilities (Magic UI "Marquee"), S3 and S7 the two bentos (Magic UI
+   "Bento Grid" and "Magic Card", the edge light lives in home.css) and their mock interfaces, drawn in HTML so they
+   stay sharp, light and translatable. Every mock is in its final state; a tile's gesture waits for its script only
+   under (scripting: enabled) and (prefers-reduced-motion: no-preference), from a readable half-tone. */
+
+/* ---------- S2. Capabilities ---------- */
+.cap { border-block: 1px solid var(--ps-line); background: var(--ps-bg); }
+.cap-inner { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: var(--ps-space-3); width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; padding-block: var(--ps-space-5); }
+@media (min-width: 64rem) { .cap-inner { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: var(--ps-space-6); min-height: 6rem; padding-block: 0; } }
+@media (min-width: 64rem) and (prefers-reduced-motion: reduce) { .cap-inner { padding-block: var(--ps-space-5); } }
+.home .cap-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.5 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.mq { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, var(--ps-text) 8%, var(--ps-text) 92%, transparent); mask-image: linear-gradient(90deg, transparent, var(--ps-text) 8%, var(--ps-text) 92%, transparent); }
+.mq:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 4px; }
+.mq-track { display: flex; width: max-content; }
+.mq-list { list-style: none; margin: 0; padding: 0 var(--ps-space-5) 0 0; display: flex; gap: var(--ps-space-5); }
+.mq-list li { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; padding: 0 var(--ps-space-4); white-space: nowrap; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-pill); background: var(--ps-surface); font-size: var(--ps-step--1); }
+.mq-list svg { width: 1rem; height: 1rem; fill: none; stroke: var(--ps-aura-text); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .mq-track { animation: mq-slide 70s linear infinite; }
+  [data-off] .mq-track { animation-play-state: paused; }
+}
+@media (prefers-reduced-motion: no-preference) and (max-width: 40rem) { .mq-track { animation-duration: 100s; } }
+@keyframes mq-slide { to { transform: translateX(-50%); } }
+/* Reduced motion: one static list that wraps; the copy is not drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .mq { -webkit-mask-image: none; mask-image: none; }
+  .mq-track { width: auto; }
+  .mq-list { flex-wrap: wrap; gap: var(--ps-space-2); }
+  .mq-copy { display: none; }
+}
+
+/* ---------- Bento grid ---------- */
+.bento { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
+.tile { display: flex; flex-direction: column; justify-content: space-between; gap: var(--ps-space-5); min-width: 0; padding: var(--ps-space-5);
+  background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.tile-text { max-width: 34rem; color: var(--ps-muted); }
+.tile-text strong { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+@media (min-width: 64rem) {
+  .bento { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(12rem, auto); }
+  .bento-freelance .t-profile { grid-column: 1 / 8; grid-row: 1 / 3; }
+  .bento-freelance .t-photo { grid-column: 8 / 13; grid-row: 1; }
+  .bento-freelance .t-availability { grid-column: 8 / 13; grid-row: 2; }
+  .bento-freelance .t-matches { grid-column: 1 / 5; grid-row: 3; }
+  .bento-freelance .t-application { grid-column: 5 / 9; grid-row: 3; }
+  .bento-freelance .t-mobile { grid-column: 9 / 13; grid-row: 3 / 5; }
+  .bento-freelance .t-messages { grid-column: 1 / 9; grid-row: 4; }
+  .bento-company .t-phrase { grid-column: 6 / 13; grid-row: 1 / 3; }
+  .bento-company .t-facts { grid-column: 1 / 6; grid-row: 1; }
+  .bento-company .t-board { grid-column: 1 / 6; grid-row: 2; }
+  .bento-company .t-escrow { grid-column: 1 / 5; grid-row: 3; }
+  .bento-company .t-invoicing { grid-column: 5 / 9; grid-row: 3; }
+  .bento-company .t-team { grid-column: 9 / 13; grid-row: 3; }
+  .bento-company .t-api { grid-column: 1 / 13; grid-row: 4; flex-direction: row; align-items: center; }
+}
+/* On a phone the tiles tighten: less padding, four sections of the profile, a smaller phone (Kensa M8). */
+@media (max-width: 47.99rem) {
+  .tile { padding: var(--ps-space-4); gap: var(--ps-space-4); }
+  .mock-profile li:nth-child(n + 5) { display: none; }
+  .phone { width: 9rem; }
+}
+/* Phone order (STORYBOARD_V2 S3 and S7). */
+@media (max-width: 63.99rem) {
+  .bento-freelance .t-mobile { order: 1; }
+  .bento-company .t-board { order: 1; }
+  .bento-company .t-invoicing, .bento-company .t-team, .bento-company .t-api { order: 2; }
+}
+
+.mock { font-size: var(--ps-step--1); }
+/* A: the profile, its six sections. */
+.mock-profile { display: grid; gap: var(--ps-space-4); padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg); }
+.mock-id { display: flex; align-items: center; gap: var(--ps-space-3); }
+.mock-avatar { width: 2.75rem; height: 2.75rem; border-radius: 50%; background: linear-gradient(135deg, var(--ps-aura), var(--ps-azur)); }
+/* Small labels of the mock interfaces: one mono line, never wider than its box. */
+.mock-who, .phone-list > span, .bubble-quote { display: grid; gap: 2px; min-width: 0; }
+.mock-who { flex: 1; }
+.mock-who b, .mock-title, .phone-list b, .bubble-quote b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mock-who b { font: var(--ps-weight-display) var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.mock-who small, .mock-meta, .phone-list small, .bubble-quote small { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-muted); }
+.mock-tag { flex: none; padding: 1px 6px; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.mock-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.mock-pills span { padding: 0.15rem 0.6rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-surface); font-size: var(--ps-step--2); }
+.mock-value { font-size: var(--ps-step--1); line-height: 1.35; color: var(--ps-text); }
+.mock-profile ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ps-space-3); }
+.mock-profile li { display: grid; gap: 6px; padding: var(--ps-space-3); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); background: var(--ps-surface); }
+.mock-key { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-aura-text); }
+/* B: the photo fills its tile, the caption sits on a veil of ink (58 % at least, BRAND_BOOK_V2 §6). */
+/* Only the photo tile clips: a clipped tile hid the edge light drawn on its border (Kensa M1). */
+.t-photo { padding: 0; justify-content: flex-end; min-height: 13.75rem; overflow: hidden; }
+.tile-photo, .tile-photo img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tile-photo { z-index: -2; }
+.tile-photo img { object-fit: cover; object-position: 70% 30%; filter: saturate(0.9); }
+.t-photo .tile-text { padding: var(--ps-space-8) var(--ps-space-5) var(--ps-space-5); max-width: none; background: linear-gradient(transparent, color-mix(in srgb, var(--ps-bg) 88%, transparent) 45%); color: var(--ps-text); }
+/* C: the dated availability. The date is the freelancer's own confirmation: ink, never green. */
+.mock-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.mock-days span { display: grid; place-items: center; height: 2.25rem; border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1 var(--ps-font-mono); color: var(--ps-muted); }
+.mock-days .is-today { border-color: var(--ps-text); background: var(--ps-text); color: var(--ps-bg); }
+.pill { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--ps-space-2); padding: 0.35rem 0.8rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ps-text); }
+/* D: a suggestion that says why. */
+.mock-mission { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg); }
+.mock-title { font: var(--ps-weight-display) var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.mock-reason { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-aura-text); }
+/* E: the application moves from sent to read to shortlisted. */
+.mock-application { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg); }
+.mock-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mock-steps li { position: relative; padding: var(--ps-space-3) var(--ps-space-2); text-align: center; border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); color: var(--ps-muted); }
+.mock-steps li:nth-child(-n + 2) { border-color: var(--ps-line-strong); color: var(--ps-text); }
+.mock-steps li:nth-child(2) { background: var(--ps-raised); box-shadow: var(--ps-glow-aura); }
+/* F: a phone, its notice of a new message (shown in the app, no push notification claimed). */
+.t-mobile { align-items: stretch; }
+.phone { position: relative; align-self: center; width: min(100%, 11rem); aspect-ratio: 9 / 17; padding: var(--ps-space-6) var(--ps-space-3) var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: 1.75rem; background: var(--ps-bg); box-shadow: var(--ps-glow-aura); }
+.phone-notch { position: absolute; left: 50%; top: 10px; width: 34%; height: 6px; translate: -50% 0; border-radius: 3px; background: var(--ps-raised); }
+.phone-notice { display: grid; gap: 2px; padding: var(--ps-space-2) var(--ps-space-3); border-radius: var(--ps-radius-media); background: var(--ps-overlay); }
+.phone-notice b { font-size: var(--ps-step--1); }
+.phone-notice small { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-muted); }
+.phone-list { display: grid; gap: 6px; margin-top: var(--ps-space-4); }
+.phone-list > span { padding: var(--ps-space-2) var(--ps-space-3); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.phone-list b { font-size: var(--ps-step--1); }
+/* G: a thread, a file, read. */
+.mock-thread { display: grid; gap: var(--ps-space-2); justify-items: start; }
+.bubble { max-width: min(26rem, 85%); padding: var(--ps-space-2) var(--ps-space-4); border-radius: 1rem; font-size: var(--ps-step--1); }
+.bubble-in { border-bottom-left-radius: 4px; background: var(--ps-raised); }
+.bubble-out { justify-self: end; border-bottom-right-radius: 4px; background: color-mix(in srgb, var(--ps-aura) 22%, var(--ps-surface)); }
+.bubble-file { justify-self: end; padding: 0.3rem 0.7rem; border: 1px dashed var(--ps-line-strong); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); }
+.bubble-quote { justify-self: end; padding: var(--ps-space-2) var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-left: 3px solid var(--ps-text); border-radius: var(--ps-radius); background: var(--ps-bg); }
+.bubble-quote b { font-size: var(--ps-step--1); }
+.bubble-read { justify-self: end; font: var(--ps-weight-mono) var(--ps-step--2) / 1 var(--ps-font-mono); color: var(--ps-aura-text); }
+
+/* ---------- S7 tiles ---------- */
+.phrase { display: grid; gap: var(--ps-space-4); }
+.t-phrase .phrase { flex: 1; align-content: center; }
+.phrase-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.phrase-sample { margin-left: var(--ps-space-2); padding: 1px 6px; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.phrase-field { position: relative; isolation: isolate; padding: var(--ps-space-4) var(--ps-space-5); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-media); background: var(--ps-bg); font-size: var(--ps-step-1); line-height: 1.45; }
+.phrase-field .shimmer { border-radius: inherit; }
+.phrase-field .shimmer::after { inset: 1.5px; border-radius: calc(var(--ps-radius-media) - 1px); background: var(--ps-bg); }
+.phrase-field:not([data-reading]) .shimmer { display: none; }
+.phrase-ghost { color: var(--ps-faint); }
+/* No width in the line: the caret never pushes the text it writes. */
+.phrase-caret { display: inline-block; width: 2px; height: 1.1em; margin-right: -2px; vertical-align: text-bottom; background: var(--ps-aura-text); }
+.phrase-field:not([data-reading]) .phrase-caret { display: none; }
+.phrase-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.phrase-chips li:not([data-lit]) { border-color: var(--ps-line-strong); background: transparent; transform: translateY(4px) scale(0.96); }
+@media (prefers-reduced-motion: no-preference) { .phrase-chips li { transition: transform var(--ps-dur-ui) var(--ps-ease-glow), background-color var(--ps-dur-ui) var(--ps-ease-out), border-color var(--ps-dur-ui) var(--ps-ease-out); } }
+.phrase-chips li { display: inline-flex; align-items: center; min-height: 2.25rem; padding: 0 var(--ps-space-4); border: 1px solid var(--ps-aura); border-radius: var(--ps-radius-pill); background: color-mix(in srgb, var(--ps-aura) 14%, var(--ps-surface)); font-size: var(--ps-step--1); }
+.mock-facts { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg); }
+.mock-ref { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.mock-facts ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
+.mock-facts li { display: flex; align-items: center; gap: var(--ps-space-2); font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); }
+/* The two facts a third party verified: the poinçon's square and the proof colour. */
+.mock-facts .is-proof { color: var(--ps-proof); }
+.mock-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ps-space-2); }
+.board-col { display: grid; align-content: start; gap: 6px; padding: var(--ps-space-2); border-radius: var(--ps-radius); background: var(--ps-bg); }
+.board-col b { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.board-card { display: block; padding: 0.3rem 0.5rem; border: 1px solid var(--ps-line); border-radius: 4px; background: var(--ps-raised); font-size: var(--ps-step--2); line-height: 1.3; overflow-wrap: break-word; hyphens: auto; }
+.board-col:last-child .board-card { border-color: var(--ps-aura); }
+.mock-escrow { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-4); border: 1px solid var(--ps-signal); border-radius: var(--ps-radius-media); background: var(--signal-wash); color: var(--ps-signal); font: var(--ps-weight-mono) var(--ps-step--1) / 1.3 var(--ps-font-mono); }
+.escrow-lock { position: relative; flex: none; width: 1.1rem; height: 0.9rem; margin-top: 0.35rem; border: 1.5px solid currentColor; border-radius: 3px; }
+.escrow-lock::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 0.65rem; height: 0.5rem; translate: -50% 0; border: 1.5px solid currentColor; border-bottom: 0; border-radius: 0.4rem 0.4rem 0 0; }
+.mock-invoice { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg); }
+.invoice-lines { display: grid; gap: 4px; }
+.invoice-lines span { padding-bottom: 4px; border-bottom: 1px dashed var(--ps-line); font-size: var(--ps-step--1); }
+.escrow-head { display: flex; align-items: center; gap: var(--ps-space-3); }
+.escrow-contract { font-family: var(--ps-font-text); color: var(--ps-text); }
+.escrow-status { font-size: var(--ps-step--2); }
+.invoice-mention { justify-self: start; padding: 2px 8px; border: 1px solid var(--ps-aura); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-aura-text); }
+.mock-team { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); }
+.team-avatar { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--ps-line-strong); border-radius: 50%; background: var(--ps-raised); font: var(--ps-weight-mono) var(--ps-step--2) / 1 var(--ps-font-mono); }
+.team-avatar + .team-avatar { margin-left: -0.75rem; }
+.team-checks { margin-left: var(--ps-space-2); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-text); }
+.code { flex: 1 1 28rem; min-width: 0; max-width: 100%; overflow-x: auto; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); background: var(--ps-bg-deep); }
+.code:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.code pre { margin: 0; padding: var(--ps-space-4); font: var(--ps-weight-mono) var(--ps-step--1) / 1.6 var(--ps-font-mono); }
+.code code { font: inherit; }
+.code-req { color: var(--ps-aura-text); }
+.code-key, .code-line { color: var(--ps-muted); }
+.t-api .tile-text { flex: 1 1 18rem; }
+
+/* ---------- The gestures, once each, at 60 % on screen ---------- */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .tile:not([data-play]) .mock-profile li { transform: translateY(8px); }
+  .tile[data-play] .mock-profile li { animation: tile-settle 240ms var(--ps-ease-out) calc(var(--i) * 60ms) both; }
+  .tile:not([data-play]) .mock-days .is-today { background: transparent; color: var(--ps-muted); }
+  .tile[data-play] .mock-days .is-today { animation: tile-tick 300ms var(--ps-ease-out) 200ms both; }
+  .tile:not([data-play]) .mock-steps li:nth-child(2) { background: transparent; box-shadow: none; color: var(--ps-muted); }
+  .tile[data-play] .mock-steps li:nth-child(2) { animation: tile-read 420ms var(--ps-ease-glow) 300ms both; }
+  .tile:not([data-play]) .bubble, .tile:not([data-play]) .bubble-file, .tile:not([data-play]) .bubble-quote, .tile:not([data-play]) .bubble-read { transform: translateY(8px); }
+  .tile[data-play] .bubble-in { animation: tile-settle 300ms var(--ps-ease-out) both; }
+  .tile[data-play] .bubble-out { animation: tile-settle 300ms var(--ps-ease-out) 450ms both; }
+  .tile[data-play] .bubble-file { animation: tile-settle 300ms var(--ps-ease-out) 700ms both; }
+  .tile[data-play] .bubble-quote { animation: tile-settle 300ms var(--ps-ease-out) 950ms both; }
+  .tile[data-play] .bubble-read { animation: tile-settle 240ms var(--ps-ease-out) 1300ms both; }
+  .tile:not([data-play]) .phone-notice { transform: translateY(-12px); }
+  .tile[data-play] .phone-notice { animation: tile-drop 420ms var(--ps-ease-glow) 200ms both; }
+  .tile:not([data-play]) .code-line { transform: translateX(-6px); }
+  .tile[data-play] .code-line { animation: tile-line 200ms var(--ps-ease-out) calc(200ms + var(--i) * 140ms) both; }
+}
+/* The tiles' waits and gestures move, they never dim a text below its contrast (Kensa m1). */
+@keyframes tile-settle { from { transform: translateY(8px); } to { transform: none; } }
+@keyframes tile-tick { from { background: transparent; color: var(--ps-muted); transform: scale(0.9); } to { background: var(--ps-text); color: var(--ps-bg); transform: none; } }
+@keyframes tile-read { from { background: transparent; color: var(--ps-muted); } to { background: var(--ps-raised); color: var(--ps-text); } }
+@keyframes tile-drop { from { transform: translateY(-12px); } to { transform: none; } }
+@keyframes tile-line { from { transform: translateX(-6px); } to { transform: none; } }

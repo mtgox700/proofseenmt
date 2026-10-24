@@ -4,7 +4,7 @@
    reveal, no loop, nothing hidden before a script runs. */
 
 /* The thread of the deal: a register, one line per step, a rule down the left. */
-.deal { display: grid; gap: var(--ps-space-4); min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.deal { display: grid; gap: var(--ps-space-4); min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
 .deal > h2, .deal > h3 { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
 .deal-thread { position: relative; list-style: none; margin: 0; padding: 0; display: grid; }
 .deal-thread::before { content: ""; position: absolute; left: calc(0.5rem - 0.5px); top: 1.4rem; bottom: 1.4rem; width: 1px; background: var(--ps-line-strong); }

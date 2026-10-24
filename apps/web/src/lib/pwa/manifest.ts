@@ -9,8 +9,8 @@ import type { Lang } from "../../i18n/types";
  * HTML for search engines and never reference it.
  */
 
-/** The page background of the brand (dark, the brand theme): the manifest is read by the operating system, outside CSS. */
-export const PWA_BACKGROUND = THEME_COLOR.dark;
+/** The page background of the brand (dark only): the manifest is read by the operating system, outside CSS. */
+export const PWA_BACKGROUND = THEME_COLOR;
 
 /** The brand icons (packages/brand, public/brand/), and the monochrome notification badge drawn from the same poincon. */
 export const PWA_ICONS = {

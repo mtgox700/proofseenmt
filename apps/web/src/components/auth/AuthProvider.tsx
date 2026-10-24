@@ -6,9 +6,8 @@ import { clerkClientConfigured } from "@/lib/auth-config";
 
 /*
  * Clerk around the app, only when its publishable key exists (see `clerkClientConfigured`). Its widgets take the brand
- * colours as CSS custom properties of @proofseen/brand, not as fixed values: the page's own theme (dark by default,
- * light under `prefers-color-scheme: light` or `[data-theme="light"]`) recolours them, with no script, no extra request
- * and no flash at hydration. Clerk passes `var(--…)` through where the browser mixes colours in CSS (`color-mix()` or
+ * colours as CSS custom properties of @proofseen/brand, not as fixed values: the page's one theme (dark only since
+ * BRAND_BOOK_V2) colours them, with no script, no extra request and no flash at hydration. Clerk passes `var(--…)` through where the browser mixes colours in CSS (`color-mix()` or
  * relative colours) and drops it otherwise, falling back to its own defaults (`removeInvalidValues`, clerk/javascript
  * packages/ui/src/customizables/parseVariables.ts). The names are those of Clerk's current `Variables`
  * (`colorForeground`, `colorInput`…): the older ones (`colorText`, `colorInputBackground`…) are no longer read.

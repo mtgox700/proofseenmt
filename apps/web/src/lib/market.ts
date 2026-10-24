@@ -29,8 +29,8 @@ const actorOf = async (db: Db, person: Person, lang: Lang): Promise<Actor> => {
 };
 
 /** For pages: the market context, `"unconfigured"` without a database, or a redirect (sign-in, role choice, wrong role). */
-export const pageMarket = async (lang: Lang, allowed?: readonly Role[]): Promise<Market | "unconfigured"> => {
-  const person = await requirePerson(lang, allowed);
+export const pageMarket = async (lang: Lang, allowed?: readonly Role[], returnTo?: string): Promise<Market | "unconfigured"> => {
+  const person = await requirePerson(lang, allowed, returnTo);
   if (person === null || !hasDatabase() || person.email === "") return "unconfigured";
   const db = getDb();
   return { person, actor: await actorOf(db, person, lang), db };

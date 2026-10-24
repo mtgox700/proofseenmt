@@ -1,3 +1,4 @@
+import { edgeSpotCss } from "@proofseen/brand";
 import { escapeHtml as e } from "./html";
 
 /*
@@ -68,9 +69,9 @@ const COMPANY_CARD_STYLES =
   ".avail{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .6rem}" +
   ".res-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.4rem 1rem;margin-bottom:1rem}" +
   ".res-head h2{margin:0}" +
-  ".pcard{position:relative;display:flex;flex-direction:column;gap:.7rem;height:100%;padding:1.2rem 1.25rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius);" +
+  ".pcard{position:relative;display:flex;flex-direction:column;gap:.7rem;height:100%;padding:1.2rem 1.25rem;border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);" +
   "background:var(--ps-surface);transition:border-color var(--ps-dur-ui) var(--ps-ease-out)}" +
-  "@media (hover:hover) and (pointer:fine){.pcard:hover{border-color:var(--ps-line-strong)}}" +
+  edgeSpotCss([".pcard"]) +
   ".pcard:focus-within{border-color:var(--ps-focus)}" +
   "@media (prefers-reduced-motion:reduce){.pcard{transition:none}}" +
   ".pc-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.85rem;align-items:center}" +
@@ -80,7 +81,7 @@ const COMPANY_CARD_STYLES =
   ".tone-1{background:color-mix(in srgb,var(--ps-focus) 26%,var(--ps-surface))}.tone-2{background:color-mix(in srgb,var(--ps-signal) 22%,var(--ps-surface))}" +
   ".tone-3{background:color-mix(in srgb,var(--ps-line-strong) 34%,var(--ps-surface))}.tone-4{background:color-mix(in srgb,var(--ps-text) 14%,var(--ps-surface))}" +
   ".pc-name{margin:0;font:600 var(--ps-step-1)/1.25 var(--ps-font-display);overflow-wrap:anywhere}.pc-name a{text-decoration:none}" +
-  ".pc-name a::after{content:\"\";position:absolute;inset:0;border-radius:var(--ps-radius)}" +
+  ".pc-name a::after{content:\"\";position:absolute;inset:0;border-radius:var(--ps-radius-card)}" +
   ".pc-name a:focus-visible{outline:none}.pc-name a:focus-visible::after{outline:2px solid var(--ps-focus);outline-offset:2px}" +
   ".pc-ref{font:500 var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-muted)}" +
   ".pc-headline{font-size:var(--ps-step-0);line-height:1.45;color:var(--ps-text)}" +

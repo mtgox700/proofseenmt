@@ -34,7 +34,7 @@ const DOSSIER = [
   ".closing .cta{margin:0;white-space:normal}",
   "@media (min-width:62rem){.dossier{grid-template-columns:minmax(0,1fr) 17rem;grid-template-areas:\"fiche rail\" \"folio rail\"}" +
     ".fiche{grid-area:fiche}.folio{grid-area:folio}" +
-    ".rail{grid-area:rail;align-self:start;position:sticky;top:calc(4rem + var(--ps-space-5));margin-top:var(--ps-space-8);padding:var(--ps-space-5);border:1px solid var(--ps-line);border-radius:var(--ps-radius);background:var(--ps-surface)}" +
+    ".rail{grid-area:rail;align-self:start;position:sticky;top:calc(4rem + var(--ps-space-5));margin-top:var(--ps-space-8);padding:var(--ps-space-5);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);background:var(--ps-surface)}" +
     ".fiche .context{grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr))}.fiche .context div:nth-child(n){padding-left:var(--ps-space-4);border-left:1px solid var(--ps-line)}.fiche .context div:first-child{padding-left:0;border-left:0}}",
 ];
 
@@ -49,7 +49,7 @@ const REGISTER = [
   ".register{margin-top:var(--ps-space-8);padding-top:var(--ps-space-2);border-top:2px solid var(--ps-text)}",
   ".pieces,.lines,.slots{list-style:none;margin:0;padding:0}",
   ".pieces{display:grid;gap:var(--ps-space-4)}",
-  ".piece{--pad:var(--ps-space-4);--fil:1.25rem;display:grid;gap:var(--ps-space-4);padding:var(--pad) var(--pad) var(--pad) calc(var(--pad) + var(--fil));background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius);scroll-margin-top:5rem}",
+  ".piece{--pad:var(--ps-space-4);--fil:1.25rem;display:grid;gap:var(--ps-space-4);padding:var(--pad) var(--pad) var(--pad) calc(var(--pad) + var(--fil));background:var(--ps-surface);border:1px solid var(--ps-line);border-radius:var(--ps-radius-card);scroll-margin-top:5rem}",
   ".claim{position:relative;display:grid;gap:var(--ps-space-2)}",
   ".claim .when{font:var(--ps-weight-mono) var(--ps-step--2)/1.3 var(--ps-font-mono);color:var(--ps-muted)}",
   ".claim::before{content:\"\";position:absolute;left:calc(.25rem - var(--fil));top:.85rem;bottom:calc(-2*var(--ps-space-4) - .55rem);width:1px;background:var(--ps-line-strong);transform-origin:top}",
@@ -66,7 +66,7 @@ const REGISTER = [
   ".slots li{display:flex;align-items:baseline;gap:var(--ps-space-3);padding:var(--ps-space-2) 0;border-bottom:1px dashed var(--ps-line);color:var(--ps-muted)}",
   ".blank a{display:inline-flex;align-items:center;min-height:2.75rem}",
   ".declared{margin-top:var(--ps-space-8);padding-top:var(--ps-space-2);border-top:1px solid var(--ps-line-strong)}",
-  ".declared .card{background:none}",
+  ".declared .card{background:none;--edge-fill:var(--ps-bg)}",
   ".card p>a:only-child{display:inline-flex;align-items:center;min-height:2.75rem}",
   "@media (min-width:48rem){.piece{--pad:var(--ps-space-5);--fil:1.5rem}}",
 ];

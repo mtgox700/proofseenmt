@@ -58,7 +58,8 @@ export default async function NewMissionPage({ params, searchParams }: PageProps
   const dict = marketDictionary(lang);
   const m = dict.missions;
   const s = dict.missionsSpace;
-  const market = await pageMarket(lang, ["company"]);
+  // The home page's « Publier une mission » leads here: a visitor who signs in comes back to this form.
+  const market = await pageMarket(lang, ["company"], `/${lang}/app/missions/nouvelle`);
   if (market === "unconfigured") return <MarketUnavailable text={dict.notConfigured} />;
   const organisation = await currentOrganisation(market);
   if (organisation === null) redirect(`/${lang}/app`);

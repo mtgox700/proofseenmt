@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { BAROMETER_STYLES } from "../src/barometer-chart";
 import { rateCsv, rateJson, skillCsv, type RateBarometerView, type SkillBarometerView } from "../src/barometer-data";
@@ -118,10 +119,11 @@ describe("lot f : figures en SVG serveur, sans le vert du poinçon", () => {
 });
 
 describe("lot f : adresses et navigation", () => {
-  it("les deux baromètres se relient l'un l'autre, la page courante marquée, et le menu reste sur Blog", () => {
+  it("les deux baromètres se relient l'un l'autre, la page courante marquée ; le menu n'en marque aucune rubrique (Kensa m11)", () => {
     expect(rates).toContain('<nav class="bnav" aria-label="Baromètres"><a href="/fr/barometre/tjm" aria-current="page">TJM</a><a href="/fr/barometre/competences">Compétences demandées</a></nav>');
     expect(skills).toContain('<a href="/fr/barometre/competences" aria-current="page">Compétences demandées</a>');
-    expect(rates).toContain('aria-current="page">Blog</a>');
+    // Le baromètre n'est pas une rubrique du menu : souligner « Blog » laissait croire qu'on lisait le blog.
+    for (const page of [rates, skills]) expect(page.match(/<nav class="nav"[\s\S]*?<\/nav>/)?.[0] ?? "").not.toContain("aria-current");
   });
 
   it("le blog présente les deux baromètres comme des jeux de données, avec leurs fichiers", () => {
@@ -159,7 +161,7 @@ describe("lot f : aucune page ne porte de script hors JSON-LD ni de texte caché
     for (const [, attrs] of html.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toContain('type="application/ld+json"');
     expect(html.match(/<script\b/g)).toHaveLength(1);
     expect(html).not.toMatch(/\son[a-z]+=/i);
-    expect(html).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(withoutHeaderSwitch(html)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(html).not.toContain(String.fromCodePoint(0x2014));
     for (const line of html.split(/(?=@media)/).filter((l) => /:hover/.test(l))) expect(line).toMatch(/^@media \((hover:hover\) and \(pointer:fine\)|prefers-reduced-motion)/);
   });

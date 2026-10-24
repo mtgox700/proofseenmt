@@ -1,4 +1,5 @@
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { signInPath, welcomePath } from "./sign-in-path";
 import { redirect } from "next/navigation";
 import type { Lang } from "@/i18n";
 import { authConfigured } from "./auth-config";
@@ -55,13 +56,16 @@ export const verifiedAddresses = async (): Promise<readonly string[]> => {
   return user === null ? [] : verifiedEmails(user.emailAddresses);
 };
 
-/** For pages: the person, or a redirect to sign-in (or to the role choice). Never renders for the wrong role. */
-export const requirePerson = async (lang: Lang, allowed?: readonly Role[]): Promise<Person | null> => {
+/**
+ * For pages: the person, or a redirect to sign-in (or to the role choice). Never renders for the wrong role. A page
+ * that a public link leads to (posting a mission) passes its own path, so sign-in brings the visitor back to it.
+ */
+export const requirePerson = async (lang: Lang, allowed?: readonly Role[], returnTo?: string): Promise<Person | null> => {
   const state = await session();
   if (state.kind === "unconfigured") return null;
-  if (state.kind === "signed-out") redirect(`/${lang}/connexion`);
+  if (state.kind === "signed-out") redirect(signInPath(lang, returnTo));
   const { person } = state;
-  if (person.role === null) redirect(`/${lang}/app/bienvenue`);
+  if (person.role === null) redirect(welcomePath(lang, returnTo));
   if (allowed !== undefined && !allowed.includes(person.role)) redirect(`/${lang}/app`);
   return person;
 };

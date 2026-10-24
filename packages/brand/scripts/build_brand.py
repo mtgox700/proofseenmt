@@ -28,10 +28,12 @@ DISPLAY = os.path.join(ROOT, "apps", "web", "public", "fonts", "ps-display-v1.wo
 MONO = os.path.join(ROOT, "apps", "web", "public", "fonts", "ps-mono-v1.woff2")
 SYSTEM_SANS = "C:/Windows/Fonts/segoeui.ttf"  # only to show system-ui on the specimen sheet
 
-# Mirrors src/tokens.ts.
-DARK = {"bg": "#0e0e0c", "surface": "#161613", "raised": "#1e1e1a", "text": "#eeeae1", "muted": "#aaa59a",
-        "faint": "#8f8a7f", "line": "#2b2a26", "line-strong": "#77736a", "proof": "#6fd690", "on-proof": "#0b1a10", "proof-wash": "#212d22",
-        "signal": "#f0b44c", "danger": "#f08a74", "focus": "#93b6ff"}
+# Mirrors src/palette.ts (v2, dark only: BRAND_BOOK_V2 section 2).
+DARK = {"bg-deep": "#06070a", "bg": "#0a0b10", "surface": "#11131a", "raised": "#191c25", "overlay": "#222633", "text": "#f2efe8",
+        "muted": "#b4b1aa", "faint": "#94918b", "line": "#262a36", "line-strong": "#71768a", "proof": "#6fd690",
+        "on-proof": "#06140b", "proof-wash": "#0f2119", "signal": "#f0b44c", "danger": "#f2907b", "focus": "#a99dff",
+        "aura": "#7c6cff", "aura-text": "#a99dff", "azur": "#3d7bff"}
+# PAPER_INKS of src/palette.ts: the logo printed on paper and the favicon in a light browser tab. Never a page theme.
 LIGHT = {"bg": "#f4f1ea", "surface": "#fbf9f4", "raised": "#ffffff", "text": "#15140f", "muted": "#5c584e",
          "faint": "#6e695e", "line": "#dcd7cb", "line-strong": "#8a8579", "proof": "#0c6a41", "on-proof": "#f4f1ea", "proof-wash": "#e3ebe2",
          "signal": "#8a4b00", "danger": "#b0281c", "focus": "#2a55c8"}
