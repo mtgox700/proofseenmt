@@ -11,6 +11,7 @@ export const en: Dictionary = {
   skip: "Skip to content",
   nav: {
     label: "Main menu",
+    menu: "Menu",
     missions: "Missions",
     freelancers: "Freelancers",
     skills: "Skills",
@@ -29,6 +30,7 @@ export const en: Dictionary = {
     trace: "Wave J0 · 23 and 24 September 2026 · OpenAI, Anthropic, Perplexity",
     noSource: "{pct} with no source",
     key: "One row per job: {targets} target jobs, then {controls} control jobs under the rule. One slot per answer; its height tells the source cited.",
+    keyCompact: "One row per job, the control jobs under the rule. One slot per answer; its height tells the source cited.",
     founder: "Our founder:",
     founderCount: "cited {hits} times out of {n}",
     categories: {

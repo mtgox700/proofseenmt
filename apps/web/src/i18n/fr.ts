@@ -13,6 +13,7 @@ export const fr = {
   skip: "Aller au contenu",
   nav: {
     label: "Menu principal",
+    menu: "Menu",
     missions: "Missions",
     freelancers: "Freelances",
     skills: "Métiers",
@@ -31,6 +32,7 @@ export const fr = {
     trace: "Vague J0 · 23 et 24 septembre 2026 · OpenAI, Anthropic, Perplexity",
     noSource: "{pct} sans source",
     key: "Une ligne par offre\u202f: {targets} offres cibles, puis {controls} offres témoins sous le filet. Une case par réponse\u202f; sa hauteur dit la source citée.",
+    keyCompact: "Une ligne par offre, les offres témoins sous le filet. Une case par réponse\u202f; sa hauteur dit la source citée.",
     founder: "Notre fondateur\u202f:",
     founderCount: "cité {hits} fois sur {n}",
     categories: {

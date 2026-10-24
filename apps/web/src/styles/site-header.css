@@ -1,0 +1,40 @@
+/* The header of the React pages on a phone and a tablet (Kensa M10, STORYBOARD_V2 §2), on top of
+   @proofseen/brand/chrome.css. Under 64 rem: the brand, « Se connecter », « Créer un compte » and a menu button on one
+   row; the button is the summary of a native <details>, its sheet lists the public menu and the other language. No
+   script: it opens and closes like any <details>. From 64 rem the brand's row of links is unchanged. */
+
+.top .signin-m, .top .sheet { display: none; }
+
+@media (max-width: 63.99rem) {
+  .top.has-sheet .chrome { grid-template-columns: minmax(0, 1fr) auto auto auto; grid-template-areas: "brand signin signup sheet"; }
+  .top.has-sheet .nav, .top.has-sheet .chrome > .lang { display: none; }
+  .top .signin-m { grid-area: signin; display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: var(--ps-space-2); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; white-space: nowrap; }
+  .top.has-sheet .signup { min-height: 2.75rem; padding-inline: var(--ps-space-3); }
+  .top .sheet { grid-area: sheet; display: block; }
+  .sheet-toggle { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border: var(--ps-border) solid var(--ps-line-strong); border-radius: var(--ps-radius); cursor: pointer; list-style: none; }
+  .sheet-toggle::-webkit-details-marker { display: none; }
+  .sheet-bars, .sheet-bars::before, .sheet-bars::after { display: block; width: 1.1rem; height: 2px; border-radius: 1px; background: var(--ps-text); }
+  .sheet-bars { position: relative; }
+  .sheet-bars::before, .sheet-bars::after { content: ""; position: absolute; left: 0; }
+  .sheet-bars::before { top: -6px; }
+  .sheet-bars::after { top: 6px; }
+  .sheet[open] .sheet-bars { background: transparent; }
+  .sheet[open] .sheet-bars::before { top: 0; transform: rotate(45deg); }
+  .sheet[open] .sheet-bars::after { top: 0; transform: rotate(-45deg); }
+  .sheet-panel { position: absolute; left: 0; right: 0; top: 100%; z-index: var(--ps-z-overlay); display: grid; gap: var(--ps-space-2);
+    padding: var(--ps-space-3) var(--ps-gutter) var(--ps-space-5); background: var(--ps-overlay); border-bottom: var(--ps-border) solid var(--ps-line-strong); box-shadow: var(--ps-shadow-2); }
+  .sheet-panel nav { display: grid; }
+  .sheet-panel nav a { display: flex; align-items: center; min-height: 3.5rem; border-bottom: var(--ps-border) solid var(--ps-line); color: var(--ps-text); font-size: var(--ps-step-0); text-decoration: none; }
+  .sheet-panel .lang { grid-area: auto; justify-self: start; min-height: 3.5rem; padding-inline: 0; }
+}
+/* A phone keeps the poinçon of the lockup only: the word would push the buttons off the row. The image is cropped,
+   not swapped, so no second file is fetched. */
+@media (max-width: 30rem) {
+  .top.has-sheet .brand img { width: 1.5rem; height: 1.5rem; object-fit: cover; object-position: left center; }
+}
+@media (max-width: 22rem) {
+  .top .signin-m { display: none; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .sheet-toggle:hover { border-color: var(--ps-text); }
+}
