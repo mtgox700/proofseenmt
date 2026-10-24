@@ -38,7 +38,7 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 }
 @keyframes rise-fade { from { transform: translateY(2rem); } to { transform: none; } }
 
-/* ---------- Magic UI "Shimmer Button" / "Shine Border": a violet comet runs around the edge ---------- */
+/* ---------- Magic UI "Shine Border": a violet comet runs around the edge of a field (the phrase tile) ---------- */
 .shimmer-btn { position: relative; isolation: isolate; overflow: hidden; }
 .shimmer { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .shimmer::before { content: ""; position: absolute; left: 50%; top: 50%; width: 300%; aspect-ratio: 1; translate: -50% -50%;
@@ -49,9 +49,18 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
   [data-off] .shimmer::before { animation-play-state: paused; }
 }
 @keyframes shimmer-spin { to { rotate: 360deg; } }
+/* Magic UI "Shimmer Button", on the paper button: a band of violet light sweeps across the inside, then rests. It
+   never leaves the button (no ring on its edge: at 2 px it read as a stray mark under the button). */
+.shimmer-btn .shimmer::before { left: 0; top: 0; width: 45%; height: 100%; aspect-ratio: auto; translate: none;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--ps-aura) 45%, transparent) 50%, transparent); transform: translateX(-130%) skewX(-18deg); }
+.shimmer-btn .shimmer::after { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer-btn .shimmer::before { animation: shimmer-sweep 3.6s var(--ps-ease-in-out) 1.2s infinite; }
+  [data-off] .shimmer-btn .shimmer::before { animation-play-state: paused; }
+}
+@keyframes shimmer-sweep { 0% { transform: translateX(-130%) skewX(-18deg); } 45%, 100% { transform: translateX(260%) skewX(-18deg); } }
 @media (hover: hover) and (pointer: fine) {
   .shimmer-btn:hover { box-shadow: var(--ps-glow-cta); }
-  .shimmer-btn:hover .shimmer::after { background: var(--ps-muted); }
 }
 
 /* ---------- Magic UI "Magic Card": the edge lights where the pointer is (LandingFx writes --spot-x / --spot-y) ---------- */
@@ -126,10 +135,11 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-photo-f img { object-position: 36% 50%; }
 .hx-photo-e { right: 0; top: 11.4%; }
 .hx-photo-e img { object-position: 62% 50%; }
-/* The card covers the foot of the company's photo: its label sits on top. */
-.hx-photo-e figcaption { top: var(--ps-space-3); bottom: auto; }
 .hx-photo figcaption { position: absolute; left: var(--ps-space-3); bottom: var(--ps-space-3); padding: 0.25rem 0.6rem; border-radius: var(--ps-radius-pill); background: color-mix(in srgb, var(--ps-bg-deep) 86%, transparent);
   font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-text); }
+/* The card covers the foot of the company's photo: its label sits on top. After the rule above, so its `bottom`
+   is released: a label held by both top and bottom stretched into a dark band over the photo. */
+.hx-photo-e figcaption { top: var(--ps-space-3); bottom: auto; }
 .hx-beams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .hx-beams-narrow { display: none; }
 .beam, .beam-pulse, .beam-glow { fill: none; stroke-linecap: round; vector-effect: non-scaling-stroke; }
