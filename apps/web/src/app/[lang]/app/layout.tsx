@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app/AppShell";
 import { AuthUnavailable } from "@/components/app/AuthUnavailable";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -43,20 +44,22 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   if (state.kind !== "signed-in") {
     // Signed out: the pages themselves redirect to sign-in. Unconfigured: say so, with the public site around it.
     return (
-      <>
+      <AuthProvider lang={lang}>
         <SiteHeader lang={lang} t={t} variant="site" />
         <main id="contenu" tabIndex={-1} className="wrap auth-page">
           {state.kind === "unconfigured" ? <AuthUnavailable t={t} /> : children}
         </main>
         <SiteFooter lang={lang} t={t} />
-      </>
+      </AuthProvider>
     );
   }
 
   return (
-    <AppShell lang={lang} t={t} person={state.person} counts={await headerCounts(state.person)}>
-      <ServiceWorkerRegistrar />
-      {children}
-    </AppShell>
+    <AuthProvider lang={lang}>
+      <AppShell lang={lang} t={t} person={state.person} counts={await headerCounts(state.person)}>
+        <ServiceWorkerRegistrar />
+        {children}
+      </AppShell>
+    </AuthProvider>
   );
 }

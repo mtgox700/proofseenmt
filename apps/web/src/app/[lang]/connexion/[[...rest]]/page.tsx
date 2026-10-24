@@ -3,6 +3,7 @@ import { SignIn } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AuthUnavailable } from "@/components/app/AuthUnavailable";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { dictionary, isLang } from "@/i18n";
@@ -25,7 +26,7 @@ export default async function SignInPage({ params }: PageProps) {
   if (!isLang(lang)) notFound();
   const t = dictionary(lang);
   return (
-    <>
+    <AuthProvider lang={lang}>
       <SiteHeader lang={lang} t={t} variant="site" />
       <main id="contenu" tabIndex={-1} className="wrap auth-page">
         <div className="auth-copy">
@@ -41,6 +42,6 @@ export default async function SignInPage({ params }: PageProps) {
         </div>
       </main>
       <SiteFooter lang={lang} t={t} />
-    </>
+    </AuthProvider>
   );
 }

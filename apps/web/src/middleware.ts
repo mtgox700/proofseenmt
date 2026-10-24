@@ -12,6 +12,8 @@ import { LANG_HEADER, langOfPath } from "@/lib/request-lang";
  *    that one space, and the browser is sent to the clean address. Nothing is verified here: the page verifies (Node
  *    runtime, constant-time comparison), so a forged token gains nothing by passing through.
  * 2. Clerk, for the connected app, only when its keys are configured. Without them the public site runs unchanged.
+ *    Never on the home page: it reads no session, and Clerk's handshake there cost a redirect before the first byte
+ *    (Kensa B3, measured with Lighthouse on a development instance: /fr, then clerk.accounts.dev, then /fr again).
  */
 
 export const ACCESS_COOKIE = "ps_access";
@@ -52,6 +54,9 @@ const pass = (request: NextRequest): NextResponse => {
   return NextResponse.next({ request: { headers } });
 };
 
+/** The home page in each language: public, static, and reading no session. */
+const HOME = /^\/(?:fr|en)\/?$/;
+
 const withClerk = clerkMiddleware((_auth, request) => spaceLink(request) ?? pass(request));
 
 /**
@@ -71,7 +76,7 @@ const legacy = (request: NextRequest): NextResponse | null => {
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
   const old = legacy(request);
   if (old !== null) return old;
-  if (authConfigured()) return withClerk(request, event);
+  if (authConfigured() && !HOME.test(request.nextUrl.pathname)) return withClerk(request, event);
   return spaceLink(request) ?? pass(request);
 }
 

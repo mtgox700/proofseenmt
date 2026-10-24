@@ -3,11 +3,11 @@ import "@proofseen/brand/chrome.css";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/landing.css";
+import "@/styles/site-header.css";
 import "@/styles/states.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { FONT_FILES, THEME_COLOR } from "@proofseen/brand";
-import { AuthProvider } from "@/components/auth/AuthProvider";
 import { dictionary, isLang, LANGS, type Lang } from "@/i18n";
 import { BRAND_ICONS, shareMetadata, siteOrigin } from "@/lib/brand-metadata";
 
@@ -63,7 +63,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         <a className="skip" href="#contenu">
           {t.skip}
         </a>
-        <AuthProvider lang={lang}>{children}</AuthProvider>
+        {/* No Clerk here: the home page and the public pages load none of it (STORYBOARD_V2 §8). The connected space
+            and the sign-in and sign-up pages wrap themselves in AuthProvider. */}
+        {children}
       </body>
     </html>
   );
