@@ -4,17 +4,21 @@
 
 ## Démarrage et enchaînement automatique des sprints
 
-Le plan d'exécution est `.war-room/PROMPTS_CONQUETE.md`. Il contient un prompt par sprint (C1 à C7), un bloc commun et un
-protocole d'enchaînement.
+**Depuis le 2026-10-24, le plan d'exécution actif est `.war-room/PROMPTS_LEGENDS.md`** (phase 2, sprints L0 à L9),
+exécuté par **la Légion** : War Room + Katana Forge + Trésor (finance, expertise comptable, juridique, portage,
+conformité, partenariats), réunis dans le skill `legends-league` (`~/.claude/skills/legends-league/`), avec un bus de
+communication entre agents (`.war-room/a2a/<sprint>/BUS.md`) et le serment « impressionner, toujours ; dépasser ses
+limites, jamais les règles » (`protocols/OATH.md`). `.war-room/PROMPTS_CONQUETE.md` (C1 à C25) reste la référence de la
+phase 1 : ses lignes 🟡 attendent des actions du founder.
 
-- **À chaque clôture de sprint**, et **au début de toute session** où le founder dit « go », « continue », « war room » ou
-  équivalent : ouvrir `.war-room/PROMPTS_CONQUETE.md`, prendre la première ligne du tableau de bord qui n'est pas ✅, et
-  exécuter le prompt de ce sprint en appliquant son bloc commun.
+- **À chaque clôture de sprint**, et **au début de toute session** où le founder dit « go », « continue », « war room »,
+  « légion » ou équivalent : charger le skill `legends-league`, ouvrir `.war-room/PROMPTS_LEGENDS.md`, prendre la première
+  ligne du tableau de bord qui n'est pas ✅, et exécuter le prompt de ce sprint en appliquant son bloc commun.
 - Un sprint ✅ déclenche immédiatement le suivant, sans attendre de feu vert. On ne s'arrête que pour une décision qui
   appartient au founder (GO API, GO PAIEMENT LIVE, GO DEPLOY, marque, prix), et on continue en parallèle ce qui n'en
   dépend pas.
-- Avant que le contexte ne sature : écrire `.war-room/sprints/Cx_HANDOFF.md` pour que la session suivante reprenne sans
-  rien redécouvrir.
+- Avant que le contexte ne sature : écrire `.war-room/sprints/Lx_HANDOFF.md` (ou `Cx_HANDOFF.md` en phase 1) pour que
+  la session suivante reprenne sans rien redécouvrir.
 
 ## Règles qui ne se discutent pas
 
