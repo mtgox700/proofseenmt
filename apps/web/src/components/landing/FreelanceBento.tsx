@@ -45,16 +45,22 @@ export function FreelanceBento({ lang, copy }: { readonly lang: Lang; readonly c
             <div className="mock mock-profile" aria-hidden="true">
               <div className="mock-id">
                 <span className="mock-avatar" />
-                <span className="mock-lines">
-                  <span />
-                  <span />
+                <span className="mock-who">
+                  <b>{profile.role}</b>
+                  <small>{profile.place}</small>
                 </span>
+                <span className="mock-tag">{profile.tag}</span>
               </div>
+              <span className="mock-pills">
+                {profile.skills.map((skill) => (
+                  <span key={skill}>{skill}</span>
+                ))}
+              </span>
               <ul>
                 {profile.sections.map((section, i) => (
                   <li key={section} style={{ "--i": i } as React.CSSProperties}>
                     <span className="mock-key">{section}</span>
-                    <span className="mock-bar" />
+                    <span className="mock-value">{profile.entries[i]}</span>
                   </li>
                 ))}
               </ul>
@@ -81,18 +87,28 @@ export function FreelanceBento({ lang, copy }: { readonly lang: Lang; readonly c
 
           <Tile id="fb-matches" className="t-matches">
             <div className="mock mock-mission" aria-hidden="true">
+              <span className="mock-meta">{matches.meta}</span>
               <span className="mock-title">{matches.mission}</span>
+              <span className="mock-pills">
+                {matches.skills.map((skill) => (
+                  <span key={skill}>{skill}</span>
+                ))}
+              </span>
               <span className="mock-reason">{matches.reason}</span>
             </div>
             <Caption id="fb-matches" title={matches.title} text={matches.text} />
           </Tile>
 
           <Tile id="fb-application" className="t-application">
-            <ol className="mock mock-steps" aria-hidden="true">
-              {application.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
+            <div className="mock mock-application" aria-hidden="true">
+              <span className="mock-meta">{application.mission}</span>
+              <ol className="mock-steps">
+                {application.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <span className="mock-reason">{application.detail}</span>
+            </div>
             <Caption id="fb-application" title={application.title} text={application.text} />
           </Tile>
 
@@ -103,10 +119,13 @@ export function FreelanceBento({ lang, copy }: { readonly lang: Lang; readonly c
                 <b>{mobile.notice}</b>
                 <small>{mobile.from}</small>
               </span>
-              <span className="phone-lines">
-                <span />
-                <span />
-                <span />
+              <span className="phone-list">
+                {mobile.items.map((item) => (
+                  <span key={item.title}>
+                    <b>{item.title}</b>
+                    <small>{item.text}</small>
+                  </span>
+                ))}
               </span>
             </div>
             <Caption id="fb-mobile" title={mobile.title} text={mobile.text} />
@@ -117,6 +136,10 @@ export function FreelanceBento({ lang, copy }: { readonly lang: Lang; readonly c
               <span className="bubble bubble-in">{messages.bubbles[0]}</span>
               <span className="bubble bubble-out">{messages.bubbles[1]}</span>
               <span className="bubble-file">{messages.file}</span>
+              <span className="bubble-quote">
+                <b>{messages.quote}</b>
+                <small>{messages.quoteStatus}</small>
+              </span>
               <span className="bubble-read">{messages.read}</span>
             </div>
             <Caption id="fb-messages" title={messages.title} text={messages.text} />

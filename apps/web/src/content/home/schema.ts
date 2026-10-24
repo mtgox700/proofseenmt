@@ -29,13 +29,14 @@ const FreelanceSchema = z.object({
   title: text,
   lead: text,
   link: text,
-  profile: titled.extend({ sections: z.array(text).length(6) }),
+  /** The example profile drawn in tile A: a role, three skills, one line per section. Labelled as an example. */
+  profile: titled.extend({ sections: z.array(text).length(6), role: text, place: text, skills: z.tuple([text, text, text]), entries: z.array(text).length(6), tag: text }),
   photo: titled.extend({ alt: text }),
   availability: titled.extend({ pill: text }),
-  matches: titled.extend({ mission: text, reason: text }),
-  application: titled.extend({ steps: z.tuple([text, text, text]) }),
-  mobile: titled.extend({ notice: text, from: text }),
-  messages: titled.extend({ bubbles: z.tuple([text, text]), file: text, read: text }),
+  matches: titled.extend({ mission: text, reason: text, meta: text, skills: z.tuple([text, text, text]) }),
+  application: titled.extend({ steps: z.tuple([text, text, text]), mission: text, detail: text }),
+  mobile: titled.extend({ notice: text, from: text, items: z.tuple([titled, titled, titled]) }),
+  messages: titled.extend({ bubbles: z.tuple([text, text]), file: text, read: text, quote: text, quoteStatus: text }),
   sample: text,
 });
 
@@ -73,9 +74,9 @@ const JourneySchema = z.object({
 const CompanySchema = z.object({
   phrase: titled.extend({ label: text, sentence: text, chips: z.array(text).min(3).max(6), sample: text }),
   facts: titled.extend({ items: z.tuple([text, text, text]), reference: text }),
-  board: titled.extend({ columns: z.tuple([text, text, text]) }),
-  escrow: titled.extend({ label: text }),
-  invoicing: titled.extend({ mention: text }),
+  board: titled.extend({ columns: z.tuple([text, text, text]), cards: z.tuple([z.array(text).min(1).max(3), z.array(text).min(1).max(3), z.array(text).min(1).max(3)]) }),
+  escrow: titled.extend({ label: text, contract: text, status: text }),
+  invoicing: titled.extend({ mention: text, lines: z.tuple([text, text, text]) }),
   team: titled.extend({ approvals: text }),
   api: titled.extend({ request: text, key: text }),
 });

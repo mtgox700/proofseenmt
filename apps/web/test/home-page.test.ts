@@ -186,8 +186,8 @@ describe("every scene is in the server HTML, in its final state", () => {
 
   it("waits for a gesture only where a script will start it, and never under reduced motion", () => {
     const found = contexts(styles, /data-play\]/);
-    // The register's reading rule (2 rules) and the gestures of the bento tiles (15 rules).
-    expect(found.length).toBe(17);
+    // The register's reading rule (2 rules) and the gestures of the bento tiles (16 rules).
+    expect(found.length).toBe(18);
     for (const context of found) expect(context).toBe("@media (scripting: enabled) and (prefers-reduced-motion: no-preference)");
   });
 
@@ -214,11 +214,12 @@ describe("every scene is in the server HTML, in its final state", () => {
 
   it("loops only light that moves in transform, and pauses it off screen", () => {
     const loops = [...styles.matchAll(/([^{};]+)\{[^{}]*\binfinite\b/g)].map((m) => (m[1] ?? "").trim());
-    expect(loops.sort()).toEqual([".hx-aurora", ".mq-track", ".shimmer::before"].sort());
-    for (const name of ["hx-drift", "mq-slide", "shimmer-spin"]) expect(styles).toMatch(new RegExp(`@keyframes ${name} \\{[^@]*?(?:transform|rotate):`));
+    expect(loops.sort()).toEqual([".hx-aurora", ".mq-track", ".shimmer::before", ".shimmer-btn .shimmer::before"].sort());
+    for (const name of ["hx-drift", "mq-slide", "shimmer-spin", "shimmer-sweep"]) expect(styles).toMatch(new RegExp(`@keyframes ${name} \\{[^@]*?(?:transform|rotate):`));
     expect(styles).toMatch(/\.hx\[data-off\] \.hx-aurora \{ animation-play-state: paused; \}/);
     expect(styles).toMatch(/\[data-off\] \.mq-track \{ animation-play-state: paused; \}/);
     expect(styles).toMatch(/\[data-off\] \.shimmer::before \{ animation-play-state: paused; \}/);
+    expect(styles).toMatch(/\[data-off\] \.shimmer-btn \.shimmer::before \{ animation-play-state: paused; \}/);
   });
 });
 

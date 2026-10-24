@@ -51,8 +51,10 @@ export function CompanyBento({ copy, sample }: { readonly copy: HomeCopy["compan
               {board.columns.map((column, i) => (
                 <span key={column} className="board-col">
                   <b>{column}</b>
-                  {Array.from({ length: 3 - i }, (_, j) => (
-                    <span key={j} className="board-card" style={{ "--i": j } as React.CSSProperties} />
+                  {(board.cards[i] ?? []).map((card) => (
+                    <span key={card} className="board-card">
+                      {card}
+                    </span>
                   ))}
                 </span>
               ))}
@@ -61,17 +63,21 @@ export function CompanyBento({ copy, sample }: { readonly copy: HomeCopy["compan
 
           <Tile id="cb-escrow" className="t-escrow" title={escrow.title} text={escrow.text}>
             <div className="mock mock-escrow" aria-hidden="true">
-              <span className="escrow-lock" />
-              <span className="escrow-label">{escrow.label}</span>
+              <span className="escrow-head">
+                <span className="escrow-lock" />
+                <span className="escrow-label">{escrow.label}</span>
+              </span>
+              <span className="escrow-contract">{escrow.contract}</span>
+              <span className="escrow-status">{escrow.status}</span>
             </div>
           </Tile>
 
           <Tile id="cb-invoicing" className="t-invoicing" title={invoicing.title} text={invoicing.text}>
             <div className="mock mock-invoice" aria-hidden="true">
               <span className="invoice-lines">
-                <span />
-                <span />
-                <span />
+                {invoicing.lines.map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
               </span>
               <span className="invoice-mention">{invoicing.mention}</span>
             </div>
