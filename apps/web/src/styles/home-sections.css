@@ -32,7 +32,8 @@
 /* No border and no ring: the title sits on the foot of the photo, a frame would cross it (Kensa m3). */
 .cv-photo { position: relative; margin: 0; overflow: hidden; border-radius: var(--ps-radius-media); }
 .cv-photo img { width: 100%; height: min(54svh, 34rem); object-fit: cover; object-position: 50% 45%; }
-.cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, color-mix(in srgb, var(--ps-bg) 78%, transparent) 62%, var(--ps-bg) 86%); pointer-events: none; }
+/* The photo blends into the page at its foot only: no flat band across the width. */
+.cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, color-mix(in srgb, var(--ps-bg) 70%, transparent) 82%, var(--ps-bg) 100%); pointer-events: none; }
 .cv-copy { display: grid; justify-items: start; gap: var(--ps-space-5); padding-block: var(--ps-space-6) var(--ps-section-y); }
 .cv-copy h2 { max-width: 16ch; }
 .cv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
@@ -40,6 +41,13 @@
 @media (min-width: 64rem) {
   /* The text sits on the bottom of the photo, where the gradient is at least 88 % ink (BRAND_BOOK_V2 §6: 58 % minimum). */
   .cv-copy { position: relative; margin-top: -12rem; padding-top: 0; }
+  /* A soft ellipse from the lower left, under the title (at least 85 % ink under its right edge); the right of the
+     photo keeps its light, and the foot still blends into the page. */
+  .cv-photo::after {
+    background:
+      radial-gradient(ellipse 80% 90% at 0% 100%, var(--ps-bg) 30%, color-mix(in srgb, var(--ps-bg) 88%, transparent) 58%, transparent 100%),
+      linear-gradient(transparent 60%, color-mix(in srgb, var(--ps-bg) 60%, transparent) 85%, var(--ps-bg) 100%);
+  }
 }
 @media (max-width: 40rem) { .cv-photo img { height: auto; aspect-ratio: 4 / 5; } .cv-actions { display: grid; width: 100%; } }
 @supports (animation-timeline: view()) {
