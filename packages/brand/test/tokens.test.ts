@@ -24,6 +24,7 @@ import {
   renderProfileCardCss,
   renderSealCss,
   renderTokensCss,
+  withoutHeaderSwitch,
 } from "../src/index";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -204,7 +205,7 @@ describe("brand sheets", () => {
   });
 
   it("chrome hides nothing, types no colour and keeps hover where hover exists", () => {
-    expect(CHROME_CSS).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(withoutHeaderSwitch(CHROME_CSS)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(CHROME_CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
     for (const rule of CHROME_CSS.split("\n").filter((line) => line.includes(":hover"))) expect(rule).toMatch(/^@media \(hover:hover\)/);
   });

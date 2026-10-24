@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { HubProfileSchema, type HubProfile } from "../src/schema";
 import { buildSite, AI_SEARCH_BOTS } from "../src/build";
@@ -90,7 +91,7 @@ describe("buildSite", () => {
   });
 
   it("never hides text", () => {
-    site.forEach(({ content }) => expect(content).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i));
+    site.forEach(({ content }) => expect(withoutHeaderSwitch(content)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i));
   });
 
   it("escapes user content (no HTML or script injection)", () => {

@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { renderProfilePage, type PublicProfile } from "../src/profile-page";
 import type { PublicSectionsView } from "../src/profile-sections";
@@ -79,7 +80,7 @@ describe("sections déclarées de la page publique", () => {
     expect(html).toContain('href="https://demo.example.com" rel="nofollow noopener ugc"');
     expect(html).toContain('href="https://aws.example.com/verify/123" rel="nofollow noopener ugc"');
     expect(html).toContain('src="https://proofseen.com/fichiers/0d6f5b3e-8f4a-4c55-9a76-2b9c1f0e7a11"');
-    expect(html).not.toMatch(/display\s*:\s*none|opacity\s*:\s*0[;}]|font-size\s*:\s*0[;}]/);
+    expect(withoutHeaderSwitch(html)).not.toMatch(/display\s*:\s*none|opacity\s*:\s*0[;}]|font-size\s*:\s*0[;}]/);
   });
 
   it("porte langues, formation, certifications, entreprise actuelle et photo dans les données structurées", () => {

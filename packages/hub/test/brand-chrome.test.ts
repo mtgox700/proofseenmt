@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FONT_FILES, PALETTE, THEME_COLOR, edgeSpotCss } from "@proofseen/brand";
+import { FONT_FILES, PALETTE, THEME_COLOR, edgeSpotCss, withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { renderBlogIndex } from "../src/blog-index";
 import { NO_COMPANY_FILTERS, renderCompanyDirectory } from "../src/company-directory";
@@ -108,7 +108,7 @@ describe("the head of every public page", () => {
     expect(html).not.toMatch(/\son[a-z]+=/i);
     // The disclosure triangle of the filter drawer is the one thing hidden (Safari draws it on its own): it is no text.
     const css = html.replace(/[.>\w]*::-webkit-details-marker\{display:none\}/g, "");
-    expect(css).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(withoutHeaderSwitch(css)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(html).toContain('<a class="skip" href="#contenu">');
     expect(html).toMatch(/<main id="contenu"/);
     expect(html).toContain('<img src="/brand/ps-lockup-dark.svg" width="125" height="24" alt="Proofseen">');
@@ -171,6 +171,23 @@ describe("the shared chrome", () => {
     }
     expect(header).toContain('<a href="/fr/missions" aria-current="page">Missions</a>');
     expect(header).toContain('<a class="lang" href="/en/missions" hreflang="en" lang="en">English</a>');
+  });
+
+  it("gives a phone the same header as the React pages: sign-in and sign-up on the row, the menu in a native sheet (Kensa N1)", () => {
+    for (const lang of ["fr", "en"] as const) {
+      const header = marketHeader(lang, `/${lang === "fr" ? "en" : "fr"}/freelances`, "freelancers");
+      expect(header).toContain('<header class="top has-sheet">');
+      expect(header).toContain(`<a class="signin-m" href="/${lang}/connexion">`);
+      expect(header).toMatch(/<details class="sheet"><summary class="sheet-toggle" aria-label="Menu"><span class="sheet-bars" aria-hidden="true"><\/span><\/summary>/);
+      const sheet = header.match(/<div class="sheet-panel">[\s\S]*?<\/div><\/details>/)?.[0] ?? "";
+      for (const path of ["missions", "freelances", "entreprises", "metiers", "postes", "simulateur", "blog", "connexion"]) expect(sheet).toContain(`href="/${lang}/${path}"`);
+      expect(sheet).toContain('class="lang"');
+      expect(header).not.toMatch(/<script|\son[a-z]+=/i);
+    }
+    // The sheet closes on a click outside without a script: the open summary stretches a layer over the page.
+    expect(STYLES).toContain('.sheet[open]>.sheet-toggle::before{content:"";position:fixed;inset:0;cursor:default}');
+    // At 375 px the row holds the mark, « Se connecter », « Créer un compte » and the button: no scrolling row.
+    expect(STYLES).toContain(".top.has-sheet .nav,.top.has-sheet .chrome>.lang{display:none}");
   });
 
   it("starts every page on the header's left edge and keeps the reading measure on running text (Kensa M6)", () => {

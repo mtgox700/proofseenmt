@@ -13,7 +13,6 @@ export const fr = {
   skip: "Aller au contenu",
   nav: {
     label: "Menu principal",
-    menu: "Menu",
     missions: "Missions",
     freelancers: "Freelances",
     skills: "Métiers",

@@ -1,4 +1,4 @@
-import { PROFILE_CARD_CSS } from "@proofseen/brand";
+import { PROFILE_CARD_CSS, withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { passageName, profileCardBody, profileCardFields, type ProfileCardView } from "../src/profile-card";
 import { NO_DIRECTORY_FILTERS, renderProfileDirectory, type DirectoryCardView, type DirectoryFilters } from "../src/profile-directory";
@@ -145,7 +145,7 @@ describe("la légende et la règle du vert", () => {
     // Le triangle du panneau de filtres est la seule chose masquée (Safari le dessine seul) : ce n'est pas du texte.
     const page = styleOf(directory([PROVEN])).replace(/[.>\w]*::-webkit-details-marker\{display:none\}/g, "");
     for (const css of [PROFILE_CARD_CSS, FILTER_STYLES, page]) {
-      expect(css).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+      expect(withoutHeaderSwitch(css)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
       const outside = css.replace(/@media \(hover:hover\) and \(pointer:fine\)\{[^{}]*(\{[^{}]*\}[^{}]*)*\}/g, "");
       expect(outside).not.toContain(":hover");
     }

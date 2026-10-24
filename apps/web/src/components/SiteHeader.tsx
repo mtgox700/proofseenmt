@@ -2,6 +2,7 @@ import Link from "next/link";
 import { publicMenu } from "@proofseen/hub";
 import type { Dictionary, Lang } from "@/i18n";
 import { LangSwitch } from "./LangSwitch";
+import { SheetKeys } from "./SheetKeys";
 import { Lockup } from "./Lockup";
 
 interface SiteHeaderProps {
@@ -20,8 +21,8 @@ interface SiteHeaderProps {
  * raw HTML, not pages of the React tree. Plain links too for sign-in and sign-up: a prefetch would bring Clerk.
  *
  * Under 64 rem (STORYBOARD_V2 §2, Kensa M10) the row of links gives way to « Se connecter », « Créer un compte » and a
- * menu button: a native <details> whose sheet lists the menu and the other language, without any script
- * (styles/site-header.css).
+ * menu button: a native <details> whose sheet lists the menu and the other language, the same markup as the hub's
+ * (rules in @proofseen/brand/chrome.css). It works without script; on these pages SheetKeys adds Escape to close it.
  */
 export function SiteHeader({ lang, t, variant, otherHref }: SiteHeaderProps) {
   const other: Lang = lang === "fr" ? "en" : "fr";
@@ -57,10 +58,11 @@ export function SiteHeader({ lang, t, variant, otherHref }: SiteHeaderProps) {
               {menu.signUp.label}
             </a>
             <details className="sheet">
-              <summary className="sheet-toggle" aria-label={t.nav.menu}>
+              <summary className="sheet-toggle" aria-label={menu.menu}>
                 <span className="sheet-bars" aria-hidden="true" />
               </summary>
               <div className="sheet-panel">
+                <SheetKeys />
                 <nav aria-label={menu.label}>
                   {menu.items.map((item) => (
                     <a key={item.key} href={item.href}>

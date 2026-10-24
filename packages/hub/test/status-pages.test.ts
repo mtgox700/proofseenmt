@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { notFoundPage, statusLang, unavailablePage } from "../src/status-pages";
 
@@ -18,7 +19,7 @@ describe("the 404 of the hub", () => {
     expect(en).toContain('<html lang="en">');
     for (const html of [fr, en]) {
       expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
-      expect(html).toContain('<header class="top">');
+      expect(html).toContain('<header class="top has-sheet">');
       expect(html).toContain('<footer class="foot">');
       expect(html).toContain("--ps-bg:");
       expect(html.length).toBeGreaterThan(5_000);
@@ -49,7 +50,7 @@ describe("the 404 of the hub", () => {
     for (const html of [fr, en]) {
       expect(html).not.toMatch(/<script\b/i);
       expect(html).not.toMatch(/\son[a-z]+=/i);
-      expect(html).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])/i);
+      expect(withoutHeaderSwitch(html)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])/i);
       const css = /<style>([\s\S]*)<\/style>/.exec(html)?.[1] ?? "";
       const own = css.slice(css.indexOf(".nf-code"));
       expect(own).not.toContain("--ps-proof");

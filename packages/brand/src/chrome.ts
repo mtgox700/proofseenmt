@@ -41,8 +41,8 @@ const BUTTONS = [
 ];
 
 /*
- * Header: the lockup, the public menu, the sign-up button, the other language. On a phone the menu is a second row
- * that scrolls sideways: every link stays in the page, reachable by touch and keyboard, without script or toggle.
+ * Header: the lockup, the public menu, the sign-up button, the other language. A header without the phone sheet (the
+ * `bare` one of the connected space keeps only the brand and the language) still scrolls its menu sideways on a phone.
  */
 const HEADER = [
   ".chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}",
@@ -76,6 +76,53 @@ const HEADER = [
     ".nav{overflow:visible;margin-left:var(--ps-space-5);padding-inline-end:0;-webkit-mask-image:none;mask-image:none}}",
 ];
 
+/*
+ * The phone header (STORYBOARD_V2 §2, Kensa M10 and N1), the same on the React pages and on the hub: under 64 rem the
+ * row of links gives way to « Se connecter », « Créer un compte » and a menu button, the summary of a native <details>
+ * whose sheet lists the public menu and the other language. One copy of the links is shown at a time: the row on a
+ * wide screen, the sheet on a phone. No script: an open sheet stretches a transparent layer from its summary over the
+ * page, so a click outside it closes it like a click on the button. A phone keeps the lockup's mark only (cropped, not
+ * swapped: no second file), so the two actions fit on the row at 375 px.
+ */
+/**
+ * The only rules of the brand that hide something, and what they hide is a copy: the header's links exist twice (the
+ * row of a wide screen, the sheet of a phone) and one copy is shown at a time; Safari's disclosure triangle is no
+ * text. The tests of « nothing hidden » strip these rules, and only these (`withoutHeaderSwitch`).
+ */
+export const HEADER_SWITCH_RULES = [
+  ".top .signin-m,.top .sheet{display:none}",
+  ".top.has-sheet .nav,.top.has-sheet .chrome>.lang{display:none}",
+  ".sheet-toggle::-webkit-details-marker{display:none}",
+] as const;
+
+/** A page's HTML or CSS without the header switch: what remains must hide nothing. */
+export const withoutHeaderSwitch = (text: string): string => HEADER_SWITCH_RULES.reduce((rest, rule) => rest.split(rule).join(""), text);
+
+const [HIDE_SHEET, HIDE_ROW, HIDE_MARKER] = HEADER_SWITCH_RULES;
+
+const SHEET = [
+  HIDE_SHEET,
+  "@media (max-width:63.99rem){" +
+    '.top.has-sheet .chrome{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"brand signin signup sheet"}' +
+    HIDE_ROW +
+    ".top .signin-m{grid-area:signin;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-2);color:var(--ps-text);font-size:var(--ps-step--1);text-decoration:none;white-space:nowrap}" +
+    ".top.has-sheet .signup{min-height:2.75rem;padding-inline:var(--ps-space-3)}" +
+    ".top .sheet{grid-area:sheet;display:block}" +
+    ".sheet-toggle{position:relative;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:var(--ps-border) solid var(--ps-line-strong);border-radius:var(--ps-radius);cursor:pointer;list-style:none}" +
+    HIDE_MARKER +
+    ".sheet-bars,.sheet-bars::before,.sheet-bars::after{display:block;width:1.1rem;height:2px;border-radius:1px;background:var(--ps-text)}" +
+    '.sheet-bars{position:relative}.sheet-bars::before,.sheet-bars::after{content:"";position:absolute;left:0}.sheet-bars::before{top:-6px}.sheet-bars::after{top:6px}' +
+    ".sheet[open] .sheet-bars{background:transparent}.sheet[open] .sheet-bars::before{top:0;transform:rotate(45deg)}.sheet[open] .sheet-bars::after{top:0;transform:rotate(-45deg)}" +
+    '.sheet[open]>.sheet-toggle::before{content:"";position:fixed;inset:0;cursor:default}' +
+    ".sheet-panel{position:absolute;left:0;right:0;top:100%;z-index:var(--ps-z-overlay);display:grid;gap:var(--ps-space-2);padding:var(--ps-space-3) var(--ps-gutter) var(--ps-space-5);" +
+    "background:var(--ps-overlay);border-bottom:var(--ps-border) solid var(--ps-line-strong);box-shadow:var(--ps-shadow-2)}" +
+    ".sheet-panel nav{display:grid}" +
+    ".sheet-panel nav a{display:flex;align-items:center;min-height:3.5rem;border-bottom:var(--ps-border) solid var(--ps-line);color:var(--ps-text);font-size:var(--ps-step-0);text-decoration:none}" +
+    ".sheet-panel .lang{grid-area:auto;justify-self:start;min-height:3.5rem;padding-inline:0}}",
+  "@media (max-width:30rem){.top.has-sheet .brand img{width:1.5rem;height:1.5rem;object-fit:cover;object-position:left center}}",
+  "@media (hover:hover) and (pointer:fine){.sheet-toggle:hover{border-color:var(--ps-text)}}",
+];
+
 // The end of the night: the deepest ground under a faint azure light (8 %, under the caps of the ambience).
 const FOOTER = [
   ".foot{margin-top:var(--ps-space-8);border-top:var(--ps-border) solid var(--ps-line);background:var(--ps-ambient-deep),var(--ps-bg-deep);color:var(--ps-muted);font-size:var(--ps-step--1);line-height:var(--ps-lead--1);" +
@@ -87,7 +134,7 @@ const FOOTER = [
   ".foot p{margin:0;max-width:var(--ps-measure)}",
 ];
 
-export const CHROME_CSS = [...BASE, ...SKIP, ...BUTTONS, ...HEADER, ...FOOTER].join("\n");
+export const CHROME_CSS = [...BASE, ...SKIP, ...BUTTONS, ...HEADER, ...SHEET, ...FOOTER].join("\n");
 
 export const renderChromeCss = (): string =>
   ["/* Generated from packages/brand/src/chrome.ts: do not edit by hand. */", CHROME_CSS, ""].join("\n");

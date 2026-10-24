@@ -11,7 +11,6 @@ export const en: Dictionary = {
   skip: "Skip to content",
   nav: {
     label: "Main menu",
-    menu: "Menu",
     missions: "Missions",
     freelancers: "Freelancers",
     skills: "Skills",

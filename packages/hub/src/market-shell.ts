@@ -11,8 +11,8 @@ import { escapeHtml as e } from "./html";
 export type Lang = "fr" | "en";
 
 const MENU = {
-  fr: { skip: "Aller au contenu", home: "Proofseen, accueil", label: "Menu principal", missions: "Missions", freelancers: "Freelances", companies: "Entreprises", skills: "Métiers", jobTitles: "Postes", simulator: "Simulateur", blog: "Blog", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
-  en: { skip: "Skip to content", home: "Proofseen, home", label: "Main menu", missions: "Missions", freelancers: "Freelancers", companies: "Companies", skills: "Skills", jobTitles: "Job titles", simulator: "Simulator", blog: "Blog", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
+  fr: { skip: "Aller au contenu", home: "Proofseen, accueil", label: "Menu principal", menu: "Menu", missions: "Missions", freelancers: "Freelances", companies: "Entreprises", skills: "Métiers", jobTitles: "Postes", simulator: "Simulateur", blog: "Blog", signIn: "Se connecter", signUp: "Créer un compte", otherLang: "English" },
+  en: { skip: "Skip to content", home: "Proofseen, home", label: "Main menu", menu: "Menu", missions: "Missions", freelancers: "Freelancers", companies: "Companies", skills: "Skills", jobTitles: "Job titles", simulator: "Simulator", blog: "Blog", signIn: "Sign in", signUp: "Sign up", otherLang: "Français" },
 } as const;
 
 export type MenuItem = "missions" | "freelancers" | "companies" | "skills" | "jobTitles" | "simulator" | "blog";
@@ -32,6 +32,8 @@ export interface PublicMenu {
   readonly skip: string;
   readonly home: string;
   readonly label: string;
+  /** The name of the phone's menu button (its summary shows three bars, no text). */
+  readonly menu: string;
   readonly items: readonly { readonly key: MenuItem; readonly href: string; readonly label: string }[];
   readonly signIn: { readonly href: string; readonly label: string };
   readonly signUp: { readonly href: string; readonly label: string };
@@ -45,6 +47,7 @@ export const publicMenu = (lang: Lang): PublicMenu => {
     skip: l.skip,
     home: l.home,
     label: l.label,
+    menu: l.menu,
     items: MENU_ITEMS.map(([key, path]) => ({ key, href: `/${lang}/${path}`, label: l[key] })),
     signIn: { href: `/${lang}/connexion`, label: l.signIn },
     signUp: { href: `/${lang}/creer-un-compte`, label: l.signUp },
@@ -60,18 +63,25 @@ export const lockup = (): string => `<picture><img src="${LOCKUP.dark}" width="$
 
 /**
  * Le lien d'évitement et l'en-tête public : la marque, le menu, l'inscription, le lien vers la même page dans l'autre
- * langue. Des liens simples, aucun script : sur un téléphone, le menu défile sur une seconde ligne, rien n'est replié.
+ * langue. Des liens simples, aucun script. Sur un téléphone (sous 64 rem, @proofseen/brand/chrome.css), la rangée de
+ * liens laisse la place à « Se connecter », « Créer un compte » et un bouton de menu : un <details> natif dont la
+ * feuille liste le même menu et l'autre langue (Kensa N1), le même balisage que l'en-tête React (SiteHeader.tsx).
  */
 export const marketHeader = (lang: Lang, otherHref: string, current?: MenuItem): string => {
   const m = publicMenu(lang);
   const other: Lang = lang === "fr" ? "en" : "fr";
   const items = m.items.map((i) => `<a href="${i.href}"${current === i.key ? ' aria-current="page"' : ""}>${i.label}</a>`).join("");
+  const signIn = `<a href="${m.signIn.href}">${m.signIn.label}</a>`;
+  const langLink = `<a class="lang" href="${e(otherHref)}" hreflang="${other}" lang="${other}">${m.otherLang}</a>`;
   return (
     `<a class="skip" href="#contenu">${m.skip}</a>` +
-    `<header class="top"><div class="chrome"><a class="brand" href="/${lang}" aria-label="${e(m.home)}">${lockup()}</a>` +
-    `<nav class="nav" aria-label="${m.label}">${items}<a href="${m.signIn.href}">${m.signIn.label}</a></nav>` +
+    `<header class="top has-sheet"><div class="chrome"><a class="brand" href="/${lang}" aria-label="${e(m.home)}">${lockup()}</a>` +
+    `<nav class="nav" aria-label="${m.label}">${items}${signIn}</nav>` +
+    `<a class="signin-m" href="${m.signIn.href}">${m.signIn.label}</a>` +
     `<a class="btn btn-primary signup" href="${m.signUp.href}">${m.signUp.label}</a>` +
-    `<a class="lang" href="${e(otherHref)}" hreflang="${other}" lang="${other}">${m.otherLang}</a></div></header>`
+    `<details class="sheet"><summary class="sheet-toggle" aria-label="${e(m.menu)}"><span class="sheet-bars" aria-hidden="true"></span></summary>` +
+    `<div class="sheet-panel"><nav aria-label="${m.label}">${items}${signIn}</nav>${langLink}</div></details>` +
+    `${langLink}</div></header>`
   );
 };
 

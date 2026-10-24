@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { describe, expect, it } from "vitest";
 import { BAROMETER_STYLES } from "../src/barometer-chart";
 import { rateCsv, rateJson, skillCsv, type RateBarometerView, type SkillBarometerView } from "../src/barometer-data";
@@ -160,7 +161,7 @@ describe("lot f : aucune page ne porte de script hors JSON-LD ni de texte caché
     for (const [, attrs] of html.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toContain('type="application/ld+json"');
     expect(html.match(/<script\b/g)).toHaveLength(1);
     expect(html).not.toMatch(/\son[a-z]+=/i);
-    expect(html).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
+    expect(withoutHeaderSwitch(html)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0/i);
     expect(html).not.toContain(String.fromCodePoint(0x2014));
     for (const line of html.split(/(?=@media)/).filter((l) => /:hover/.test(l))) expect(line).toMatch(/^@media \((hover:hover\) and \(pointer:fine\)|prefers-reduced-motion)/);
   });

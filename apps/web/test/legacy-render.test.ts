@@ -1,3 +1,4 @@
+import { withoutHeaderSwitch } from "@proofseen/brand";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,12 +50,12 @@ describe("the pages kept from the former static site", () => {
   it.each(PAGES)("%s wears the brand, ships no script but JSON-LD, and carries no em dash", (path) => {
     const html = read(path);
     expect(html).toContain('<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">');
-    expect(html).toContain('<header class="top">');
+    expect(html).toContain('<header class="top has-sheet">');
     expect(html).toContain('<footer class="foot">');
     expect(html).not.toMatch(/#070b14|#3fcf9c/i);
     expect(html).not.toContain(String.fromCodePoint(0x2014));
     for (const [, attrs] of html.matchAll(/<script\b([^>]*)>/gi)) expect(attrs).toContain('type="application/ld+json"');
-    expect(html).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])/i);
+    expect(withoutHeaderSwitch(html)).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])/i);
   });
 
   it("no longer says that every mission was checked on a document, nor that a client's name is never published", () => {
