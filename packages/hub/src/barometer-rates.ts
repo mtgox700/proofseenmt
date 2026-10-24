@@ -192,7 +192,7 @@ export const renderRateBarometer = (b: RateBarometerView, o: { readonly baseUrl:
     alternates: { fr: rateBarometerUrl(base, "fr"), en: rateBarometerUrl(base, "en") },
     jsonLd,
     otherHref: `/${other}/barometre/tjm`,
-    menu: "blog",
+    // The barometer is not a rubric of the menu: no item of the header is marked current here (Kensa m11).
     styles: `${LEDGER_STYLES}${BAROMETER_STYLES}`,
     extraHead: [`<link rel="alternate" type="text/csv" href="${e(csvUrl)}">`, `<link rel="alternate" type="application/json" href="${e(jsonUrl)}">`],
     main: [

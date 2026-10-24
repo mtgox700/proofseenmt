@@ -118,10 +118,11 @@ describe("lot f : figures en SVG serveur, sans le vert du poinçon", () => {
 });
 
 describe("lot f : adresses et navigation", () => {
-  it("les deux baromètres se relient l'un l'autre, la page courante marquée, et le menu reste sur Blog", () => {
+  it("les deux baromètres se relient l'un l'autre, la page courante marquée ; le menu n'en marque aucune rubrique (Kensa m11)", () => {
     expect(rates).toContain('<nav class="bnav" aria-label="Baromètres"><a href="/fr/barometre/tjm" aria-current="page">TJM</a><a href="/fr/barometre/competences">Compétences demandées</a></nav>');
     expect(skills).toContain('<a href="/fr/barometre/competences" aria-current="page">Compétences demandées</a>');
-    expect(rates).toContain('aria-current="page">Blog</a>');
+    // Le baromètre n'est pas une rubrique du menu : souligner « Blog » laissait croire qu'on lisait le blog.
+    for (const page of [rates, skills]) expect(page.match(/<nav class="nav"[\s\S]*?<\/nav>/)?.[0] ?? "").not.toContain("aria-current");
   });
 
   it("le blog présente les deux baromètres comme des jeux de données, avec leurs fichiers", () => {
