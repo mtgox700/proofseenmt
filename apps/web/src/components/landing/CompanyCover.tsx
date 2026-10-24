@@ -1,6 +1,7 @@
 import type { HomeCopy } from "@/content/home";
 import type { Lang } from "@/i18n";
 import { Photo } from "./Photo";
+import { postMissionHref } from "./routes";
 
 /*
  * S6, the turn to the company side. Aceternity UI's "Container Scroll Animation" rewritten as a CSS view timeline
@@ -13,7 +14,7 @@ export function CompanyCover({ lang, copy }: { readonly lang: Lang; readonly cop
     <section className="cv" id="entreprises" aria-labelledby="cv-title">
       <div className="cv-stage">
         <figure className="cv-photo">
-          <Photo name="handshake-hiring-desk" alt={copy.photo.alt} sizes="(min-width: 64rem) 1216px, 100vw" />
+          <Photo name="mission-scoping-whiteboard" alt={copy.photo.alt} sizes="(min-width: 64rem) 1216px, 100vw" />
         </figure>
       </div>
       <div className="wrap cv-copy">
@@ -21,7 +22,7 @@ export function CompanyCover({ lang, copy }: { readonly lang: Lang; readonly cop
         <h2 id="cv-title">{copy.title}</h2>
         <p className="section-lead pretty">{copy.lead}</p>
         <div className="cv-actions">
-          <a className="btn btn-primary" href={`/${lang}/app/missions/nouvelle`}>
+          <a className="btn btn-primary" href={postMissionHref(lang)}>
             {copy.primary}
           </a>
           <a className="text-link" href={`/${lang}/freelances`}>

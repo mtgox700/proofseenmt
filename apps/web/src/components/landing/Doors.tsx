@@ -1,6 +1,7 @@
 import type { HomeCopy } from "@/content/home";
 import type { Lang } from "@/i18n";
 import { Photo } from "./Photo";
+import { postMissionHref } from "./routes";
 
 /*
  * S12, the two doors: the loop opened by the hero closes, the two sides meet on one thread. Each half is one large
@@ -11,7 +12,7 @@ import { Photo } from "./Photo";
 export function Doors({ lang, copy }: { readonly lang: Lang; readonly copy: HomeCopy["doors"] }) {
   const doors = [
     { key: "freelance", door: copy.freelance, href: `/${lang}/creer-un-compte`, photo: "remote-freelance-coffee" },
-    { key: "company", door: copy.company, href: `/${lang}/app/missions/nouvelle`, photo: "handshake-deal-dark" },
+    { key: "company", door: copy.company, href: postMissionHref(lang), photo: "handshake-deal-dark" },
   ] as const;
   return (
     <section className="dr" aria-labelledby="exit-title">

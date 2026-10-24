@@ -16,6 +16,9 @@
 .mp-counter { grid-area: counter; font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-aura-text); }
 .mp-scene { grid-area: scene; position: relative; justify-self: center; width: min(100%, (100svh - 13rem) * 4 / 3); aspect-ratio: 4 / 3; }
 .mp-other { grid-area: other; justify-self: start; min-height: 2.75rem; white-space: normal; text-align: left; }
+/* Reserved in every step, shown at the last one only: the band never changes height (Kensa M2). */
+.mp-other:not([data-shown]) { visibility: hidden; }
+.mp-counter-sample { color: var(--ps-muted); }
 .mp-rail { grid-area: rail; display: flex; flex-direction: column; justify-content: center; align-self: center; }
 .mp-rail a { display: grid; place-items: center; width: 2.75rem; height: 1.75rem; }
 .mp-rail a::before { content: ""; width: 8px; height: 8px; border: 1px solid var(--ps-line-strong); border-radius: 50%; transition: background-color var(--ps-dur-ui) var(--ps-ease-out), transform var(--ps-dur-ui) var(--ps-ease-out); }
@@ -45,8 +48,9 @@
 .mp-sign { position: absolute; right: -2px; top: -2px; width: 1.5rem; height: 1.5rem; border: 1px solid var(--ps-text); border-radius: 50%; background: var(--ps-text); }
 .mp-sign::after { content: ""; position: absolute; left: 50%; top: 45%; width: 0.35rem; height: 0.6rem; translate: -50% -50%; rotate: 45deg; border-right: 2px solid var(--ps-bg); border-bottom: 2px solid var(--ps-bg); }
 .mp-chip { position: absolute; display: inline-flex; align-items: center; gap: 6px; padding: 0.25rem 0.6rem; white-space: nowrap; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-overlay); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); color: var(--ps-text); }
-.mp-invoice { top: calc(100% + 6px); left: 50%; translate: -50% 0; border-color: var(--ps-aura); color: var(--ps-aura-text); }
-.mp-stack { position: absolute; top: calc(100% + 2.6rem); left: 50%; translate: -50% 0; display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.65rem; white-space: nowrap;
+/* Beside the node, never on the beam that leaves from under it (Kensa m7). */
+.mp-invoice { top: 38%; left: calc(100% - 1.25rem); translate: 0 -50%; border-color: var(--ps-aura); color: var(--ps-aura-text); }
+.mp-stack { position: absolute; top: calc(38% + 2.1rem); left: calc(100% - 1.25rem); translate: 0 -50%; display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.65rem; white-space: nowrap;
   border: 1px solid var(--ps-proof); border-radius: var(--ps-radius); background: var(--ps-proof-wash); color: var(--ps-proof); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); }
 .mp-bubble { position: absolute; top: 2%; width: 2.25rem; height: 1.6rem; border-radius: 0.8rem 0.8rem 0.8rem 0.2rem; background: var(--ps-raised); border: 1px solid var(--ps-line-strong); }
 .mp-bubble::after { content: ""; position: absolute; inset: 40% 25% auto; height: 2px; border-radius: 1px; background: var(--ps-muted); box-shadow: 0 5px 0 var(--ps-muted); }
@@ -96,7 +100,7 @@
 .mp-steps { list-style: none; margin: 0; padding: 0; }
 /* Each step is a band of the screen's height around its text, so the text of the active step faces the scene; a
    jump to a step (the rail) lands it in the middle of the screen. */
-.mp-steps li { display: grid; align-content: center; gap: var(--ps-space-3); min-height: 60svh; padding-block: var(--ps-space-6); scroll-margin-top: 20svh; }
+.mp-steps li { display: grid; align-content: center; gap: var(--ps-space-3); min-height: 45svh; padding-block: var(--ps-space-5); scroll-margin-top: 20svh; }
 .mp-n { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); letter-spacing: var(--ps-track-label); color: var(--ps-aura-text); }
 .mp-steps h3 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
 .mp-steps p { max-width: 30rem; color: var(--ps-muted); }
@@ -116,9 +120,11 @@
   .mp-stage { position: sticky; top: 4rem; height: calc(100svh - 4rem); }
   /* Bands of 42 % of the screen: the step before and the step after stay in view, in the secondary ink, around the
      active one that faces the scene. No empty column above the text. */
-  .mp-steps li { min-height: 42svh; scroll-margin-top: 29svh; }
-  /* The first step starts level with the scene, not one band lower. */
-  .mp-steps li:first-child { min-height: calc(100svh - 4rem); align-content: center; }
+  /* Compact (Kensa M8, under three screens at 1440): a band of a quarter of the screen per step, the steps before
+     and after in view in the secondary ink around the one that faces the scene. The list's padding lets the first
+     and the last step reach the middle of the screen while the scene is stuck. */
+  .mp-steps { padding-block: 14svh; }
+  .mp-steps li { min-height: 22svh; padding-block: var(--ps-space-3); scroll-margin-top: 39svh; }
 }
 
 /* ---------- Phone and tablet: a band that sticks under the top of the screen ---------- */
@@ -139,9 +145,9 @@
   .mp-card-label { display: none; }
   .mp-quote { left: var(--ps-space-2); }
   .mp-other { width: 100%; font-size: var(--ps-step--1); }
-  .mp-steps li { min-height: 60svh; scroll-margin-top: 40svh; }
+  .mp-steps li { min-height: 32svh; padding-block: var(--ps-space-4); scroll-margin-top: 45svh; }
 }
 /* A short screen (landscape, small phones): the band does not stick, the steps read on their own. */
 @media (max-width: 63.99rem) and (max-height: 37.5rem) { .mp-stage { position: relative; } }
 /* Without a script: the final frame once, then the list; nothing sticks over it. */
-@media (scripting: none) { .mp-stage { position: relative; top: auto; height: auto; } .mp-steps li { min-height: 0; } }
+@media (scripting: none) { .mp-stage { position: relative; top: auto; height: auto; } .mp-steps { padding-block: 0; } .mp-steps li { min-height: 0; } }

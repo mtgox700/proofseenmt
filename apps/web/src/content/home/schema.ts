@@ -52,6 +52,8 @@ const JourneySchema = z.object({
     freelance: text,
     company: text,
     sample: text,
+    /** The same label, one word, kept beside the step counter on a phone where the card has no room for it. */
+    sampleShort: text,
     mission: text,
     skills: z.array(text).min(2).max(4),
     meta: text,
@@ -85,7 +87,7 @@ export const HomeCopySchema = z.object({
   hero: HeroSchema,
   capabilities: z.object({ label: text, items: z.array(text).length(14) }),
   freelance: FreelanceSchema,
-  verified: z.object({ kicker: text, title: text, lead: text, rows: z.array(z.object({ fact: text, by: text })).length(6), foot: text, link: text, photo }),
+  verified: z.object({ kicker: text, title: text, lead: text, rows: z.array(z.object({ fact: text, by: text })).length(5), foot: text, link: text, photo }),
   journey: JourneySchema,
   cover: z.object({ kicker: text, title: text, lead: text, primary: text, secondary: text, photo }),
   company: CompanySchema,

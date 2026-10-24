@@ -29,6 +29,8 @@ interface SceneProps {
   readonly typed: number;
   /** Under reduced motion every change is instant (STORYBOARD_V2 S5). */
   readonly reduced: boolean;
+  /** The section is on screen: a repeating pulse runs only then. */
+  readonly live: boolean;
 }
 
 function Pulse({ d, active, reverse = false, slow = false }: { readonly d: string; readonly active: boolean; readonly reverse?: boolean; readonly slow?: boolean }) {
@@ -53,7 +55,7 @@ export default function MotionScene(props: SceneProps) {
   );
 }
 
-function MissionScene({ copy, step, way, phase, typed }: SceneProps) {
+function MissionScene({ copy, step, way, phase, typed, live }: SceneProps) {
   const s = sceneAt(step);
   const other = way === "client";
   const verified = other ? otherWayVerified(phase) : s.verified;
@@ -67,18 +69,18 @@ function MissionScene({ copy, step, way, phase, typed }: SceneProps) {
         <path className={`mp-beam ${lit(other ? phase >= 1 : s.talking || s.payout || s.signed)}`} d={ARC} />
         <path className={`mp-beam ${lit(other ? false : s.freelance)}`} d={BEAM_F} />
         <path className={`mp-beam ${lit(other ? phase >= 2 : s.company)}`} d={BEAM_E} />
-        <Pulse d={BEAM_F} active={!other && s.applying} />
-        <Pulse d={BEAM_E} active={!other && step === 1} />
-        <Pulse d={ARC} active={!other && s.talking} slow />
-        <Pulse d={ARC} active={!other && s.talking} reverse slow />
-        <Pulse d={ARC} active={!other && s.payout} reverse />
-        <Pulse d={ARC} active={other && phase === 1} />
-        <Pulse d={ARC} active={other && phase === 2} reverse />
+        <Pulse d={BEAM_F} active={live && (!other && s.applying)} />
+        <Pulse d={BEAM_E} active={live && (!other && step === 1)} />
+        <Pulse d={ARC} active={live && (!other && s.talking)} slow />
+        <Pulse d={ARC} active={live && (!other && s.talking)} reverse slow />
+        <Pulse d={ARC} active={live && (!other && s.payout)} reverse />
+        <Pulse d={ARC} active={live && (other && phase === 1)} />
+        <Pulse d={ARC} active={live && (other && phase === 2)} reverse />
         <m.path className="mp-fill" d={ARC} initial={false} animate={{ pathLength: verified ? 1 : 0, opacity: verified ? 1 : 0 }} transition={{ duration: 0.36, ease: "easeInOut" }} />
       </svg>
 
       <div className={`mp-node mp-node-f ${s.freelance || other ? "is-on" : ""}`}>
-        <Photo name="hands-keyboard-terminal" alt="" sizes="96px" className="mp-face" />
+        <Photo name="hands-keyboard-terminal" alt="" sizes="(min-width: 64rem) 128px, 64px" className="mp-face" />
         <span className="mp-node-label">{copy.freelance}</span>
         <AnimatePresence initial={false}>
           {s.signed && !other ? <m.span key="sig-f" className="mp-sign" initial={{ scale: 0.6, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={SPRING} /> : null}
@@ -97,7 +99,7 @@ function MissionScene({ copy, step, way, phase, typed }: SceneProps) {
       </div>
 
       <div className={`mp-node mp-node-e ${s.company || other ? "is-on" : ""}`}>
-        <Photo name="mission-scoping-whiteboard" alt="" sizes="96px" className="mp-face" />
+        <Photo name="client-freelance-brief" alt="" sizes="(min-width: 64rem) 128px, 64px" className="mp-face" />
         <span className="mp-node-label">{copy.company}</span>
         <AnimatePresence initial={false}>
           {(s.signed && !other) || (other && phase >= 2) ? (

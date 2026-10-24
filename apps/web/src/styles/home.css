@@ -6,11 +6,13 @@
    (scripting: enabled) and (prefers-reduced-motion: no-preference); loops move transform only and pause off screen. */
 
 main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px); }
-.home { overflow-x: clip; }
+/* The home page's own rhythm (Kensa M8): about 112 px between two scenes at 1440, 56 px on a phone, not the brand's
+   176 px, which left the page a third longer than its content. */
+.home { overflow-x: clip; --ps-section-y: clamp(3.5rem, 1.75rem + 5.8vw, 7rem); }
 
 /* ---------- Shared: rhythm, titles, links ---------- */
 .section { position: relative; padding-block: var(--ps-section-y); }
-.section-head { display: grid; justify-items: start; gap: var(--ps-space-5); max-width: 46rem; margin-bottom: var(--ps-space-8); }
+.section-head { display: grid; justify-items: start; gap: var(--ps-space-5); max-width: 46rem; margin-bottom: var(--ps-space-7); }
 .home h2 { font-size: var(--ps-step-5); line-height: 1.02; letter-spacing: -0.03em; }
 .home h3 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); }
 /* A wide section opens on two columns: the title on the left, the sentence and the link under the right one. */
@@ -23,8 +25,6 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 }
 .section-lead { max-width: 40rem; font-size: var(--ps-step-1); line-height: var(--ps-lead-1); color: var(--ps-muted); }
 .home .kicker { margin: 0; color: var(--ps-aura-text); }
-/* The proof section alone wears a green label (BRAND_BOOK_V2 §5). */
-.home .kicker-proof { color: var(--ps-proof); }
 .text-link { display: inline-flex; align-items: center; gap: var(--ps-space-2); min-height: 2.75rem; color: var(--ps-aura-text); text-underline-offset: 0.3em; }
 .bento-note { margin-top: var(--ps-space-4); font: var(--ps-weight-mono) var(--ps-step--2) / var(--ps-lead--2) var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-faint); }
 
@@ -81,7 +81,9 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx { position: relative; isolation: isolate; display: grid; align-items: center; min-height: min(100svh - 4rem, 57.5rem); overflow: clip; background: var(--ps-bg-deep); contain: paint; }
 .hx-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 /* Aceternity UI "Aurora Background": the two ambient lights of the brand, drifting in transform only, no blur filter. */
-.hx-aurora { position: absolute; inset: -25% -15%; background: var(--ps-ambient-hero); will-change: transform; }
+/* Anchored in fixed lengths from the top left: when the title's font arrives and the hero grows, its corner does not
+   move, so the layer does not count as a shift (Kensa B2). */
+.hx-aurora { position: absolute; inset: auto; top: -14rem; left: -15%; width: 130%; height: calc(100% + 28rem); background: var(--ps-ambient-hero); will-change: transform; }
 /* Aceternity UI "Spotlight": one oblique light that lands on the scene, once. */
 .hx-spotlight { position: absolute; left: 30%; top: -30%; width: 90%; height: 80%; transform: rotate(-28deg);
   background: radial-gradient(closest-side, color-mix(in srgb, var(--ps-aura) 14%, transparent), transparent); }
@@ -105,9 +107,16 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-copy { display: grid; justify-items: start; gap: var(--ps-space-5); min-width: 0; }
 /* The LCP: painted at once, never animated. The one gradient text of the site; `color` stays the full ink for any
    reader that does not paint the gradient. */
-.hx-title { max-width: 13ch; font-size: clamp(2.6rem, 1.4rem + 4.4vw, 5.25rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.035em; color: var(--ps-text); }
+/* Four lines reserved: with the fallback face the title may hold in three, with PS Display in four (Kensa B2). */
+.hx-title { min-height: 4lh; max-width: 13ch; font-size: clamp(2.6rem, 1.4rem + 4.4vw, 5.25rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.035em; color: var(--ps-text); }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .hx-title { background: linear-gradient(100deg, var(--ps-text) 38%, var(--ps-aura-text)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+}
+.hx-banner { display: none; }
+@media (max-width: 40rem) {
+  .hx-banner { display: block; width: 100%; height: 7.5rem; overflow: hidden; border-radius: var(--ps-radius-media);
+    -webkit-mask-image: linear-gradient(var(--ps-text) 55%, transparent); mask-image: linear-gradient(var(--ps-text) 55%, transparent); }
+  .hx-banner img { width: 100%; height: 100%; object-fit: cover; object-position: 45% 35%; }
 }
 .hx-lead { max-width: 36rem; font-size: var(--ps-step-1); line-height: 1.5; color: var(--ps-muted); }
 .hx-ctas { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); margin-top: var(--ps-space-2); }
@@ -118,8 +127,8 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-points { list-style: none; margin: var(--ps-space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2) var(--ps-space-5); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
 .hx-points li { display: inline-flex; align-items: center; gap: var(--ps-space-2); }
 .hx-points li::before { content: ""; flex: none; width: 6px; height: 6px; border: 1px solid var(--ps-line-strong); }
-/* The one point about verification carries the poinçon's square. */
-.hx-points .hx-point-proof::before { border-color: var(--ps-proof); background: var(--ps-proof); }
+/* The point about verification is a promise, not a verified fact: it takes the ink, not the green (Shogun). */
+.hx-points .hx-point-proof::before { border-color: var(--ps-text); background: var(--ps-text); }
 @media (max-width: 40rem) {
   .hx-ctas { display: grid; width: 100%; }
   .hx-ctas .btn { width: 100%; }
@@ -161,7 +170,8 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 .hx-check { flex: none; width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .hx-check circle { fill: var(--ps-raised); }
 .hx-fact-1 { color: var(--ps-text); }
-.hx-fact-2 { color: var(--ps-signal); }
+/* Final frame: the mission is verified by its payment, so its funds were paid out after approval: ink, not amber. */
+.hx-fact-2 { color: var(--ps-text); }
 /* The brand's seal wears its own halo; here the card carries it, so nothing glows before the strike. */
 .hx-fact-3 .seal { gap: var(--ps-space-2); max-width: 100%; white-space: normal; box-shadow: none; }
 .hx-card-foot { font-size: var(--ps-step--2); color: var(--ps-faint); }
@@ -175,7 +185,8 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
   .hx .beam { animation: hx-beam 600ms var(--ps-ease-glow) 3100ms both; }
   .hx .beam-port { animation: hx-port 600ms var(--ps-ease-glow) 3100ms both; }
   .hx-fact-1 { animation: hx-fact 180ms var(--ps-ease-out) 1300ms both; }
-  .hx-fact-2 { animation: hx-fact 180ms var(--ps-ease-out) 2200ms both; }
+  /* Amber (the funds wait) only between 2 200 and 2 600 ms, then the ink of a fact done (Kensa M5). */
+  .hx-fact-2 { animation: hx-funds 2600ms linear both; }
   .hx-fact-3 .seal { animation: hx-seal 160ms var(--ps-ease-out) 3100ms both, hx-strike 420ms linear 3000ms both; }
   .hx-fact-3 .sq { animation: hx-square 160ms var(--ps-ease-out) 3100ms both; }
   .hx-card { animation: hx-card 600ms var(--ps-ease-glow) 3100ms both; }
@@ -186,6 +197,7 @@ main.home > section { padding-inline: env(safe-area-inset-left, 0px) env(safe-ar
 @keyframes hx-beam { from { stroke: var(--ps-line-strong); } }
 @keyframes hx-port { from { fill: var(--ps-line-strong); } }
 @keyframes hx-fact { from { color: var(--ps-muted); } }
+@keyframes hx-funds { 0%, 84.5% { color: var(--ps-muted); } 84.6%, 99.9% { color: var(--ps-signal); } 100% { color: var(--ps-text); } }
 @keyframes hx-seal { from { color: var(--ps-muted); border-color: var(--ps-line-strong); background-color: var(--ps-raised); } }
 @keyframes hx-square { from { background-color: var(--ps-line-strong); } }
 @keyframes hx-strike { 0% { transform: none; } 35% { transform: scale(1.06); } 70% { transform: scale(0.97); } 100% { transform: none; } }

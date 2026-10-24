@@ -12,6 +12,7 @@ import { J0_CITATIONS } from "../src/data/j0-citations";
 import { AnswersSnapshotSchema } from "../src/data/schema";
 import { en } from "../src/i18n/en";
 import { fr } from "../src/i18n/fr";
+import { CONTACT_HREF, postMissionHref } from "../src/components/landing/routes";
 import { buildRegistre } from "../src/lib/registre";
 
 /*
@@ -119,6 +120,23 @@ describe("the copy of the home page is typed, checked and the same in both langu
   });
 });
 
+describe("no scene waits for a script to be shown (Kensa B1)", () => {
+  it("sets no Suspense boundary on the page: a boundary streams its scene out of order, hidden until a script runs", () => {
+    const page = readFileSync(join(web, "src", "app", "[lang]", "page.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(page).not.toMatch(/<Suspense|from "react"/);
+  });
+
+  it.each(["fr", "en"] as const)("%s: the streamed HTML carries the journey and the company bento in place, never in a hidden block", async (lang) => {
+    const { renderToReadableStream } = await import("react-dom/server");
+    const stream = await renderToReadableStream(await LandingPage({ params: Promise.resolve({ lang }) }));
+    await stream.allReady;
+    const html = await new Response(stream).text();
+    expect(html).not.toContain('<div hidden id="S:');
+    expect(html.indexOf('id="parcours"')).toBeGreaterThan(html.indexOf('id="verifie"'));
+    expect(html.indexOf('id="outils-entreprise"')).toBeGreaterThan(html.indexOf('id="entreprises"'));
+  });
+});
+
 describe("every scene is in the server HTML, in its final state", () => {
   it("renders the twelve scenes of the storyboard, in order", () => {
     const ids = [...home.fr.matchAll(/<section[^>]*?\b(?:id|aria-labelledby)="([^"]+)"/g)].map((m) => m[1]);
@@ -138,7 +156,7 @@ describe("every scene is in the server HTML, in its final state", () => {
     const html = home[lang];
     expect(html).toMatch(/<section class="mp" id="parcours"[^>]*data-step="9"/);
     expect(html).toMatch(/<div class="mp-scene" data-verified=""/);
-    expect(visibleText(html.match(/<div class="mp-scene"[\s\S]*?<\/svg>[\s\S]*?<nav/)?.[0] ?? "")).toContain(homeCopy(lang).journey.stage.states[8]);
+    expect(visibleText(html.match(/<div class="mp-scene"[\s\S]*?<\/svg>[\s\S]*?<nav/)?.[0] ?? "")).toContain(visibleText(homeCopy(lang).journey.stage.states[8] ?? "").trim());
   });
 
   it.each([
@@ -147,6 +165,25 @@ describe("every scene is in the server HTML, in its final state", () => {
   ] as const)("%s: labels every example as fictitious", (lang, label) => {
     // The hero's card, the bento of the freelancer, the bento of the company, the scene of the journey.
     expect(visibleText(home[lang]).split(label).length - 1).toBeGreaterThanOrEqual(4);
+  });
+
+  it.each(["fr", "en"] as const)("%s: shows a possible state on the opening's card: verified by the payment, funds paid out (Kensa M5)", (lang) => {
+    const card = visibleText(home[lang].match(/<article class="hx-card"[\s\S]*?<\/article>/)?.[0] ?? "");
+    expect(card).toContain(visibleText(homeCopy(lang).hero.card.facts[1]).trim());
+    expect(card).not.toMatch(/séquestre|escrow/i);
+    expect(styles).toMatch(/\.hx-fact-2 \{ color: var\(--ps-text\); \}/);
+  });
+
+  it.each(["fr", "en"] as const)("%s: keeps the example label beside the step counter, where a phone has no room for the card's (Kensa M4)", (lang) => {
+    expect(visibleText(home[lang].match(/<p class="mp-counter">[\s\S]*?<\/p>/)?.[0] ?? "")).toContain(homeCopy(lang).journey.stage.sampleShort);
+  });
+
+  it.each(["fr", "en"] as const)("%s: reserves the place of the other way's button in every step, shown only by the script (Kensa M2)", (lang) => {
+    const button = home[lang].match(/<button[^>]*class="btn mp-other"[^>]*>/)?.[0] ?? "";
+    expect(button).not.toBe("");
+    expect(button).not.toContain("data-shown");
+    expect(button).toContain('aria-hidden="true"');
+    expect(styles).toMatch(/\.mp-other:not\(\[data-shown\]\) \{ visibility: hidden; \}/);
   });
 
   it.each(["fr", "en"] as const)("%s: says that payments run in test mode until the founder opens them", (lang) => {
@@ -259,12 +296,15 @@ describe("every link leads to a page that exists", () => {
     const main = home[lang].match(/<main[\s\S]*<\/main>/)?.[0] ?? "";
     const hrefs = [...new Set([...main.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1] ?? ""))];
     expect(hrefs.length).toBeGreaterThan(10);
-    for (const href of hrefs) {
+    for (const href of hrefs.filter((h) => h !== CONTACT_HREF)) {
       expect(href.startsWith("/") || href.startsWith("#"), href).toBe(true);
       expect(exists(href), href).toBe(true);
       if (href.startsWith("#")) expect(home[lang], href).toContain(`id="${href.slice(1)}"`);
     }
-    for (const expected of [`/${lang}/creer-un-compte`, `/${lang}/app/missions/nouvelle`, `/${lang}/freelances`, `/${lang}/barometre/tjm`, `/${lang}/simulateur`, `/${lang}/blog`, `/${lang}/inscription`, "#parcours"]) expect(hrefs).toContain(expected);
+    for (const expected of [`/${lang}/creer-un-compte`, postMissionHref(lang), `/${lang}/freelances`, `/${lang}/barometre/tjm`, `/${lang}/simulateur`, `/${lang}/blog`, `/${lang}/inscription`, "#parcours", CONTACT_HREF]) expect(hrefs).toContain(expected);
+    // Posting a mission never lands on a bare redirect: account creation, then back to the form (Kensa M6).
+    expect(hrefs).not.toContain(`/${lang}/app/missions/nouvelle`);
+    expect(postMissionHref(lang)).toBe(`/${lang}/creer-un-compte?redirect_url=%2F${lang}%2Fapp%2Fmissions%2Fnouvelle`);
   });
 
   it("keeps motion out of the first load: only the animated scene, fetched near the journey, imports it", () => {
@@ -306,6 +346,13 @@ describe("the register of the 780 answers is server SVG, under budget", () => {
     expect(visibleText(home.fr)).toContain("Notre fondateur : cité 0 fois sur 780");
     expect(visibleText(home.en)).toContain("Our founder: cited 0 times out of 780");
     expect(home.fr).not.toContain("rg-cat rg-you");
+  });
+
+  it.each(["fr", "en"] as const)("%s: shows five figures at most in the measure, each with its source; the counts stay in the folded table (Kensa M11)", (lang) => {
+    const section = home[lang].match(/<section class="section ai"[\s\S]*?<\/section>/)?.[0] ?? "";
+    const shown = visibleText(section.replace(/<details[\s\S]*?<\/details>/g, ""));
+    expect([...new Set(shown.match(/\d+(?:[,.]\d+)?/g) ?? [])].sort()).toEqual(["0", "2026", "23", "24", "780"]);
+    expect(shown).toContain(lang === "fr" ? "23 et 24 septembre 2026" : "23 and 24 September 2026");
   });
 
   it("states the measure with its wave, beside the figure", () => {

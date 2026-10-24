@@ -18,7 +18,7 @@ export function Verified({ lang, copy }: { readonly lang: Lang; readonly copy: H
         </figure>
         <div className="vf-copy">
           <header className="section-head reveal">
-            <p className="kicker kicker-proof">{copy.kicker}</p>
+            <p className="kicker">{copy.kicker}</p>
             <h2 id="vf-title">{copy.title}</h2>
             <p className="section-lead pretty">{copy.lead}</p>
           </header>

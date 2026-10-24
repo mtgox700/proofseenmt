@@ -31,6 +31,8 @@ interface SceneProps {
   readonly phase: number;
   readonly typed: number;
   readonly reduced: boolean;
+  /** The section is on screen: the pulses that repeat run only then (STORYBOARD_V2 §3, Kensa M3). */
+  readonly live: boolean;
 }
 
 const loadScene = (): Promise<ComponentType<SceneProps>> => import("./MissionScene").then((mod) => mod.default);
@@ -90,6 +92,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
   const [ready, setReady] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
+  const [inView, setInView] = useState(false);
 
   const verified = way === "client" ? phase === OTHER_WAY_AT.length - 1 : step === FINAL_STEP;
   const sealText = way === "client" ? copy.confirmed : (copy.states[FINAL_STEP - 1] ?? "");
@@ -111,6 +114,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
       if (frame === 0) frame = requestAnimationFrame(measure);
     };
     const observer = new IntersectionObserver(([entry]) => {
+      setInView(entry?.isIntersecting ?? false);
       if (entry?.isIntersecting) {
         window.addEventListener("scroll", onScroll, { passive: true });
         onScroll();
@@ -119,10 +123,14 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
       }
     });
     observer.observe(section);
+    // A change of size (the band of a phone, a font that arrives) moves the steps without a scroll: measure again.
+    const resized = new ResizeObserver(onScroll);
+    resized.observe(list);
     measure();
     setReady(true);
     return () => {
       observer.disconnect();
+      resized.disconnect();
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(frame);
     };
@@ -160,6 +168,7 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
 
   // The hero's link: the card flies from the opening into this scene, at the first step.
   useEffect(() => {
+    let focusTimer = 0;
     const onClick = (event: MouseEvent): void => {
       const link = (event.target as Element | null)?.closest?.("[data-mission-link]");
       const doc = document as ViewTransitionDocument;
@@ -181,13 +190,17 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
         document.getElementById(listId)?.scrollIntoView({ behavior: "instant", block: "start" });
         if (window.location.hash !== `#${sectionId}`) history.pushState(null, "", `#${sectionId}`);
       });
-      window.setTimeout(() => {
+      window.clearTimeout(focusTimer);
+      focusTimer = window.setTimeout(() => {
         card.style.viewTransitionName = "";
         document.getElementById(`${sectionId}-title`)?.focus({ preventScroll: true });
       }, 700);
     };
     document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    return () => {
+      document.removeEventListener("click", onClick);
+      window.clearTimeout(focusTimer);
+    };
   }, [reduced, sectionId, listId, bringScene]);
 
   const clearTimers = (): void => {
@@ -227,11 +240,12 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
     <div className="mp-stage" ref={stageRef}>
       <p className="mp-counter">
         {fill(copy.counter, { n: shown })}
+        <span className="mp-counter-sample"> · {copy.sampleShort}</span>
       </p>
       {Scene === null ? (
         <SceneStill copy={copy} step={way === "client" ? FINAL_STEP : step} />
       ) : (
-        <Scene copy={copy} step={step} way={way} phase={phase} typed={Math.min(typed, sealText.length)} reduced={reduced} />
+        <Scene copy={copy} step={step} way={way} phase={phase} typed={Math.min(typed, sealText.length)} reduced={reduced} live={inView} />
       )}
       <p className="sr-only" aria-live="polite">
         {way === "client" ? (phase === OTHER_WAY_AT.length - 1 ? copy.confirmed : copy.declared) : ""}
@@ -243,11 +257,18 @@ export function MissionStage({ copy, listId, sectionId }: StageProps) {
           </a>
         ))}
       </nav>
-      {ready && step === FINAL_STEP ? (
-        <button type="button" className="btn mp-other" onClick={way === "client" ? backToPayment : playOtherWay}>
-          {way === "client" ? copy.backButton : copy.otherButton}
-        </button>
-      ) : null}
+      {/* Always in the band, so its height never changes between the steps (Kensa M2); shown and reachable only at the
+          last step, once the script runs. */}
+      <button
+        type="button"
+        className="btn mp-other"
+        data-shown={ready && step === FINAL_STEP ? "" : undefined}
+        inert={!(ready && step === FINAL_STEP)}
+        aria-hidden={ready && step === FINAL_STEP ? undefined : true}
+        onClick={way === "client" ? backToPayment : playOtherWay}
+      >
+        {way === "client" ? copy.backButton : copy.otherButton}
+      </button>
     </div>
   );
 }

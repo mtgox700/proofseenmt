@@ -104,16 +104,14 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         // The home page v2: the founder's slot of the register (empty today) and its swatch.
         "home-registre.css: .rg-you",
         "home-registre.css: .rg-sw-you",
-        // The example mission of the opening, verified by its payment: its card, the two beams that fed it, their
-        // ports, and the poinçon's square before the one point that speaks of verification.
+        // The example mission of the opening, verified by its payment: its card, the two beams that fed it, their ports.
+        // The point of the opening about verification is a promise, so it stays in ink (Shogun, 2026-10-24).
         "home.css: .hx-card",
         "home.css: .hx-card-glow",
         "home.css: .hx-card-ring",
         "home.css: .beam",
         "home.css: .beam-port",
-        "home.css: .hx-points .hx-point-proof::before",
-        // The label of the one section about proof (BRAND_BOOK_V2 §5), and the six verified facts it defines.
-        "home.css: .home .kicker-proof",
+        // The verified facts the section « Ce qui est vérifié » defines. Its label is not green: a label is not a fact.
         "home-sections.css: .vf-tick",
         "home-sections.css: .vf-tick circle",
         "home-sections.css: @keyframes vf-tick > 100%",

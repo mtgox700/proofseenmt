@@ -1,6 +1,8 @@
 import type { HomeCopy } from "@/content/home";
 import type { Lang } from "@/i18n";
 import { HeroScene } from "./HeroScene";
+import { Photo } from "./Photo";
+import { postMissionHref } from "./routes";
 
 interface HomeHeroProps {
   readonly lang: Lang;
@@ -26,6 +28,8 @@ export function HomeHero({ lang, copy }: HomeHeroProps) {
       </div>
       <div className="wrap hx-grid">
         <div className="hx-copy">
+          {/* The phone's first screen opens on a photo (Kensa M9): a 640 w cut, lazy so a wide screen never fetches it. */}
+          <Photo name="freelance-code-night" alt="" sizes="213px" className="hx-banner" />
           <p className="kicker hx-kicker">{copy.kicker}</p>
           <h1 id="hero-title" className="hx-title">
             {copy.title}
@@ -36,7 +40,7 @@ export function HomeHero({ lang, copy }: HomeHeroProps) {
               <span className="shimmer" aria-hidden="true" />
               {copy.primary}
             </a>
-            <a className="btn hx-secondary" href={`/${lang}/app/missions/nouvelle`}>
+            <a className="btn hx-secondary" href={postMissionHref(lang)}>
               {copy.secondary}
             </a>
           </div>

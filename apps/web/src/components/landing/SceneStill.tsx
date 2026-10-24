@@ -20,7 +20,7 @@ export function SceneStill({ copy, step }: { readonly copy: HomeCopy["journey"][
         {s.verified ? <path className="mp-fill" d={ARC} /> : null}
       </svg>
       <div className={`mp-node mp-node-f ${s.freelance ? "is-on" : ""}`}>
-        <Photo name="hands-keyboard-terminal" alt="" sizes="96px" className="mp-face" />
+        <Photo name="hands-keyboard-terminal" alt="" sizes="(min-width: 64rem) 128px, 64px" className="mp-face" />
         <span className="mp-node-label">{copy.freelance}</span>
         {s.signed ? <span className="mp-sign" /> : null}
         {s.payout || s.verified ? <span className="mp-chip mp-invoice">{copy.billing}</span> : null}
@@ -32,7 +32,7 @@ export function SceneStill({ copy, step }: { readonly copy: HomeCopy["journey"][
         ) : null}
       </div>
       <div className={`mp-node mp-node-e ${s.company ? "is-on" : ""}`}>
-        <Photo name="mission-scoping-whiteboard" alt="" sizes="96px" className="mp-face" />
+        <Photo name="client-freelance-brief" alt="" sizes="(min-width: 64rem) 128px, 64px" className="mp-face" />
         <span className="mp-node-label">{copy.company}</span>
         {s.signed ? <span className="mp-sign" /> : null}
       </div>

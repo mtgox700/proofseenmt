@@ -9,6 +9,11 @@ interface RegistreProps {
   readonly lang: Lang;
   readonly t: Dictionary["field"];
   readonly answers: AnswersSnapshot;
+  /**
+   * The home page's version (Kensa M11, five figures at most): no share without a source per engine, no count per
+   * chip, a legend without numbers. Every count stays in the table, folded under its summary.
+   */
+  readonly compact?: boolean;
 }
 
 /** Earliest start of the reading rule (STORYBOARD b.1): after the headline has been painted. */
@@ -23,7 +28,7 @@ const fill = (template: string, values: Readonly<Record<string, string>>): strin
  * (`:has()`), so it works without JavaScript; the table under it says the same in words, for screen readers and robots.
  * No slot is green: the founder is cited in none of them, and the line under the figure says so with the real count.
  */
-export function Registre({ lang, t, answers }: RegistreProps) {
+export function Registre({ lang, t, answers, compact = false }: RegistreProps) {
   const registre = buildRegistre(answers.answers, answers.engines.length);
   const engines = answers.engines.map((engine) => t.engines[engine] ?? engine);
   const present = SOURCE_CATEGORIES.filter((category) => categoryTotal(registre, category) > 0);
@@ -42,7 +47,7 @@ export function Registre({ lang, t, answers }: RegistreProps) {
           {engines.map((engine, i) => (
             <span key={engine}>
               {engine}
-              <small>{fill(t.noSource, { pct: percent((registre.counts[i]?.none ?? 0) / Math.max(1, engineTotal(i)), lang) })}</small>
+              {compact ? null : <small>{fill(t.noSource, { pct: percent((registre.counts[i]?.none ?? 0) / Math.max(1, engineTotal(i)), lang) })}</small>}
             </span>
           ))}
         </div>
@@ -67,7 +72,7 @@ export function Registre({ lang, t, answers }: RegistreProps) {
         </PlayOnView>
       </div>
 
-      <p className="rg-key">{fill(t.key, { targets: String(registre.targets), controls: String(registre.controls) })}</p>
+      <p className="rg-key">{compact ? t.keyCompact : fill(t.key, { targets: String(registre.targets), controls: String(registre.controls) })}</p>
 
       <p className="rg-founder">
         <span className="rg-cartouche" aria-hidden="true" />
@@ -82,14 +87,14 @@ export function Registre({ lang, t, answers }: RegistreProps) {
           <label>
             <input className="sr-only" type="radio" name="rg-source" value="all" defaultChecked />
             <span>{t.all}</span>
-            <b>{n}</b>
+            {compact ? null : <b>{n}</b>}
           </label>
           {present.map((category) => (
             <label key={category}>
               <input className="sr-only" type="radio" name="rg-source" value={category} />
               <span className={`rg-sw rg-sw-${category}`} aria-hidden="true" />
               <span>{t.categories[category]}</span>
-              <b>{count(categoryTotal(registre, category), lang)}</b>
+              {compact ? null : <b>{count(categoryTotal(registre, category), lang)}</b>}
             </label>
           ))}
         </div>

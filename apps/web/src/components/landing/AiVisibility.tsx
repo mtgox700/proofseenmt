@@ -30,7 +30,7 @@ export function AiVisibility({ lang, copy, field, answers }: AiVisibilityProps) 
             {copy.link}
           </a>
         </div>
-        {answers === null ? null : <Registre lang={lang} t={field} answers={answers} />}
+        {answers === null ? null : <Registre lang={lang} t={field} answers={answers} compact />}
       </div>
     </section>
   );

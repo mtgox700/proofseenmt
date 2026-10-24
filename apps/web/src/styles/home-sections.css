@@ -5,7 +5,7 @@
 
 /* ---------- S4. What is verified, and by whom ---------- */
 .vf-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-7); align-items: start; }
-@media (min-width: 64rem) { .vf-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--ps-space-9); } .vf-photo { margin-top: 5rem; } }
+@media (min-width: 64rem) { .vf-grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--ps-space-8); } .vf-photo { margin-top: var(--ps-space-6); } }
 .vf-photo { margin: 0; overflow: hidden; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); box-shadow: var(--ps-glow-aura); }
 .vf-photo img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 40%; }
 @media (max-width: 63.99rem) { .vf-photo img { aspect-ratio: 16 / 9; } }
@@ -29,8 +29,9 @@
 /* ---------- S6. The company cover: Aceternity UI "Container Scroll", in CSS ---------- */
 .cv { position: relative; padding-block: var(--ps-section-y) 0; }
 .cv-stage { width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; perspective: 1200px; }
-.cv-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--ps-line); border-radius: var(--ps-radius-media); box-shadow: var(--ps-glow-aura), var(--ps-shadow-2); }
-.cv-photo img { width: 100%; height: min(78svh, 46rem); object-fit: cover; object-position: 50% 45%; }
+/* No border and no ring: the title sits on the foot of the photo, a frame would cross it (Kensa m3). */
+.cv-photo { position: relative; margin: 0; overflow: hidden; border-radius: var(--ps-radius-media); }
+.cv-photo img { width: 100%; height: min(54svh, 34rem); object-fit: cover; object-position: 50% 45%; }
 .cv-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, color-mix(in srgb, var(--ps-bg) 78%, transparent) 62%, var(--ps-bg) 86%); pointer-events: none; }
 .cv-copy { display: grid; justify-items: start; gap: var(--ps-space-5); padding-block: var(--ps-space-6) var(--ps-section-y); }
 .cv-copy h2 { max-width: 16ch; }
@@ -56,8 +57,9 @@
 .mf-lamp { position: absolute; left: 50%; top: calc(var(--ps-section-y) - 5rem); width: min(64rem, 100%); height: 18rem; translate: -50% 0; pointer-events: none; }
 .mf-cone { position: absolute; top: 0; width: 50%; height: 100%; }
 .mf-cone { -webkit-mask-image: linear-gradient(var(--ps-text), transparent 85%); mask-image: linear-gradient(var(--ps-text), transparent 85%); }
-.mf-cone-l { right: 50%; background: conic-gradient(from 70deg at 100% 0%, color-mix(in srgb, var(--ps-aura) 18%, transparent), transparent 40deg); transform-origin: 100% 0; }
-.mf-cone-r { left: 50%; background: conic-gradient(from 250deg at 0% 0%, transparent 320deg, color-mix(in srgb, var(--ps-aura) 18%, transparent) 360deg); transform-origin: 0 0; }
+/* Two beams that fall from the bar, down and outwards: angles measured from the top, clockwise. */
+.mf-cone-l { right: 50%; background: conic-gradient(from 180deg at 100% 0%, color-mix(in srgb, var(--ps-aura) 32%, transparent), transparent 62deg); transform-origin: 100% 0; }
+.mf-cone-r { left: 50%; background: conic-gradient(from 118deg at 0% 0%, transparent, color-mix(in srgb, var(--ps-aura) 32%, transparent) 62deg, transparent 62.5deg); transform-origin: 0 0; }
 .mf-bar { position: absolute; left: 50%; top: 0; width: 50%; height: 2px; translate: -50% 0; background: var(--ps-aura-text); box-shadow: var(--ps-glow-aura); }
 .mf .wrap { position: relative; display: grid; justify-items: center; gap: var(--ps-space-6); text-align: center; }
 .mf-columns, .mf-link { text-align: left; justify-self: start; }
@@ -90,8 +92,8 @@
 .rs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
 @media (min-width: 64rem) { .rs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(10.75rem, auto)); } .rs-barometer { grid-row: 1 / 3; } }
 .rs-card { display: grid; align-content: space-between; gap: var(--ps-space-4); padding: var(--ps-space-5); text-decoration: none; background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
-.rs-art svg { width: 100%; max-height: 9rem; }
-.rs-barometer .rs-art svg { max-height: 14rem; }
+.rs-art svg { width: 100%; max-height: 6rem; }
+.rs-barometer .rs-art svg { max-height: 10rem; }
 .rs-text { color: var(--ps-muted); }
 .rs-text strong { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
 .rs-link { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); text-decoration: underline; text-underline-offset: 0.3em; }
@@ -124,7 +126,12 @@
 .dr-doors { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 48rem) { .dr-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .dr-door { position: relative; isolation: isolate; display: grid; align-items: end; min-height: 18.75rem; overflow: hidden; padding: var(--ps-space-7) var(--ps-gutter); color: var(--ps-text); text-decoration: none; }
-@media (min-width: 48rem) { .dr-door { min-height: 32.5rem; padding: var(--ps-space-8); } }
+@media (min-width: 48rem) {
+  .dr-door { min-height: 28rem; padding: var(--ps-space-8); }
+  /* The outer edge of each door lines up with the page's grid (Kensa m13). */
+  .dr-freelance { padding-left: max(var(--ps-gutter), (100vw - var(--ps-max)) / 2); }
+  .dr-company { padding-right: max(var(--ps-gutter), (100vw - var(--ps-max)) / 2); }
+}
 .dr-photo, .dr-photo img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .dr-photo { z-index: -2; }
 .dr-photo img { object-fit: cover; }

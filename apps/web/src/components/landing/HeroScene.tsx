@@ -63,11 +63,11 @@ export function HeroScene({ copy }: { readonly copy: HomeCopy["hero"] }) {
   return (
     <div className="hx-scene">
       <figure className="hx-photo hx-photo-f">
-        <Photo name="freelance-code-night" alt={copy.freelance.alt} sizes="(min-width: 64rem) 220px, 64px" eager />
+        <Photo name="freelance-code-night" alt={copy.freelance.alt} sizes="(min-width: 40rem) 420px, 96px" eager />
         <figcaption>{copy.freelance.label}</figcaption>
       </figure>
       <figure className="hx-photo hx-photo-e">
-        <Photo name="client-freelance-brief" alt={copy.company.alt} sizes="(min-width: 64rem) 220px, 64px" eager />
+        <Photo name="client-freelance-brief" alt={copy.company.alt} sizes="(min-width: 40rem) 420px, 96px" eager />
         <figcaption>{copy.company.label}</figcaption>
       </figure>
       <Beams geometry={WIDE} className="hx-beams-wide" viewBox="0 0 560 560" />

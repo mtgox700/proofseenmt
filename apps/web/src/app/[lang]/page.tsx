@@ -6,7 +6,6 @@ import "@/styles/home-sections.css";
 import "@/styles/home-registre.css";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { AiVisibility } from "@/components/landing/AiVisibility";
 import { Capabilities } from "@/components/landing/Capabilities";
 import { CompanyBento } from "@/components/landing/CompanyBento";
@@ -55,7 +54,8 @@ const paymentsInTestMode = (): boolean => process.env.PROOFSEEN_PAYMENTS_LIVE !=
  * mission needs; the freelancer's side; what is verified and by whom; one mission from the post to the proof (the
  * flagship); the turn to the companies; their side; the position; the measure in AI answers; the open data; the
  * questions; two doors. Strong, quiet, medium, quiet, strong: never two heavy moments on one screen. Every scene is
- * server HTML in its final state; the two client scenes sit under their own Suspense so hydration is split. No price.
+ * server HTML in its final state, in the order of the page: no Suspense here, a boundary would stream a scene out of
+ * order into a hidden block that only a script reveals (Kensa B1). No price, no Clerk.
  */
 export default async function LandingPage({ params }: { readonly params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -73,17 +73,13 @@ export default async function LandingPage({ params }: { readonly params: Promise
         <Capabilities copy={copy.capabilities} />
         <FreelanceBento lang={lang} copy={copy.freelance} />
         <Verified lang={lang} copy={copy.verified} />
-        <Suspense>
-          <MissionPath copy={copy.journey} testMode={paymentsInTestMode()} />
-        </Suspense>
+        <MissionPath copy={copy.journey} testMode={paymentsInTestMode()} />
         <CompanyCover lang={lang} copy={copy.cover} />
-        <Suspense>
-          <CompanyBento copy={copy.company} sample={copy.freelance.sample} />
-        </Suspense>
+        <CompanyBento copy={copy.company} sample={copy.freelance.sample} />
         <Manifesto lang={lang} copy={copy.manifesto} />
         <AiVisibility lang={lang} copy={copy.ai} field={t.field} answers={answers} />
         <Resources lang={lang} copy={copy.resources} />
-        <Faq lang={lang} copy={copy.faq} />
+        <Faq copy={copy.faq} />
         <Doors lang={lang} copy={copy.doors} />
       </main>
       <SiteFooter lang={lang} t={t} />
