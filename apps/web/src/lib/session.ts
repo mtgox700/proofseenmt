@@ -1,5 +1,5 @@
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
-import { signInPath } from "./sign-in-path";
+import { signInPath, welcomePath } from "./sign-in-path";
 import { redirect } from "next/navigation";
 import type { Lang } from "@/i18n";
 import { authConfigured } from "./auth-config";
@@ -65,7 +65,7 @@ export const requirePerson = async (lang: Lang, allowed?: readonly Role[], retur
   if (state.kind === "unconfigured") return null;
   if (state.kind === "signed-out") redirect(signInPath(lang, returnTo));
   const { person } = state;
-  if (person.role === null) redirect(`/${lang}/app/bienvenue`);
+  if (person.role === null) redirect(welcomePath(lang, returnTo));
   if (allowed !== undefined && !allowed.includes(person.role)) redirect(`/${lang}/app`);
   return person;
 };

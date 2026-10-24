@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { signInPath } from "../src/lib/sign-in-path";
+import { returnPath, signInPath, welcomePath } from "../src/lib/sign-in-path";
 
 /*
  * Kensa B3: Clerk on the home page cost a third of its HTML (its localisation in the RSC payload) and two scripts of
@@ -60,9 +60,20 @@ describe("sign-in brings the visitor back to the page that asked for it (Kensa M
     expect(signInPath("en")).toBe("/en/connexion");
   });
 
+  it("keeps the intent of a new account through the role choice (Kensa n1)", () => {
+    expect(welcomePath("fr", "/fr/app/missions/nouvelle")).toBe("/fr/app/bienvenue?redirect_url=%2Ffr%2Fapp%2Fmissions%2Fnouvelle");
+    expect(welcomePath("en")).toBe("/en/app/bienvenue");
+    expect(returnPath("/en/app/missions/nouvelle")).toBe("/en/app/missions/nouvelle");
+    for (const evil of ["https://evil.example/fr", "//evil.example", ["/fr/app"], null, undefined, 42]) expect(returnPath(evil)).toBeNull();
+    const page = readFileSync(join(src, "app", "[lang]", "app", "bienvenue", "page.tsx"), "utf8");
+    expect(page).toContain("redirect(returnPath(formData.get(\"return\")) ?? `/${lang}/app`);");
+    expect(readFileSync(join(src, "lib", "session.ts"), "utf8")).toContain("redirect(welcomePath(lang, returnTo));");
+  });
+
   it("refuses any address that is not a path of this site", () => {
     for (const evil of ["https://evil.example/fr", "//evil.example", "/fr/app?x=https://evil.example", "javascript:alert(1)", "/de/app"]) {
       expect(signInPath("fr", evil), evil).toBe("/fr/connexion");
+      expect(welcomePath("fr", evil), evil).toBe("/fr/app/bienvenue");
     }
   });
 });

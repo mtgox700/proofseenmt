@@ -9,3 +9,13 @@ const RETURNABLE = /^\/(?:fr|en)\/[\w/-]*$/;
  */
 export const signInPath = (lang: Lang, returnTo?: string): string =>
   returnTo !== undefined && RETURNABLE.test(returnTo) ? `/${lang}/connexion?redirect_url=${encodeURIComponent(returnTo)}` : `/${lang}/connexion`;
+
+/** A value read from a query or a form, kept only if it is a path of this site that a visitor may come back to. */
+export const returnPath = (value: unknown): string | null => (typeof value === "string" && RETURNABLE.test(value) ? value : null);
+
+/**
+ * The role choice of a new account, carrying the page it was going to (Kensa n1): a new company account that came to
+ * post a mission chooses its side, then lands on the mission form instead of the dashboard.
+ */
+export const welcomePath = (lang: Lang, returnTo?: string): string =>
+  returnTo !== undefined && RETURNABLE.test(returnTo) ? `/${lang}/app/bienvenue?redirect_url=${encodeURIComponent(returnTo)}` : `/${lang}/app/bienvenue`;
