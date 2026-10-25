@@ -1,0 +1,545 @@
+# Contrat de prestation de services, texte français, v1. Trésor (Inès Kader), 2026-10-24.
+# Placeholders : variables déclarées dans template.yaml. Aucun HTML. Aucune logique dans le texte.
+
+language: fr
+title: "Contrat de prestation de services"
+subtitle: "Référence {{contract.id}}, version {{document.versionNumber}} du {{document.issuedOn}}"
+
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen en cours de relecture par un avocat. Il ne constitue pas un conseil
+  juridique et ne remplace pas l'avis de votre conseil. Relisez-le, et faites-le relire si besoin, avant de le signer.
+reviewFooter: "Modèle Proofseen en cours de relecture par un avocat, version {{document.versionNumber}}."
+
+clauses:
+  parties:
+    heading: "Les parties"
+    body: |
+      Le présent contrat est conclu entre :
+
+      {{seller}}
+
+      ci-après « le Prestataire », agissant à titre professionnel et indépendant,
+
+      et
+
+      {{buyer}}
+
+      ci-après « le Client », représenté par la personne habilitée qui signe le présent contrat pour son compte.
+
+      Les identités ci-dessus sont celles que chaque partie a déclarées sur Proofseen et qui ont été figées à la création
+      du contrat. Chaque partie garantit leur exactitude et informe l'autre de tout changement.
+
+  platform-role:
+    heading: "Rôle de Proofseen"
+    body: |
+      Les parties se sont rencontrées sur Proofseen, service édité par {{platform.publisherName}},
+      {{platform.publisherForm}}, immatriculée au {{platform.publisherRegistry}} sous le numéro SIREN
+      {{platform.publisherSiren}}, dont le siège est situé {{platform.publisherAddress}} (ci-après « Proofseen »).
+
+      Proofseen n'est pas partie au présent contrat. Elle intervient seulement comme :
+
+      - intermédiaire qui a permis la mise en relation des parties ;
+      - mandataire de facturation du Prestataire, qui émet en son nom et pour son compte les factures de la prestation
+        (article « Facturation ») ;
+      - fournisseur de l'outil de paiement en ligne, opéré par le prestataire de services de paiement Stripe, qui reçoit
+        et conserve les fonds jusqu'à leur versement (article « Paiement »).
+
+      Proofseen n'est l'employeur ni du Prestataire ni de personne intervenant pour lui. Elle ne donne aucune instruction
+      sur l'exécution de la prestation, ne négocie ni ne conclut au nom de l'une des parties, et ne garantit ni la bonne
+      exécution du contrat, ni le paiement, ni un quelconque résultat. Ses propres engagements envers chaque partie sont
+      ceux des conditions d'utilisation de Proofseen, version du {{platform.termsVersion}}, que chaque partie a acceptées.
+
+  scope:
+    heading: "Objet de la prestation"
+    body: |
+      Le Prestataire réalise pour le Client la prestation suivante :
+
+      {{input.scope}}
+
+      Livrables et critères de recette convenus :
+
+      {{input.deliverables}}
+
+      La prestation est exécutée {{input.workMode}}. Les dates, horaires et modalités de présence éventuelle dans les
+      locaux du Client sont convenus entre les parties en fonction des besoins de la prestation, sans que le Client
+      puisse les imposer unilatéralement.
+
+      À défaut de précision sur la qualité attendue d'un livrable, le Prestataire fournit une prestation conforme aux
+      attentes légitimes des parties, compte tenu de l'objet ci-dessus et du prix convenu.
+
+  contract-documents:
+    heading: "Documents contractuels"
+    body: |
+      Le contrat se compose, par ordre de priorité décroissant : des avenants signés par les deux parties, du présent
+      contrat, puis du devis accepté sur Proofseen dont il reprend les conditions. Les procès-verbaux de recette et les
+      relevés mensuels validés en constatent l'exécution.
+
+      Les conditions d'utilisation de Proofseen régissent les relations de chaque partie avec Proofseen ; elles ne
+      modifient pas les engagements des parties entre elles, sauf pour les règles de versement des fonds auxquelles le
+      présent contrat renvoie expressément.
+
+  cost-center:
+    heading: "Imputation interne du Client"
+    body: |
+      Le Client demande que ses factures portent la mention de son centre de coûts : {{contract.costCenter}}. Cette
+      mention est donnée pour son imputation interne et ne modifie aucun engagement.
+
+  duration:
+    heading: "Durée"
+    variants:
+      fixed_dated: |
+        Le contrat prend effet à sa signature par les deux parties. La prestation commence le {{contract.startsOn}} et
+        doit être livrée au plus tard le {{contract.endsOn}}, sauf report convenu par écrit. Le contrat prend fin à la
+        recette de la prestation et au versement du prix.
+      fixed_open: |
+        Le contrat prend effet à sa signature par les deux parties. La prestation commence le {{contract.startsOn}} et
+        s'exécute dans un délai raisonnable au regard de son objet et du nombre de jours vendus. Le contrat prend fin à
+        la recette de la prestation et au versement du prix.
+      monthly_dated: |
+        Le contrat prend effet à sa signature par les deux parties. La prestation commence le {{contract.startsOn}} et
+        prend fin le {{contract.endsOn}}, ou plus tôt si le plafond de jours est atteint. Il n'est pas renouvelé
+        tacitement : une poursuite après son terme exige un avenant.
+      monthly_open: |
+        Le contrat prend effet à sa signature par les deux parties. La prestation commence le {{contract.startsOn}}, pour
+        une durée indéterminée, et prend fin au plus tard quand le plafond de jours est atteint. Chaque partie peut y
+        mettre fin dans les conditions de l'article « Fin du contrat ».
+
+  price:
+    heading: "Prix"
+    variants:
+      fixed: |
+        La prestation est vendue au forfait, pour {{contract.days}} jours au prix journalier de
+        {{contract.dailyRateCents}} hors taxes, soit un prix total de {{contract.totalCents}} hors taxes.
+
+        Ce prix est ferme. Il rémunère l'ensemble de la prestation et des livrables, y compris, si les parties l'ont
+        choisi, la cession ou la licence de droits prévue à l'article « Propriété intellectuelle ». Toute modification
+        du prix passe par un avenant.
+      monthly: |
+        La prestation est facturée en régie, au prix journalier de {{contract.dailyRateCents}} hors taxes. Chaque mois,
+        le montant dû est égal au prix journalier multiplié par le nombre de demi-journées travaillées figurant au
+        relevé mensuel validé, divisé par deux, arrondi au centime le plus proche.
+
+        Le nombre total de jours facturables ne peut dépasser {{contract.days}} jours, soit un plafond de
+        {{contract.totalCents}} hors taxes. Le Client ne doit que les jours effectivement travaillés et validés ; le
+        plafond n'est pas un engagement de commande.
+
+  vat:
+    heading: "Taxe sur la valeur ajoutée"
+    variants:
+      standard: |
+        Le prix s'entend hors taxes. La TVA est facturée en sus au taux applicable au Prestataire, de
+        {{seller.vatRateBp}} à la date du contrat, soit {{computed.vatCents}} sur le prix total, pour un total de
+        {{computed.totalTtcCents}} toutes taxes comprises. Un changement de taux légal s'applique de plein droit.
+      exempt: |
+        Le Prestataire déclare bénéficier de la franchise en base de TVA : TVA non applicable, article 293 B du code
+        général des impôts. Il informe le Client et Proofseen sans délai s'il cesse d'en bénéficier ; la TVA est alors
+        facturée en sus à compter de cette date.
+
+  payment:
+    heading: "Paiement sécurisé et versement"
+    variants:
+      fixed: |
+        Le Client paie le prix toutes taxes comprises par le paiement en ligne proposé sur Proofseen, au plus tard à la
+        date de début de la prestation. Le paiement est opéré par Stripe, prestataire de services de paiement, qui reçoit
+        et conserve les fonds jusqu'à leur versement. Proofseen ne détient pas les fonds.
+
+        Le Prestataire n'est pas tenu de commencer la prestation tant que Proofseen n'a pas confirmé aux deux parties la
+        réception du paiement.
+
+        Les fonds sont versés au Prestataire, déduction faite le cas échéant de la commission mise à sa charge (article
+        « Commission de Proofseen »), après la recette de la prestation (article « Recette »), sauf contestation en
+        cours. Une contestation est en cours quand le Client a notifié des réserves motivées dans le délai de recette,
+        quand une contestation de paiement est ouverte auprès de la banque du Client, ou quand une action en justice
+        portant sur le contrat est engagée.
+
+        Pendant une contestation, les fonds restent conservés par Stripe. Ils sont versés ou remboursés, en tout ou en
+        partie, selon le premier des événements suivants : un accord écrit des deux parties signé sur Proofseen, une
+        décision de justice exécutoire, ou l'application des règles de versement des conditions d'utilisation de
+        Proofseen acceptées par les deux parties. Proofseen exécute ces règles ; elle ne tranche pas le fond du
+        différend.
+
+        À défaut de paiement à la date de début, les sommes dues portent de plein droit, dès le lendemain, des pénalités
+        de retard au taux de trois fois le taux d'intérêt légal, et le Client doit une indemnité forfaitaire pour frais
+        de recouvrement de {{rule.recoveryFeeCents}}. Le Prestataire peut suspendre l'exécution après l'avoir notifié
+        au Client, et mettre en oeuvre l'article « Fin du contrat ».
+      monthly: |
+        Le Client paie chaque mois le montant toutes taxes comprises du relevé mensuel validé, par le paiement en ligne
+        proposé sur Proofseen, selon les modalités de l'article « Financement des mois de régie ». Le paiement est opéré
+        par Stripe, prestataire de services de paiement, qui reçoit et conserve les fonds jusqu'à leur versement.
+        Proofseen ne détient pas les fonds.
+
+        Les fonds de chaque mois sont versés au Prestataire, déduction faite le cas échéant de la commission mise à sa
+        charge, après la validation du relevé du mois (article « Recette »), sauf contestation en cours au sens de
+        l'alinéa suivant.
+
+        Une contestation est en cours quand le Client a refusé le relevé par un motif écrit dans le délai de validation,
+        quand une contestation de paiement est ouverte auprès de la banque du Client, ou quand une action en justice
+        portant sur le contrat est engagée. Pendant une contestation, les fonds du mois concerné restent conservés par
+        Stripe et sont versés ou remboursés selon le premier des événements suivants : un accord écrit des deux parties
+        signé sur Proofseen, une décision de justice exécutoire, ou l'application des règles de versement des
+        conditions d'utilisation de Proofseen acceptées par les deux parties. Proofseen exécute ces règles ; elle ne
+        tranche pas le fond du différend.
+
+        À défaut de paiement à l'échéance, les sommes dues portent de plein droit, dès le lendemain, des pénalités de
+        retard au taux de trois fois le taux d'intérêt légal, et le Client doit une indemnité forfaitaire pour frais de
+        recouvrement de {{rule.recoveryFeeCents}}. Le Prestataire peut suspendre l'exécution après l'avoir notifié au
+        Client, et mettre en oeuvre l'article « Fin du contrat ».
+
+  monthly-funding:
+    heading: "Financement des mois de régie"
+    variants:
+      monthly_provision: |
+        Au début de chaque mois, le Client verse une provision égale au nombre de jours prévus pour le mois multiplié
+        par le prix journalier, toutes taxes comprises, sans dépasser le reste du plafond. À la validation du relevé,
+        le montant réel est versé au Prestataire et l'excédent éventuel est remboursé au Client sans délai.
+      # Délai de quinze jours : HYPOTHÈSE de rédaction, à fixer avec la décision D8 (variante bloquée jusque-là).
+      pay_on_timesheet: |
+        Le relevé validé de chaque mois est payé par le Client dans un délai de quinze jours à compter de sa validation.
+        Les fonds sont versés au Prestataire dès leur réception.
+      single_provision: |
+        À la signature, le Client verse une provision égale au plafond du contrat, toutes taxes comprises. Le montant de
+        chaque relevé validé est versé au Prestataire sur cette provision ; le solde non utilisé est remboursé au Client
+        à la fin du contrat.
+
+  commission:
+    heading: "Commission de Proofseen"
+    variants:
+      freelance: |
+        Proofseen perçoit, pour la mise en relation, la facturation et l'outil de paiement, une commission de
+        {{contract.commissionBp}} du prix hors taxes, soit {{computed.commissionHtCents}} hors taxes calculés sur le
+        prix total, majorée de la TVA applicable. Cette commission est à la charge du Prestataire : Proofseen la lui
+        facture et la déduit du versement. Le Client ne paie aucun frais à Proofseen au titre du présent contrat.
+
+        Ce taux est figé à la création du contrat et ne peut changer qu'avec l'accord écrit du Prestataire.
+      company: |
+        Proofseen perçoit, pour la mise en relation, la facturation et l'outil de paiement, des frais de service de
+        {{contract.commissionBp}} du prix hors taxes, soit {{computed.commissionHtCents}} hors taxes calculés sur le
+        prix total, majorés de la TVA applicable. Ces frais sont à la charge du Client : Proofseen les lui facture et
+        il les paie avec le prix. Le Prestataire reçoit l'intégralité du prix convenu.
+
+        Ce taux est figé à la création du contrat et ne peut changer qu'avec l'accord écrit du Client.
+
+  invoicing:
+    heading: "Facturation"
+    body: |
+      Le Prestataire a donné à Proofseen, avant la conclusion du contrat, mandat d'émettre en son nom et pour son
+      compte les factures de la prestation adressées au Client (article 289, I-2, du code général des impôts). Chaque
+      facture est émise après le paiement, porte la mention qu'elle est acquittée, et est mise à la disposition des
+      deux parties sur Proofseen.
+
+      Le Prestataire reste seul responsable de ses obligations de facturation et de déclaration de TVA. Il peut
+      contester une facture émise en son nom dans le délai prévu par le mandat ; une facture rectificative est alors
+      émise.
+
+  acceptance:
+    heading: "Recette"
+    variants:
+      fixed: |
+        Le Prestataire déclare sur Proofseen la livraison de la prestation. À compter de cette déclaration, le Client
+        dispose de {{input.acceptanceWindowDays}} jours pour :
+
+        - prononcer la recette, sans réserve ou avec des réserves mineures qui n'empêchent pas l'usage des livrables et
+          que le Prestataire lève dans un délai convenu ;
+        - ou refuser la recette par des réserves motivées, précises et rattachées aux livrables et critères de
+          l'article « Objet de la prestation ».
+
+        La recette est constatée par un procès-verbal établi sur Proofseen. Des réserves motivées ouvrent au Prestataire
+        un délai raisonnable de correction, puis un nouveau délai de recette de même durée, limité aux points réservés.
+
+        Les parties conviennent expressément qu'à défaut de recette ou de réserves motivées dans le délai, la recette
+        est réputée prononcée sans réserve à son expiration.
+      monthly: |
+        Le Prestataire déclare chaque mois sur Proofseen le nombre de demi-journées travaillées le mois précédent. Le
+        Client dispose de {{input.acceptanceWindowDays}} jours à compter de cette déclaration pour valider le relevé ou
+        le refuser par un motif écrit. Un relevé refusé est corrigé et déposé de nouveau ; un relevé validé ne change
+        plus.
+
+        Les parties conviennent expressément qu'à défaut de validation ou de refus motivé dans le délai, le relevé est
+        réputé validé à son expiration.
+
+  refunds:
+    heading: "Réductions, remboursements et contestations de paiement"
+    body: |
+      Toute réduction du prix est convenue par avenant signé des deux parties. Si elle intervient avant le versement,
+      la différence toutes taxes comprises est remboursée au Client par Stripe et la commission de Proofseen est
+      calculée sur le prix réduit. Si elle intervient après le versement, une facture d'avoir est émise au nom du
+      Prestataire ; le Prestataire rembourse au Client le montant toutes taxes comprises de l'avoir et accepte que ce
+      remboursement soit prélevé sur son compte de versement dans les conditions des conditions d'utilisation de
+      Proofseen, ou, à défaut de solde suffisant, le règle dans un délai de trente jours.
+
+      Le Client s'engage à utiliser la procédure de recette et de réserves du présent contrat avant toute contestation
+      de paiement auprès de sa banque fondée sur l'exécution de la prestation. Une contestation de paiement suspend le
+      versement. Si elle aboutit après le versement, le Prestataire restitue la somme reprise par la banque dans les
+      mêmes conditions, sauf si la contestation était manifestement injustifiée, auquel cas le Client répond du
+      préjudice causé au Prestataire.
+
+  independence:
+    heading: "Indépendance du Prestataire"
+    body: |
+      Le Prestataire exerce en professionnel indépendant. Il déclare être immatriculé pour l'activité objet du
+      contrat et s'acquitter lui-même de ses obligations sociales et fiscales.
+
+      Il organise librement son travail : il choisit ses méthodes, ses outils et ses horaires, sous réserve des
+      contraintes de sécurité et d'accès aux systèmes du Client portées à sa connaissance. Il utilise ses propres
+      moyens, sauf accès que le Client lui ouvre pour les besoins de la prestation. Il reste libre de travailler pour
+      d'autres clients, le présent contrat ne comportant aucune exclusivité.
+
+      Le Client exprime ses besoins et vérifie le résultat ; il ne donne au Prestataire ni ordres ni directives sur la
+      manière d'exécuter la prestation, n'exerce sur lui aucun pouvoir de contrôle ou de sanction et ne l'intègre pas
+      à son organisation hiérarchique. Aucune stipulation du contrat ne crée de lien de subordination entre le
+      Prestataire et le Client, ni entre le Prestataire et Proofseen.
+
+  vigilance:
+    heading: "Attestation de vigilance"
+    body: |
+      Le montant de la prestation, seul ou cumulé avec les contrats des six derniers mois entre les mêmes parties,
+      atteint {{rule.vigilanceThresholdCents}} hors taxes, seuil à partir duquel le Client doit vérifier que le
+      Prestataire est à jour de ses obligations sociales.
+
+      Le Prestataire remet donc sur Proofseen, à la conclusion du contrat puis tous les six mois jusqu'à la fin de son
+      exécution, une attestation de vigilance délivrée par l'organisme de recouvrement depuis moins de six mois et, si
+      son immatriculation est obligatoire, un justificatif de celle-ci. Le Client en vérifie l'authenticité auprès de
+      l'organisme. Le contrôle que Proofseen peut faire de ces pièces facilite cette vérification sans s'y substituer.
+
+  subcontracting:
+    heading: "Sous-traitance"
+    variants:
+      "false": |
+        Le Client a choisi le Prestataire en considération de sa personne. Le Prestataire exécute lui-même la
+        prestation et ne peut la sous-traiter, même en partie, sans l'accord écrit préalable du Client.
+      "true": |
+        Le Client autorise le Prestataire à sous-traiter une partie de la prestation. Le Prestataire reste seul
+        responsable envers le Client de la prestation sous-traitée, informe le Client de l'identité de chaque
+        sous-traitant avant son intervention, et lui impose les obligations de confidentialité du présent contrat.
+
+  intellectual-property:
+    heading: "Propriété intellectuelle"
+    variants:
+      assignment: |
+        Le Prestataire cède au Client, à titre exclusif, les droits patrimoniaux d'auteur sur les livrables créés
+        spécifiquement pour le Client au titre du contrat, à savoir :
+
+        - le droit de reproduction, sur tous supports ;
+        - le droit de représentation et de communication au public, par tous moyens ;
+        - le droit d'adaptation, de modification, de traduction et d'intégration à d'autres oeuvres ;
+        - le droit de distribution et de mise sur le marché, à titre gratuit ou onéreux.
+
+        Ces droits sont cédés pour la destination suivante : {{input.ipPurpose}} ; pour le territoire suivant :
+        {{input.ipTerritory}} ; et pour une durée de {{input.ipDurationYears}} ans à compter de leur transfert. Le prix
+        de cette cession est compris dans le prix de la prestation.
+
+        La cession prend effet, pour chaque livrable, à la plus tardive des deux dates suivantes : sa recette et le
+        paiement complet du prix correspondant. Jusque-là, le Client dispose d'un droit d'usage pour les seuls besoins
+        de la recette.
+
+        Les éléments que le Prestataire possédait avant le contrat ou qu'il développe indépendamment (savoir-faire,
+        méthodes, outils, composants génériques) restent sa propriété ; il concède au Client, aux mêmes conditions de
+        destination, de territoire et de durée, une licence non exclusive de les utiliser tels qu'intégrés aux
+        livrables. Les composants sous licence libre restent soumis à leur licence, que le Prestataire signale au
+        Client. Aucune cession ne porte sur des oeuvres futures autres que les livrables du contrat.
+      licence: |
+        Le Prestataire reste titulaire des droits patrimoniaux d'auteur sur les livrables. Il concède au Client une
+        licence non exclusive et non transférable, sauf accord écrit du Prestataire, comprenant :
+
+        - le droit de reproduire les livrables, sur tous supports ;
+        - le droit de les représenter et de les communiquer, par tous moyens ;
+        - le droit de les adapter et de les modifier pour ses besoins.
+
+        Cette licence est consentie pour la destination suivante : {{input.ipPurpose}} ; pour le territoire suivant :
+        {{input.ipTerritory}} ; et pour une durée de {{input.ipDurationYears}} ans. Son prix est compris dans le prix de
+        la prestation. Elle prend effet pour chaque livrable à sa recette et au paiement complet du prix correspondant.
+
+        Les composants sous licence libre restent soumis à leur licence, que le Prestataire signale au Client.
+      retained: |
+        Le Prestataire conserve l'ensemble des droits de propriété intellectuelle sur les livrables. Le Client peut
+        utiliser les livrables qui lui sont remis pour ses besoins internes, en lien avec l'objet du contrat, après
+        leur recette et le paiement complet du prix correspondant. Toute autre exploitation, notamment la diffusion
+        publique, la revente ou la modification par un tiers, exige un accord écrit distinct du Prestataire.
+
+        Les composants sous licence libre restent soumis à leur licence, que le Prestataire signale au Client.
+
+  confidentiality:
+    heading: "Confidentialité"
+    body: |
+      Chaque partie garde confidentielles les informations non publiques que l'autre lui communique pour l'exécution
+      du contrat, quel qu'en soit le support, et ne les utilise que pour cette exécution. Elle ne les communique qu'aux
+      personnes qui ont besoin de les connaître et qui sont tenues à la même obligation.
+
+      Cette obligation ne s'applique pas aux informations publiques sans faute de la partie qui les reçoit, déjà
+      connues d'elle de façon licite, développées indépendamment, ou dont la communication est exigée par la loi ou par
+      une autorité, dans la limite de cette exigence.
+
+      Elle dure pendant le contrat et {{input.confidentialityYears}} ans après sa fin, sans préjudice de la protection
+      plus longue que la loi accorde au secret des affaires. À la fin du contrat, chaque partie restitue ou détruit,
+      au choix de l'autre, les informations confidentielles reçues, sauf obligation légale de conservation.
+
+  personal-data:
+    heading: "Données personnelles des parties"
+    body: |
+      Chaque partie traite les données personnelles de l'interlocuteur de l'autre (nom, coordonnées professionnelles)
+      pour la seule gestion du contrat, en qualité de responsable de traitement, et les conserve le temps du contrat
+      puis des délais de prescription. Proofseen traite les données des parties dans les conditions de sa politique de
+      confidentialité.
+
+  data-processing:
+    heading: "Traitement de données personnelles pour le compte du Client"
+    body: |
+      Pour l'exécution de la prestation, le Prestataire traite des données personnelles pour le compte du Client, qui
+      en est le responsable de traitement. Le traitement est décrit comme suit :
+
+      {{input.dpaDetails}}
+
+      Le Prestataire, en qualité de sous-traitant au sens du règlement (UE) 2016/679 :
+
+      - ne traite les données que sur instruction documentée du Client, y compris pour tout transfert hors de l'Union
+        européenne, et l'informe immédiatement s'il estime qu'une instruction enfreint la réglementation ;
+      - veille à ce que les personnes autorisées à traiter les données soient tenues à la confidentialité ;
+      - met en oeuvre des mesures de sécurité appropriées au risque ;
+      - ne recourt à un autre sous-traitant qu'avec l'autorisation écrite préalable du Client, en lui imposant les
+        mêmes obligations ;
+      - aide le Client à répondre aux demandes d'exercice des droits des personnes concernées, et à respecter ses
+        obligations de sécurité, de notification des violations et d'analyse d'impact ;
+      - au terme de la prestation, supprime ou restitue toutes les données, au choix du Client, et en détruit les
+        copies, sauf obligation légale de conservation ;
+      - met à la disposition du Client les informations nécessaires pour démontrer le respect de ces obligations et
+        permet la réalisation d'audits.
+
+  liability:
+    heading: "Responsabilité"
+    variants:
+      fixed: |
+        Le Prestataire exécute la prestation avec soin et selon les règles de l'art. Il est tenu d'une obligation de
+        moyens, sauf pour la conformité des livrables aux critères de recette expressément convenus.
+
+        Chaque partie ne répond que des dommages directs et prévisibles lors de la conclusion du contrat, sauf faute
+        lourde ou dolosive. Hors faute lourde ou dolosive, atteinte à la personne, manquement à la confidentialité et
+        atteinte aux droits de propriété intellectuelle d'un tiers, la responsabilité totale de chaque partie au titre
+        du contrat est limitée au prix total hors taxes. Cette limite ne s'applique pas au paiement du prix lui-même.
+      monthly: |
+        Le Prestataire exécute la prestation avec soin et selon les règles de l'art. Il est tenu d'une obligation de
+        moyens, sauf pour la conformité des livrables aux critères expressément convenus.
+
+        Chaque partie ne répond que des dommages directs et prévisibles lors de la conclusion du contrat, sauf faute
+        lourde ou dolosive. Hors faute lourde ou dolosive, atteinte à la personne, manquement à la confidentialité et
+        atteinte aux droits de propriété intellectuelle d'un tiers, la responsabilité totale de chaque partie au titre
+        du contrat est limitée aux sommes hors taxes payées au titre des douze mois précédant le fait générateur. Cette
+        limite ne s'applique pas au paiement des relevés validés.
+
+  insurance:
+    heading: "Assurance"
+    body: |
+      Le Prestataire déclare être assuré pour sa responsabilité civile professionnelle auprès de {{input.insurerName}},
+      police n° {{input.insurancePolicy}}, et maintenir cette assurance pendant le contrat. Il en remet l'attestation
+      au Client à sa demande.
+
+  force-majeure:
+    heading: "Force majeure"
+    body: |
+      Aucune partie n'est responsable d'un manquement causé par un événement de force majeure, c'est-à-dire un
+      événement échappant à son contrôle, qui ne pouvait être raisonnablement prévu lors de la conclusion du contrat
+      et dont les effets ne peuvent être évités par des mesures appropriées. La partie empêchée prévient l'autre sans
+      délai. Si l'empêchement est temporaire, l'exécution est suspendue ; s'il dure plus de trente jours ou devient
+      définitif, chaque partie peut mettre fin au contrat par notification, sans indemnité.
+
+  termination:
+    heading: "Fin du contrat"
+    variants:
+      fixed_dated: |
+        En cas de manquement grave d'une partie à ses obligations, l'autre peut mettre fin au contrat quinze jours
+        après une mise en demeure restée sans effet, qui vise expressément le présent article. Les livrables recettés
+        restent dus et payés ; les travaux en cours sont réglés d'un commun accord ou, à défaut, selon les règles de
+        versement de l'article « Paiement sécurisé et versement ».
+      fixed_open: |
+        En cas de manquement grave d'une partie à ses obligations, l'autre peut mettre fin au contrat quinze jours
+        après une mise en demeure restée sans effet, qui vise expressément le présent article. Les livrables recettés
+        restent dus et payés ; les travaux en cours sont réglés d'un commun accord ou, à défaut, selon les règles de
+        versement de l'article « Paiement sécurisé et versement ».
+      monthly_dated: |
+        En cas de manquement grave d'une partie à ses obligations, l'autre peut mettre fin au contrat quinze jours
+        après une mise en demeure restée sans effet, qui vise expressément le présent article. Les demi-journées
+        travaillées jusqu'à la fin du contrat restent dues sur relevé.
+      monthly_open: |
+        Chaque partie peut mettre fin au contrat à tout moment par notification écrite, avec un préavis de
+        {{input.noticeDays}} jours. Le préavis tient compte de la durée de la relation entre les parties ; quand
+        celle-ci est ancienne, la partie qui y met fin accorde un préavis plus long, raisonnable au regard de cette
+        durée.
+
+        En cas de manquement grave d'une partie à ses obligations, l'autre peut mettre fin au contrat sans préavis
+        quinze jours après une mise en demeure restée sans effet, qui vise expressément le présent article. Les
+        demi-journées travaillées jusqu'à la fin du contrat restent dues sur relevé.
+
+  non-solicitation:
+    heading: "Non-sollicitation"
+    body: |
+      Pendant le contrat et {{input.nonSolicitationMonths}} mois après sa fin, chaque partie s'interdit de solliciter,
+      en vue de l'embaucher ou de la faire travailler directement pour elle, une personne salariée de l'autre partie
+      qui a participé à l'exécution de la prestation, sauf accord écrit de celle-ci. Cette clause ne vise ni le
+      Prestataire lui-même ni les candidatures spontanées ou les réponses à une offre publique. Son non-respect oblige
+      à réparer le préjudice causé.
+
+  reference:
+    heading: "Référence et mission vérifiée"
+    body: |
+      Le Client autorise le Prestataire à mentionner sa raison sociale et l'intitulé de la mission comme référence
+      professionnelle, sans aucun montant ni information confidentielle. Il accepte que, une fois la prestation payée
+      sur Proofseen, la mission figure sous son nom comme mission vérifiée sur le profil Proofseen du Prestataire. Il
+      peut retirer cette autorisation à tout moment par notification, pour l'avenir.
+
+  evidence:
+    heading: "Signature électronique et preuve"
+    variants:
+      platform_acceptance: |
+        Chaque partie accepte le présent contrat par une acceptation électronique datée, donnée depuis son compte
+        Proofseen authentifié. Le contrat est conclu à la date de la seconde acceptation.
+
+        Les parties conviennent que les enregistrements conservés par Proofseen (version du document présentée,
+        empreinte numérique du document, identité du compte, date et heure de chaque acceptation) sont recevables et
+        font foi des faits qu'ils constatent, jusqu'à preuve contraire. Chaque partie peut télécharger à tout moment un
+        exemplaire du contrat sur Proofseen et le conserver sur un support durable.
+      otp_simple: |
+        Chaque partie signe le présent contrat par signature électronique simple sur Proofseen : lecture du document,
+        consentement exprès, puis saisie d'un code à usage unique reçu à l'adresse électronique de son compte. Le
+        contrat est conclu à la date de la dernière signature.
+
+        Un dossier de preuve est établi pour chaque signature : empreinte numérique du document signé, version, compte
+        et adresse électronique du signataire, texte du consentement, date et heure de chaque étape, adresse IP et
+        navigateur utilisés, et journal des événements dont chacun porte l'empreinte du précédent. Les parties
+        conviennent que ce dossier est recevable et fait foi des faits qu'il constate, jusqu'à preuve contraire.
+
+        Chaque partie reçoit un exemplaire du contrat signé et de sa page de preuve, peut les télécharger à tout moment
+        sur Proofseen et les conserver sur un support durable.
+
+  notices:
+    heading: "Notifications"
+    body: |
+      Les notifications prévues au contrat (réserves, mise en demeure, résiliation) sont faites par écrit, par la
+      messagerie de Proofseen ou par lettre recommandée avec avis de réception à l'adresse de la partie figurant au
+      contrat. Une notification par la messagerie de Proofseen prend date à l'heure de son enregistrement par
+      Proofseen.
+
+  transfer:
+    heading: "Transfert du contrat"
+    body: |
+      Aucune partie ne peut céder ou transférer le contrat à un tiers sans l'accord écrit préalable de l'autre.
+
+  amendments:
+    heading: "Modification du contrat"
+    body: |
+      Le contrat ne peut être modifié que par un avenant signé par les deux parties sur Proofseen. L'avenant indique
+      les stipulations modifiées ; les autres restent inchangées.
+
+  disputes:
+    heading: "Différends"
+    body: |
+      En cas de différend, la partie la plus diligente notifie à l'autre un exposé écrit et motivé. Les parties
+      recherchent une solution amiable pendant trente jours à compter de cette notification, pendant lesquels
+      chacune peut demander à Proofseen la communication des enregistrements qui concernent le contrat. À défaut
+      d'accord, le différend est porté devant la juridiction compétente selon les règles de droit commun.
+
+      Proofseen n'est ni arbitre ni juge du différend.
+
+  governing-law:
+    heading: "Droit applicable et langue"
+    body: |
+      Le contrat est soumis au droit français. Il est rédigé en français ; si une traduction est remise, la version
+      française fait foi.

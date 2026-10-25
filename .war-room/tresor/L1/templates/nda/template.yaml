@@ -1,0 +1,136 @@
+# Accord de confidentialité, v1. Trésor (Inès Kader), 2026-10-24. Format : ../../TEMPLATE_FORMAT.md.
+# Un NDA se signe souvent avant le devis, donc avant tout contrat : les parties ne viennent pas des snapshots du
+# contrat. Côté freelance, freelanceSnapshot (billing.ts) exige le SIRET et le mandat de facturation, ce qu'un NDA
+# n'exige pas : la piste A fournit un snapshot allégé (REQUEST L1-011).
+# Pseudonymat : signer un NDA révèle l'identité légale du freelance à l'entreprise. L'écran doit le dire avant la
+# signature (contract-view.ts ne la montre qu'après signature d'un contrat).
+
+id: nda
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: nda
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Conversation
+
+variables:
+  document.versionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: true
+    source: { kind: document, field: versionNumber }
+    frozenAt: render_data
+    label: { fr: "Version du document" }
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+  document.signatureMethod:
+    type: enum
+    values: [platform_acceptance, otp_simple]
+    labels:
+      fr: { platform_acceptance: "acceptation électronique datée", otp_simple: "signature électronique simple par code à usage unique" }
+    required: true
+    default: platform_acceptance
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Méthode disponible avant le Sceau (L2)."
+    source: { kind: document, field: signatureMethod }
+    frozenAt: render_data
+    label: { fr: "Méthode de signature" }
+  freelance:
+    type: party
+    required: true
+    source: { kind: pending, request: "L1-011 (snapshot allégé de BillingIdentity : legalName, address, siret et vatNumber facultatifs)" }
+    frozenAt: signature
+    label: { fr: "Le freelance" }
+  company:
+    type: party
+    required: true
+    source: { kind: derived, fn: organisationSnapshot, from: [Conversation.organisationId] }
+    frozenAt: signature
+    label: { fr: "L'entreprise" }
+  nda.mode:
+    type: enum
+    values: [mutual, company_discloses, freelance_discloses]
+    labels:
+      fr:
+        mutual: "réciproque"
+        company_discloses: "l'entreprise communique, le freelance reçoit"
+        freelance_discloses: "le freelance communique, l'entreprise reçoit"
+    required: true
+    default: mutual
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Le plus équilibré entre deux professionnels ; le cas usuel est l'entreprise qui communique."
+    source: { kind: input, editableBy: [freelance, company], stage: draft }
+    frozenAt: input
+    label: { fr: "Sens de l'accord" }
+  input.purpose:
+    type: text
+    maxLength: 2000
+    required: true
+    source: { kind: input, editableBy: [freelance, company], stage: draft }
+    prefill: { kind: db, path: Conversation.application.jobPost.title }
+    frozenAt: input
+    label: { fr: "Projet pour lequel les informations sont communiquées" }
+  input.durationYears:
+    type: int
+    min: 1
+    max: 10
+    required: true
+    default: 5
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Durée finie (Code civil 1210) ; cinq ans est une pratique courante, à faire valider (point R1)."
+    source: { kind: input, editableBy: [freelance, company], stage: draft }
+    frozenAt: input
+    label: { fr: "Durée de l'obligation, en années" }
+
+clauses:
+  - { id: parties, kind: locked, sources: [], basis: practice }
+  - { id: purpose, kind: locked, sources: [civ-1163] }
+  - { id: definition, kind: locked, variantBy: nda.mode, sources: [com-l151-1] }
+  - { id: exclusions, kind: locked, sources: [], basis: practice }
+  - { id: obligations, kind: locked, sources: [com-l151-1] }
+  - { id: personal-data, kind: locked, sources: [rgpd-5, rgpd-6] }
+  - { id: no-commitment, kind: locked, sources: [civ-1113] }
+  - { id: duration, kind: locked, sources: [civ-1210] }
+  - { id: return, kind: locked, sources: [], basis: practice }
+  - { id: remedies, kind: locked, sources: [civ-1217, civ-1231-3] }
+  - { id: platform-role, kind: locked, sources: [], basis: practice }
+  - { id: evidence, kind: locked, variantBy: document.signatureMethod, sources: [civ-1366, civ-1367, civ-1356, civ-1375] }
+  - { id: governing-law, kind: locked, sources: [civ-2061, cpc-48] }
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: freelance, rule: "le freelance titulaire du profil" }
+    - { role: company, rule: "un propriétaire ou administrateur de l'organisation" }
+
+retention:
+  active: until_nda_end
+  archive: { years: 5, from: nda_end, sources: [civ-2224, com-l110-4] }
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - id: R1
+      clause: duration
+      question: "Durée de cinq ans par défaut : suffisante pour des informations techniques ou stratégiques ; articulation avec le secret des affaires (L151-1), qui protège sans limite de durée tant que les critères sont remplis."
+    - id: R2
+      clause: remedies
+      question: "Aucune clause pénale : la réparation suit le droit commun. Faut-il proposer une clause pénale optionnelle, modérable par le juge (1231-5) ?"
+    - id: R3
+      clause: parties
+      question: "Le NDA lie la personne qui signe pour l'entreprise et le freelance en nom propre ou sa société : vérifier la capacité de signer de l'administrateur (même règle que les contrats)."
+    - id: R4
+      clause: personal-data
+      question: "Si les informations communiquées contiennent des données personnelles, le NDA suffit-il, ou faut-il un accord de sous-traitance (RGPD art. 28) dès ce stade ?"

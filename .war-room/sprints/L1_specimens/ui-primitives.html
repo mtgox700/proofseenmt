@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aujourd'hui, Tour de contrôle (spécimen L1)</title>
+<style>
+/* Generated from packages/brand/src/tokens.ts: do not edit by hand. */
+@font-face{font-family:"PS Display";src:url(../../../apps/web/public/fonts/ps-display-v1.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:"PS Mono";src:url(../../../apps/web/public/fonts/ps-mono-v1.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"PS Display Fallback";src:local("Georgia");font-weight:400 500;size-adjust:94%;ascent-override:110.21%;descent-override:35.64%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback";src:local("Georgia Bold");font-weight:600 700;size-adjust:82.22%;ascent-override:126.01%;descent-override:40.74%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback Times";src:local("Times New Roman");font-weight:400 500;size-adjust:101.93%;ascent-override:101.64%;descent-override:32.86%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback Times";src:local("Times New Roman Bold");font-weight:600 700;size-adjust:97.98%;ascent-override:105.74%;descent-override:34.19%;line-gap-override:0%}
+@font-face{font-family:"PS Mono Fallback";src:local("Consolas");font-weight:400 700;size-adjust:109.13%;ascent-override:90.17%;descent-override:25.02%;line-gap-override:0%}
+@font-face{font-family:"PS Mono Fallback Courier";src:local("Courier New");font-weight:400 700;size-adjust:99.98%;ascent-override:98.42%;descent-override:27.30%;line-gap-override:0%}
+:root{color-scheme:dark;--ps-bg-deep:#06070a;--ps-bg:#0a0b10;--ps-surface:#11131a;--ps-raised:#191c25;--ps-overlay:#222633;--ps-text:#f2efe8;--ps-muted:#b4b1aa;--ps-faint:#94918b;--ps-line:#262a36;--ps-line-strong:#71768a;--ps-proof:#6fd690;--ps-on-proof:#06140b;--ps-proof-wash:#0f2119;--ps-signal:#f0b44c;--ps-danger:#f2907b;--ps-focus:#a99dff;--ps-aura:#7c6cff;--ps-aura-text:#a99dff;--ps-azur:#3d7bff;--ps-shadow-1:0 1px 0 rgb(0 0 0 / .5),0 1px 3px rgb(0 0 0 / .4);--ps-shadow-2:0 18px 48px -16px rgb(0 0 0 / .8),0 0 0 1px var(--ps-line);
+--ps-glow-proof:0 0 0 1px rgb(111 214 144 / .55),0 0 18px -2px rgb(111 214 144 / .45),0 0 48px -8px rgb(111 214 144 / .3);
+--ps-glow-proof-strike:0 0 0 1px rgb(111 214 144 / .9),0 0 28px 2px rgb(111 214 144 / .55),0 0 80px -6px rgb(111 214 144 / .35);
+--ps-halo-proof:radial-gradient(closest-side, rgb(111 214 144 / .28), rgb(111 214 144 / 0));
+--ps-glow-aura:0 0 0 1px rgb(124 108 255 / .45),0 10px 40px -10px rgb(124 108 255 / .55);
+--ps-glow-cta:0 0 0 1px rgb(242 239 232 / .9),0 8px 32px -8px rgb(124 108 255 / .65),0 0 64px -16px rgb(124 108 255 / .5);
+--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);
+--ps-ambient-hero:radial-gradient(60% 55% at 18% 6%, rgb(124 108 255 / .18), rgb(124 108 255 / 0) 70%),radial-gradient(45% 45% at 88% 16%, rgb(61 123 255 / .1), rgb(61 123 255 / 0) 72%),radial-gradient(70% 60% at 50% 115%, rgb(124 108 255 / .1), rgb(124 108 255 / 0) 70%);
+--ps-ambient-section:radial-gradient(55% 60% at 50% 0%, rgb(124 108 255 / .12), rgb(124 108 255 / 0) 70%);
+--ps-ambient-deep:radial-gradient(80% 70% at 50% 100%, rgb(61 123 255 / .08), rgb(61 123 255 / 0) 70%);
+--ps-header-ink:rgb(10 11 16 / .9);
+--ps-font-display:"PS Display", "PS Display Fallback", "PS Display Fallback Times", Georgia, serif;
+--ps-font-text:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--ps-font-mono:"PS Mono", "PS Mono Fallback", "PS Mono Fallback Courier", ui-monospace, "SFMono-Regular", Menlo, monospace;
+--ps-weight-display:600;--ps-weight-display-light:420;--ps-weight-text:400;--ps-weight-strong:600;--ps-weight-mono:500;
+--ps-track-label:.06em;
+--ps-step--2:clamp(0.75rem, 0.739rem + 0.0469vw, 0.7813rem);--ps-track--2:0.01em;--ps-lead--2:1.45;
+--ps-step--1:clamp(0.875rem, 0.864rem + 0.0469vw, 0.9063rem);--ps-track--1:0.005em;--ps-lead--1:1.5;
+--ps-step-0:clamp(1rem, 0.956rem + 0.1878vw, 1.125rem);--ps-track-0:0em;--ps-lead-0:1.65;
+--ps-step-1:clamp(1.2rem, 1.1236rem + 0.3258vw, 1.4169rem);--ps-track-1:-0.006em;--ps-lead-1:1.35;
+--ps-step-2:clamp(1.44rem, 1.2822rem + 0.6732vw, 1.8881rem);--ps-track-2:-0.012em;--ps-lead-2:1.18;
+--ps-step-3:clamp(1.75rem, 1.3979rem + 1.5023vw, 2.75rem);--ps-track-3:-0.018em;--ps-lead-3:1.1;
+--ps-step-4:clamp(2.125rem, 1.5528rem + 2.4413vw, 3.75rem);--ps-track-4:-0.024em;--ps-lead-4:1.06;
+--ps-step-5:clamp(2.5rem, 1.6197rem + 3.7559vw, 5rem);--ps-track-5:-0.03em;--ps-lead-5:1.02;
+--ps-step-6:clamp(3rem, 1.5915rem + 6.0094vw, 7rem);--ps-track-6:-0.035em;--ps-lead-6:0.98;
+--ps-space-1:.25rem;--ps-space-2:.5rem;--ps-space-3:.75rem;--ps-space-4:1rem;--ps-space-5:1.5rem;
+--ps-space-6:2rem;--ps-space-7:3rem;--ps-space-8:4rem;--ps-space-9:6rem;--ps-space-10:8rem;
+--ps-section-y:clamp(6rem, 4.2rem + 7.7vw, 11rem);
+--ps-max:76rem;--ps-columns:12;--ps-gutter:clamp(1rem, .6479rem + 1.5023vw, 2rem);--ps-measure:66ch;
+--ps-radius:6px;--ps-radius-card:20px;--ps-radius-media:16px;--ps-radius-pill:999px;--ps-radius-seal:10px;--ps-border:1px;--ps-ring:2px;
+--ps-ease-out:cubic-bezier(.16,1,.3,1);--ps-ease-in-out:cubic-bezier(.65,0,.35,1);
+--ps-ease-strike:cubic-bezier(.55,0,1,.45);--ps-ease-ink:cubic-bezier(.2,.8,.2,1);--ps-ease-glow:cubic-bezier(.22,1,.36,1);
+--ps-dur-press:90ms;--ps-dur-ui:160ms;--ps-dur-strike:140ms;--ps-dur-ink:240ms;--ps-dur-reveal:320ms;--ps-dur-trace:640ms;
+--ps-dur-glow:420ms;--ps-dur-media:900ms;--ps-dur-aurora:32s;
+--ps-z-header:10;--ps-z-overlay:30;--ps-z-skip:40;}
+:where([data-spot]){--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);}
+@media (prefers-reduced-motion:reduce){:root{--ps-dur-strike:0ms;--ps-dur-ink:0ms;--ps-dur-reveal:0ms;--ps-dur-trace:0ms;--ps-dur-glow:0ms;--ps-dur-media:0ms;}}
+
+/* Generated from packages/brand/src/chrome.ts: do not edit by hand. */
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100dvh;background:var(--ps-bg);color:var(--ps-text);font:var(--ps-weight-text) var(--ps-step-0)/var(--ps-lead-0) var(--ps-font-text)}
+:focus-visible{outline:var(--ps-ring) solid var(--ps-focus);outline-offset:2px}
+::selection{background:var(--ps-text);color:var(--ps-bg)}
+a,button,summary,label,[role=button]{touch-action:manipulation}
+input,select,textarea{font-size:max(16px,var(--ps-step-0))}
+.skip{position:absolute;left:var(--ps-gutter);top:var(--ps-space-2);z-index:var(--ps-z-skip);padding:var(--ps-space-3) var(--ps-space-4);background:var(--ps-text);color:var(--ps-bg);border-radius:var(--ps-radius);font-weight:var(--ps-weight-strong);text-decoration:none;transform:translateY(-200%)}
+.skip:focus{transform:none}
+.btn,.cta{display:inline-flex;align-items:center;justify-content:center;gap:var(--ps-space-2);min-height:2.75rem;padding:0 var(--ps-space-4);border:var(--ps-border) solid var(--ps-line-strong);border-radius:var(--ps-radius);background:transparent;color:var(--ps-text);font:var(--ps-weight-strong) var(--ps-step--1)/1 var(--ps-font-text);text-decoration:none;white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform var(--ps-dur-press) var(--ps-ease-out),background-color var(--ps-dur-ui) var(--ps-ease-out),border-color var(--ps-dur-ui) var(--ps-ease-out),color var(--ps-dur-ui) var(--ps-ease-out)}
+.btn:active:not(:disabled),.cta:active{transform:scale(.97)}
+.btn-primary,.cta{background:var(--ps-text);border-color:var(--ps-text);color:var(--ps-bg)}
+.btn:disabled,.btn[aria-disabled=true]{cursor:not-allowed;border-style:dashed;background:transparent;color:var(--ps-muted);border-color:var(--ps-line-strong)}
+.btn-primary:focus-visible,.cta:focus-visible{box-shadow:var(--ps-glow-cta)}
+@media (hover:hover) and (pointer:fine){.btn:hover:not(:disabled){border-color:var(--ps-text)}.btn-primary:hover:not(:disabled),.cta:hover{box-shadow:var(--ps-glow-cta)}}
+.chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}
+.top{position:relative;z-index:var(--ps-z-header);background:var(--ps-bg);border-bottom:var(--ps-border) solid var(--ps-line);padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.top .chrome{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand signup signup" "nav nav lang";align-items:center;column-gap:var(--ps-space-3)}
+.top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand lang"}
+.brand{grid-area:brand;justify-self:start;display:inline-flex;align-items:center;min-height:3.5rem;text-decoration:none}
+.brand img{display:block;width:auto;height:1.5rem}
+.top .signup{grid-area:signup}
+.nav{grid-area:nav;display:flex;align-items:center;gap:var(--ps-space-1);min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin-left:calc(-1*var(--ps-space-3));font-size:var(--ps-step--1);padding-inline-end:var(--ps-space-4);-webkit-mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent);mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent)}
+.nav::-webkit-scrollbar{width:0;height:0}
+.nav a{display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);text-decoration:none;white-space:nowrap}
+.nav a[aria-current]{color:var(--ps-text);text-decoration:underline;text-decoration-thickness:var(--ps-ring);text-underline-offset:.5em}
+.nav a:focus-visible{outline-offset:-2px}
+.lang{grid-area:lang;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);font:var(--ps-weight-mono) var(--ps-step--2)/1 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;text-decoration:none}
+@media (hover:hover) and (pointer:fine){.nav a:hover,.lang:hover{color:var(--ps-text)}}
+@media (min-width:64rem){.top{position:sticky;top:0}@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.top{background:var(--ps-header-ink);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}.top .chrome{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"brand nav signup lang";min-height:4rem}.top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand lang"}.nav{overflow:visible;margin-left:var(--ps-space-5);padding-inline-end:0;-webkit-mask-image:none;mask-image:none}}
+.top .signin-m,.top .sheet{display:none}
+@media (max-width:63.99rem){.top.has-sheet .chrome{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"brand signin signup sheet"}.top.has-sheet .nav,.top.has-sheet .chrome>.lang{display:none}.top .signin-m{grid-area:signin;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-2);color:var(--ps-text);font-size:var(--ps-step--1);text-decoration:none;white-space:nowrap}.top.has-sheet .signup{min-height:2.75rem;padding-inline:var(--ps-space-3)}.top .sheet{grid-area:sheet;display:block}.sheet-toggle{position:relative;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:var(--ps-border) solid var(--ps-line-strong);border-radius:var(--ps-radius);cursor:pointer;list-style:none}.sheet-toggle::-webkit-details-marker{display:none}.sheet-bars,.sheet-bars::before,.sheet-bars::after{display:block;width:1.1rem;height:2px;border-radius:1px;background:var(--ps-text)}.sheet-bars{position:relative}.sheet-bars::before,.sheet-bars::after{content:"";position:absolute;left:0}.sheet-bars::before{top:-6px}.sheet-bars::after{top:6px}.sheet[open] .sheet-bars{background:transparent}.sheet[open] .sheet-bars::before{top:0;transform:rotate(45deg)}.sheet[open] .sheet-bars::after{top:0;transform:rotate(-45deg)}.sheet[open]>.sheet-toggle::before{content:"";position:fixed;inset:0;cursor:default}.sheet-panel{position:absolute;left:0;right:0;top:100%;z-index:var(--ps-z-overlay);display:grid;gap:var(--ps-space-2);padding:var(--ps-space-3) var(--ps-gutter) var(--ps-space-5);background:var(--ps-overlay);border-bottom:var(--ps-border) solid var(--ps-line-strong);box-shadow:var(--ps-shadow-2)}.sheet-panel nav{display:grid}.sheet-panel nav a{display:flex;align-items:center;min-height:3.5rem;border-bottom:var(--ps-border) solid var(--ps-line);color:var(--ps-text);font-size:var(--ps-step-0);text-decoration:none}.sheet-panel .lang{grid-area:auto;justify-self:start;min-height:3.5rem;padding-inline:0}}
+@media (max-width:30rem){.top.has-sheet .brand img{width:1.5rem;height:1.5rem;object-fit:cover;object-position:left center}}
+@media (hover:hover) and (pointer:fine){.sheet-toggle:hover{border-color:var(--ps-text)}}
+.foot{margin-top:var(--ps-space-8);border-top:var(--ps-border) solid var(--ps-line);background:var(--ps-ambient-deep),var(--ps-bg-deep);color:var(--ps-muted);font-size:var(--ps-step--1);line-height:var(--ps-lead--1);padding:var(--ps-space-7) env(safe-area-inset-right) calc(var(--ps-space-7) + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+.foot .chrome{display:grid;gap:var(--ps-space-4)}
+.foot .brand{grid-area:auto;min-height:2.75rem;margin:0}.foot .brand img{height:1.25rem}
+.foot nav{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--ps-space-3)}
+.foot nav a{display:inline-flex;align-items:center;min-height:2.75rem;color:var(--ps-text);text-underline-offset:.2em}
+.foot p{margin:0;max-width:var(--ps-measure)}
+
+/* The React layer on top of the brand: body, focus, skip link, buttons, header and footer come from
+   @proofseen/brand/chrome.css, shared with the HTML hub. This file keeps what only the React pages use. */
+*, *::before, *::after { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+[id] { scroll-margin-top: 5rem; }
+
+body { font-optical-sizing: auto; text-rendering: optimizeLegibility; }
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-family: var(--ps-font-display); font-weight: var(--ps-weight-display); text-wrap: balance; }
+h1 { line-height: var(--ps-lead-5); letter-spacing: var(--ps-track-5); }
+h2 { font-size: var(--ps-step-4); line-height: var(--ps-lead-4); letter-spacing: var(--ps-track-4); }
+h3 { font-size: var(--ps-step-1); line-height: var(--ps-lead-1); letter-spacing: var(--ps-track-1); }
+code { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); }
+button, input, select, textarea { font: inherit; color: inherit; }
+/* After the reset above: iOS zooms into any field under 16 px. */
+input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.wrap { width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; }
+.muted { color: var(--ps-muted); }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+.small { font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.measure { max-width: var(--ps-measure); }
+.pretty { text-wrap: pretty; }
+
+/* Section labels: the trace typeface, in the aura made legible (BRAND_BOOK_V2 section 5). Green is kept for what is
+   verified. */
+.kicker { display: inline-flex; align-items: center; gap: var(--ps-space-3); margin: 0 0 var(--ps-space-4); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-aura-text); }
+.kicker::before,
+.bullets > li::before { content: ""; flex: none; width: 1rem; height: 0.6rem; border-inline: 2px solid currentColor; background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat; }
+.bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-3); }
+.bullets > li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: var(--ps-space-3); color: var(--ps-muted); }
+.bullets > li::before { margin-top: 0.55em; color: var(--ps-line-strong); }
+
+/* ---------- Tags, used for states that are also written in words ---------- */
+/* A short status stays on one line by itself; a long verified line (« Payée sur Proofseen, vérifiée le 12 octobre
+   2026 ») wraps inside its frame instead of pushing a phone screen wider. */
+.tag { display: inline-flex; align-items: center; gap: var(--ps-space-1); max-width: 100%; padding: 0.2rem 0.55rem; border: 1px solid currentColor; border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); overflow-wrap: break-word; }
+/* Green only for a verified fact (BRAND_BOOK section 6). A finished step, an accepted status or a switch that is on
+   reads in ink: .tag-done. */
+.tag-proof { color: var(--ps-proof); background: var(--ps-proof-wash); }
+.tag-done { color: var(--ps-text); }
+.tag-signal { color: var(--ps-signal); background: var(--signal-wash); }
+.tag-quiet { color: var(--ps-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* The primitives of components/ui (LEGENDS_P2_CONCEPT §B.7): dark only, every colour a brand token, nothing that
+   animates a shadow or a filter, nothing that moves. Violet is the light of action (hover, selection, focus); amber
+   waits on someone; the danger colour undoes or has passed; green appears in one place only, the struck fingerprint.
+   One voice per use (L1-091 K18): capitals in the trace face for column headers and section labels only. */
+
+/* Every grid of the primitives has one column that may shrink: an implicit auto column grows to the table's
+   max-content and pushes the whole page past 375 px (seen on the specimen, ui-primitives@375.png). */
+:is(.ui-table-block, .ui-filter, .ui-field, .ui-inspector, .ui-inspector-body, .ui-timeline, .ui-tl, .ui-tl-item, .ui-kpi) { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- FingerprintMark, FingerprintStamp (§A.3, §A.4, L1-090) ---------- */
+/* Filed: a closed frame of ink and cells of ink. The frame is a control-strength line (3:1 on every ground). */
+.ui-fpm { flex: none; display: inline-block; overflow: visible; vertical-align: middle; }
+.ui-fpm-frame { fill: none; stroke: var(--ps-line-strong); stroke-linejoin: miter; }
+.ui-fpm-cells { fill: var(--ps-muted); }
+/* At 32 px a cell is a few pixels: full ink, or it fades into the ground. */
+.ui-fpm[data-level="32"] .ui-fpm-cells { fill: var(--ps-text); }
+/* Pending: amber, and always its word beside it. The frame is left open in the middle of each side by the component
+   (PENDING_FRAME, on the frame's own path); at 16 px it stays whole. */
+.ui-fpm[data-state="pending"] .ui-fpm-frame { stroke: var(--ps-signal); }
+/* Sealed, only for an act read as signed in the database. At 16 and 32 px a plate struck in green, the cells punched
+   through it: the only form legible that small. */
+.ui-fpm[data-state="sealed"] .ui-fpm-frame { fill: var(--ps-proof); stroke: var(--ps-proof); }
+.ui-fpm[data-state="sealed"] .ui-fpm-cells { fill: var(--ps-on-proof); }
+/* At 64 and 128 px the language of the cartouche (L1-090, point 5): the proof wash inside, frame and cells in green,
+   a halo on the frame. An SVG cannot wear the box-shadow of --ps-glow-proof: the halo is a drop shadow, set, never
+   animated. */
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ps-proof) 40%, transparent)); }
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-frame { fill: var(--ps-proof-wash); }
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-cells { fill: var(--ps-proof); }
+
+/* The stamp: the mark, then the sixteen characters that attest, then the state in words. The mark never leaves its
+   text: a long sentence wraps inside the text, beside the mark. */
+.ui-fp { display: inline-flex; align-items: center; gap: var(--ps-space-3); min-width: 0; max-width: 100%; }
+.ui-fp-mark { position: relative; display: inline-flex; isolation: isolate; }
+/* A struck mark glows the way the hero's poinçon does: a halo behind it (BRAND_BOOK_V2 4.2). */
+.ui-fp[data-state="sealed"] .ui-fp-mark::before { content: ""; position: absolute; inset: -60%; z-index: -1; background: var(--ps-halo-proof); pointer-events: none; }
+.ui-fp-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--ps-space-3); min-width: 0; }
+.ui-fp-code { font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); letter-spacing: 0.02em; color: var(--ps-text); font-variant-numeric: tabular-nums slashed-zero; white-space: nowrap; }
+.ui-fp-word { font-size: var(--ps-step--1); line-height: 1.4; color: var(--ps-muted); }
+.ui-fp[data-state="pending"] .ui-fp-word { color: var(--ps-signal); }
+.ui-fp[data-state="sealed"] .ui-fp-word { color: var(--ps-proof); }
+
+/* ---------- DataTable (§B.7) ---------- */
+.ui-table-block { display: grid; gap: var(--ps-space-3); min-width: 0; }
+/* overflow: clip keeps the rounded frame without making it a scroll container, so the header sticks to the page. */
+.ui-table-frame { max-width: 100%; overflow: clip; background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.ui-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.ui-caption { caption-side: top; padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-3); text-align: start; font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); color: var(--ps-text); }
+/* Dense (L1-091 K6): one line per row, 44 px, nothing wraps; the one truncating column gives way. */
+.ui-table th, .ui-table td { padding: 0.6875rem var(--ps-space-3); text-align: start; vertical-align: middle; white-space: nowrap; border-bottom: 1px solid var(--ps-line); }
+.ui-table thead th { position: sticky; top: var(--ui-sticky-top, 0); z-index: 2; height: 2.75rem; padding-block: 0; background: var(--ps-raised); border-bottom-color: var(--ps-line-strong); color: var(--ps-muted); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; }
+.ui-table tbody th { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+.ui-table tbody tr:last-child > * { border-bottom: 0; }
+.ui-table .ui-num { text-align: end; font-variant-numeric: tabular-nums lining-nums; }
+/* In a number column the arrow goes before the label, so the label ends where the figures end. */
+.ui-num .ui-sort { flex-direction: row-reverse; }
+/* Every column takes the width of its content; the one that gives way takes all the rest (L1-120 R4). */
+.ui-table :is(th, td) { width: 1%; }
+.ui-table .ui-trunc { width: 100%; max-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* A sortable header is a link the height of the header (44 px). Only the sorted column shows its arrow; another one
+   shows it under the pointer or the focus, as the hint of what a click does (L1-091 K8). No glyph: a drawn triangle. */
+.ui-sort { display: inline-flex; align-items: center; gap: 0.5em; min-height: 2.75rem; color: inherit; text-decoration: none; }
+.ui-sort::after { content: ""; flex: none; border-inline: 0.25rem solid transparent; border-block-start: 0.3rem solid transparent; }
+.ui-sort:focus-visible::after { border-block-start-color: var(--ps-line-strong); }
+.ui-sort[data-dir] { color: var(--ps-text); }
+.ui-sort[data-dir="ascending"]::after { border-block-start: 0; border-block-end: 0.3rem solid var(--ps-text); }
+.ui-sort[data-dir="descending"]::after { border-block-start-color: var(--ps-text); }
+/* The whole row opens its item: the row header's link stretches over the row; its text stays the accessible name. */
+.ui-table tbody tr { position: relative; }
+.ui-row-link { color: var(--ps-text); text-decoration: none; }
+.ui-row-link::after { content: ""; position: absolute; inset: 0; }
+.ui-row-link:focus-visible { outline: none; }
+.ui-table tbody tr:has(.ui-row-link:focus-visible) { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: -2px; }
+/* Whatever else acts inside a row sits above the stretched link. */
+.ui-table td :is(a, button, input, select, label, summary) { position: relative; z-index: 1; }
+.ui-table tr > * { transition: background-color var(--ps-dur-ui) var(--ps-ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-table tbody tr:has(.ui-row-link):hover > * { background: color-mix(in srgb, var(--ps-aura) 7%, var(--ps-surface)); }
+  .ui-table tbody tr:has(.ui-row-link):hover .ui-row-link { text-decoration: underline; }
+  .ui-sort:hover { color: var(--ps-text); }
+  .ui-sort:not([data-dir]):hover::after { border-block-start-color: var(--ps-line-strong); }
+}
+/* The row open in the inspector: the violet of selection, and a rule at its start that does not rely on colour alone. */
+.ui-table tr[data-current] > * { background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-surface)); }
+.ui-table tr[data-current] > :first-child { box-shadow: inset 3px 0 0 var(--ps-aura); }
+/* Selection (L1-091 K3): a drawn box on the native input, its edge in the control line (4.12:1 on the surface, 3.85:1
+   under the pointer, 3.61:1 on the current row, measured in ui-panels.test.ts), empty inside; checked, the violet of selection with a tick in
+   ink. Never green. The whole cell is the 44 px target. */
+.ui-table .ui-check { width: 2.75rem; padding: 0; }
+.ui-check-hit { position: relative; display: flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; cursor: pointer; }
+.ui-check-hit input { appearance: none; flex: none; width: 1.25rem; height: 1.25rem; margin: 0; background: transparent; border: 1.5px solid var(--ps-line-strong); border-radius: 4px; cursor: pointer; }
+.ui-check-hit input:checked { background: var(--ps-aura); border-color: var(--ps-aura); }
+.ui-check-hit input:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.ui-check-tick { position: absolute; z-index: 2; display: none; width: 0.375rem; height: 0.6875rem; border: solid var(--ps-text); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); pointer-events: none; }
+.ui-check-hit input:checked + .ui-check-tick { display: block; }
+.ui-table .ui-table-empty { padding: var(--ps-space-7) var(--ps-space-4); text-align: center; white-space: normal; color: var(--ps-muted); }
+.ui-table .ui-table-error { padding: var(--ps-space-5) var(--ps-space-4); white-space: normal; color: var(--ps-text); box-shadow: inset 3px 0 0 var(--ps-danger); }
+.ui-pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
+.ui-pager-summary { color: var(--ps-muted); font-size: var(--ps-step--1); font-variant-numeric: tabular-nums; }
+.ui-pager a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); }
+.ui-pager a[rel="next"] { margin-inline-start: auto; }
+/* The sort of a phone (L1-120 R1): « Trier par » and the same GET links; hidden where the column headers carry it. */
+.ui-sortbar { display: none; }
+/* On a phone each row is a card (QueueCard, L1-091 K11, L1-120 R1): its queue as a label in the trace face, then
+   reference and deadline, then subject and age; no column headers over cards that have no columns, a « Trier par »
+   control instead. The same markup, nothing duplicated. */
+@media (max-width: 47.99rem) {
+  .ui-sortbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--ps-space-3); }
+  .ui-sortbar-label { color: var(--ps-muted); font-size: var(--ps-step--1); }
+  .ui-sortbar ul { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+  .ui-sortbar .ui-sort { font-size: var(--ps-step--1); color: var(--ps-muted); }
+  .ui-sortbar .ui-sort[data-dir] { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+  .ui-table, .ui-table tbody { display: block; width: 100%; }
+  .ui-table thead { display: none; }
+  .ui-caption { display: block; }
+  .ui-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label label" "title end" "body aside"; gap: 0.125rem var(--ps-space-3); align-items: baseline; padding: var(--ps-space-3) var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
+  .ui-table[data-select] tbody tr { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "check label label" "check title end" "check body aside"; padding-inline-start: 0; }
+  .ui-table tbody tr:last-child { border-bottom: 0; }
+  .ui-table tbody tr > * { display: none; width: auto; padding: 0; border: 0; }
+  .ui-table tbody tr > [data-card] { display: block; }
+  .ui-table tbody tr > [data-card="label"] { grid-area: label; color: var(--ps-muted); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); }
+  .ui-table tbody tr > [data-card="title"] { grid-area: title; }
+  .ui-table tbody tr > [data-card="end"] { grid-area: end; }
+  .ui-table tbody tr > [data-card="body"] { grid-area: body; color: var(--ps-muted); }
+  .ui-table tbody tr > [data-card="aside"] { grid-area: aside; color: var(--ps-muted); }
+  .ui-table tbody tr > .ui-trunc { width: auto; max-width: none; }
+  .ui-table tbody tr > .ui-check { display: flex; grid-area: check; align-self: center; width: auto; }
+  .ui-table tbody tr:has(> .ui-table-empty, > .ui-table-error) { display: block; padding: 0; }
+  .ui-table tbody tr > :is(.ui-table-empty, .ui-table-error) { display: block; }
+  .ui-table tr[data-current] { background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-surface)); box-shadow: inset 3px 0 0 var(--ps-aura); }
+  .ui-table tr[data-current] > * { background: none; box-shadow: none; }
+}
+
+/* ---------- FilterBar (§B.7) ---------- */
+.ui-filter { display: grid; gap: var(--ps-space-3); min-width: 0; }
+.ui-views ul, .ui-chips ul { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); margin: 0; padding: 0; list-style: none; }
+.ui-views a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-pill); color: var(--ps-muted); font-size: var(--ps-step--1); text-decoration: none; }
+.ui-views a[aria-current="page"] { color: var(--ps-text); border-color: var(--ps-aura); background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-bg)); }
+.ui-filter-form { display: flex; flex-wrap: wrap; align-items: start; gap: var(--ps-space-3); }
+.ui-filter-form > .btn { margin-top: calc(var(--ps-step--1) * 1.3 + var(--ps-space-1)); }
+.ui-field { display: grid; flex: 1 1 12rem; gap: var(--ps-space-1); min-width: 0; }
+.ui-field label { font-size: var(--ps-step--1); line-height: 1.3; font-weight: var(--ps-weight-strong); color: var(--ps-text); }
+.ui-field :is(input, select) { width: 100%; min-height: 2.75rem; padding: 0.4rem 0.7rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+/* An example of what to type, under the field, in words a screen reader hears too (L1-091 K16): muted, 9.18:1. */
+.ui-hint { font-size: var(--ps-step--1); line-height: var(--ps-lead--1); color: var(--ps-muted); }
+.ui-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-4); }
+/* A chip removes its filter: its cross is drawn, not typed, so no glyph can turn into an emoji. */
+.ui-chip { display: inline-flex; align-items: center; gap: 0.6em; min-height: 2.25rem; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-surface); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; transition: border-color var(--ps-dur-ui) var(--ps-ease-out); }
+.ui-chip::after { content: ""; flex: none; width: 0.6rem; height: 0.6rem; background: linear-gradient(45deg, transparent 43%, currentColor 43% 57%, transparent 57%), linear-gradient(-45deg, transparent 43%, currentColor 43% 57%, transparent 57%); }
+.ui-chips-clear { display: inline-flex; align-items: center; min-height: 2.25rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-chip:hover { border-color: var(--ps-aura); }
+  .ui-views a:hover { color: var(--ps-text); }
+}
+
+/* ---------- Inspector (§B.4) ---------- */
+/* The list and its inspector side by side from 64 rem; under it, the inspector follows the list. */
+.ui-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); align-items: start; }
+/* The list keeps the room; the inspector reads at a measure of its own (20 to 24 rem: at 28, measured at 1 280 px, the
+   giving column of the list was left 126 px, L1-120 R4). */
+@media (min-width: 64rem) { .ui-split:has(> .ui-inspector) { grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem); } }
+.ui-inspector { display: grid; align-content: start; gap: var(--ps-space-4); min-width: 0; padding: var(--ps-space-5); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+@media (min-width: 64rem) { .ui-inspector { position: sticky; top: var(--ui-sticky-top, var(--ps-space-4)); max-height: calc(100svh - 2 * var(--ps-space-4)); overflow-y: auto; } }
+.ui-inspector-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--ps-space-1) var(--ps-space-4); }
+.ui-inspector-head h2 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); letter-spacing: var(--ps-track-2); overflow-wrap: anywhere; }
+.ui-inspector-meta { grid-column: 1 / -1; color: var(--ps-muted); font-size: var(--ps-step--1); }
+.ui-inspector-close { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; }
+/* The decisions, under the title (L1-091 K10). */
+.ui-inspector-actions { display: flex; flex-wrap: wrap; align-items: start; gap: var(--ps-space-2); padding-bottom: var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
+.ui-inspector-body { display: grid; gap: var(--ps-space-5); min-width: 0; }
+/* A decision that undoes or refuses: the danger colour (8.00:1 on the surface), and its reason field opens first. */
+.btn.ui-danger { color: var(--ps-danger); border-color: var(--ps-danger); }
+.ui-confirm > summary { list-style: none; }
+.ui-confirm > summary::-webkit-details-marker { display: none; }
+.ui-confirm[open] { display: grid; grid-template-columns: minmax(0, 1fr); flex-basis: 100%; gap: var(--ps-space-2); }
+.ui-confirm form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-2); }
+.ui-confirm textarea { min-height: 5rem; padding: 0.5rem 0.7rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); resize: vertical; }
+.ui-confirm label { font-size: var(--ps-step--1); font-weight: var(--ps-weight-strong); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-inspector-close:hover { border-color: var(--ps-aura); }
+  .btn.ui-danger:hover { background: color-mix(in srgb, var(--ps-danger) 12%, var(--ps-surface)); }
+}
+
+/* ---------- Timeline (§B.7, §C.0) ---------- */
+/* Each event is a small lozenge on a rail, the shape of the poinçon: filled when it happened, hollow when it is to
+   come (§C.0: a form readable without colour). */
+.ui-timeline { display: grid; gap: var(--ps-space-2); min-width: 0; }
+.ui-tl { display: grid; margin: 0; padding: 0; list-style: none; }
+.ui-tl-item { position: relative; display: grid; gap: 0.125rem; padding: 0 0 var(--ps-space-5) var(--ps-space-6); min-width: 0; }
+.ui-tl-item::before { content: ""; position: absolute; left: calc(0.3125rem - 0.5px); top: 1.1rem; bottom: 0.2rem; width: 1px; background: var(--ps-line-strong); }
+.ui-tl-item:last-child::before { content: none; }
+.ui-tl-item::after { content: ""; position: absolute; left: 0.125rem; top: 0.4rem; width: 0.375rem; height: 0.375rem; transform: rotate(45deg); background: var(--ps-text); }
+.ui-tl-item[data-tone="signal"]::after { background: var(--ps-signal); }
+.ui-tl-item[data-tone="danger"]::after { background: var(--ps-danger); }
+.ui-tl-item[data-tone="upcoming"]::after { background: var(--ps-bg); outline: 1px solid var(--ps-line-strong); }
+.ui-tl-time { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-muted); }
+.ui-tl-title { color: var(--ps-text); overflow-wrap: anywhere; }
+.ui-tl-title a { color: var(--ps-aura-text); }
+.ui-tl-status { font-weight: var(--ps-weight-strong); color: var(--ps-signal); }
+.ui-tl-item[data-tone="danger"] .ui-tl-status { color: var(--ps-danger); }
+.ui-tl-meta { color: var(--ps-muted); font-size: var(--ps-step--1); overflow-wrap: anywhere; }
+.ui-tl-upcoming-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.ui-tl-upcoming .ui-tl-title { color: var(--ps-muted); }
+
+/* ---------- KpiTile, KpiGrid (§B.4) ---------- */
+/* What decides leads (L1-091 K5, L1-120 R2): the late mark at the top, a modest count with its word, the oldest wait
+   on its line; a tile at zero is quiet. Still: no roll, no trend, no glow (the Tower plays no show, §G.2). */
+.ui-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
+.ui-kpi { position: relative; display: grid; align-content: start; gap: var(--ps-space-2); min-width: 0; height: 100%; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); transition: background-color var(--ps-dur-ui) var(--ps-ease-out), border-color var(--ps-dur-ui) var(--ps-ease-out); }
+/* The head keeps the height of the late mark in every tile, with it or without it: the count of a late queue never
+   sits lower than its neighbours' (L1-120 R2). */
+.ui-kpi-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ps-space-2); min-height: 1.5rem; }
+.ui-kpi-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--ps-weight-strong) var(--ps-step--1) / 1.3 var(--ps-font-text); letter-spacing: 0; color: var(--ps-text); }
+.ui-kpi-label a { color: inherit; text-decoration: none; }
+/* The whole tile opens its queue; the label stays the link's name. */
+.ui-kpi-label a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.ui-kpi-label a:focus-visible { outline: none; }
+.ui-kpi:has(.ui-kpi-label a:focus-visible) { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+/* Late: an amber mark of form (a lozenge and its word), never the colour alone. */
+.ui-kpi-late { flex: none; display: inline-flex; align-items: center; gap: 0.45em; height: 1.5rem; padding: 0 0.5rem; border: 1px solid var(--ps-signal); border-radius: var(--ps-radius); background: color-mix(in srgb, var(--ps-signal) 12%, var(--ps-surface)); color: var(--ps-signal); font-size: var(--ps-step--2); font-weight: var(--ps-weight-strong); white-space: nowrap; }
+.ui-kpi-late::before { content: ""; flex: none; width: 0.375rem; height: 0.375rem; transform: rotate(45deg); background: currentColor; }
+/* « 1 en attente »: the count and its word, one phrase; then the oldest wait on its own line (L1-120 R2). */
+.ui-kpi-figure { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.ui-kpi-value { font: var(--ps-weight-display) var(--ps-step-3) / 1 var(--ps-font-display); font-variant-numeric: tabular-nums lining-nums; color: var(--ps-text); }
+.ui-kpi-oldest { font-weight: var(--ps-weight-strong); color: var(--ps-text); font-variant-numeric: tabular-nums; }
+.ui-kpi-def { color: var(--ps-muted); font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.ui-kpi[data-zero] :is(.ui-kpi-label, .ui-kpi-value) { color: var(--ps-muted); }
+.ui-measured { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-muted); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-kpi[data-link]:hover { border-color: var(--ps-aura); background: color-mix(in srgb, var(--ps-aura) 7%, var(--ps-surface)); }
+}
+/* Two by two on a phone, compact, so the queue stays in sight; the definition stays for screen readers. */
+@media (max-width: 47.99rem) {
+  .ui-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ps-space-2); }
+  .ui-kpi { gap: var(--ps-space-1); padding: var(--ps-space-3); }
+  /* Too narrow for the label and the mark on one line: two lines, reserved in every tile. */
+  .ui-kpi-head { flex-direction: column; align-items: start; justify-content: start; gap: var(--ps-space-1); min-height: calc(1.3 * var(--ps-step--1) + var(--ps-space-1) + 1.5rem); }
+  .ui-kpi-def { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+main { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1320px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.spec-head { display: grid; gap: 4px; }
+.spec-where { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.spec-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
+.spec-note { color: var(--ps-muted); font-size: var(--ps-step--2); }
+.spec-doc { display: grid; gap: 6px; }
+.spec-k { font: 500 12px/1.3 var(--ps-font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ps-muted); }
+.spec-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.spec-late { color: var(--ps-signal); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+<div class="spec-head">
+<p class="spec-where">Tour de contrôle</p>
+<h1>Aujourd'hui</h1>
+<p class="ui-measured"><time dateTime="2026-10-24T07:42:00Z">Mesuré le 24 octobre 2026 à 09:42</time></p>
+<p class="spec-note">Spécimen L1 : données d'exemple (références FR-EX), aucun compte, aucune mesure réelle.</p>
+</div>
+<ul class="ui-kpis" aria-label="Files de revue"><li><div class="ui-kpi" data-link=""><div class="ui-kpi-head"><h3 class="ui-kpi-label"><a href="#">Signatures</a></h3></div><p class="ui-kpi-figure"><data class="ui-kpi-value" value="1">1</data> en attente</p><p class="ui-kpi-oldest">la plus ancienne : 1 h</p><p class="ui-kpi-def">Enveloppes bloquées : expirées, trop d&#x27;essais de code, ou contestées.</p></div></li><li><div class="ui-kpi" data-link=""><div class="ui-kpi-head"><h3 class="ui-kpi-label"><a href="#">Attestations</a></h3></div><p class="ui-kpi-figure"><data class="ui-kpi-value" value="1">1</data> en attente</p><p class="ui-kpi-oldest">la plus ancienne : 2 j</p><p class="ui-kpi-def">Attestations URSSAF déclarées qu&#x27;aucun opérateur n&#x27;a encore vérifiées.</p></div></li><li><div class="ui-kpi" data-link=""><div class="ui-kpi-head"><h3 class="ui-kpi-label"><a href="#">Versements</a></h3><p class="ui-kpi-late">1 en retard</p></div><p class="ui-kpi-figure"><data class="ui-kpi-value" value="1">1</data> en attente</p><p class="ui-kpi-oldest">la plus ancienne : 3 j</p><p class="ui-kpi-def">Paiements marqués à revoir, ou fonds retenus après leur échéance.</p></div></li><li><div class="ui-kpi" data-link="" data-zero=""><div class="ui-kpi-head"><h3 class="ui-kpi-label"><a href="#">Modération</a></h3></div><p class="ui-kpi-figure"><data class="ui-kpi-value" value="0">0</data> en attente</p><p class="ui-kpi-def">Contenus signalés par un utilisateur et pas encore tranchés.</p></div></li></ul>
+<div class="ui-filter"><nav class="ui-views" aria-label="Vues enregistrées"><ul><li><a aria-current="page" href="/fr/app/operateur">Tout ce qui attend</a></li><li><a href="/fr/app/operateur?pris=moi">Pris par moi</a></li><li><a href="/fr/app/operateur?retard=1">En retard</a></li></ul></nav><form class="ui-filter-form" role="search" aria-label="Filtres" action="/fr/app/operateur" method="get"><div class="ui-field"><label for="flt-q">Référence ou empreinte</label><input id="flt-q" type="search" autoComplete="off" aria-describedby="flt-q-hint" name="q" value="FR-EX"/><p id="flt-q-hint" class="ui-hint">Une référence (FR-EX001) ou les seize premiers caractères d&#x27;une empreinte.</p></div><div class="ui-field"><label for="flt-file">File</label><select id="flt-file" name="file"><option value="" selected="">Toutes</option><option value="attestations">Attestations</option><option value="signatures">Signatures</option><option value="versements">Versements</option></select></div><input type="hidden" name="tri" value="echeance"/><button type="submit" class="btn">Filtrer</button></form><div class="ui-chips"><ul aria-label="Filtres actifs"><li><a class="ui-chip" href="/fr/app/operateur?tri=echeance&amp;voir=ex2">Référence ou empreinte : « FR-EX »<span class="sr-only">, retirer ce filtre</span></a></li></ul></div></div>
+<div class="ui-split">
+<div class="ui-table-block"><nav class="ui-sortbar" aria-labelledby="today-sortby"><p id="today-sortby" class="ui-sortbar-label">Trier par</p><ul><li><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=ref">Référence<span class="sr-only">, trier par ordre croissant</span></a></li><li><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=file">File<span class="sr-only">, trier par ordre croissant</span></a></li><li><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=age">Âge<span class="sr-only">, trier par ordre croissant</span></a></li><li><a class="ui-sort" data-dir="ascending" aria-current="true" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=-echeance">Échéance<span class="sr-only">, trié par ordre croissant, trier par ordre décroissant</span></a></li></ul></nav><div class="ui-table-frame" role="region" aria-labelledby="today-caption" tabindex="0"><table class="ui-table" id="today" data-select=""><caption id="today-caption" class="ui-caption">Ce qui attend une décision</caption><thead><tr><th scope="col" class="ui-check"><span class="sr-only">Sélection</span></th><th scope="col" data-sortable=""><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=ref">Référence<span class="sr-only">, trier par ordre croissant</span></a></th><th scope="col" data-sortable=""><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=file">File<span class="sr-only">, trier par ordre croissant</span></a></th><th scope="col" class="ui-trunc">Sujet</th><th scope="col" class="ui-num" data-sortable=""><a class="ui-sort" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=age">Âge<span class="sr-only">, trier par ordre croissant</span></a></th><th scope="col" class="ui-num" aria-sort="ascending" data-sortable=""><a class="ui-sort" data-dir="ascending" href="/fr/app/operateur?q=FR-EX&amp;voir=ex2&amp;tri=-echeance">Échéance<span class="sr-only">, trier par ordre décroissant</span></a></th><th scope="col">Pris par</th></tr></thead><tbody><tr><td class="ui-check"><label class="ui-check-hit"><input type="checkbox" form="lot" aria-label="Sélectionner FR-EX003" name="ids" value="ex3"/><span class="ui-check-tick" aria-hidden="true"></span></label></td><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/operateur?q=FR-EX&amp;tri=echeance&amp;voir=ex3">FR-EX003</a></th><td data-card="label">Versements</td><td class="ui-trunc" data-card="body"><span title="Versement à revoir, fonds retenus après l&#x27;échéance">Versement à revoir, fonds retenus après l&#x27;échéance</span></td><td class="ui-num" data-card="aside">3 j</td><td class="ui-num" data-card="end"><span class="spec-late">En retard, 23 oct.</span></td><td>Libre</td></tr><tr data-current=""><td class="ui-check"><label class="ui-check-hit"><input type="checkbox" form="lot" aria-label="Sélectionner FR-EX002" name="ids" value="ex2"/><span class="ui-check-tick" aria-hidden="true"></span></label></td><th scope="row" data-card="title"><a class="ui-row-link" aria-current="true" href="/fr/app/operateur?q=FR-EX&amp;tri=echeance&amp;voir=ex2">FR-EX002</a></th><td data-card="label">Signatures</td><td class="ui-trunc" data-card="body"><span title="Enveloppe expirée, 1 signature sur 2">Enveloppe expirée, 1 signature sur 2</span></td><td class="ui-num" data-card="aside">1 h</td><td class="ui-num" data-card="end">25 oct.</td><td>Vous</td></tr><tr><td class="ui-check"><label class="ui-check-hit"><input type="checkbox" form="lot" aria-label="Sélectionner FR-EX001" name="ids" value="ex1" checked=""/><span class="ui-check-tick" aria-hidden="true"></span></label></td><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/operateur?q=FR-EX&amp;tri=echeance&amp;voir=ex1">FR-EX001</a></th><td data-card="label">Attestations</td><td class="ui-trunc" data-card="body"><span title="Attestation URSSAF déclarée, à vérifier par le code de sécurité">Attestation URSSAF déclarée, à vérifier par le code de sécurité</span></td><td class="ui-num" data-card="aside">2 j</td><td class="ui-num" data-card="end">27 oct.</td><td>Libre</td></tr></tbody></table></div><nav class="ui-pager" aria-label="Pages de la liste"><p class="ui-pager-summary">1 à 3 sur 3</p></nav></div>
+<aside class="ui-inspector" aria-labelledby="insp-ex2-title"><header class="ui-inspector-head"><h2 id="insp-ex2-title" tabindex="-1">Signature de FR-EX002</h2><a id="insp-ex2-close" class="ui-inspector-close" href="/fr/app/operateur?q=FR-EX&amp;tri=echeance">Fermer<span class="sr-only"> le panneau de détail</span></a><div class="ui-inspector-meta">File Signatures, prise par vous. Enveloppe expirée le 24 octobre 2026 à 08:13.</div></header><div class="ui-inspector-actions"><div class="spec-actions"><a class="btn btn-primary" href="#">Relancer le signataire</a><details class="ui-confirm"><summary class="btn ui-danger">Annuler l&#x27;enveloppe</summary><form action="#" method="post"><label for="motif">Motif de l&#x27;annulation (obligatoire)</label><textarea id="motif" name="motif" required=""></textarea><button type="submit" class="btn ui-danger">Confirmer l&#x27;annulation</button></form></details></div></div><div class="ui-inspector-body"><div class="spec-doc"><p class="spec-k">Document</p><p>Contrat d&#x27;exemple, version 3</p><span class="ui-fp" data-state="pending"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="pending" data-level="32" viewBox="0 0 32 32" width="32" height="32" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M16 1L31 16L16 31L1 16Z" stroke-width="1" pathLength="4" stroke-dasharray="0.86 0.14" stroke-dashoffset="0.43"></path><path class="ui-fpm-cells" d="M9.5 9.85l2.9 2.9l-2.9 2.9l-2.9 -2.9zM16 9.85l2.9 2.9l-2.9 2.9l-2.9 -2.9zM22.5 9.85l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9zM9.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM22.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9z"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat, version 3</span><code class="ui-fp-code">1404 E514 9452 DB7B</code><span class="ui-fp-word">1 signature sur 2</span></span></span></div><div class="ui-timeline"><ol class="ui-tl" aria-label="Historique de l&#x27;enveloppe"><li class="ui-tl-item"><time class="ui-tl-time" dateTime="2026-10-17T06:12:00Z">17 octobre 2026 à 08:12</time><p class="ui-tl-title">Contrat figé, empreinte calculée</p><p class="ui-tl-meta">Système</p></li><li class="ui-tl-item"><time class="ui-tl-time" dateTime="2026-10-17T06:13:00Z">17 octobre 2026 à 08:13</time><p class="ui-tl-title">Envoyé aux deux signataires</p><p class="ui-tl-meta">Entreprise</p></li><li class="ui-tl-item"><time class="ui-tl-time" dateTime="2026-10-17T12:03:00Z">17 octobre 2026 à 14:03</time><p class="ui-tl-title">Signé par l&#x27;entreprise</p><p class="ui-tl-meta">Entreprise</p></li><li class="ui-tl-item" data-tone="danger"><time class="ui-tl-time" dateTime="2026-10-24T06:13:00Z">24 octobre 2026 à 08:13</time><p class="ui-tl-title"><span class="ui-tl-status">Expirée </span>Délai de signature dépassé</p><p class="ui-tl-meta">Système · Le freelance n&#x27;a pas signé dans les 7 jours</p></li></ol><p class="ui-tl-upcoming-label" aria-hidden="true">À venir</p><ol class="ui-tl ui-tl-upcoming" aria-label="Historique de l&#x27;enveloppe, à venir"><li class="ui-tl-item" data-tone="upcoming"><span class="ui-tl-time">après une relance</span><p class="ui-tl-title">Signature du freelance</p></li></ol></div></div></aside>
+</div>
+</main>
+</body>
+</html>

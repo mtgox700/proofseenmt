@@ -1,0 +1,537 @@
+# Service agreement, English text, v1. Trésor (Inès Kader), 2026-10-24.
+# Translation of fr.yaml for information; the French version prevails (governing-law clause).
+
+language: en
+title: "Service agreement"
+subtitle: "Reference {{contract.id}}, version {{document.versionNumber}} of {{document.issuedOn}}"
+
+reviewNotice: |
+  This document was produced from a Proofseen template that is being reviewed by a lawyer. It is not legal advice and
+  does not replace the advice of your own counsel. Read it, and have it reviewed if needed, before signing. This
+  English text is a translation: the French version prevails.
+reviewFooter: "Proofseen template under review by a lawyer, version {{document.versionNumber}}. The French version prevails."
+
+clauses:
+  parties:
+    heading: "The parties"
+    body: |
+      This agreement is entered into between:
+
+      {{seller}}
+
+      hereinafter "the Provider", acting in a professional and independent capacity,
+
+      and
+
+      {{buyer}}
+
+      hereinafter "the Client", represented by the authorised person who signs this agreement on its behalf.
+
+      The identities above are those each party declared on Proofseen and that were frozen when the agreement was
+      created. Each party warrants that they are accurate and informs the other of any change.
+
+  platform-role:
+    heading: "Role of Proofseen"
+    body: |
+      The parties met on Proofseen, a service published by {{platform.publisherName}}, {{platform.publisherForm}},
+      registered with the {{platform.publisherRegistry}} under SIREN number {{platform.publisherSiren}}, whose
+      registered office is at {{platform.publisherAddress}} (hereinafter "Proofseen").
+
+      Proofseen is not a party to this agreement. It acts only as:
+
+      - the intermediary that enabled the parties to meet;
+      - the Provider's invoicing agent, issuing the invoices for the services in the Provider's name and on its behalf
+        (clause "Invoicing");
+      - the provider of the online payment tool, operated by the payment service provider Stripe, which receives and
+        holds the funds until they are paid out (clause "Payment").
+
+      Proofseen is not the employer of the Provider or of anyone working for the Provider. It gives no instruction on
+      how the services are performed, neither negotiates nor concludes on behalf of either party, and does not
+      warrant the performance of the agreement, the payment or any result. Its own commitments towards each party are
+      those of the Proofseen terms of use, version of {{platform.termsVersion}}, which each party has accepted.
+
+  scope:
+    heading: "Scope of the services"
+    body: |
+      The Provider performs the following services for the Client:
+
+      {{input.scope}}
+
+      Agreed deliverables and acceptance criteria:
+
+      {{input.deliverables}}
+
+      The services are performed {{input.workMode}}. Dates, hours and any presence at the Client's premises are agreed
+      between the parties according to the needs of the services; the Client cannot impose them unilaterally.
+
+      Where the expected quality of a deliverable is not specified, the Provider delivers services that meet the
+      legitimate expectations of the parties, having regard to the scope above and the agreed price.
+
+  contract-documents:
+    heading: "Contractual documents"
+    body: |
+      The agreement consists of, in decreasing order of priority: amendments signed by both parties, this agreement,
+      then the quote accepted on Proofseen whose terms it takes over. Acceptance reports and approved monthly
+      timesheets record its performance.
+
+      The Proofseen terms of use govern each party's relationship with Proofseen; they do not change the parties'
+      commitments to each other, except for the rules on paying out funds to which this agreement expressly refers.
+
+  cost-center:
+    heading: "Client internal allocation"
+    body: |
+      The Client asks that its invoices show its cost centre: {{contract.costCenter}}. This is provided for its
+      internal allocation and changes no commitment.
+
+  duration:
+    heading: "Term"
+    variants:
+      fixed_dated: |
+        The agreement takes effect when signed by both parties. The services start on {{contract.startsOn}} and must be
+        delivered no later than {{contract.endsOn}}, unless postponed in writing. The agreement ends upon acceptance of
+        the services and payment of the price.
+      fixed_open: |
+        The agreement takes effect when signed by both parties. The services start on {{contract.startsOn}} and are
+        performed within a reasonable time given their scope and the number of days sold. The agreement ends upon
+        acceptance of the services and payment of the price.
+      monthly_dated: |
+        The agreement takes effect when signed by both parties. The services start on {{contract.startsOn}} and end on
+        {{contract.endsOn}}, or earlier if the day cap is reached. It is not tacitly renewed: continuing after its term
+        requires an amendment.
+      monthly_open: |
+        The agreement takes effect when signed by both parties. The services start on {{contract.startsOn}}, for an
+        indefinite term, and end at the latest when the day cap is reached. Each party may end it under the clause
+        "Termination".
+
+  price:
+    heading: "Price"
+    variants:
+      fixed: |
+        The services are sold at a fixed price, for {{contract.days}} days at a daily rate of
+        {{contract.dailyRateCents}} excluding VAT, that is a total price of {{contract.totalCents}} excluding VAT.
+
+        This price is firm. It covers all the services and deliverables, including, if the parties chose it, the
+        assignment or licence of rights under the clause "Intellectual property". Any change to the price requires an
+        amendment.
+      monthly: |
+        The services are invoiced on a time and materials basis, at a daily rate of {{contract.dailyRateCents}}
+        excluding VAT. Each month, the amount due equals the daily rate multiplied by the number of half-days worked
+        shown on the approved monthly timesheet, divided by two, rounded to the nearest cent.
+
+        The total number of billable days cannot exceed {{contract.days}} days, that is a cap of
+        {{contract.totalCents}} excluding VAT. The Client owes only the days actually worked and approved; the cap is
+        not a purchase commitment.
+
+  vat:
+    heading: "Value added tax"
+    variants:
+      standard: |
+        The price is stated excluding VAT. VAT is charged in addition at the rate applicable to the Provider, which is
+        {{seller.vatRateBp}} on the date of the agreement, that is {{computed.vatCents}} on the total price, for a total
+        of {{computed.totalTtcCents}} including VAT. Any change in the statutory rate applies automatically.
+      exempt: |
+        The Provider declares that it benefits from the French VAT franchise: VAT not applicable, article 293 B of the
+        French general tax code. It informs the Client and Proofseen without delay if it ceases to benefit from it; VAT
+        is then charged in addition from that date.
+
+  payment:
+    heading: "Secure payment and payout"
+    variants:
+      fixed: |
+        The Client pays the price including VAT through the online payment offered on Proofseen, no later than the
+        start date of the services. Payment is operated by Stripe, a payment service provider, which receives and holds
+        the funds until they are paid out. Proofseen does not hold the funds.
+
+        The Provider is not required to start the services until Proofseen has confirmed receipt of the payment to both
+        parties.
+
+        The funds are paid out to the Provider, less any commission borne by the Provider (clause "Proofseen
+        commission"), after acceptance of the services (clause "Acceptance"), unless a challenge is pending. A challenge
+        is pending when the Client has notified reasoned reservations within the acceptance period, when a payment
+        dispute is open with the Client's bank, or when legal proceedings concerning the agreement have been started.
+
+        While a challenge is pending, the funds remain held by Stripe. They are paid out or refunded, in whole or in
+        part, upon the first of the following events: a written agreement of both parties signed on Proofseen, an
+        enforceable court decision, or the application of the payout rules of the Proofseen terms of use accepted by
+        both parties. Proofseen applies these rules; it does not decide the merits of the disagreement.
+
+        If payment is not made by the start date, the sums due automatically bear late payment penalties from the next
+        day at three times the French statutory interest rate, and the Client owes a fixed recovery fee of
+        {{rule.recoveryFeeCents}}. The Provider may suspend performance after notifying the Client, and apply the clause
+        "Termination".
+      monthly: |
+        Each month the Client pays the amount including VAT of the approved monthly timesheet, through the online
+        payment offered on Proofseen, as set out in the clause "Funding of time and materials months". Payment is
+        operated by Stripe, a payment service provider, which receives and holds the funds until they are paid out.
+        Proofseen does not hold the funds.
+
+        The funds for each month are paid out to the Provider, less any commission borne by the Provider, after the
+        month's timesheet is approved (clause "Acceptance"), unless a challenge is pending as defined below.
+
+        A challenge is pending when the Client has rejected the timesheet with a written reason within the approval
+        period, when a payment dispute is open with the Client's bank, or when legal proceedings concerning the
+        agreement have been started. While a challenge is pending, the funds for the month concerned remain held by
+        Stripe and are paid out or refunded upon the first of the following events: a written agreement of both
+        parties signed on Proofseen, an enforceable court decision, or the application of the payout rules of the
+        Proofseen terms of use accepted by both parties. Proofseen applies these rules; it does not decide the merits
+        of the disagreement.
+
+        If payment is not made when due, the sums due automatically bear late payment penalties from the next day at
+        three times the French statutory interest rate, and the Client owes a fixed recovery fee of
+        {{rule.recoveryFeeCents}}. The Provider may suspend performance after notifying the Client, and apply the clause
+        "Termination".
+
+  monthly-funding:
+    heading: "Funding of time and materials months"
+    variants:
+      monthly_provision: |
+        At the beginning of each month, the Client pays a provision equal to the number of days planned for the month
+        multiplied by the daily rate, including VAT, without exceeding the remaining cap. When the timesheet is
+        approved, the actual amount is paid out to the Provider and any excess is refunded to the Client without delay.
+      # Fifteen days: drafting HYPOTHESIS, to be set with founder decision D8 (variant blocked until then).
+      pay_on_timesheet: |
+        Each month's approved timesheet is paid by the Client within fifteen days of its approval. The funds are paid
+        out to the Provider as soon as they are received.
+      single_provision: |
+        Upon signature, the Client pays a provision equal to the cap of the agreement, including VAT. The amount of
+        each approved timesheet is paid out to the Provider from this provision; any unused balance is refunded to the
+        Client at the end of the agreement.
+
+  commission:
+    heading: "Proofseen commission"
+    variants:
+      freelance: |
+        For the introduction, the invoicing and the payment tool, Proofseen receives a commission of
+        {{contract.commissionBp}} of the price excluding VAT, that is {{computed.commissionHtCents}} excluding VAT
+        calculated on the total price, plus applicable VAT. This commission is borne by the Provider: Proofseen invoices
+        it to the Provider and deducts it from the payout. The Client pays no fee to Proofseen under this agreement.
+
+        This rate is frozen when the agreement is created and can change only with the Provider's written consent.
+      company: |
+        For the introduction, the invoicing and the payment tool, Proofseen receives a service fee of
+        {{contract.commissionBp}} of the price excluding VAT, that is {{computed.commissionHtCents}} excluding VAT
+        calculated on the total price, plus applicable VAT. This fee is borne by the Client: Proofseen invoices it to
+        the Client, who pays it together with the price. The Provider receives the full agreed price.
+
+        This rate is frozen when the agreement is created and can change only with the Client's written consent.
+
+  invoicing:
+    heading: "Invoicing"
+    body: |
+      Before the agreement was concluded, the Provider gave Proofseen a mandate to issue, in the Provider's name and on
+      its behalf, the invoices for the services addressed to the Client (article 289, I-2, of the French general tax
+      code). Each invoice is issued after payment, states that it has been paid, and is made available to both parties
+      on Proofseen.
+
+      The Provider remains solely responsible for its invoicing and VAT reporting obligations. It may challenge an
+      invoice issued in its name within the period set by the mandate; a corrective invoice is then issued.
+
+  acceptance:
+    heading: "Acceptance"
+    variants:
+      fixed: |
+        The Provider declares delivery of the services on Proofseen. From that declaration, the Client has
+        {{input.acceptanceWindowDays}} days to:
+
+        - accept the services, without reservation or with minor reservations that do not prevent use of the
+          deliverables and that the Provider remedies within an agreed time;
+        - or refuse acceptance through reasoned and specific reservations linked to the deliverables and criteria of
+          the clause "Scope of the services".
+
+        Acceptance is recorded in an acceptance report drawn up on Proofseen. Reasoned reservations give the Provider a
+        reasonable time to correct, followed by a new acceptance period of the same length, limited to the reserved
+        points.
+
+        The parties expressly agree that, failing acceptance or reasoned reservations within the period, the services
+        are deemed accepted without reservation when it expires.
+      monthly: |
+        Each month the Provider declares on Proofseen the number of half-days worked in the previous month. From that
+        declaration, the Client has {{input.acceptanceWindowDays}} days to approve the timesheet or reject it with a
+        written reason. A rejected timesheet is corrected and submitted again; an approved timesheet no longer changes.
+
+        The parties expressly agree that, failing approval or a reasoned rejection within the period, the timesheet is
+        deemed approved when it expires.
+
+  refunds:
+    heading: "Reductions, refunds and payment disputes"
+    body: |
+      Any price reduction is agreed by an amendment signed by both parties. If it occurs before payout, the difference
+      including VAT is refunded to the Client by Stripe and the Proofseen commission is calculated on the reduced
+      price. If it occurs after payout, a credit note is issued in the Provider's name; the Provider refunds the Client
+      the amount including VAT of the credit note and accepts that this refund be taken from its payout account under
+      the Proofseen terms of use or, if the balance is insufficient, pays it within thirty days.
+
+      The Client undertakes to use the acceptance and reservation procedure of this agreement before raising any
+      payment dispute with its bank based on the performance of the services. A payment dispute suspends the payout.
+      If it succeeds after payout, the Provider returns the amount taken back by the bank under the same conditions,
+      unless the dispute was manifestly unjustified, in which case the Client is liable for the loss caused to the
+      Provider.
+
+  independence:
+    heading: "Independence of the Provider"
+    body: |
+      The Provider works as an independent professional. It declares that it is registered for the activity covered by
+      the agreement and that it meets its own social security and tax obligations.
+
+      It organises its work freely: it chooses its methods, tools and hours, subject to the security and system access
+      constraints notified to it by the Client. It uses its own resources, except for access the Client grants for the
+      purposes of the services. It remains free to work for other clients, as this agreement contains no exclusivity.
+
+      The Client states its needs and checks the result; it gives the Provider no orders or directions on how to
+      perform the services, exercises no power of control or sanction over it, and does not integrate it into its
+      reporting lines. No provision of the agreement creates a relationship of subordination between the Provider and
+      the Client, or between the Provider and Proofseen.
+
+  vigilance:
+    heading: "URSSAF vigilance certificate"
+    body: |
+      The amount of the services, alone or together with the agreements of the last six months between the same
+      parties, reaches {{rule.vigilanceThresholdCents}} excluding VAT, the threshold from which the Client must check
+      that the Provider is up to date with its social security obligations.
+
+      The Provider therefore uploads to Proofseen, when the agreement is concluded and then every six months until
+      performance ends, a vigilance certificate issued by the collection body less than six months earlier and, where
+      registration is mandatory, proof of registration. The Client checks its authenticity with the issuing body. Any
+      check of these documents by Proofseen facilitates this verification but does not replace it.
+
+  subcontracting:
+    heading: "Subcontracting"
+    variants:
+      "false": |
+        The Client chose the Provider for its personal skills. The Provider performs the services itself and may not
+        subcontract them, even in part, without the Client's prior written consent.
+      "true": |
+        The Client authorises the Provider to subcontract part of the services. The Provider remains solely liable to
+        the Client for the subcontracted services, informs the Client of the identity of each subcontractor before it
+        starts, and imposes on it the confidentiality obligations of this agreement.
+
+  intellectual-property:
+    heading: "Intellectual property"
+    variants:
+      assignment: |
+        The Provider assigns to the Client, on an exclusive basis, the economic copyright in the deliverables created
+        specifically for the Client under the agreement, namely:
+
+        - the right of reproduction, on any medium;
+        - the right of representation and communication to the public, by any means;
+        - the right of adaptation, modification, translation and integration into other works;
+        - the right of distribution and placing on the market, free of charge or for consideration.
+
+        These rights are assigned for the following purpose: {{input.ipPurpose}}; for the following territory:
+        {{input.ipTerritory}}; and for {{input.ipDurationYears}} years from their transfer. The price of this
+        assignment is included in the price of the services.
+
+        For each deliverable, the assignment takes effect on the later of its acceptance and full payment of the
+        corresponding price. Until then, the Client has a right of use for acceptance purposes only.
+
+        Elements the Provider owned before the agreement or develops independently (know-how, methods, tools, generic
+        components) remain its property; it grants the Client, for the same purpose, territory and duration, a
+        non-exclusive licence to use them as integrated into the deliverables. Open source components remain subject to
+        their licence, which the Provider discloses to the Client. No assignment covers future works other than the
+        deliverables of the agreement.
+      licence: |
+        The Provider retains the economic copyright in the deliverables. It grants the Client a non-exclusive licence,
+        not transferable without the Provider's written consent, comprising:
+
+        - the right to reproduce the deliverables, on any medium;
+        - the right to represent and communicate them, by any means;
+        - the right to adapt and modify them for its own needs.
+
+        This licence is granted for the following purpose: {{input.ipPurpose}}; for the following territory:
+        {{input.ipTerritory}}; and for {{input.ipDurationYears}} years. Its price is included in the price of the
+        services. It takes effect for each deliverable upon its acceptance and full payment of the corresponding price.
+
+        Open source components remain subject to their licence, which the Provider discloses to the Client.
+      retained: |
+        The Provider retains all intellectual property rights in the deliverables. The Client may use the deliverables
+        delivered to it for its internal needs, in connection with the scope of the agreement, after their acceptance
+        and full payment of the corresponding price. Any other use, in particular public distribution, resale or
+        modification by a third party, requires a separate written agreement of the Provider.
+
+        Open source components remain subject to their licence, which the Provider discloses to the Client.
+
+  confidentiality:
+    heading: "Confidentiality"
+    body: |
+      Each party keeps confidential the non-public information the other communicates to it for the performance of the
+      agreement, on whatever medium, and uses it only for that performance. It discloses it only to persons who need to
+      know it and who are bound by the same obligation.
+
+      This obligation does not apply to information that is public through no fault of the receiving party, already
+      lawfully known to it, independently developed, or whose disclosure is required by law or by an authority, to the
+      extent of that requirement.
+
+      It lasts for the term of the agreement and {{input.confidentialityYears}} years after it ends, without prejudice
+      to the longer protection the law grants to trade secrets. When the agreement ends, each party returns or
+      destroys, at the other's choice, the confidential information received, unless the law requires it to be kept.
+
+  personal-data:
+    heading: "Personal data of the parties"
+    body: |
+      Each party processes the personal data of the other's contact person (name, business contact details) solely to
+      manage the agreement, as controller, and keeps it for the term of the agreement and then the limitation periods.
+      Proofseen processes the parties' data under its privacy policy.
+
+  data-processing:
+    heading: "Processing of personal data on behalf of the Client"
+    body: |
+      To perform the services, the Provider processes personal data on behalf of the Client, which is the controller.
+      The processing is described as follows:
+
+      {{input.dpaDetails}}
+
+      The Provider, as processor within the meaning of Regulation (EU) 2016/679:
+
+      - processes the data only on documented instructions from the Client, including for any transfer outside the
+        European Union, and informs it immediately if it considers that an instruction infringes data protection law;
+      - ensures that persons authorised to process the data are bound by confidentiality;
+      - implements security measures appropriate to the risk;
+      - engages another processor only with the Client's prior written authorisation, imposing the same obligations;
+      - assists the Client in responding to requests from data subjects exercising their rights, and in meeting its
+        obligations on security, breach notification and impact assessment;
+      - at the end of the services, deletes or returns all the data, at the Client's choice, and destroys existing
+        copies, unless the law requires storage;
+      - makes available to the Client the information needed to demonstrate compliance with these obligations and
+        allows for audits.
+
+  liability:
+    heading: "Liability"
+    variants:
+      fixed: |
+        The Provider performs the services with care and in accordance with professional standards. It is under an
+        obligation of means, except for the conformity of the deliverables with the acceptance criteria expressly
+        agreed.
+
+        Each party is liable only for direct damage that was foreseeable when the agreement was concluded, except in
+        case of gross negligence or wilful misconduct. Except for gross negligence or wilful misconduct, personal
+        injury, breach of confidentiality and infringement of a third party's intellectual property rights, each
+        party's total liability under the agreement is limited to the total price excluding VAT. This limit does not
+        apply to payment of the price itself.
+      monthly: |
+        The Provider performs the services with care and in accordance with professional standards. It is under an
+        obligation of means, except for the conformity of the deliverables with the criteria expressly agreed.
+
+        Each party is liable only for direct damage that was foreseeable when the agreement was concluded, except in
+        case of gross negligence or wilful misconduct. Except for gross negligence or wilful misconduct, personal
+        injury, breach of confidentiality and infringement of a third party's intellectual property rights, each
+        party's total liability under the agreement is limited to the sums excluding VAT paid in respect of the twelve
+        months preceding the event giving rise to liability. This limit does not apply to payment of approved
+        timesheets.
+
+  insurance:
+    heading: "Insurance"
+    body: |
+      The Provider declares that it holds professional liability insurance with {{input.insurerName}}, policy number
+      {{input.insurancePolicy}}, and that it will maintain it for the term of the agreement. It provides the
+      certificate to the Client on request.
+
+  force-majeure:
+    heading: "Force majeure"
+    body: |
+      Neither party is liable for a failure caused by a force majeure event, that is an event beyond its control,
+      which could not reasonably have been foreseen when the agreement was concluded and whose effects cannot be
+      avoided by appropriate measures. The affected party informs the other without delay. If the impediment is
+      temporary, performance is suspended; if it lasts more than thirty days or becomes permanent, either party may end
+      the agreement by notice, without compensation.
+
+  termination:
+    heading: "Termination"
+    variants:
+      fixed_dated: |
+        If a party seriously breaches its obligations, the other may end the agreement fifteen days after a formal
+        notice that has remained without effect and that expressly refers to this clause. Accepted deliverables remain
+        due and paid; work in progress is settled by mutual agreement or, failing that, under the payout rules of the
+        clause "Secure payment and payout".
+      fixed_open: |
+        If a party seriously breaches its obligations, the other may end the agreement fifteen days after a formal
+        notice that has remained without effect and that expressly refers to this clause. Accepted deliverables remain
+        due and paid; work in progress is settled by mutual agreement or, failing that, under the payout rules of the
+        clause "Secure payment and payout".
+      monthly_dated: |
+        If a party seriously breaches its obligations, the other may end the agreement fifteen days after a formal
+        notice that has remained without effect and that expressly refers to this clause. Half-days worked until the
+        end of the agreement remain due on a timesheet.
+      monthly_open: |
+        Either party may end the agreement at any time by written notice, with {{input.noticeDays}} days' notice. The
+        notice period takes into account the length of the relationship between the parties; where that relationship is
+        long-standing, the terminating party gives longer notice, reasonable in view of its length.
+
+        If a party seriously breaches its obligations, the other may end the agreement without notice fifteen days after
+        a formal notice that has remained without effect and that expressly refers to this clause. Half-days worked
+        until the end of the agreement remain due on a timesheet.
+
+  non-solicitation:
+    heading: "Non-solicitation"
+    body: |
+      During the agreement and for {{input.nonSolicitationMonths}} months after it ends, each party refrains from
+      soliciting, with a view to hiring them or having them work for it directly, any employee of the other party who
+      took part in performing the services, unless the other party agrees in writing. This clause does not cover the
+      Provider itself, unsolicited applications or responses to a public job offer. Breach of it gives rise to
+      compensation for the loss caused.
+
+  reference:
+    heading: "Reference and verified mission"
+    body: |
+      The Client authorises the Provider to mention its company name and the title of the mission as a professional
+      reference, without any amount or confidential information. It agrees that, once the services have been paid on
+      Proofseen, the mission appears under its name as a verified mission on the Provider's Proofseen profile. It may
+      withdraw this authorisation at any time by notice, for the future.
+
+  evidence:
+    heading: "Electronic signature and evidence"
+    variants:
+      platform_acceptance: |
+        Each party accepts this agreement by a dated electronic acceptance given from its authenticated Proofseen
+        account. The agreement is concluded on the date of the second acceptance.
+
+        The parties agree that the records kept by Proofseen (version of the document shown, digital fingerprint of the
+        document, account identity, date and time of each acceptance) are admissible and evidence the facts they
+        record, unless proven otherwise. Each party may download a copy of the agreement from Proofseen at any time and
+        keep it on a durable medium.
+      otp_simple: |
+        Each party signs this agreement by a simple electronic signature on Proofseen: reading the document, express
+        consent, then entering a one-time code received at its account email address. The agreement is concluded on the
+        date of the last signature.
+
+        An evidence file is drawn up for each signature: digital fingerprint of the signed document, version, account
+        and email address of the signatory, text of the consent, date and time of each step, IP address and browser
+        used, and a log of events each carrying the fingerprint of the previous one. The parties agree that this file is
+        admissible and evidences the facts it records, unless proven otherwise.
+
+        Each party receives a copy of the signed agreement and of its evidence page, may download them from Proofseen at
+        any time and keep them on a durable medium.
+
+  notices:
+    heading: "Notices"
+    body: |
+      Notices under the agreement (reservations, formal notice, termination) are given in writing, through the
+      Proofseen messaging service or by registered letter with acknowledgement of receipt to the party's address shown
+      in the agreement. A notice through the Proofseen messaging service is dated at the time it is recorded by
+      Proofseen.
+
+  transfer:
+    heading: "Transfer of the agreement"
+    body: |
+      Neither party may assign or transfer the agreement to a third party without the other's prior written consent.
+
+  amendments:
+    heading: "Amendments"
+    body: |
+      The agreement may be amended only by an amendment signed by both parties on Proofseen. The amendment states the
+      provisions changed; the others remain unchanged.
+
+  disputes:
+    heading: "Disputes"
+    body: |
+      In the event of a dispute, the first party to act sends the other a written and reasoned statement. The parties
+      seek an amicable solution for thirty days from that notice, during which either may ask Proofseen for the
+      records relating to the agreement. Failing agreement, the dispute is brought before the competent court under
+      ordinary rules.
+
+      Proofseen is neither arbitrator nor judge of the dispute.
+
+  governing-law:
+    heading: "Governing law and language"
+    body: |
+      The agreement is governed by French law. It is drawn up in French; where a translation is provided, the French
+      version prevails.
