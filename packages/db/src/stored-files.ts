@@ -256,12 +256,20 @@ export const storedFiles = (db: Db): StoredFiles => ({
   },
 
   async totalBytes() {
-    return (await db.storedFile.aggregate({ _sum: { size: true } }))._sum.size ?? 0;
+    // Les versions du coffre occupent le même volume : elles comptent dans son plafond.
+    const [files, versions] = await Promise.all([db.storedFile.aggregate({ _sum: { size: true } }), db.documentVersion.aggregate({ _sum: { size: true } })]);
+    return (files._sum.size ?? 0) + (versions._sum.size ?? 0);
   },
 
   async existing(ids) {
     const valid = ids.filter((id) => Uuid.safeParse(id).success);
     if (valid.length === 0) return new Set<string>();
-    return new Set((await db.storedFile.findMany({ where: { id: { in: valid } }, select: { id: true } })).map((r) => r.id));
+    // Un fichier du coffre (version d'un document) n'a pas de ligne StoredFile : sans cette lecture, le balayage des fichiers
+    // orphelins l'effacerait au bout d'une heure.
+    const [files, versions] = await Promise.all([
+      db.storedFile.findMany({ where: { id: { in: valid } }, select: { id: true } }),
+      db.documentVersion.findMany({ where: { storageKey: { in: valid } }, select: { storageKey: true } }),
+    ]);
+    return new Set([...files.map((r) => r.id), ...versions.map((r) => r.storageKey)]);
   },
 });

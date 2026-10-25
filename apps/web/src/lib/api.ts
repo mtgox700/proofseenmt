@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { BELOW_MINIMUM, getDb, NO_CONTACT, type Actor } from "@proofseen/db";
+import { BELOW_MINIMUM, getDb, NO_CONTACT, SCOPE_REQUIRED, type Actor } from "@proofseen/db";
 import { accountUsers } from "@/data/accounts";
 import { hasDatabase } from "@/data/intake-sink";
 import { session } from "./session";
@@ -11,7 +11,7 @@ import { session } from "./session";
  * an underlying message: a driver error can carry a host name, a stack can carry a path.
  */
 
-export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "hors de la période du contrat" | "relevé déjà validé" | "plafond de jours dépassé" | "paiement par relevé mensuel" | "relevé modifié entre-temps" | "relevé invraisemblable" | "régie pas encore ouverte" | "clé invalide" | "trop de clés" | "période invalide" | "export trop volumineux" | "un seul administrateur" | "identité non concordante" | "déjà facturé" | "compte suspendu" | "erreur serveur";
+export type ApiError = "non-configuré" | "non-connecté" | "introuvable" | "requête invalide" | "origine refusée" | "trop de demandes" | "en attente d'accord" | "conversation fermée" | "profil requis" | "profil privé" | "déjà candidat" | "mission verrouillée" | "coordonnées refusées" | "déjà accepté" | "déjà payé" | "identité de facturation requise" | "paiements non configurés" | "pas encore payé" | "montant trop faible" | "objet de la prestation manquant" | "contrat en cours" | "contrat avec soi-même" | "entreprise fermée" | "attestation de vigilance requise" | "siret déjà utilisé" | "brief incompris" | "hors de la période du contrat" | "relevé déjà validé" | "plafond de jours dépassé" | "paiement par relevé mensuel" | "relevé modifié entre-temps" | "relevé invraisemblable" | "régie pas encore ouverte" | "clé invalide" | "trop de clés" | "période invalide" | "export trop volumineux" | "un seul administrateur" | "identité non concordante" | "déjà facturé" | "compte suspendu" | "erreur serveur";
 
 const STATUS: Record<ApiError, number> = {
   "non-configuré": 503,
@@ -33,6 +33,7 @@ const STATUS: Record<ApiError, number> = {
   "paiements non configurés": 503,
   "pas encore payé": 409,
   "montant trop faible": 422,
+  "objet de la prestation manquant": 422,
   "contrat en cours": 409,
   "contrat avec soi-même": 409,
   "entreprise fermée": 409,
@@ -65,6 +66,7 @@ export const fail = (error: ApiError): NextResponse => NextResponse.json({ ok: f
 export const invalid = (issues: readonly { readonly message: string }[]): NextResponse => {
   if (issues.some((issue) => issue.message === NO_CONTACT)) return fail("coordonnées refusées");
   if (issues.some((issue) => issue.message === BELOW_MINIMUM)) return fail("montant trop faible");
+  if (issues.some((issue) => issue.message === SCOPE_REQUIRED)) return fail("objet de la prestation manquant");
   return fail("requête invalide");
 };
 

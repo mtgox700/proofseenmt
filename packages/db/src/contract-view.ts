@@ -38,6 +38,11 @@ export interface ContractDetail extends ContractSummary {
   readonly days: number;
   readonly billing: ContractBilling;
   readonly repeatClient: boolean;
+  /** Le taux de commission figé sur le contrat ; nul s'il est né sans taux (il ne peut alors pas être payé). */
+  readonly commissionBp: number | null;
+  /** L'objet de la prestation et ses livrables, figés ; nuls (et vide) pour un contrat d'avant le coffre. */
+  readonly scope: string | null;
+  readonly deliverables: readonly string[];
   readonly endsOn: Date | null;
   readonly costCenter: string | null;
   readonly signedByFreelanceAt: Date | null;
@@ -99,6 +104,9 @@ export const contractView = (db: Db) => ({
         days: true,
         billing: true,
         repeatClient: true,
+        commissionBp: true,
+        scope: true,
+        deliverables: true,
         endsOn: true,
         costCenter: true,
         acceptedByOrgAt: true,
@@ -124,6 +132,9 @@ export const contractView = (db: Db) => ({
       days: row.days,
       billing: row.billing,
       repeatClient: row.repeatClient,
+      commissionBp: row.commissionBp,
+      scope: row.scope,
+      deliverables: row.deliverables,
       endsOn: row.endsOn,
       costCenter: row.costCenter,
       signedByFreelanceAt: row.acceptedByFreelanceAt,
