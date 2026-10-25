@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { paymentsUi } from "../src/data/payments-config";
+import { checkoutOpenFor, contractCommissionTerms, paymentsUi } from "../src/data/payments-config";
 import { contrastRatio, PALETTE } from "@proofseen/brand";
 import { isPayer, payoutState, redirectStatus, returnState, showPayClosed, showPayForm, type PayContext } from "../src/lib/pay-section";
 import { stripeAppearance } from "../src/lib/stripe-appearance";
@@ -101,8 +101,29 @@ describe("payment configuration", () => {
     expect(paymentsUi({ ...ENV, STRIPE_SECRET_KEY: "rk_live_51Secret", PROOFSEEN_PAYMENTS_LIVE: "GO" })).toBeNull();
   });
 
-  it("opens the payout account without a commission rate, but not the checkout", () => {
-    expect(paymentsUi({ ...ENV, PROOFSEEN_COMMISSION_BP: undefined })).toEqual({ publishableKey: "pk_test_51Abc", testMode: true, checkoutOpen: false });
+  it("does not read the commission rate from the environment: the contract's frozen rate decides whether it can be paid", () => {
+    expect(paymentsUi({ ...ENV, PROOFSEEN_COMMISSION_BP: undefined })).toEqual({ publishableKey: "pk_test_51Abc", testMode: true, checkoutOpen: true });
+    expect(paymentsUi({ ...ENV, PROOFSEEN_COMMISSION_BP: "2500" })).toEqual(paymentsUi(ENV));
+    const ui = paymentsUi(ENV);
+    expect(checkoutOpenFor(ui, 1000)).toBe(true);
+    // A contract born without a rate can never be paid: no Pay button, whatever the environment says today.
+    expect(checkoutOpenFor(ui, null)).toBe(false);
+    // And a contract with a rate stays payable if the variable later disappears.
+    expect(checkoutOpenFor(paymentsUi({ ...ENV, PROOFSEEN_COMMISSION_BP: undefined }), 1000)).toBe(true);
+    expect(checkoutOpenFor(null, 1000)).toBe(false);
+  });
+
+  it("hands the environment's commission terms to the code that creates contracts, nowhere else", () => {
+    expect(contractCommissionTerms({ PROOFSEEN_COMMISSION_BP: "1000" })).toEqual({ commissionBp: 1000, repeatCommissionBp: 500 });
+    expect(contractCommissionTerms({})).toBeNull();
+    for (const file of ["app/api/contracts/route.ts", "app/[lang]/app/messages/quote-actions.ts"]) {
+      expect(readFileSync(join(SRC, file), "utf8")).toContain("commissionTerms: () => contractCommissionTerms()");
+    }
+    // The contract page opens the checkout from the contract's own rate.
+    expect(readFileSync(join(SRC, "app/[lang]/app/contrats/[id]/page.tsx"), "utf8")).toContain("checkoutOpenFor(ui, contract.commissionBp)");
+    // The payment route reads the contract, never the environment, for the rate.
+    const payment = readFileSync(join(SRC, "app/api/contracts/[id]/payment/route.ts"), "utf8");
+    expect(payment).not.toMatch(/COMMISSION_BP|commissionTermsFromEnv|contractCommissionTerms/);
   });
 
   it("detects test mode from the publishable key prefix", () => {

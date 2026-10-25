@@ -1,0 +1,95 @@
+# Procès-verbal de recette, texte français, v1. Trésor (Inès Kader), 2026-10-24.
+
+language: fr
+title: "Procès-verbal de recette"
+subtitle: "Contrat {{contract.id}}, procès-verbal version {{document.versionNumber}} du {{document.issuedOn}}"
+
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
+  juridique. Relisez-le avant de le signer.
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat, version {{document.versionNumber}}."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}, version {{document.versionNumber}}."
+
+clauses:
+  parties:
+    heading: "Les parties"
+    body: |
+      Prestataire :
+
+      {{seller}}
+
+      Client :
+
+      {{buyer}}
+
+  reference:
+    heading: "Contrat concerné"
+    body: |
+      Le présent procès-verbal porte sur le contrat de prestation de services {{contract.id}}, {{contract.billing}},
+      accepté par les deux parties sur Proofseen. Le Prestataire a déclaré la livraison le {{report.deliveredOn}}.
+
+  signed-version:
+    heading: "Version du contrat"
+    body: |
+      Le texte du contrat en vigueur à son acceptation est la version {{base.contractVersionNumber}} du contrat de
+      prestation conservée sur Proofseen, d'empreinte numérique {{base.contractDigestShort}}.
+
+  deliverables:
+    heading: "Livrables examinés"
+    body: |
+      Le Client a examiné les livrables et critères de recette prévus au contrat :
+
+      {{contract.deliverables}}
+
+  decision:
+    heading: "Décision du Client"
+    variants:
+      accepted: |
+        Le {{report.decidedOn}}, le Client prononce la recette sans réserve.
+      accepted_with_minor_reservations: |
+        Le {{report.decidedOn}}, le Client prononce la recette avec les réserves mineures suivantes, qui n'empêchent
+        pas l'usage des livrables :
+
+        {{report.reservations}}
+
+        Le Prestataire lève ces réserves au plus tard le {{report.correctionDueOn}}.
+      refused: |
+        Le {{report.decidedOn}}, le Client refuse la recette pour les réserves motivées suivantes, chacune rattachée à
+        un livrable ou à un critère du contrat :
+
+        {{report.reservations}}
+
+        Le Prestataire corrige les points réservés au plus tard le {{report.correctionDueOn}} et déclare de nouveau la
+        livraison ; un nouveau délai de recette de même durée court alors, limité à ces points.
+      deemed_accepted: |
+        Le Client n'a ni prononcé la recette ni notifié de réserves motivées dans le délai prévu au contrat. Comme les
+        parties en sont expressément convenues, la recette est réputée prononcée sans réserve le {{report.decidedOn}},
+        date d'expiration de ce délai.
+
+  effects:
+    heading: "Effets"
+    variants:
+      accepted: |
+        La recette rend exigible le versement au Prestataire des fonds conservés par Stripe, selon l'article « Paiement
+        sécurisé et versement » du contrat, et fait courir, s'il y a lieu, le transfert des droits prévu à l'article
+        « Propriété intellectuelle » une fois le prix entièrement payé.
+      accepted_with_minor_reservations: |
+        La recette rend exigible le versement au Prestataire des fonds conservés par Stripe, selon l'article « Paiement
+        sécurisé et versement » du contrat. Le Prestataire reste tenu de lever les réserves ci-dessus. Le transfert des
+        droits prévu, s'il y a lieu, court une fois le prix entièrement payé.
+      refused: |
+        Le refus motivé ouvre une contestation au sens du contrat : les fonds restent conservés par Stripe jusqu'à une
+        nouvelle recette, un accord écrit des parties, une décision de justice exécutoire ou l'application des règles
+        de versement des conditions d'utilisation de Proofseen. Aucun droit n'est transféré.
+      deemed_accepted: |
+        La recette réputée prononcée rend exigible le versement au Prestataire des fonds conservés par Stripe, selon
+        l'article « Paiement sécurisé et versement » du contrat, et fait courir, s'il y a lieu, le transfert des droits
+        prévu une fois le prix entièrement payé.
+
+  approvals:
+    heading: "Validation chez le Client"
+    body: |
+      Le Client exige {{buyer.approvalsRequired}} validation(s) distincte(s) de ses propriétaires ou administrateurs.
+      La décision ci-dessus n'est acquise qu'à la dernière validation requise, dont la date figure ci-dessus. Le
+      Prestataire signe le présent procès-verbal pour en avoir pris connaissance, sans que cette signature vaille
+      acceptation des réserves.

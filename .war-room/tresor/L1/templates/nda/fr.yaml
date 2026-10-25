@@ -1,0 +1,138 @@
+# Accord de confidentialité, texte français, v1. Trésor (Inès Kader), 2026-10-24.
+
+language: fr
+title: "Accord de confidentialité"
+subtitle: "Version {{document.versionNumber}} du {{document.issuedOn}}"
+
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen en cours de relecture par un avocat. Il ne constitue pas un conseil
+  juridique. Relisez-le avant de le signer. Signer cet accord communique votre identité légale à l'autre partie.
+reviewFooter: "Modèle Proofseen en cours de relecture par un avocat, version {{document.versionNumber}}."
+
+clauses:
+  parties:
+    heading: "Les parties"
+    body: |
+      Le présent accord est conclu entre :
+
+      {{freelance}}
+
+      ci-après « le Freelance »,
+
+      et
+
+      {{company}}
+
+      ci-après « l'Entreprise », représentée par la personne habilitée qui signe l'accord pour son compte.
+
+  purpose:
+    heading: "Objet"
+    body: |
+      Les parties envisagent de travailler ensemble sur le projet suivant :
+
+      {{input.purpose}}
+
+      Pour l'évaluer, elles doivent échanger des informations qu'elles veulent protéger. Le présent accord fixe les
+      conditions de cette protection.
+
+  definition:
+    heading: "Informations confidentielles"
+    variants:
+      mutual: |
+        Sont confidentielles toutes les informations non publiques, de toute nature et sur tout support, que l'une des
+        parties communique à l'autre pour le projet, qu'elles soient ou non désignées comme confidentielles, y compris
+        les informations protégées au titre du secret des affaires. Chaque partie est tour à tour celle qui communique
+        et celle qui reçoit.
+      company_discloses: |
+        Sont confidentielles toutes les informations non publiques, de toute nature et sur tout support, que
+        l'Entreprise communique au Freelance pour le projet, qu'elles soient ou non désignées comme confidentielles, y
+        compris les informations protégées au titre du secret des affaires. L'Entreprise est la partie qui communique,
+        le Freelance celle qui reçoit.
+      freelance_discloses: |
+        Sont confidentielles toutes les informations non publiques, de toute nature et sur tout support, que le
+        Freelance communique à l'Entreprise pour le projet, qu'elles soient ou non désignées comme confidentielles, y
+        compris les informations protégées au titre du secret des affaires. Le Freelance est la partie qui communique,
+        l'Entreprise celle qui reçoit.
+
+  exclusions:
+    heading: "Ce qui n'est pas confidentiel"
+    body: |
+      L'accord ne s'applique pas aux informations dont la partie qui les reçoit prouve qu'elles étaient publiques ou le
+      sont devenues sans faute de sa part, qu'elle les connaissait déjà de façon licite, qu'elle les a reçues
+      licitement d'un tiers libre de les communiquer, ou qu'elle les a développées indépendamment. Une communication
+      exigée par la loi, un juge ou une autorité est permise dans la limite de cette exigence, après en avoir informé
+      l'autre partie quand la loi le permet.
+
+  obligations:
+    heading: "Engagements de la partie qui reçoit"
+    body: |
+      La partie qui reçoit des informations confidentielles :
+
+      - ne les utilise que pour évaluer et, le cas échéant, exécuter le projet ;
+      - ne les communique qu'aux personnes qui ont besoin de les connaître pour le projet et qui sont tenues à une
+        obligation de confidentialité au moins équivalente, et répond de leur respect ;
+      - les protège avec au moins le même soin que ses propres informations confidentielles, et jamais moins qu'un soin
+        raisonnable ;
+      - prévient sans délai l'autre partie de toute divulgation non autorisée dont elle a connaissance.
+
+  personal-data:
+    heading: "Données personnelles"
+    body: |
+      Les parties évitent de se communiquer des données personnelles qui ne sont pas nécessaires au projet. Celles qui
+      le sont ne sont traitées que pour le projet, sont limitées à ce qui est nécessaire et ne sont pas conservées
+      au-delà de ce qu'il exige.
+
+  no-commitment:
+    heading: "Aucun autre engagement"
+    body: |
+      L'accord n'oblige aucune partie à communiquer une information, ni à conclure un contrat. Il ne confère aucun
+      droit de propriété intellectuelle ni aucune licence sur les informations communiquées, et ne crée aucune
+      exclusivité.
+
+  duration:
+    heading: "Durée"
+    body: |
+      L'accord prend effet à sa signature par les deux parties. Les engagements de confidentialité durent
+      {{input.durationYears}} ans à compter de cette date, sans préjudice de la protection plus longue que la loi
+      accorde au secret des affaires.
+
+  return:
+    heading: "Restitution"
+    body: |
+      À la demande de la partie qui a communiqué les informations, ou si le projet est abandonné, la partie qui les a
+      reçues les restitue ou les détruit, et le confirme par écrit, sauf copie qu'une obligation légale lui impose de
+      garder, qui reste confidentielle.
+
+  remedies:
+    heading: "Manquement"
+    body: |
+      Un manquement à l'accord engage la responsabilité de son auteur et l'oblige à réparer le préjudice causé. La
+      partie lésée peut aussi demander au juge toute mesure propre à faire cesser le manquement.
+
+  platform-role:
+    heading: "Proofseen"
+    body: |
+      L'accord est établi et conservé sur Proofseen. Proofseen n'y est pas partie et n'a pas accès au contenu des
+      informations échangées hors de sa messagerie.
+
+  evidence:
+    heading: "Signature et preuve"
+    variants:
+      platform_acceptance: |
+        Chaque partie accepte l'accord par une acceptation électronique datée, donnée depuis son compte Proofseen
+        authentifié. Les enregistrements conservés par Proofseen (version présentée, empreinte numérique, compte, date
+        et heure) sont recevables et font foi des faits qu'ils constatent, jusqu'à preuve contraire. Chaque partie peut
+        télécharger l'accord et le conserver sur un support durable.
+      otp_simple: |
+        Chaque partie signe l'accord par signature électronique simple sur Proofseen, avec un code à usage unique reçu à
+        l'adresse électronique de son compte. Le dossier de preuve de chaque signature (empreinte du document, version,
+        compte, consentement, dates et heures, adresse IP et navigateur, journal chaîné des événements) est recevable et
+        fait foi des faits qu'il constate, jusqu'à preuve contraire. Chaque partie reçoit un exemplaire signé et sa page
+        de preuve.
+
+  governing-law:
+    heading: "Droit applicable et différends"
+    body: |
+      L'accord est soumis au droit français. En cas de différend, les parties cherchent d'abord une solution amiable
+      pendant trente jours ; à défaut, le différend est porté devant la juridiction compétente selon les règles de
+      droit commun.

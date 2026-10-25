@@ -1,0 +1,187 @@
+# Procès-verbal de recette, v1. Trésor (Inès Kader), 2026-10-24. Format : ../../TEMPLATE_FORMAT.md.
+# Données réelles : Contract (snapshots, billing), ContractApproval (approvedAt, un par administrateur),
+# Organisation.approvalLevels (1 ou 2 validations distinctes avant versement), contracts.ts complete().
+# Le PV porte la décision du Client sur un contrat au forfait (et, en L8, sur un jalon). Le relevé mensuel d'une régie
+# a son propre document en L8 (CRA signé) ; ce gabarit ne le couvre pas.
+
+id: acceptance-report
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: acceptance_report
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Contract
+
+variables:
+  contract.id:
+    type: string
+    maxLength: 36
+    required: true
+    source: { kind: db, path: Contract.id }
+    frozenAt: render_data
+    label: { fr: "Référence du contrat" }
+  contract.billing:
+    type: enum
+    values: [fixed, monthly]
+    labels: { fr: { fixed: "au forfait", monthly: "en régie" } }
+    required: true
+    source: { kind: db, path: Contract.billing }
+    frozenAt: render_data
+    label: { fr: "Mode de prix" }
+  document.versionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: true
+    source: { kind: document, field: versionNumber }
+    frozenAt: render_data
+    label: { fr: "Version du document" }
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+  base.contractVersionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: false
+    source: { kind: db, path: "DocumentVersion.number (dernière version du Document service_agreement, slot 1, du contrat)" }
+    frozenAt: render_data
+    label: { fr: "Version du contrat de prestation en vigueur à la signature" }
+    note: "Le coffre refuse toute nouvelle version du contrat de prestation dès la première acceptation (refusalFor, wrong_state) : la dernière version est donc celle qui existait quand les parties ont accepté. Facultative : un contrat créé après le coffre peut avoir été accepté sans que le document ait été généré ; la clause signed-version est alors omise. Jusqu'au Sceau (L2), rien ne prouve que les parties ont ouvert cette version : d'où « en vigueur à la signature », jamais « signée »."
+  base.contractDigestShort:
+    type: string
+    maxLength: 19
+    required: false
+    source: { kind: db, path: "DocumentVersion.sha256 de la même version, seize premiers caractères groupés par quatre" }
+    frozenAt: render_data
+    label: { fr: "Empreinte de cette version" }
+  seller:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.sellerSnapshot }
+    frozenAt: render_data
+    label: { fr: "Le Prestataire" }
+  buyer:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.buyerSnapshot }
+    frozenAt: render_data
+    label: { fr: "Le Client" }
+  contract.deliverables:
+    type: list
+    maxItems: 30
+    itemMaxLength: 500
+    required: true
+    source: { kind: db, path: Contract.deliverables }
+    frozenAt: render_data
+    label: { fr: "Livrables du contrat" }
+    note: "Colonne livrée (L1-077), figée à la création du contrat ; c'est la liste que le contrat de prestation imprime."
+  report.deliveredOn:
+    type: date
+    required: true
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Date de la déclaration de livraison" }
+    note: "Saisie tant que le code n'enregistre pas la déclaration de livraison (Contract.deliveredAt absent, L1-011 point 3 non retenu en vague 2). Le Prestataire signe le procès-verbal pour en avoir pris connaissance : une date fausse se conteste à ce moment. Repasse en db dès que la colonne existe."
+  report.decision:
+    type: enum
+    values: [accepted, accepted_with_minor_reservations, refused, deemed_accepted]
+    labels:
+      fr:
+        accepted: "recette prononcée sans réserve"
+        accepted_with_minor_reservations: "recette prononcée avec réserves mineures"
+        refused: "recette refusée pour réserves motivées"
+        deemed_accepted: "recette réputée prononcée à l'expiration du délai"
+    required: true
+    source: { kind: input, editableBy: [buyer], stage: draft }
+    frozenAt: input
+    label: { fr: "Décision" }
+    note: "deemed_accepted n'est jamais saisi par une partie : le système le pose à l'expiration du délai de recette du contrat, si aucune décision n'a été prise. IMPOSSIBLE aujourd'hui : ni Contract.deliveredAt ni tâche d'échéance (L1-011 point 3, L1-030). L'adaptateur doit refuser deemed_accepted reçu dans inputs tant que cette tâche n'existe pas."
+  report.reservations:
+    type: list
+    maxItems: 30
+    itemMaxLength: 1000
+    requiredWhen: { var: report.decision, in: [accepted_with_minor_reservations, refused] }
+    required: false
+    source: { kind: input, editableBy: [buyer], stage: draft }
+    frozenAt: input
+    label: { fr: "Réserves, chacune rattachée à un livrable ou un critère" }
+  report.correctionDueOn:
+    type: date
+    requiredWhen: { var: report.decision, in: [accepted_with_minor_reservations, refused] }
+    required: false
+    source: { kind: input, editableBy: [buyer, seller], stage: draft }
+    frozenAt: input
+    label: { fr: "Date convenue pour lever les réserves" }
+  report.decidedOn:
+    type: date
+    required: true
+    source: { kind: db, path: "ContractApproval.approvedAt (dernière validation requise) ou date d'expiration du délai" }
+    frozenAt: render_data
+    label: { fr: "Date de la décision" }
+  buyer.approvalsRequired:
+    type: int
+    min: 1
+    max: 2
+    required: true
+    source: { kind: db, path: Contract.organisation.approvalLevels }
+    frozenAt: render_data
+    label: { fr: "Validations distinctes exigées par le Client" }
+
+clauses:
+  - { id: parties, kind: locked, sources: [], basis: practice }
+  - { id: reference, kind: locked, sources: [], basis: practice }
+  - id: signed-version
+    kind: conditional
+    when: { var: base.contractVersionNumber, present: true }
+    requires: [base.contractDigestShort]
+    sources: [civ-1366]
+  - { id: deliverables, kind: locked, sources: [civ-1163] }
+  - id: decision
+    kind: locked
+    variantBy: report.decision
+    variantRequires:
+      accepted_with_minor_reservations: [report.reservations, report.correctionDueOn]
+      refused: [report.reservations, report.correctionDueOn]
+    sources: [civ-1120, com-l441-10]
+  - { id: effects, kind: locked, variantBy: report.decision, sources: [research-l0-sequestre, cpi-l131-3] }
+  - id: approvals
+    kind: conditional
+    when: { var: report.decision, neq: deemed_accepted }
+    sources: []
+    basis: practice
+
+signature:
+  level: simple
+  order: sequential
+  signatories:
+    - { role: buyer, rule: "propriétaire ou administrateur ; autant de signataires distincts que buyer.approvalsRequired (contracts.ts, complete())" }
+    - { role: seller, rule: "le freelance du contrat, qui prend connaissance du PV", mode: acknowledgement }
+
+retention:
+  active: until_contract_end
+  archive: { years: 5, from: contract_end, sources: [civ-2224, com-l110-4] }
+  accounting: { years: 10, from: fiscal_year_end, sources: [com-l123-22], status: HYPOTHESIS }
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - id: R1
+      clause: decision
+      question: "Recette avec réserves mineures : déclenche-t-elle le versement (rédaction actuelle) ? Faut-il une retenue partielle jusqu'à la levée des réserves ? Décision de produit et d'argent (Camille, Victoria), pas seulement juridique."
+    - id: R2
+      clause: effects
+      question: "Recette réputée prononcée : opposabilité au Client qui conteste ensuite, et articulation avec la contestation bancaire (refunds du contrat)."
+    - id: R3
+      clause: approvals
+      question: "Deux validations exigées par le Client : une seule signature engage-t-elle déjà la recette à l'égard du Prestataire ? La rédaction dit non (recette acquise à la dernière validation requise)."

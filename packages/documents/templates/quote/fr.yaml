@@ -1,0 +1,82 @@
+# Devis, texte français, v1. Trésor (Inès Kader), 2026-10-24.
+
+language: fr
+title: "Devis"
+subtitle: "Référence {{quote.id}}, version {{document.versionNumber}} du {{document.issuedOn}}"
+
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
+  juridique. Relisez-le avant de l'accepter.
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat, version {{document.versionNumber}}."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}, version {{document.versionNumber}}."
+
+clauses:
+  header:
+    heading: "Émetteur et destinataire"
+    body: |
+      Devis émis sur Proofseen par le freelance de référence {{seller.reference}} à l'attention de {{buyer.name}}.
+
+      L'identité légale du freelance (raison sociale, adresse, SIRET, numéro de TVA) figure dans le contrat de
+      prestation établi après acceptation de ce devis.
+
+  scope:
+    heading: "Prestation proposée"
+    body: |
+      {{input.scope}}
+
+      Livrables proposés :
+
+      {{input.deliverables}}
+
+  price:
+    heading: "Prix"
+    variants:
+      fixed: |
+        Forfait de {{quote.days}} jours au prix journalier de {{quote.dailyRateCents}} hors taxes, soit
+        {{quote.totalCents}} hors taxes.
+      monthly: |
+        Régie au prix journalier de {{quote.dailyRateCents}} hors taxes, facturée chaque mois sur relevé validé des
+        demi-journées travaillées, dans la limite de {{quote.days}} jours, soit un plafond de {{quote.totalCents}} hors
+        taxes. Seuls les jours travaillés et validés sont dus.
+
+  vat:
+    heading: "TVA"
+    variants:
+      standard: |
+        Prix hors taxes. TVA en sus au taux de {{computed.vatRateBp}} applicable au freelance à la date du devis.
+      exempt: |
+        TVA non applicable, article 293 B du code général des impôts.
+      unknown: |
+        Prix hors taxes. Le régime de TVA du freelance sera indiqué dans le contrat ; la TVA éventuelle s'ajoutera au
+        prix.
+
+  commission:
+    heading: "Frais de Proofseen"
+    variants:
+      freelance: |
+        À la date du devis, Proofseen perçoit une commission de {{platform.commissionBp}} du prix hors taxes, à la
+        charge du freelance et déduite de son versement. L'entreprise ne paie aucun frais à Proofseen. Le taux
+        applicable est figé dans le contrat à sa création et montré aux deux parties avant signature.
+      company: |
+        À la date du devis, Proofseen perçoit des frais de service de {{platform.commissionBp}} du prix hors taxes, à la
+        charge de l'entreprise, en plus du prix. Le freelance reçoit l'intégralité de son prix. Le taux applicable est
+        figé dans le contrat à sa création et montré aux deux parties avant signature.
+
+  validity:
+    heading: "Validité"
+    body: |
+      Ce devis est valable jusqu'au {{input.validUntil}} inclus. Le freelance ne le retire pas avant cette date ; après
+      elle, il devient caduc s'il n'a pas été accepté.
+
+  formation:
+    heading: "Acceptation et contrat"
+    body: |
+      Ce devis est une proposition commerciale. Son acceptation sur Proofseen par un propriétaire ou un administrateur
+      de l'entreprise permet de créer un contrat de prestation qui en reprend les conditions. Les parties ne sont
+      engagées l'une envers l'autre qu'à la signature de ce contrat par les deux.
+
+  platform-role:
+    heading: "Proofseen"
+    body: |
+      Proofseen met en relation les parties et fournit les outils de devis, de contrat, de facturation et de paiement
+      en ligne opéré par Stripe. Proofseen n'est pas partie au devis ni au contrat et ne garantit aucun résultat.

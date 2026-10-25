@@ -1,0 +1,97 @@
+{
+  "sources": {
+    "serif": "14d360ee1b76655da9276628b229e11671bc1f5d1083636144db6677d452cf55",
+    "code": "c4066e584e995ec317a072f1777742861d3ce0bf210096b84450a249d0210198"
+  },
+  "fonts": [
+    {
+      "file": "ps-display-400.ttf",
+      "family": "PS Display",
+      "style": "Regular",
+      "weight": 400,
+      "axes": {
+        "wght": 400,
+        "opsz": 48
+      },
+      "bytes": 150016,
+      "sha256": "f5f1f6dda0d049035f8903af01608cba755ed54c87da5edf76bd938b2d45f3eb",
+      "glyphs": 1093,
+      "codepoints": 639,
+      "postscriptName": "PSDisplay-Regular"
+    },
+    {
+      "file": "ps-display-600.ttf",
+      "family": "PS Display Semibold",
+      "style": "Regular",
+      "weight": 600,
+      "axes": {
+        "wght": 600,
+        "opsz": 48
+      },
+      "bytes": 150592,
+      "sha256": "7fd1b539f72b3b1e6afc3ad286f38f19d9c8651ce02911df19ba5ee83484eb27",
+      "glyphs": 1093,
+      "codepoints": 639,
+      "postscriptName": "PSDisplay-Semibold"
+    },
+    {
+      "file": "ps-display-700.ttf",
+      "family": "PS Display",
+      "style": "Bold",
+      "weight": 700,
+      "axes": {
+        "wght": 700,
+        "opsz": 48
+      },
+      "bytes": 150336,
+      "sha256": "3d9028a212fe09c8ed901085f75b85297288340f13715fd7e8e8d0a92d0c69dd",
+      "glyphs": 1093,
+      "codepoints": 639,
+      "postscriptName": "PSDisplay-Bold"
+    },
+    {
+      "file": "ps-text-400.ttf",
+      "family": "PS Text",
+      "style": "Regular",
+      "weight": 400,
+      "axes": {
+        "wght": 400,
+        "opsz": 10
+      },
+      "bytes": 149136,
+      "sha256": "c3bb0c89b01f4f728fa9b389eacbd25bba6980d32ae9d78c1ea32b80f131d20f",
+      "glyphs": 1093,
+      "codepoints": 639,
+      "postscriptName": "PSText-Regular"
+    },
+    {
+      "file": "ps-text-700.ttf",
+      "family": "PS Text",
+      "style": "Bold",
+      "weight": 700,
+      "axes": {
+        "wght": 700,
+        "opsz": 10
+      },
+      "bytes": 148936,
+      "sha256": "4d32f0806deee75f58d8c612b7839b0707795f928af229f2d9fbc99691e9e317",
+      "glyphs": 1093,
+      "codepoints": 639,
+      "postscriptName": "PSText-Bold"
+    },
+    {
+      "file": "ps-mono-500.ttf",
+      "family": "PS Mono",
+      "style": "Regular",
+      "weight": 500,
+      "axes": {
+        "wght": 500
+      },
+      "bytes": 65160,
+      "sha256": "4d968306aff168040ed8cf9d796d8c355c314072717b0b4a6617e1f5d678d121",
+      "glyphs": 948,
+      "codepoints": 769,
+      "postscriptName": "PSMono-Regular"
+    }
+  ]
+}

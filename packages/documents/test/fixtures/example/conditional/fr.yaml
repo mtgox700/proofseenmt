@@ -1,0 +1,17 @@
+language: fr
+title: "Conditions"
+reviewNotice: "Fixture de test."
+reviewFooter: "Fixture de test."
+clauses:
+  always:
+    heading: "Toujours"
+    body: |
+      Cette clause est toujours là.
+  when-flag:
+    heading: "Si le drapeau"
+    body: |
+      Le drapeau est levé.
+  when-count:
+    heading: "Si le compteur est petit"
+    body: |
+      Le compteur est inférieur à dix.

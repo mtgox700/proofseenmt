@@ -6,6 +6,7 @@ import { exportMissionsSpace } from "./gdpr-missions";
 import { exportLiveMessaging } from "./gdpr-messaging";
 import { eraseCommunityComments, exportCommunity } from "./gdpr-community";
 import { exportInvitations } from "./gdpr-invitations";
+import { eraseUnretainedDocuments, exportDocuments } from "./gdpr-documents";
 import { mailboxKey } from "./mission-confirmation-input";
 
 /*
@@ -37,6 +38,8 @@ export const RETAINED_AFTER_ERASURE = [
   "présence d'un freelance dans les listes des entreprises : supprimée avec son profil",
   "invitations envoyées, modèles de mission et lectures de candidatures faits au nom d'une entreprise : conservés pour elle, sans auteur",
   "pièces jointes envoyées : effacées avec le compte, le message qui les portait reste sans elles",
+  "documents du coffre d'un contrat (contrat, avenant, procès-verbal de recette) : conservés avec le contrat, détachés du compte, accès restreint et tracé, jamais effacés avant la durée légale (5 ans après la fin du contrat, 10 ans s'ils justifient une écriture comptable)",
+  "documents du coffre sans contrat (devis resté devis, accord de confidentialité d'un fil) : supprimés avec le profil du freelance, versions et journal d'accès compris",
   "décisions d'un opérateur sur le compte ou ses contenus (journal du back-office) : conservées cinq ans, rattachées au seul identifiant interne du compte (ni nom ni adresse), comme preuve de ce qui a été décidé",
   "compte suspendu par un opérateur : une empreinte chiffrée de l'adresse e-mail (jamais l'adresse), le motif et la date de la suspension, conservés trois ans au titre de l'intérêt légitime, pour que la suspension s'applique de nouveau si la même adresse se réinscrit",
   "publications, réactions et abonnements de la communauté : supprimés avec le compte ; les commentaires restent à leur place, vidés de leur texte et sans auteur (« Compte supprimé ») ; les publications écrites au nom d'une entreprise restent à elle, sans auteur",
@@ -72,6 +75,8 @@ export interface UserExport {
   readonly community: unknown;
   /** Invitations envoyées, reçues à l'adresse du compte ou acceptées, et viviers rejoints (C23) ; jamais l'empreinte du jeton. */
   readonly invitations: unknown;
+  /** Documents du coffre dont la personne est partie (métadonnées et empreintes, jamais le contenu) et journal de ses accès. */
+  readonly documents: unknown;
   readonly retainedAfterErasure: readonly string[];
 }
 
@@ -201,6 +206,7 @@ export const gdpr = (db: Db): Gdpr => ({
     const liveMessaging = await exportLiveMessaging(db, userId);
     const community = await exportCommunity(db, userId);
     const invitations = await exportInvitations(db, userId, user.email);
+    const vault = await exportDocuments(db, userId);
     const operatorDecisions = await db.operatorAction.findMany({
       where: { targetId: { in: [userId, ...(freelanceProfile === null ? [] : [freelanceProfile.id])] } },
       orderBy: { createdAt: "asc" },
@@ -229,6 +235,7 @@ export const gdpr = (db: Db): Gdpr => ({
       operatorDecisions,
       community,
       invitations,
+      documents: vault,
       retainedAfterErasure: RETAINED_AFTER_ERASURE,
     };
   },
@@ -275,6 +282,8 @@ export const gdpr = (db: Db): Gdpr => ({
       if (key !== null && key !== "" && user.suspendedAt !== null && user.suspensionReason !== null) {
         await leaveTombstone(tx, user.email, key, { at: user.suspendedAt, reason: user.suspensionReason });
       }
+      // Le coffre : les documents d'un contrat restent avec lui ; les autres partent avec le profil (voir gdpr-documents.ts).
+      await eraseUnretainedDocuments(tx, user.freelanceProfile?.id ?? null);
       await eraseCommunityComments(tx, userId, new Date());
       await tx.user.delete({ where: { id: userId } });
       return "erased";

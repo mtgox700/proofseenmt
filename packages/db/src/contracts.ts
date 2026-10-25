@@ -3,7 +3,8 @@ import type { Db } from "./client";
 import { freelanceSnapshot, organisationSnapshot } from "./billing";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
-import type { ContractBilling, ContractStatus } from "./generated/enums";
+import type { ContractBilling, ContractStatus, FeePayer } from "./generated/enums";
+import { effectiveCommissionBp, type CommissionTerms } from "./commission-terms";
 import type { Actor } from "./messaging";
 import { notifications } from "./notifications";
 import { contractBlocker } from "./contract-checks";
@@ -41,6 +42,13 @@ export interface ContractRecord {
   readonly billing: ContractBilling;
   /** Freelance déjà payé par cette entreprise à la création : commission au taux de fidélité. */
   readonly repeatClient: boolean;
+  /** Taux de commission figé à la création, fidélité comprise, en points de base ; nul si aucun taux n'était configuré. */
+  readonly commissionBp: number | null;
+  /** Qui supporte la commission, figé avec le taux. */
+  readonly feePayer: FeePayer;
+  /** L'objet de la prestation et ses livrables, recopiés du devis à la création et figés ; nuls (et vide) pour un contrat d'avant. */
+  readonly scope: string | null;
+  readonly deliverables: readonly string[];
   readonly totalCents: number;
   readonly currency: string;
   readonly startsOn: Date;
@@ -108,6 +116,10 @@ const SELECT = {
   currency: true,
   billing: true,
   repeatClient: true,
+  commissionBp: true,
+  feePayer: true,
+  scope: true,
+  deliverables: true,
   startsOn: true,
   endsOn: true,
   acceptedByFreelanceAt: true,
@@ -133,9 +145,21 @@ const notifyParties = async (db: Db, tx: Prisma.TransactionClient, contractId: s
 export interface ContractsOptions {
   /** Faux seulement en bac à sable : le SIRET du freelance est exigé pour tout contrat payé en réel. */
   readonly requireSellerSiret?: boolean;
+  /**
+   * Les conditions de commission du jour, lues à la création d'un contrat pour être figées sur lui. Ce paquet ne lit
+   * jamais l'environnement : l'appelant les fournit (en production, `commissionTermsFromEnv`). Absentes ou `null` quand
+   * aucun taux n'est configuré : le contrat naît alors sans taux et ne peut pas être payé.
+   */
+  readonly commissionTerms?: () => CommissionTerms | null;
 }
 
-export const contracts = (db: Db, { requireSellerSiret = true }: ContractsOptions = {}): Contracts => ({
+/**
+ * Qui supporte la commission d'un contrat nouveau. Le code prélève aujourd'hui la commission sur le virement du
+ * freelance : on l'écrit tel quel. Passer à l'entreprise est la décision D5 du founder, pas encore prise.
+ */
+const FEE_PAYER: FeePayer = "freelance";
+
+export const contracts = (db: Db, { requireSellerSiret = true, commissionTerms = () => null }: ContractsOptions = {}): Contracts => ({
   async createFromQuote(actor, quoteId, raw, now = new Date()) {
     if (!Uuid.safeParse(quoteId).success) return { kind: "absent" };
     const draft = ContractDraftSchema.parse(raw);
@@ -148,7 +172,7 @@ export const contracts = (db: Db, { requireSellerSiret = true }: ContractsOption
             // Le fil doit être encore ouvert ; côté entreprise, seuls ses propriétaires et administrateurs l'engagent.
             conversation: { status: "accepted", OR: [{ profile: { userId: actor.userId } }, { organisation: { members: { some: { userId: actor.userId, role: { in: ["owner", "admin"] } } } } }] },
           },
-          select: { dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, conversation: { select: { organisationId: true, profileId: true } } },
+          select: { dailyRateCents: true, days: true, totalCents: true, currency: true, billing: true, scope: true, deliverables: true, conversation: { select: { organisationId: true, profileId: true } } },
         });
         if (quote === null) return { kind: "absent" };
         const { organisationId, profileId } = quote.conversation;
@@ -169,10 +193,18 @@ export const contracts = (db: Db, { requireSellerSiret = true }: ContractsOption
         }
         // Fidélité : au moins une mission de ce freelance déjà payée par cette entreprise.
         const repeatClient = (await tx.contract.count({ where: { organisationId, profileId, payments: { some: SETTLED_PAYMENT } } })) > 0;
+        // Le taux effectif (fidélité comprise) est figé sur le contrat : le paiement ne relira pas la configuration.
+        const terms = commissionTerms();
         const contract = await tx.contract.create({
           data: {
             quoteId,
             repeatClient,
+            // Sans conditions, la colonne reste non écrite : nulle en production (aucun défaut en base).
+            ...(terms === null ? {} : { commissionBp: effectiveCommissionBp(terms, repeatClient) }),
+            feePayer: FEE_PAYER,
+            // L'objet et les livrables que l'entreprise a vus et acceptés, recopiés tels quels puis figés.
+            scope: quote.scope,
+            deliverables: quote.deliverables,
             organisationId,
             profileId,
             dailyRateCents: quote.dailyRateCents,

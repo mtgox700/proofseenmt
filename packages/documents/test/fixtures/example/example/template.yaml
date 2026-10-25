@@ -1,0 +1,103 @@
+# Gabarit d'exemple de TEMPLATE_FORMAT.md §9 : toutes les fonctions du format en peu de lignes. Fixture de test.
+id: example
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: contract
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Contract
+
+variables:
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+  seller:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.sellerSnapshot }
+    frozenAt: contract_creation
+    label: { fr: "Prestataire" }
+  contract.billing:
+    type: enum
+    values: [fixed, monthly]
+    labels: { fr: { fixed: "au forfait", monthly: "en régie mensuelle" } }
+    required: true
+    source: { kind: db, path: Contract.billing }
+    frozenAt: contract_creation
+    label: { fr: "Mode de facturation" }
+  contract.totalCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: db, path: Contract.totalCents }
+    frozenAt: contract_creation
+    label: { fr: "Prix total HT" }
+  contract.currency:
+    type: string
+    maxLength: 3
+    pattern: "^[A-Z]{3}$"
+    required: true
+    source: { kind: db, path: Contract.currency }
+    frozenAt: contract_creation
+    label: { fr: "Devise" }
+  computed.vigilanceRequired:
+    type: boolean
+    required: true
+    source: { kind: derived, fn: vigilanceRequired, from: [contract.totalCents, contract.currency] }
+    frozenAt: signature
+    label: { fr: "Attestation de vigilance exigée" }
+  input.scope:
+    type: text
+    maxLength: 4000
+    required: true
+    source: { kind: pending, request: L1-011 }
+    frozenAt: input
+    label: { fr: "Objet de la mission" }
+  decision.d8:
+    type: enum
+    values: [monthly_provision, pay_on_timesheet]
+    labels: { fr: { monthly_provision: "provision du mois", pay_on_timesheet: "paiement sur relevé" } }
+    requiredWhen: { var: contract.billing, eq: monthly }
+    required: false
+    source: { kind: pending, request: D8 }
+    frozenAt: contract_creation
+    label: { fr: "Décision D8" }
+
+clauses:
+  - { id: parties, kind: locked, sources: [civ-1113] }
+  - { id: scope, kind: locked, sources: [civ-1163] }
+  - id: price
+    kind: locked
+    variantBy: contract.billing
+    gates: [ { variant: monthly, decision: D8, error: decision_pending } ]
+    sources: [com-l441-10]
+  - id: vigilance
+    kind: conditional
+    when: { var: computed.vigilanceRequired, eq: true }
+    sources: [trav-r8222-1]
+  - { id: reference, kind: optional, default: excluded, toggledBy: buyer, sources: [], basis: practice }
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: seller, rule: "le freelance titulaire du profil" }
+    - { role: buyer, rule: "propriétaire ou administrateur" }
+
+retention:
+  active: until_contract_end
+  archive: { years: 5, from: contract_end, sources: [civ-1163] }
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - { id: R1, clause: price, question: "Exemple : la variante mensuelle est-elle complète ?" }

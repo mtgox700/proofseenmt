@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documents (spécimen L1)</title>
+<style>
+/* Generated from packages/brand/src/tokens.ts: do not edit by hand. */
+@font-face{font-family:"PS Display";src:url(../../../apps/web/public/fonts/ps-display-v1.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:"PS Mono";src:url(../../../apps/web/public/fonts/ps-mono-v1.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"PS Display Fallback";src:local("Georgia");font-weight:400 500;size-adjust:94%;ascent-override:110.21%;descent-override:35.64%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback";src:local("Georgia Bold");font-weight:600 700;size-adjust:82.22%;ascent-override:126.01%;descent-override:40.74%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback Times";src:local("Times New Roman");font-weight:400 500;size-adjust:101.93%;ascent-override:101.64%;descent-override:32.86%;line-gap-override:0%}
+@font-face{font-family:"PS Display Fallback Times";src:local("Times New Roman Bold");font-weight:600 700;size-adjust:97.98%;ascent-override:105.74%;descent-override:34.19%;line-gap-override:0%}
+@font-face{font-family:"PS Mono Fallback";src:local("Consolas");font-weight:400 700;size-adjust:109.13%;ascent-override:90.17%;descent-override:25.02%;line-gap-override:0%}
+@font-face{font-family:"PS Mono Fallback Courier";src:local("Courier New");font-weight:400 700;size-adjust:99.98%;ascent-override:98.42%;descent-override:27.30%;line-gap-override:0%}
+:root{color-scheme:dark;--ps-bg-deep:#06070a;--ps-bg:#0a0b10;--ps-surface:#11131a;--ps-raised:#191c25;--ps-overlay:#222633;--ps-text:#f2efe8;--ps-muted:#b4b1aa;--ps-faint:#94918b;--ps-line:#262a36;--ps-line-strong:#71768a;--ps-proof:#6fd690;--ps-on-proof:#06140b;--ps-proof-wash:#0f2119;--ps-signal:#f0b44c;--ps-danger:#f2907b;--ps-focus:#a99dff;--ps-aura:#7c6cff;--ps-aura-text:#a99dff;--ps-azur:#3d7bff;--ps-shadow-1:0 1px 0 rgb(0 0 0 / .5),0 1px 3px rgb(0 0 0 / .4);--ps-shadow-2:0 18px 48px -16px rgb(0 0 0 / .8),0 0 0 1px var(--ps-line);
+--ps-glow-proof:0 0 0 1px rgb(111 214 144 / .55),0 0 18px -2px rgb(111 214 144 / .45),0 0 48px -8px rgb(111 214 144 / .3);
+--ps-glow-proof-strike:0 0 0 1px rgb(111 214 144 / .9),0 0 28px 2px rgb(111 214 144 / .55),0 0 80px -6px rgb(111 214 144 / .35);
+--ps-halo-proof:radial-gradient(closest-side, rgb(111 214 144 / .28), rgb(111 214 144 / 0));
+--ps-glow-aura:0 0 0 1px rgb(124 108 255 / .45),0 10px 40px -10px rgb(124 108 255 / .55);
+--ps-glow-cta:0 0 0 1px rgb(242 239 232 / .9),0 8px 32px -8px rgb(124 108 255 / .65),0 0 64px -16px rgb(124 108 255 / .5);
+--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);
+--ps-ambient-hero:radial-gradient(60% 55% at 18% 6%, rgb(124 108 255 / .18), rgb(124 108 255 / 0) 70%),radial-gradient(45% 45% at 88% 16%, rgb(61 123 255 / .1), rgb(61 123 255 / 0) 72%),radial-gradient(70% 60% at 50% 115%, rgb(124 108 255 / .1), rgb(124 108 255 / 0) 70%);
+--ps-ambient-section:radial-gradient(55% 60% at 50% 0%, rgb(124 108 255 / .12), rgb(124 108 255 / 0) 70%);
+--ps-ambient-deep:radial-gradient(80% 70% at 50% 100%, rgb(61 123 255 / .08), rgb(61 123 255 / 0) 70%);
+--ps-header-ink:rgb(10 11 16 / .9);
+--ps-font-display:"PS Display", "PS Display Fallback", "PS Display Fallback Times", Georgia, serif;
+--ps-font-text:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--ps-font-mono:"PS Mono", "PS Mono Fallback", "PS Mono Fallback Courier", ui-monospace, "SFMono-Regular", Menlo, monospace;
+--ps-weight-display:600;--ps-weight-display-light:420;--ps-weight-text:400;--ps-weight-strong:600;--ps-weight-mono:500;
+--ps-track-label:.06em;
+--ps-step--2:clamp(0.75rem, 0.739rem + 0.0469vw, 0.7813rem);--ps-track--2:0.01em;--ps-lead--2:1.45;
+--ps-step--1:clamp(0.875rem, 0.864rem + 0.0469vw, 0.9063rem);--ps-track--1:0.005em;--ps-lead--1:1.5;
+--ps-step-0:clamp(1rem, 0.956rem + 0.1878vw, 1.125rem);--ps-track-0:0em;--ps-lead-0:1.65;
+--ps-step-1:clamp(1.2rem, 1.1236rem + 0.3258vw, 1.4169rem);--ps-track-1:-0.006em;--ps-lead-1:1.35;
+--ps-step-2:clamp(1.44rem, 1.2822rem + 0.6732vw, 1.8881rem);--ps-track-2:-0.012em;--ps-lead-2:1.18;
+--ps-step-3:clamp(1.75rem, 1.3979rem + 1.5023vw, 2.75rem);--ps-track-3:-0.018em;--ps-lead-3:1.1;
+--ps-step-4:clamp(2.125rem, 1.5528rem + 2.4413vw, 3.75rem);--ps-track-4:-0.024em;--ps-lead-4:1.06;
+--ps-step-5:clamp(2.5rem, 1.6197rem + 3.7559vw, 5rem);--ps-track-5:-0.03em;--ps-lead-5:1.02;
+--ps-step-6:clamp(3rem, 1.5915rem + 6.0094vw, 7rem);--ps-track-6:-0.035em;--ps-lead-6:0.98;
+--ps-space-1:.25rem;--ps-space-2:.5rem;--ps-space-3:.75rem;--ps-space-4:1rem;--ps-space-5:1.5rem;
+--ps-space-6:2rem;--ps-space-7:3rem;--ps-space-8:4rem;--ps-space-9:6rem;--ps-space-10:8rem;
+--ps-section-y:clamp(6rem, 4.2rem + 7.7vw, 11rem);
+--ps-max:76rem;--ps-columns:12;--ps-gutter:clamp(1rem, .6479rem + 1.5023vw, 2rem);--ps-measure:66ch;
+--ps-radius:6px;--ps-radius-card:20px;--ps-radius-media:16px;--ps-radius-pill:999px;--ps-radius-seal:10px;--ps-border:1px;--ps-ring:2px;
+--ps-ease-out:cubic-bezier(.16,1,.3,1);--ps-ease-in-out:cubic-bezier(.65,0,.35,1);
+--ps-ease-strike:cubic-bezier(.55,0,1,.45);--ps-ease-ink:cubic-bezier(.2,.8,.2,1);--ps-ease-glow:cubic-bezier(.22,1,.36,1);
+--ps-dur-press:90ms;--ps-dur-ui:160ms;--ps-dur-strike:140ms;--ps-dur-ink:240ms;--ps-dur-reveal:320ms;--ps-dur-trace:640ms;
+--ps-dur-glow:420ms;--ps-dur-media:900ms;--ps-dur-aurora:32s;
+--ps-z-header:10;--ps-z-overlay:30;--ps-z-skip:40;}
+:where([data-spot]){--ps-edge-spot:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(124 108 255 / .7), rgb(124 108 255 / 0) 60%);--ps-edge-spot-proof:radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgb(111 214 144 / .7), rgb(111 214 144 / 0) 60%);}
+@media (prefers-reduced-motion:reduce){:root{--ps-dur-strike:0ms;--ps-dur-ink:0ms;--ps-dur-reveal:0ms;--ps-dur-trace:0ms;--ps-dur-glow:0ms;--ps-dur-media:0ms;}}
+
+/* Generated from packages/brand/src/chrome.ts: do not edit by hand. */
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100dvh;background:var(--ps-bg);color:var(--ps-text);font:var(--ps-weight-text) var(--ps-step-0)/var(--ps-lead-0) var(--ps-font-text)}
+:focus-visible{outline:var(--ps-ring) solid var(--ps-focus);outline-offset:2px}
+::selection{background:var(--ps-text);color:var(--ps-bg)}
+a,button,summary,label,[role=button]{touch-action:manipulation}
+input,select,textarea{font-size:max(16px,var(--ps-step-0))}
+.skip{position:absolute;left:var(--ps-gutter);top:var(--ps-space-2);z-index:var(--ps-z-skip);padding:var(--ps-space-3) var(--ps-space-4);background:var(--ps-text);color:var(--ps-bg);border-radius:var(--ps-radius);font-weight:var(--ps-weight-strong);text-decoration:none;transform:translateY(-200%)}
+.skip:focus{transform:none}
+.btn,.cta{display:inline-flex;align-items:center;justify-content:center;gap:var(--ps-space-2);min-height:2.75rem;padding:0 var(--ps-space-4);border:var(--ps-border) solid var(--ps-line-strong);border-radius:var(--ps-radius);background:transparent;color:var(--ps-text);font:var(--ps-weight-strong) var(--ps-step--1)/1 var(--ps-font-text);text-decoration:none;white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform var(--ps-dur-press) var(--ps-ease-out),background-color var(--ps-dur-ui) var(--ps-ease-out),border-color var(--ps-dur-ui) var(--ps-ease-out),color var(--ps-dur-ui) var(--ps-ease-out)}
+.btn:active:not(:disabled),.cta:active{transform:scale(.97)}
+.btn-primary,.cta{background:var(--ps-text);border-color:var(--ps-text);color:var(--ps-bg)}
+.btn:disabled,.btn[aria-disabled=true]{cursor:not-allowed;border-style:dashed;background:transparent;color:var(--ps-muted);border-color:var(--ps-line-strong)}
+.btn-primary:focus-visible,.cta:focus-visible{box-shadow:var(--ps-glow-cta)}
+@media (hover:hover) and (pointer:fine){.btn:hover:not(:disabled){border-color:var(--ps-text)}.btn-primary:hover:not(:disabled),.cta:hover{box-shadow:var(--ps-glow-cta)}}
+.chrome{width:min(100% - 2*var(--ps-gutter),var(--ps-max));margin-inline:auto}
+.top{position:relative;z-index:var(--ps-z-header);background:var(--ps-bg);border-bottom:var(--ps-border) solid var(--ps-line);padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.top .chrome{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand signup signup" "nav nav lang";align-items:center;column-gap:var(--ps-space-3)}
+.top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand lang"}
+.brand{grid-area:brand;justify-self:start;display:inline-flex;align-items:center;min-height:3.5rem;text-decoration:none}
+.brand img{display:block;width:auto;height:1.5rem}
+.top .signup{grid-area:signup}
+.nav{grid-area:nav;display:flex;align-items:center;gap:var(--ps-space-1);min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin-left:calc(-1*var(--ps-space-3));font-size:var(--ps-step--1);padding-inline-end:var(--ps-space-4);-webkit-mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent);mask-image:linear-gradient(to right,black calc(100% - var(--ps-space-5)),transparent)}
+.nav::-webkit-scrollbar{width:0;height:0}
+.nav a{display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);text-decoration:none;white-space:nowrap}
+.nav a[aria-current]{color:var(--ps-text);text-decoration:underline;text-decoration-thickness:var(--ps-ring);text-underline-offset:.5em}
+.nav a:focus-visible{outline-offset:-2px}
+.lang{grid-area:lang;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-3);color:var(--ps-muted);font:var(--ps-weight-mono) var(--ps-step--2)/1 var(--ps-font-mono);letter-spacing:var(--ps-track-label);text-transform:uppercase;text-decoration:none}
+@media (hover:hover) and (pointer:fine){.nav a:hover,.lang:hover{color:var(--ps-text)}}
+@media (min-width:64rem){.top{position:sticky;top:0}@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.top{background:var(--ps-header-ink);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}.top .chrome{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"brand nav signup lang";min-height:4rem}.top.bare .chrome{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand lang"}.nav{overflow:visible;margin-left:var(--ps-space-5);padding-inline-end:0;-webkit-mask-image:none;mask-image:none}}
+.top .signin-m,.top .sheet{display:none}
+@media (max-width:63.99rem){.top.has-sheet .chrome{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"brand signin signup sheet"}.top.has-sheet .nav,.top.has-sheet .chrome>.lang{display:none}.top .signin-m{grid-area:signin;display:inline-flex;align-items:center;min-height:2.75rem;padding-inline:var(--ps-space-2);color:var(--ps-text);font-size:var(--ps-step--1);text-decoration:none;white-space:nowrap}.top.has-sheet .signup{min-height:2.75rem;padding-inline:var(--ps-space-3)}.top .sheet{grid-area:sheet;display:block}.sheet-toggle{position:relative;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:var(--ps-border) solid var(--ps-line-strong);border-radius:var(--ps-radius);cursor:pointer;list-style:none}.sheet-toggle::-webkit-details-marker{display:none}.sheet-bars,.sheet-bars::before,.sheet-bars::after{display:block;width:1.1rem;height:2px;border-radius:1px;background:var(--ps-text)}.sheet-bars{position:relative}.sheet-bars::before,.sheet-bars::after{content:"";position:absolute;left:0}.sheet-bars::before{top:-6px}.sheet-bars::after{top:6px}.sheet[open] .sheet-bars{background:transparent}.sheet[open] .sheet-bars::before{top:0;transform:rotate(45deg)}.sheet[open] .sheet-bars::after{top:0;transform:rotate(-45deg)}.sheet[open]>.sheet-toggle::before{content:"";position:fixed;inset:0;cursor:default}.sheet-panel{position:absolute;left:0;right:0;top:100%;z-index:var(--ps-z-overlay);display:grid;gap:var(--ps-space-2);padding:var(--ps-space-3) var(--ps-gutter) var(--ps-space-5);background:var(--ps-overlay);border-bottom:var(--ps-border) solid var(--ps-line-strong);box-shadow:var(--ps-shadow-2)}.sheet-panel nav{display:grid}.sheet-panel nav a{display:flex;align-items:center;min-height:3.5rem;border-bottom:var(--ps-border) solid var(--ps-line);color:var(--ps-text);font-size:var(--ps-step-0);text-decoration:none}.sheet-panel .lang{grid-area:auto;justify-self:start;min-height:3.5rem;padding-inline:0}}
+@media (max-width:30rem){.top.has-sheet .brand img{width:1.5rem;height:1.5rem;object-fit:cover;object-position:left center}}
+@media (hover:hover) and (pointer:fine){.sheet-toggle:hover{border-color:var(--ps-text)}}
+.foot{margin-top:var(--ps-space-8);border-top:var(--ps-border) solid var(--ps-line);background:var(--ps-ambient-deep),var(--ps-bg-deep);color:var(--ps-muted);font-size:var(--ps-step--1);line-height:var(--ps-lead--1);padding:var(--ps-space-7) env(safe-area-inset-right) calc(var(--ps-space-7) + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+.foot .chrome{display:grid;gap:var(--ps-space-4)}
+.foot .brand{grid-area:auto;min-height:2.75rem;margin:0}.foot .brand img{height:1.25rem}
+.foot nav{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--ps-space-3)}
+.foot nav a{display:inline-flex;align-items:center;min-height:2.75rem;color:var(--ps-text);text-underline-offset:.2em}
+.foot p{margin:0;max-width:var(--ps-measure)}
+
+/* The tokens of the application, on top of the brand (@proofseen/brand/tokens.css, imported first by the root layout:
+   palette, type scale, space, radius, motion). Nothing here is a new colour: every value is mixed from a brand token
+   of the one dark palette (BRAND_BOOK_V2). A test refuses any colour literal in apps/web/src/styles. */
+:root {
+  /* Source families of the answer field, from the strongest ink to the faintest. The proof green stays reserved for
+     "you", and absence (no source) is drawn hollow, not coloured. */
+  --src-malt: var(--ps-focus);
+  --src-linkedin: color-mix(in srgb, var(--ps-focus) 62%, var(--ps-bg));
+  --src-code: var(--ps-text);
+  --src-platform: var(--ps-muted);
+  --src-other: var(--ps-faint);
+  --src-none: var(--ps-line-strong);
+
+  /* Derived tints. */
+  --signal-wash: color-mix(in srgb, var(--ps-signal) 12%, transparent);
+  --scrim: color-mix(in srgb, var(--ps-bg) 92%, transparent);
+
+  /* The lit edge of a card under the pointer (BRAND_BOOK_V2 section 4.2), the same layers as edgeSpotCss() of
+     @proofseen/brand: the card's surface inside, the violet spot over the 3:1 edge in the border. Set on hover with
+     border-color: transparent; border-color is the only thing that moves. */
+  --edge-lit: linear-gradient(var(--ps-surface), var(--ps-surface)) padding-box, var(--ps-edge-spot) border-box,
+    linear-gradient(var(--ps-line-strong), var(--ps-line-strong)) border-box;
+}
+
+/* The React layer on top of the brand: body, focus, skip link, buttons, header and footer come from
+   @proofseen/brand/chrome.css, shared with the HTML hub. This file keeps what only the React pages use. */
+*, *::before, *::after { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+[id] { scroll-margin-top: 5rem; }
+
+body { font-optical-sizing: auto; text-rendering: optimizeLegibility; }
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-family: var(--ps-font-display); font-weight: var(--ps-weight-display); text-wrap: balance; }
+h1 { line-height: var(--ps-lead-5); letter-spacing: var(--ps-track-5); }
+h2 { font-size: var(--ps-step-4); line-height: var(--ps-lead-4); letter-spacing: var(--ps-track-4); }
+h3 { font-size: var(--ps-step-1); line-height: var(--ps-lead-1); letter-spacing: var(--ps-track-1); }
+code { font: var(--ps-weight-mono) var(--ps-step--1) / 1 var(--ps-font-mono); }
+button, input, select, textarea { font: inherit; color: inherit; }
+/* After the reset above: iOS zooms into any field under 16 px. */
+input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.wrap { width: min(100% - 2 * var(--ps-gutter), var(--ps-max)); margin-inline: auto; }
+.muted { color: var(--ps-muted); }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+.small { font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.measure { max-width: var(--ps-measure); }
+.pretty { text-wrap: pretty; }
+
+/* Section labels: the trace typeface, in the aura made legible (BRAND_BOOK_V2 section 5). Green is kept for what is
+   verified. */
+.kicker { display: inline-flex; align-items: center; gap: var(--ps-space-3); margin: 0 0 var(--ps-space-4); font: var(--ps-weight-mono) var(--ps-step--2) / 1.2 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-aura-text); }
+.kicker::before,
+.bullets > li::before { content: ""; flex: none; width: 1rem; height: 0.6rem; border-inline: 2px solid currentColor; background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat; }
+.bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-3); }
+.bullets > li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: var(--ps-space-3); color: var(--ps-muted); }
+.bullets > li::before { margin-top: 0.55em; color: var(--ps-line-strong); }
+
+/* ---------- Tags, used for states that are also written in words ---------- */
+/* A short status stays on one line by itself; a long verified line (« Payée sur Proofseen, vérifiée le 12 octobre
+   2026 ») wraps inside its frame instead of pushing a phone screen wider. */
+.tag { display: inline-flex; align-items: center; gap: var(--ps-space-1); max-width: 100%; padding: 0.2rem 0.55rem; border: 1px solid currentColor; border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); overflow-wrap: break-word; }
+/* Green only for a verified fact (BRAND_BOOK section 6). A finished step, an accepted status or a switch that is on
+   reads in ink: .tag-done. */
+.tag-proof { color: var(--ps-proof); background: var(--ps-proof-wash); }
+.tag-done { color: var(--ps-text); }
+.tag-signal { color: var(--ps-signal); background: var(--signal-wash); }
+.tag-quiet { color: var(--ps-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* The states between pages: an address that leads nowhere, a page that failed, a page loading, a list still empty.
+   No green anywhere here: green is earned by a verified fact, and none of these states has one. */
+
+/* ---------- Shared: the label in the trace typeface ---------- */
+.nf-code,
+.nf-mark,
+.nf-links-title { margin: 0; font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+
+.state-page { padding-block: var(--ps-space-7) var(--ps-space-8); }
+
+/* ---------- 404: the register entry with an empty punch slot ---------- */
+.nf { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "text" "art" "links"; gap: var(--ps-space-6); }
+@media (min-width: 56rem) {
+  .nf { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "text art" "links links"; column-gap: var(--ps-space-8); align-items: center; }
+}
+.nf-text { grid-area: text; display: grid; gap: var(--ps-space-4); justify-items: start; }
+.nf-title { margin: 0; font: var(--ps-weight-display) var(--ps-step-4) / var(--ps-lead-4) var(--ps-font-display); letter-spacing: var(--ps-track-4); max-width: 16ch; }
+.nf-lead { max-width: 52ch; color: var(--ps-muted); font-size: var(--ps-step-1); line-height: var(--ps-lead-1); text-wrap: pretty; }
+.nf-search { display: grid; gap: var(--ps-space-2); width: min(100%, 30rem); margin-top: var(--ps-space-2); }
+.nf-search label { font-size: var(--ps-step--1); font-weight: var(--ps-weight-strong); }
+.nf-search-row { display: flex; gap: var(--ps-space-2); }
+.nf-search input { flex: 1; min-width: 0; min-height: 2.75rem; padding: 0 var(--ps-space-3); background: var(--ps-raised); border: var(--ps-border) solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+
+.nf-art { grid-area: art; margin: 0; display: grid; gap: var(--ps-space-3); justify-items: center; }
+.nf-art-svg { width: min(100%, 24rem); height: auto; }
+.nf-paper { fill: var(--ps-surface); stroke: var(--ps-line); stroke-width: 1.5; }
+.nf-ink { fill: var(--ps-line-strong); opacity: 0.4; }
+.nf-rule { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; opacity: 0.6; }
+.nf-slot { fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; stroke-dasharray: 6 5; }
+/* The crop marks close in on the slot once (strike easing, 320 ms), then stop. Nothing is struck. */
+.nf-aim { fill: none; stroke: var(--ps-text); stroke-width: 1.5; stroke-linecap: square; transform-box: view-box; transform-origin: 248px 96px; }
+@media (prefers-reduced-motion: no-preference) {
+  .nf-aim { animation: nf-aim var(--ps-dur-reveal) var(--ps-ease-strike) 240ms both; }
+}
+@keyframes nf-aim { from { transform: scale(1.14); } }
+
+.nf-links { grid-area: links; padding-top: var(--ps-space-5); border-top: var(--ps-border) solid var(--ps-line); }
+.nf-links-title { margin-bottom: var(--ps-space-3); }
+.nf-links ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); column-gap: var(--ps-space-6); }
+@media (min-width: 40rem) { .nf-links ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 64rem) { .nf-links ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.nf-links a { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ps-space-3); min-height: 3rem; padding-block: var(--ps-space-3); border-bottom: var(--ps-border) solid var(--ps-line); color: var(--ps-text); font-weight: var(--ps-weight-strong); text-decoration: none; }
+.nf-path { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); color: var(--ps-faint); }
+@media (hover: hover) and (pointer: fine) {
+  .nf-links a:hover { border-bottom-color: var(--ps-text); }
+  .nf-links a:hover .nf-path { color: var(--ps-text); }
+}
+.nf-other { margin-top: var(--ps-space-6); color: var(--ps-muted); font-size: var(--ps-step--1); }
+
+/* ---------- A page that failed ---------- */
+.state-error { display: grid; gap: var(--ps-space-4); justify-items: start; max-width: 44rem; }
+.state-hint { max-width: 52ch; color: var(--ps-muted); }
+.state-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); margin-top: var(--ps-space-2); }
+.state-ref { color: var(--ps-faint); font-size: var(--ps-step--1); }
+.state-ref code { color: var(--ps-muted); overflow-wrap: anywhere; }
+
+/* ---------- Loading: an empty register, ruled, at fixed sizes ---------- */
+.sk { display: grid; gap: var(--ps-space-6); align-content: start; }
+.sk-head { display: grid; gap: var(--ps-space-4); }
+.sk-bar { display: block; height: 0.75rem; border-radius: 2px; background: var(--ps-line); }
+.sk-title { height: 2.5rem; width: min(22rem, 72%); }
+.sk-line { width: min(34rem, 92%); }
+.sk-rows { list-style: none; margin: 0; padding: 0; border-top: var(--ps-border) solid var(--ps-line); }
+.sk-row { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--ps-space-4); height: 4rem; border-bottom: var(--ps-border) solid var(--ps-line); }
+.sk-text { width: min(30rem, 100%); }
+.sk-row:nth-child(even) .sk-text { width: min(22rem, 80%); }
+@media (prefers-reduced-motion: no-preference) {
+  .sk-bar { animation: sk-breathe 1.4s var(--ps-ease-in-out) infinite alternate; }
+  .sk-row:nth-child(2) .sk-bar { animation-delay: 120ms; }
+  .sk-row:nth-child(3) .sk-bar { animation-delay: 240ms; }
+  .sk-row:nth-child(4) .sk-bar { animation-delay: 360ms; }
+  .sk-row:nth-child(5) .sk-bar { animation-delay: 480ms; }
+}
+@keyframes sk-breathe { to { opacity: 0.45; } }
+
+/* ---------- Honest empty state: the cartouche outline, dashed, nothing struck inside ---------- */
+.empty { display: grid; gap: var(--ps-space-3); justify-items: start; padding: clamp(1.5rem, 4vw, 2.5rem); background: var(--ps-surface); border: var(--ps-border) solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.empty-mark { flex: none; fill: none; stroke: var(--ps-line-strong); stroke-width: 1.5; stroke-dasharray: 3 2.5; }
+.empty-title { font: var(--ps-weight-display) var(--ps-step-2) / var(--ps-lead-2) var(--ps-font-display); letter-spacing: var(--ps-track-2); }
+.empty-body { display: grid; gap: var(--ps-space-3); max-width: 62ch; color: var(--ps-muted); }
+.empty-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-3); }
+.empty-note { display: flex; align-items: center; gap: var(--ps-space-2); color: var(--ps-muted); }
+
+/*
+ * The connected space: its frame (bar, menu, tabs), its shared blocks and the client's file. Served by the layout of
+ * /[lang]/app and by the two pages reached by a signed link (/[lang]/espace, /[lang]/confirmer-mission), never by a
+ * public page. Kensa m4: nothing here waits for an animation; no element starts invisible, empty or at zero, no figure
+ * counts up, nothing loops. Blocks that no page used were removed with lot 1 of the connected redesign.
+ */
+
+/* ---------- The frame ---------- */
+/*
+ * The bar reads in the order of its markup. On a phone, two lines that never outgrow the screen: the lockup and the
+ * role, then the notifications, the other language and the account (a third line before any overflow). From 64rem,
+ * one line that stays at the top.
+ */
+.app { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+.app-top { position: relative; z-index: var(--ps-z-header); display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand role" "tools tools"; align-items: center; column-gap: var(--ps-space-3); padding: env(safe-area-inset-top) calc(var(--ps-gutter) + env(safe-area-inset-right)) 0 calc(var(--ps-gutter) + env(safe-area-inset-left)); background: var(--ps-bg); border-bottom: 1px solid var(--ps-line); }
+.app-role { grid-area: role; justify-self: end; }
+.app-tools { grid-area: tools; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 var(--ps-space-3); min-width: 0; min-height: 2.75rem; }
+.app-lang { display: flex; align-items: center; }
+@media (min-width: 64rem) {
+  .app-top { position: sticky; top: 0; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "brand role tools"; column-gap: var(--ps-space-4); min-height: 4rem; }
+}
+
+/*
+ * The menu of sections, then the tabs of the current section, then the page. On a phone each menu is one line that
+ * scrolls sideways, without script or toggle, its right edge fading so the cut reads as "more" (as the public header
+ * does, packages/brand/src/chrome.ts); the end padding lets the last link leave the fade. The line is positioned: the
+ * hidden word after an unread count (.sr-only, absolute) stays inside it instead of widening the page. From 64rem the
+ * sections stand in a column at the left and the tabs above the page.
+ */
+.app-body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "side" "tabs" "main"; align-content: start; padding: var(--ps-space-3) calc(var(--ps-gutter) + env(safe-area-inset-right)) var(--ps-space-8) calc(var(--ps-gutter) + env(safe-area-inset-left)); }
+.ws-nav { grid-area: side; min-width: 0; margin-bottom: var(--ps-space-4); }
+.ws-tabs { grid-area: tabs; min-width: 0; max-width: var(--ps-max); margin-bottom: var(--ps-space-5); }
+.ws-nav ul, .ws-tabs ul { position: relative; list-style: none; margin: 0; padding: 0 var(--ps-space-5) 0 0; display: flex; gap: var(--ps-space-1); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, var(--ps-text) calc(100% - var(--ps-space-5)), transparent); mask-image: linear-gradient(to right, var(--ps-text) calc(100% - var(--ps-space-5)), transparent); }
+.ws-nav ul::-webkit-scrollbar, .ws-tabs ul::-webkit-scrollbar { width: 0; height: 0; }
+.ws-nav li, .ws-tabs li { flex: none; }
+.ws-nav a { display: flex; align-items: center; gap: 0.3em; min-height: 2.75rem; padding: 0 var(--ps-space-3); border: 1px solid transparent; border-radius: var(--ps-radius); color: var(--ps-muted); text-decoration: none; white-space: nowrap; }
+.ws-nav a[aria-current] { color: var(--ps-text); background: var(--ps-surface); border-color: var(--ps-line); }
+.ws-tabs ul { border-bottom: 1px solid var(--ps-line); }
+/* A short tab (« Fil ») is still a 44 x 44 target. */
+.ws-tabs a { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding-inline: var(--ps-space-3); color: var(--ps-muted); font-size: var(--ps-step--1); text-decoration: none; white-space: nowrap; }
+.ws-tabs a[aria-current] { color: var(--ps-text); text-decoration: underline; text-decoration-thickness: var(--ps-ring); text-underline-offset: 0.5em; }
+/* Inside a line that scrolls, a ring drawn outside the link would be cut: it is drawn inside. */
+.ws-nav a:focus-visible, .ws-tabs a:focus-visible { outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .ws-nav a:hover, .ws-tabs a:hover { color: var(--ps-text); } }
+.app-main { grid-area: main; display: grid; gap: var(--ps-space-7); align-content: start; min-width: 0; max-width: var(--ps-max); }
+@media (min-width: 64rem) {
+  .app-body { grid-template-columns: 13rem minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "side tabs" "side main"; column-gap: var(--ps-space-7); padding-top: var(--ps-space-5); }
+  .ws-nav { position: sticky; top: 5rem; align-self: start; margin-bottom: 0; }
+  .ws-nav ul { display: grid; overflow: visible; padding: 0; -webkit-mask-image: none; mask-image: none; }
+  .ws-nav a { white-space: normal; }
+  .ws-tabs ul { flex-wrap: wrap; overflow: visible; padding: 0; -webkit-mask-image: none; mask-image: none; }
+}
+
+/* A page title of the space is a page title (BRAND_BOOK section 4): step 4; step 5 is kept for the home page. */
+.app-head { display: grid; gap: var(--ps-space-4); }
+.app-head h1 { font-size: var(--ps-step-4); line-height: var(--ps-lead-4); letter-spacing: var(--ps-track-4); }
+.ws-block { display: grid; gap: var(--ps-space-4); min-width: 0; }
+.ws-block > h2 { font-size: var(--ps-step-2); }
+
+/* ---------- Header facts of a measure ---------- */
+.meta-strip { margin: var(--ps-space-2) 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); border-top: 1px solid var(--ps-line); }
+.meta-strip div { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4) var(--ps-space-3) 0; border-bottom: 1px solid var(--ps-line); }
+.meta-strip dt { font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); }
+.meta-strip dd { margin: 0; overflow-wrap: anywhere; }
+
+/* ---------- Generic data tables ---------- */
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.table-scroll:focus-visible { outline-offset: 2px; }
+.num-col { text-align: right !important; white-space: nowrap; }
+
+/* ---------- Directory: filters ---------- */
+.filters { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); align-items: start; padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+/* The controls of a field are drawn by one rule, in market.css. */
+.field { display: grid; gap: var(--ps-space-2); align-content: start; }
+.field label { font-size: var(--ps-step--1); font-weight: 500; }
+.field input::placeholder { color: var(--ps-muted); }
+.field-hint { font-size: var(--ps-step--2); color: var(--ps-muted); }
+.filters-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); grid-column: 1 / -1; }
+
+/* ---------- Directory: results ---------- */
+.results-head { display: grid; gap: var(--ps-space-2); }
+.results-head h2 { font-size: var(--ps-step-1); font-family: var(--ps-font-text); font-weight: 500; letter-spacing: 0; }
+.profiles { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ps-line-strong); }
+.profiles > li { padding: var(--ps-space-5) 0; border-bottom: 1px solid var(--ps-line); }
+.profiles article { display: grid; gap: var(--ps-space-2); }
+.skills { list-style: none; margin: var(--ps-space-1) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.skills li { padding: 0.15rem 0.5rem; border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); font-size: var(--ps-step--1); }
+.missions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); }
+.missions > li { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) 0; border-top: 1px solid var(--ps-line); }
+
+/* ---------- Client space: the file as an ordered path ---------- */
+/* Named audit-path, not dossier: on the hub, .dossier is the grid of a public profile page. */
+.space { padding-block: var(--ps-space-6) var(--ps-space-8); display: grid; gap: var(--ps-space-7); }
+.space-head { display: grid; gap: var(--ps-space-4); }
+.space-head h1 { font-size: var(--ps-step-4); line-height: var(--ps-lead-4); letter-spacing: var(--ps-track-4); }
+.audit-path { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.audit-path li { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--ps-space-4); padding-bottom: var(--ps-space-5); }
+/* The line between two marks: solid once the step is done, faint ahead. */
+.audit-path li:not(:last-child)::before { content: ""; position: absolute; left: calc(1.25rem - 1px); top: 2rem; bottom: 0; width: 2px; background: var(--ps-line); }
+.audit-path li[data-state="done"]:not(:last-child)::before { background: var(--ps-text); }
+.audit-mark { position: relative; z-index: 1; width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 2px solid var(--ps-line-strong); background: var(--ps-bg); }
+.audit-path li[data-state="done"] .audit-mark { border-color: var(--ps-text); background: radial-gradient(circle, var(--ps-text) 0 32%, var(--ps-bg) 34%); }
+/* The current step is told by its mark, its tag and aria-current: it stays still (nothing in the brand loops). */
+.audit-path li[data-state="active"] .audit-mark { border-color: var(--ps-signal); background: radial-gradient(circle, var(--ps-signal) 0 24%, var(--ps-bg) 26%); }
+.audit-path li[data-state="blocked"] .audit-mark { border-style: dashed; }
+.audit-body { display: grid; gap: var(--ps-space-1); padding-top: 0.45rem; }
+.audit-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-3); }
+.audit-title strong { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.audit-path li[data-state="todo"] .audit-title strong { color: var(--ps-muted); }
+
+/* ---------- Connected app: home and role choice ---------- */
+.tiles { display: grid; gap: var(--ps-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+.tile { display: grid; gap: var(--ps-space-2); align-content: start; padding: var(--ps-space-4) var(--ps-space-5); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.tile-wide { grid-column: span 2; }
+@media (max-width: 40rem) { .tile-wide { grid-column: auto; } }
+.tile-label { font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); }
+.tile-value { font: 500 var(--ps-step-4) / 1 var(--ps-font-display); letter-spacing: -0.03em; }
+.tile-value small { font-size: var(--ps-step-1); }
+.tile-foot { font-size: var(--ps-step--1); }
+.gate-bar { position: relative; display: block; height: 0.5rem; background: var(--ps-line); border-radius: 1px; overflow: hidden; }
+.gate-bar span { position: absolute; inset: 0; background: var(--ps-text); transform-origin: left center; }
+.gate-bar .gate-provisional { background: var(--ps-line-strong); border-right: 2px solid var(--ps-text); z-index: -1; }
+
+.ops { width: 100%; border-collapse: collapse; font-size: var(--ps-step--1); }
+.ops th, .ops td { padding: var(--ps-space-3) var(--ps-space-3) var(--ps-space-3) 0; text-align: left; border-bottom: 1px solid var(--ps-line); vertical-align: middle; }
+.ops thead th { font-weight: 500; font-size: var(--ps-step--2); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ps-muted); border-bottom-color: var(--ps-line-strong); }
+.ops tbody th { font-weight: 400; }
+.ops tr[data-actor="client"] { background: linear-gradient(90deg, var(--signal-wash), transparent 40%); }
+
+.welcome { display: grid; gap: var(--ps-space-6); }
+.welcome-choices { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+.welcome-choice { display: grid; gap: var(--ps-space-3); align-content: start; min-height: 12rem; padding: clamp(1.4rem, 3vw, 2rem); text-align: left; background: var(--ps-surface); color: var(--ps-text); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); cursor: pointer; transition: border-color var(--ps-dur-ui) ease, transform var(--ps-dur-ui) var(--ps-ease-out); }
+.welcome-choice strong { font: 500 var(--ps-step-2) / 1.1 var(--ps-font-display); }
+.welcome-go { margin-top: auto; color: var(--ps-text); font-weight: 500; }
+.welcome-choice:active { transform: scale(0.98); }
+@media (hover: hover) and (pointer: fine) { .welcome-choice:hover { border-color: transparent; background: var(--edge-lit); transform: translateY(-3px); } }
+.next-steps { list-style: none; margin: var(--ps-space-2) 0 0; padding: 0; }
+
+/* ---------- Messaging ---------- */
+.threads { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
+.thread-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ps-space-1) var(--ps-space-4); padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); text-decoration: none; color: var(--ps-text); transition: border-color var(--ps-dur-ui) ease; }
+@media (hover: hover) and (pointer: fine) { .thread-row:hover { border-color: transparent; background: var(--edge-lit); } }
+.thread-who strong { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.thread-last { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-date { grid-column: 2; grid-row: 2; justify-self: end; }
+.thread-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3); }
+.bubbles { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-4); }
+.bubbles li { display: grid; gap: var(--ps-space-1); max-width: min(42rem, 88%); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.bubbles li[data-mine] { justify-self: end; background: var(--ps-raised); border-color: var(--ps-line-strong); }
+.bubbles li[data-from="operator"] { border-style: dashed; }
+.bubble-who { font-weight: 600; color: var(--ps-muted); }
+.bubble-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.decision, .reply { display: grid; gap: var(--ps-space-4); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.decision { border-color: color-mix(in srgb, var(--ps-signal) 45%, var(--ps-line)); }
+.reply textarea { width: 100%; min-height: 7rem; padding: var(--ps-space-3); font-size: max(16px, var(--ps-step-0)); line-height: 1.5; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); resize: vertical; }
+.reply .btn { justify-self: start; }
+.form-error { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-signal); border-radius: var(--ps-radius); background: var(--signal-wash); color: var(--ps-text); }
+/*
+ * A message that arrives while the thread is open settles into place, short, and stays readable all along: it moves
+ * a few pixels, it never fades in from nothing. The messages served with the page do not move.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .bubbles li[data-new] { animation: bubble-in 200ms var(--ps-ease-out); }
+  @keyframes bubble-in { from { transform: translateY(6px); } }
+}
+
+/* Marketplace screens of the connected app. Built on the tokens and on the workspace primitives (.field, .reply,
+   .threads, .tag): only what those do not already cover lives here. */
+
+/* ---------- Forms ---------- */
+.panel { display: grid; gap: var(--ps-space-4); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.panel > h2 { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.panel-grid { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+/*
+ * One rule for every control a person writes in: text (with or without its type), numbers, dates and months, e-mail
+ * and web addresses, phone numbers, searches, menus and long texts. Each gets a border at 3:1 (--ps-line-strong) and
+ * 16 px text, so iOS never zooms. Checkboxes, radios and files keep their own rules.
+ */
+.field :is(input:not([type]), input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="email"], input[type="url"], input[type="tel"], input[type="search"], input[type="password"]), .field select, .field textarea {
+  width: 100%; min-height: 2.75rem; padding: 0.55rem 0.75rem; font: inherit; font-size: max(16px, var(--ps-step-0)); background: var(--ps-bg); color: var(--ps-text);
+  border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius);
+}
+.field textarea { min-height: 7rem; line-height: 1.5; resize: vertical; }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.panel .btn { justify-self: start; }
+
+/* ---------- Buttons ---------- */
+.btn-quiet { background: transparent; border-color: transparent; color: var(--ps-muted); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .btn-quiet:hover:not(:disabled) { border-color: transparent; color: var(--ps-text); } }
+
+/* ---------- Conversations ---------- */
+.thread-close { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-3); }
+.bubbles li .tag { justify-self: start; }
+
+/* ---------- Company ---------- */
+.org-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-2) var(--ps-space-4); }
+.org-card strong { font: 500 var(--ps-step-2) / 1.1 var(--ps-font-display); letter-spacing: -0.01em; }
+
+/* ---------- Rows with actions (missions, applications) ---------- */
+.row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); grid-column: 1 / -1; }
+.thread-row > .row-actions form { display: contents; }
+.tags { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.form-ok { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); background: var(--ps-surface); color: var(--ps-text); }
+
+/* ---------- Grouped fields and checkboxes ---------- */
+.fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fieldset legend { margin-bottom: var(--ps-space-2); font-size: var(--ps-step--1); font-weight: 600; }
+.field-inline { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: var(--ps-space-3); }
+.field-inline input[type="checkbox"] { width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--ps-text); }
+.field-inline .field-hint { grid-column: 2; }
+.panel-span { grid-column: 1 / -1; }
+.plain-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
+
+/* ---------- Team ---------- */
+.org-member { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-3); padding: var(--ps-space-2) 0; border-bottom: 1px solid var(--ps-line); }
+.org-member > span:first-child { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
+.key-once { display: grid; gap: var(--ps-space-2); grid-column: 1 / -1; }
+.key-once code { padding: var(--ps-space-2) var(--ps-space-3); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); overflow-wrap: anywhere; user-select: all; }
+
+/* ---------- Proven addresses ---------- */
+.proof-item { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-3) 0 var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
+.proof-item > form .btn { justify-self: start; }
+.proof-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-3); }
+.proof-url { flex: 1 1 16rem; min-width: 0; font-family: var(--ps-font-mono); font-size: var(--ps-step--1); overflow-wrap: anywhere; }
+.proof-ways { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.proof-ways summary { cursor: pointer; font-weight: 600; }
+.proof-ways-list { display: grid; gap: var(--ps-space-4); margin: 0; padding-left: 1.25rem; }
+.proof-ways-list li { display: grid; gap: var(--ps-space-1); min-width: 0; }
+.proof-value { display: block; padding: var(--ps-space-2) var(--ps-space-3); background: var(--ps-bg); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); font-family: var(--ps-font-mono); font-size: var(--ps-step--1); overflow-wrap: anywhere; user-select: all; cursor: text; }
+
+/* ---------- Company search and shared lists ---------- */
+.profiles .row-actions { margin-top: var(--ps-space-2); }
+.profiles .row-actions select { min-height: 2.75rem; padding: 0.4rem 0.6rem; font: inherit; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); max-width: 100%; }
+.thumb[aria-pressed="true"] { border-color: var(--ps-text); background: var(--ps-raised); color: var(--ps-text); }
+
+/* ---------- Applications board: one plain section per status ---------- */
+.board { display: grid; gap: var(--ps-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); align-items: start; }
+.board-col { display: grid; gap: var(--ps-space-3); padding: var(--ps-space-3); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); min-width: 0; }
+.board-col > h3 { display: flex; align-items: center; gap: var(--ps-space-2); font: inherit; }
+.board-card { display: grid; gap: var(--ps-space-2); padding: var(--ps-space-3) 0; border-top: 1px solid var(--ps-line); overflow-wrap: anywhere; }
+.board-card .row-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+
+/* ---------- Live messaging (C15) ---------- */
+.live-count { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ps-text); }
+.app-bell { display: inline-flex; align-items: center; gap: 0.3em; min-height: 2.75rem; color: var(--ps-muted); text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .app-bell:hover { color: var(--ps-text); } }
+.thread-unread { margin-left: var(--ps-space-2); color: var(--ps-text); vertical-align: middle; }
+.thread-row[data-unread] { border-color: var(--ps-line-strong); }
+.thread-row[data-unread] .thread-last { color: var(--ps-text); }
+.bubble-files { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); }
+.bubble-file { display: inline-grid; gap: var(--ps-space-1); max-width: 12rem; padding: var(--ps-space-2); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); background: var(--ps-bg); color: var(--ps-text); overflow-wrap: anywhere; }
+.bubble-file img { display: block; width: 100%; max-height: 9rem; object-fit: cover; border-radius: var(--ps-radius); }
+.bubble-read { justify-self: end; }
+.notifications { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ps-space-2); }
+.notifications > li { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.notifications > li[data-unread] { border-color: var(--ps-line-strong); }
+.notifications .row-actions form { display: contents; }
+.notification-text { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2); }
+
+/* Lot 4 of the connected space: the deal and the money (CONNECTED_PLAN §2.3, §3). Loaded by the pages of the deal only
+   (conversation, contracts, invoices, billing). Builds on workspace.css and market.css (.panel, .tag, .btn, .field) and on
+   the seal of @proofseen/brand: no green is written here, the cartouche and its square come from seal.css. Still: no
+   reveal, no loop, nothing hidden before a script runs. */
+
+/* The thread of the deal: a register, one line per step, a rule down the left. */
+.deal { display: grid; gap: var(--ps-space-4); min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.deal > h2, .deal > h3 { font: 500 var(--ps-step-1) / 1.2 var(--ps-font-display); }
+.deal-thread { position: relative; list-style: none; margin: 0; padding: 0; display: grid; }
+.deal-thread::before { content: ""; position: absolute; left: calc(0.5rem - 0.5px); top: 1.4rem; bottom: 1.4rem; width: 1px; background: var(--ps-line-strong); }
+.deal-step { position: relative; display: grid; grid-template-columns: 1rem minmax(0, 1fr) auto; align-items: start; gap: var(--ps-space-1) var(--ps-space-4); padding: var(--ps-space-3) 0; border-top: 1px solid var(--ps-line); }
+.deal-step:first-child { border-top: 0; }
+.deal-mark { position: relative; width: 8px; height: 8px; margin: 0.55rem auto 0; box-sizing: border-box; border: 1px solid var(--ps-line-strong); }
+.deal-what { display: grid; gap: 2px; min-width: 0; }
+.deal-label { font-weight: 600; overflow-wrap: anywhere; }
+.deal-note { font-size: var(--ps-step--1); line-height: var(--ps-lead--1); color: var(--ps-muted); overflow-wrap: anywhere; }
+.deal-state { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--ps-space-2); padding-top: 0.2rem; font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); text-align: right; }
+.deal-state time { text-transform: none; letter-spacing: 0; color: var(--ps-text); }
+
+/* Done: ink. In progress or held in escrow: amber, always with its word. To come: an open square, quieter text. */
+.deal-step[data-tone="done"] .deal-mark { background: var(--ps-text); border-color: var(--ps-text); }
+.deal-step[data-tone="current"] .deal-mark,
+.deal-step[data-tone="held"] .deal-mark { background: var(--ps-signal); border-color: var(--ps-signal); }
+.deal-step[data-tone="current"] .deal-state,
+.deal-step[data-tone="held"] .deal-state { color: var(--ps-signal); }
+.deal-step[data-tone="current"] .deal-note,
+.deal-step[data-tone="held"] .deal-note { color: var(--ps-text); }
+.deal-step[data-tone="next"] .deal-mark { background: var(--ps-surface); }
+.deal-step[data-tone="next"] .deal-label { font-weight: 500; color: var(--ps-muted); }
+.deal-step[data-tone="stopped"] .deal-mark { background: var(--ps-muted); border-color: var(--ps-muted); }
+.deal-step[data-tone="stopped"] .deal-note { color: var(--ps-text); }
+/* The verified mission: the cartouche of seal.css takes the line, its square (.sq) sits on the rule. */
+.deal-step[data-tone="sealed"] { grid-template-columns: 1rem minmax(0, 1fr); }
+.deal-step[data-tone="sealed"] .deal-mark { border: 0; margin-top: 0.75rem; }
+
+.deal-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ps-space-2) var(--ps-space-4); margin: 0; }
+.deal-foot .small { max-width: var(--ps-measure); }
+.deal-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+
+@media (max-width: 40rem) {
+  .deal-step { grid-template-columns: 1rem minmax(0, 1fr); }
+  .deal-state { grid-column: 2; justify-content: flex-start; text-align: left; padding-top: 0; }
+}
+
+/* Test mode is a fact about the page, not a success: a dashed note in the trace face, never the frame of a done thing. */
+.test-note { margin: 0; padding: var(--ps-space-3) var(--ps-space-4); border: 1px dashed var(--ps-line-strong); border-radius: var(--ps-radius); font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); color: var(--ps-text); overflow-wrap: anywhere; }
+
+/* The payment block: the Stripe frame sits in the page's own colours (appearance set from the brand palette). */
+.escrow-pay { display: grid; gap: var(--ps-space-3); min-width: 0; }
+.escrow-pay .empty-actions .btn { min-height: 48px; }
+.pay-return { margin: 0; }
+
+/* Verified facts of the billing identity (SIRET active, URSSAF verified), each its own cartouche and trace. */
+.billing-facts { display: grid; gap: var(--ps-space-3); min-width: 0; }
+.billing-facts .sealed { align-items: flex-start; }
+.billing-line { margin: 0; overflow-wrap: anywhere; }
+
+/* Back to the list: a target of 44 px, the arrow left out of the accessible name. */
+.back-link { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* The two documents of an invoice, and the attachments of a reply: targets of 44 px, the table still scrolls on its own. */
+.invoice-link { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.reply input[type="file"] { min-height: 44px; }
+
+@media (max-width: 40rem) {
+  .escrow-pay .empty-actions .btn { width: 100%; justify-content: center; }
+}
+
+/* The primitives of components/ui (LEGENDS_P2_CONCEPT §B.7): dark only, every colour a brand token, nothing that
+   animates a shadow or a filter, nothing that moves. Violet is the light of action (hover, selection, focus); amber
+   waits on someone; the danger colour undoes or has passed; green appears in one place only, the struck fingerprint.
+   One voice per use (L1-091 K18): capitals in the trace face for column headers and section labels only. */
+
+/* Every grid of the primitives has one column that may shrink: an implicit auto column grows to the table's
+   max-content and pushes the whole page past 375 px (seen on the specimen, ui-primitives@375.png). */
+:is(.ui-table-block, .ui-filter, .ui-field, .ui-inspector, .ui-inspector-body, .ui-timeline, .ui-tl, .ui-tl-item, .ui-kpi) { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- FingerprintMark, FingerprintStamp (§A.3, §A.4, L1-090) ---------- */
+/* Filed: a closed frame of ink and cells of ink. The frame is a control-strength line (3:1 on every ground). */
+.ui-fpm { flex: none; display: inline-block; overflow: visible; vertical-align: middle; }
+.ui-fpm-frame { fill: none; stroke: var(--ps-line-strong); stroke-linejoin: miter; }
+.ui-fpm-cells { fill: var(--ps-muted); }
+/* At 32 px a cell is a few pixels: full ink, or it fades into the ground. */
+.ui-fpm[data-level="32"] .ui-fpm-cells { fill: var(--ps-text); }
+/* Pending: amber, and always its word beside it. The frame is left open in the middle of each side by the component
+   (PENDING_FRAME, on the frame's own path); at 16 px it stays whole. */
+.ui-fpm[data-state="pending"] .ui-fpm-frame { stroke: var(--ps-signal); }
+/* Sealed, only for an act read as signed in the database. At 16 and 32 px a plate struck in green, the cells punched
+   through it: the only form legible that small. */
+.ui-fpm[data-state="sealed"] .ui-fpm-frame { fill: var(--ps-proof); stroke: var(--ps-proof); }
+.ui-fpm[data-state="sealed"] .ui-fpm-cells { fill: var(--ps-on-proof); }
+/* At 64 and 128 px the language of the cartouche (L1-090, point 5): the proof wash inside, frame and cells in green,
+   a halo on the frame. An SVG cannot wear the box-shadow of --ps-glow-proof: the halo is a drop shadow, set, never
+   animated. */
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ps-proof) 40%, transparent)); }
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-frame { fill: var(--ps-proof-wash); }
+.ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-cells { fill: var(--ps-proof); }
+
+/* The stamp: the mark, then the sixteen characters that attest, then the state in words. The mark never leaves its
+   text: a long sentence wraps inside the text, beside the mark. */
+.ui-fp { display: inline-flex; align-items: center; gap: var(--ps-space-3); min-width: 0; max-width: 100%; }
+.ui-fp-mark { position: relative; display: inline-flex; isolation: isolate; }
+/* A struck mark glows the way the hero's poinçon does: a halo behind it (BRAND_BOOK_V2 4.2). */
+.ui-fp[data-state="sealed"] .ui-fp-mark::before { content: ""; position: absolute; inset: -60%; z-index: -1; background: var(--ps-halo-proof); pointer-events: none; }
+.ui-fp-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--ps-space-3); min-width: 0; }
+.ui-fp-code { font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); letter-spacing: 0.02em; color: var(--ps-text); font-variant-numeric: tabular-nums slashed-zero; white-space: nowrap; }
+.ui-fp-word { font-size: var(--ps-step--1); line-height: 1.4; color: var(--ps-muted); }
+.ui-fp[data-state="pending"] .ui-fp-word { color: var(--ps-signal); }
+.ui-fp[data-state="sealed"] .ui-fp-word { color: var(--ps-proof); }
+
+/* ---------- DataTable (§B.7) ---------- */
+.ui-table-block { display: grid; gap: var(--ps-space-3); min-width: 0; }
+/* overflow: clip keeps the rounded frame without making it a scroll container, so the header sticks to the page. */
+.ui-table-frame { max-width: 100%; overflow: clip; background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.ui-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.ui-caption { caption-side: top; padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-3); text-align: start; font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); color: var(--ps-text); }
+/* Dense (L1-091 K6): one line per row, 44 px, nothing wraps; the one truncating column gives way. */
+.ui-table th, .ui-table td { padding: 0.6875rem var(--ps-space-3); text-align: start; vertical-align: middle; white-space: nowrap; border-bottom: 1px solid var(--ps-line); }
+.ui-table thead th { position: sticky; top: var(--ui-sticky-top, 0); z-index: 2; height: 2.75rem; padding-block: 0; background: var(--ps-raised); border-bottom-color: var(--ps-line-strong); color: var(--ps-muted); font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; }
+.ui-table tbody th { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+.ui-table tbody tr:last-child > * { border-bottom: 0; }
+.ui-table .ui-num { text-align: end; font-variant-numeric: tabular-nums lining-nums; }
+/* In a number column the arrow goes before the label, so the label ends where the figures end. */
+.ui-num .ui-sort { flex-direction: row-reverse; }
+/* Every column takes the width of its content; the one that gives way takes all the rest (L1-120 R4). */
+.ui-table :is(th, td) { width: 1%; }
+.ui-table .ui-trunc { width: 100%; max-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* A sortable header is a link the height of the header (44 px). Only the sorted column shows its arrow; another one
+   shows it under the pointer or the focus, as the hint of what a click does (L1-091 K8). No glyph: a drawn triangle. */
+.ui-sort { display: inline-flex; align-items: center; gap: 0.5em; min-height: 2.75rem; color: inherit; text-decoration: none; }
+.ui-sort::after { content: ""; flex: none; border-inline: 0.25rem solid transparent; border-block-start: 0.3rem solid transparent; }
+.ui-sort:focus-visible::after { border-block-start-color: var(--ps-line-strong); }
+.ui-sort[data-dir] { color: var(--ps-text); }
+.ui-sort[data-dir="ascending"]::after { border-block-start: 0; border-block-end: 0.3rem solid var(--ps-text); }
+.ui-sort[data-dir="descending"]::after { border-block-start-color: var(--ps-text); }
+/* The whole row opens its item: the row header's link stretches over the row; its text stays the accessible name. */
+.ui-table tbody tr { position: relative; }
+.ui-row-link { color: var(--ps-text); text-decoration: none; }
+.ui-row-link::after { content: ""; position: absolute; inset: 0; }
+.ui-row-link:focus-visible { outline: none; }
+.ui-table tbody tr:has(.ui-row-link:focus-visible) { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: -2px; }
+/* Whatever else acts inside a row sits above the stretched link. */
+.ui-table td :is(a, button, input, select, label, summary) { position: relative; z-index: 1; }
+.ui-table tr > * { transition: background-color var(--ps-dur-ui) var(--ps-ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-table tbody tr:has(.ui-row-link):hover > * { background: color-mix(in srgb, var(--ps-aura) 7%, var(--ps-surface)); }
+  .ui-table tbody tr:has(.ui-row-link):hover .ui-row-link { text-decoration: underline; }
+  .ui-sort:hover { color: var(--ps-text); }
+  .ui-sort:not([data-dir]):hover::after { border-block-start-color: var(--ps-line-strong); }
+}
+/* The row open in the inspector: the violet of selection, and a rule at its start that does not rely on colour alone. */
+.ui-table tr[data-current] > * { background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-surface)); }
+.ui-table tr[data-current] > :first-child { box-shadow: inset 3px 0 0 var(--ps-aura); }
+/* Selection (L1-091 K3): a drawn box on the native input, its edge in the control line (4.12:1 on the surface, 3.85:1
+   under the pointer, 3.61:1 on the current row, measured in ui-panels.test.ts), empty inside; checked, the violet of selection with a tick in
+   ink. Never green. The whole cell is the 44 px target. */
+.ui-table .ui-check { width: 2.75rem; padding: 0; }
+.ui-check-hit { position: relative; display: flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; cursor: pointer; }
+.ui-check-hit input { appearance: none; flex: none; width: 1.25rem; height: 1.25rem; margin: 0; background: transparent; border: 1.5px solid var(--ps-line-strong); border-radius: 4px; cursor: pointer; }
+.ui-check-hit input:checked { background: var(--ps-aura); border-color: var(--ps-aura); }
+.ui-check-hit input:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.ui-check-tick { position: absolute; z-index: 2; display: none; width: 0.375rem; height: 0.6875rem; border: solid var(--ps-text); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); pointer-events: none; }
+.ui-check-hit input:checked + .ui-check-tick { display: block; }
+.ui-table .ui-table-empty { padding: var(--ps-space-7) var(--ps-space-4); text-align: center; white-space: normal; color: var(--ps-muted); }
+.ui-table .ui-table-error { padding: var(--ps-space-5) var(--ps-space-4); white-space: normal; color: var(--ps-text); box-shadow: inset 3px 0 0 var(--ps-danger); }
+.ui-pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
+.ui-pager-summary { color: var(--ps-muted); font-size: var(--ps-step--1); font-variant-numeric: tabular-nums; }
+.ui-pager a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); }
+.ui-pager a[rel="next"] { margin-inline-start: auto; }
+/* The sort of a phone (L1-120 R1): « Trier par » and the same GET links; hidden where the column headers carry it. */
+.ui-sortbar { display: none; }
+/* On a phone each row is a card (QueueCard, L1-091 K11, L1-120 R1): its queue as a label in the trace face, then
+   reference and deadline, then subject and age; no column headers over cards that have no columns, a « Trier par »
+   control instead. The same markup, nothing duplicated. */
+@media (max-width: 47.99rem) {
+  .ui-sortbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--ps-space-3); }
+  .ui-sortbar-label { color: var(--ps-muted); font-size: var(--ps-step--1); }
+  .ui-sortbar ul { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+  .ui-sortbar .ui-sort { font-size: var(--ps-step--1); color: var(--ps-muted); }
+  .ui-sortbar .ui-sort[data-dir] { color: var(--ps-text); font-weight: var(--ps-weight-strong); }
+  .ui-table, .ui-table tbody { display: block; width: 100%; }
+  .ui-table thead { display: none; }
+  .ui-caption { display: block; }
+  .ui-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label label" "title end" "body aside"; gap: 0.125rem var(--ps-space-3); align-items: baseline; padding: var(--ps-space-3) var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
+  .ui-table[data-select] tbody tr { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "check label label" "check title end" "check body aside"; padding-inline-start: 0; }
+  .ui-table tbody tr:last-child { border-bottom: 0; }
+  .ui-table tbody tr > * { display: none; width: auto; padding: 0; border: 0; }
+  .ui-table tbody tr > [data-card] { display: block; }
+  .ui-table tbody tr > [data-card="label"] { grid-area: label; color: var(--ps-muted); font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); }
+  .ui-table tbody tr > [data-card="title"] { grid-area: title; }
+  .ui-table tbody tr > [data-card="end"] { grid-area: end; }
+  .ui-table tbody tr > [data-card="body"] { grid-area: body; color: var(--ps-muted); }
+  .ui-table tbody tr > [data-card="aside"] { grid-area: aside; color: var(--ps-muted); }
+  .ui-table tbody tr > .ui-trunc { width: auto; max-width: none; }
+  .ui-table tbody tr > .ui-check { display: flex; grid-area: check; align-self: center; width: auto; }
+  .ui-table tbody tr:has(> .ui-table-empty, > .ui-table-error) { display: block; padding: 0; }
+  .ui-table tbody tr > :is(.ui-table-empty, .ui-table-error) { display: block; }
+  .ui-table tr[data-current] { background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-surface)); box-shadow: inset 3px 0 0 var(--ps-aura); }
+  .ui-table tr[data-current] > * { background: none; box-shadow: none; }
+}
+
+/* ---------- FilterBar (§B.7) ---------- */
+.ui-filter { display: grid; gap: var(--ps-space-3); min-width: 0; }
+.ui-views ul, .ui-chips ul { display: flex; flex-wrap: wrap; gap: var(--ps-space-2); margin: 0; padding: 0; list-style: none; }
+.ui-views a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-pill); color: var(--ps-muted); font-size: var(--ps-step--1); text-decoration: none; }
+.ui-views a[aria-current="page"] { color: var(--ps-text); border-color: var(--ps-aura); background: color-mix(in srgb, var(--ps-aura) 12%, var(--ps-bg)); }
+.ui-filter-form { display: flex; flex-wrap: wrap; align-items: start; gap: var(--ps-space-3); }
+.ui-filter-form > .btn { margin-top: calc(var(--ps-step--1) * 1.3 + var(--ps-space-1)); }
+.ui-field { display: grid; flex: 1 1 12rem; gap: var(--ps-space-1); min-width: 0; }
+.ui-field label { font-size: var(--ps-step--1); line-height: 1.3; font-weight: var(--ps-weight-strong); color: var(--ps-text); }
+.ui-field :is(input, select) { width: 100%; min-height: 2.75rem; padding: 0.4rem 0.7rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+/* An example of what to type, under the field, in words a screen reader hears too (L1-091 K16): muted, 9.18:1. */
+.ui-hint { font-size: var(--ps-step--1); line-height: var(--ps-lead--1); color: var(--ps-muted); }
+.ui-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-2) var(--ps-space-4); }
+/* A chip removes its filter: its cross is drawn, not typed, so no glyph can turn into an emoji. */
+.ui-chip { display: inline-flex; align-items: center; gap: 0.6em; min-height: 2.25rem; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius-pill); background: var(--ps-surface); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; transition: border-color var(--ps-dur-ui) var(--ps-ease-out); }
+.ui-chip::after { content: ""; flex: none; width: 0.6rem; height: 0.6rem; background: linear-gradient(45deg, transparent 43%, currentColor 43% 57%, transparent 57%), linear-gradient(-45deg, transparent 43%, currentColor 43% 57%, transparent 57%); }
+.ui-chips-clear { display: inline-flex; align-items: center; min-height: 2.25rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-chip:hover { border-color: var(--ps-aura); }
+  .ui-views a:hover { color: var(--ps-text); }
+}
+
+/* ---------- Inspector (§B.4) ---------- */
+/* The list and its inspector side by side from 64 rem; under it, the inspector follows the list. */
+.ui-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); align-items: start; }
+/* The list keeps the room; the inspector reads at a measure of its own (20 to 24 rem: at 28, measured at 1 280 px, the
+   giving column of the list was left 126 px, L1-120 R4). */
+@media (min-width: 64rem) { .ui-split:has(> .ui-inspector) { grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem); } }
+.ui-inspector { display: grid; align-content: start; gap: var(--ps-space-4); min-width: 0; padding: var(--ps-space-5); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+@media (min-width: 64rem) { .ui-inspector { position: sticky; top: var(--ui-sticky-top, var(--ps-space-4)); max-height: calc(100svh - 2 * var(--ps-space-4)); overflow-y: auto; } }
+.ui-inspector-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--ps-space-1) var(--ps-space-4); }
+.ui-inspector-head h2 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); letter-spacing: var(--ps-track-2); overflow-wrap: anywhere; }
+.ui-inspector-meta { grid-column: 1 / -1; color: var(--ps-muted); font-size: var(--ps-step--1); }
+.ui-inspector-close { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 var(--ps-space-3); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); color: var(--ps-text); font-size: var(--ps-step--1); text-decoration: none; }
+/* The decisions, under the title (L1-091 K10). */
+.ui-inspector-actions { display: flex; flex-wrap: wrap; align-items: start; gap: var(--ps-space-2); padding-bottom: var(--ps-space-4); border-bottom: 1px solid var(--ps-line); }
+.ui-inspector-body { display: grid; gap: var(--ps-space-5); min-width: 0; }
+/* A decision that undoes or refuses: the danger colour (8.00:1 on the surface), and its reason field opens first. */
+.btn.ui-danger { color: var(--ps-danger); border-color: var(--ps-danger); }
+.ui-confirm > summary { list-style: none; }
+.ui-confirm > summary::-webkit-details-marker { display: none; }
+.ui-confirm[open] { display: grid; grid-template-columns: minmax(0, 1fr); flex-basis: 100%; gap: var(--ps-space-2); }
+.ui-confirm form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-2); }
+.ui-confirm textarea { min-height: 5rem; padding: 0.5rem 0.7rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); resize: vertical; }
+.ui-confirm label { font-size: var(--ps-step--1); font-weight: var(--ps-weight-strong); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-inspector-close:hover { border-color: var(--ps-aura); }
+  .btn.ui-danger:hover { background: color-mix(in srgb, var(--ps-danger) 12%, var(--ps-surface)); }
+}
+
+/* ---------- Timeline (§B.7, §C.0) ---------- */
+/* Each event is a small lozenge on a rail, the shape of the poinçon: filled when it happened, hollow when it is to
+   come (§C.0: a form readable without colour). */
+.ui-timeline { display: grid; gap: var(--ps-space-2); min-width: 0; }
+.ui-tl { display: grid; margin: 0; padding: 0; list-style: none; }
+.ui-tl-item { position: relative; display: grid; gap: 0.125rem; padding: 0 0 var(--ps-space-5) var(--ps-space-6); min-width: 0; }
+.ui-tl-item::before { content: ""; position: absolute; left: calc(0.3125rem - 0.5px); top: 1.1rem; bottom: 0.2rem; width: 1px; background: var(--ps-line-strong); }
+.ui-tl-item:last-child::before { content: none; }
+.ui-tl-item::after { content: ""; position: absolute; left: 0.125rem; top: 0.4rem; width: 0.375rem; height: 0.375rem; transform: rotate(45deg); background: var(--ps-text); }
+.ui-tl-item[data-tone="signal"]::after { background: var(--ps-signal); }
+.ui-tl-item[data-tone="danger"]::after { background: var(--ps-danger); }
+.ui-tl-item[data-tone="upcoming"]::after { background: var(--ps-bg); outline: 1px solid var(--ps-line-strong); }
+.ui-tl-time { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-muted); }
+.ui-tl-title { color: var(--ps-text); overflow-wrap: anywhere; }
+.ui-tl-title a { color: var(--ps-aura-text); }
+.ui-tl-status { font-weight: var(--ps-weight-strong); color: var(--ps-signal); }
+.ui-tl-item[data-tone="danger"] .ui-tl-status { color: var(--ps-danger); }
+.ui-tl-meta { color: var(--ps-muted); font-size: var(--ps-step--1); overflow-wrap: anywhere; }
+.ui-tl-upcoming-label { font: var(--ps-weight-mono) var(--ps-step--2) / 1.3 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.ui-tl-upcoming .ui-tl-title { color: var(--ps-muted); }
+
+/* ---------- KpiTile, KpiGrid (§B.4) ---------- */
+/* What decides leads (L1-091 K5, L1-120 R2): the late mark at the top, a modest count with its word, the oldest wait
+   on its line; a tile at zero is quiet. Still: no roll, no trend, no glow (the Tower plays no show, §G.2). */
+.ui-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
+.ui-kpi { position: relative; display: grid; align-content: start; gap: var(--ps-space-2); min-width: 0; height: 100%; padding: var(--ps-space-4); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); transition: background-color var(--ps-dur-ui) var(--ps-ease-out), border-color var(--ps-dur-ui) var(--ps-ease-out); }
+/* The head keeps the height of the late mark in every tile, with it or without it: the count of a late queue never
+   sits lower than its neighbours' (L1-120 R2). */
+.ui-kpi-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ps-space-2); min-height: 1.5rem; }
+.ui-kpi-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--ps-weight-strong) var(--ps-step--1) / 1.3 var(--ps-font-text); letter-spacing: 0; color: var(--ps-text); }
+.ui-kpi-label a { color: inherit; text-decoration: none; }
+/* The whole tile opens its queue; the label stays the link's name. */
+.ui-kpi-label a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.ui-kpi-label a:focus-visible { outline: none; }
+.ui-kpi:has(.ui-kpi-label a:focus-visible) { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+/* Late: an amber mark of form (a lozenge and its word), never the colour alone. */
+.ui-kpi-late { flex: none; display: inline-flex; align-items: center; gap: 0.45em; height: 1.5rem; padding: 0 0.5rem; border: 1px solid var(--ps-signal); border-radius: var(--ps-radius); background: color-mix(in srgb, var(--ps-signal) 12%, var(--ps-surface)); color: var(--ps-signal); font-size: var(--ps-step--2); font-weight: var(--ps-weight-strong); white-space: nowrap; }
+.ui-kpi-late::before { content: ""; flex: none; width: 0.375rem; height: 0.375rem; transform: rotate(45deg); background: currentColor; }
+/* « 1 en attente »: the count and its word, one phrase; then the oldest wait on its own line (L1-120 R2). */
+.ui-kpi-figure { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.ui-kpi-value { font: var(--ps-weight-display) var(--ps-step-3) / 1 var(--ps-font-display); font-variant-numeric: tabular-nums lining-nums; color: var(--ps-text); }
+.ui-kpi-oldest { font-weight: var(--ps-weight-strong); color: var(--ps-text); font-variant-numeric: tabular-nums; }
+.ui-kpi-oldest-v { white-space: nowrap; }
+.ui-kpi-def { color: var(--ps-muted); font-size: var(--ps-step--1); line-height: var(--ps-lead--1); }
+.ui-kpi[data-zero] :is(.ui-kpi-label, .ui-kpi-value) { color: var(--ps-muted); }
+.ui-measured { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); color: var(--ps-muted); }
+@media (hover: hover) and (pointer: fine) {
+  .ui-kpi[data-link]:hover { border-color: var(--ps-aura); background: color-mix(in srgb, var(--ps-aura) 7%, var(--ps-surface)); }
+}
+/* Two by two on a phone, compact, so the queue stays in sight; the definition stays for screen readers. */
+@media (max-width: 47.99rem) {
+  .ui-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ps-space-2); }
+  .ui-kpi { gap: var(--ps-space-1); padding: var(--ps-space-3); }
+  /* Too narrow for the label and the mark on one line: two lines, reserved in every tile. */
+  .ui-kpi-head { flex-direction: column; align-items: start; justify-content: start; gap: var(--ps-space-1); min-height: calc(1.3 * var(--ps-step--1) + var(--ps-space-1) + 1.5rem); }
+  /* « la plus ancienne : 3 j » does not fit 143 px: the label above, small, and the wait below, never cut in two. */
+  .ui-kpi-oldest-k { display: block; font-size: var(--ps-step--1); font-weight: var(--ps-weight-text); color: var(--ps-muted); }
+  .ui-kpi-def { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* The vault (storyboard L1.6): the documents of an affair, a document, a comparison, the form « Préparer ». Loaded by the
+   components of components/vault only. Every colour a brand token; no green anywhere (in L1 every document is filed,
+   never sealed: the proof colour is not read here, a test refuses it); nothing that animates a shadow or a filter.
+   Two movements only, M1 (a fingerprint inks) and M2 (two fingerprints part), both on transform or opacity, both inside
+   prefers-reduced-motion: no-preference, both timed by brand durations that the brand sets to 0 under reduced motion.
+   Grids keep one shrinking column (minmax(0, 1fr)); targets are 48 px. */
+
+.vault-page, .vault-section, .vault-cards, .vault-card, .vault-form, .vault-doc, .vault-compare, .vault-diffs { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); min-width: 0; }
+.vault-lead { color: var(--ps-muted); max-width: var(--ps-measure); }
+/* Under the page's h1 the sections speak one step lower: the counterpart, then the documents, never two titles alike. */
+.vault-section > h2, .vault-brief > h2, .vault-diffs > h2 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); letter-spacing: var(--ps-track-2); }
+.vault-compare .vault-doc-head h1, .vault-doc .vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
+/* The selects of the vault's GET forms, drawn like the fields of the primitives. */
+:is(.vault-picker, .vault-views) select { min-height: 3rem; min-width: 5rem; padding: 0.4rem 2rem 0.4rem 0.7rem; font: inherit; font-size: 1rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+:is(.vault-picker, .vault-views) select:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.vault-field :is(input[type="number"], input[type="text"], textarea) { padding: 0.5rem 0.7rem; font: inherit; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.vault-field :is(input, textarea):focus-visible, .vault-choice input:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- Tabs: links, never a tablist (a tablist needs a script) ---------- */
+.vault-tabs ul { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-5); margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--ps-line); }
+.vault-tabs a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.vault-tabs a[aria-current="page"] { color: var(--ps-text); font-weight: var(--ps-weight-strong); border-bottom-color: var(--ps-aura); }
+@media (hover: hover) and (pointer: fine) { .vault-tabs a:not([aria-current]):hover { color: var(--ps-text); } }
+.vault-tabs a:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- A status line: there from 0 ms, never animated ---------- */
+.vault-status { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line); border-left: 3px solid var(--ps-aura); border-radius: var(--ps-radius); background: var(--ps-surface); }
+.vault-status code, .vault-mono { font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); letter-spacing: 0.02em; font-variant-numeric: tabular-nums slashed-zero; }
+.vault-alert { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line); border-left: 3px solid var(--ps-danger); border-radius: var(--ps-radius); background: var(--ps-surface); }
+.vault-alert:focus { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- A document of the affair (S5) ---------- */
+.vault-card { gap: var(--ps-space-3); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.vault-card > h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.vault-meta { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-review { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-reason { font-size: var(--ps-step--1); }
+.vault-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2) var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
+.vault-actions .btn { min-height: 3rem; }
+.vault-closed { color: var(--ps-muted); font-size: var(--ps-step--1); max-width: var(--ps-measure); }
+
+/* The strata: a cut through rock, the newest on top, a rule down the left; the current one has the bar of selection. */
+.vault-strata-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.vault-strata { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--ps-line); }
+.vault-stratum { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-2) 0 var(--ps-space-2) var(--ps-space-4); min-width: 0; }
+.vault-stratum[aria-current] { box-shadow: inset 2px 0 0 var(--ps-aura); }
+.vault-stratum-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); }
+.vault-stratum-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); font-size: var(--ps-step--1); }
+.vault-stratum-links a, .vault-link { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
+/* « Lire » is four letters: its target is at least 44 px wide too (L1-159). */
+.vault-stratum-links a { min-width: 2.75rem; justify-content: center; }
+/* Every summary keeps its native disclosure mark (L1-159 M7): a list item, its 48 px from its padding, never a flex box. */
+.vault-older > summary { display: list-item; padding-block: 0.875rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+
+/* The comparison picker: a GET form, two selects and a button. */
+.vault-picker { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
+.vault-picker label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
+.vault-picker select { min-height: 3rem; font-size: 1rem; }
+
+/* M1: the fingerprint of a version just born inks, top band first (§6). The cells are drawn in the line colour from
+   0 ms; the ink is laid over them, row by row. Without the animation (no script needed, reduced motion, an old
+   browser) the ink is simply there: the drawing is the same as FingerprintStamp's at rest. */
+.vault-ink-base { fill: var(--ps-line); }
+@media (prefers-reduced-motion: no-preference) {
+  .vault-ink-band { animation: vault-ink calc(var(--ps-dur-trace) * 0.4375) var(--ps-ease-ink) calc(var(--ps-dur-trace) * 0.1875 * var(--band)) both; }
+}
+@keyframes vault-ink { from { opacity: 0.5; } to { opacity: 1; } }
+
+/* ---------- The form « Préparer » ---------- */
+.vault-form fieldset { display: grid; gap: var(--ps-space-3); min-width: 0; margin: 0; padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.vault-form legend { padding: 0 var(--ps-space-2); font: var(--ps-weight-display) var(--ps-step-0) / 1.3 var(--ps-font-display); }
+.vault-owner { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-choice .vault-owner { display: block; }
+.vault-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-3); margin: 0; }
+.vault-facts > div { display: grid; gap: var(--ps-space-1); }
+.vault-facts dt { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-facts dd { margin: 0; overflow-wrap: anywhere; }
+.vault-facts ul { margin: 0; padding-left: 1.25rem; }
+.vault-pre { white-space: pre-line; }
+@media (min-width: 48rem) { .vault-facts { grid-template-columns: 12rem minmax(0, 1fr); } .vault-facts > div { display: contents; } }
+.vault-choices { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+/* A radio stays on the first line of a label of two (L1-159): aligned at the top, 48 px of target kept by padding. */
+.vault-choice { display: flex; align-items: flex-start; gap: var(--ps-space-3); min-height: 3rem; padding-block: 0.75rem; cursor: pointer; }
+.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0.125rem 0 0; accent-color: var(--ps-aura); }
+.vault-field { display: grid; gap: var(--ps-space-1); min-width: 0; }
+.vault-field input[type="number"], .vault-field input[type="text"], .vault-field textarea { width: 100%; max-width: 40rem; min-height: 3rem; font-size: 1rem; }
+.vault-field input[type="number"] { max-width: 8rem; }
+.vault-hint { color: var(--ps-muted); font-size: var(--ps-step--1); max-width: var(--ps-measure); }
+.vault-error { color: var(--ps-text); font-size: var(--ps-step--1); padding-left: var(--ps-space-3); box-shadow: inset 2px 0 0 var(--ps-danger); }
+.vault-form [aria-invalid="true"] { border-color: var(--ps-danger); }
+.vault-submit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
+.vault-submit .btn { min-height: 3rem; }
+.vault-note { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); color: var(--ps-text); max-width: var(--ps-measure); }
+.vault-summary ul { margin: var(--ps-space-2) 0 0; padding-left: 1.25rem; }
+.vault-summary a { color: var(--ps-aura-text); }
+/* Fields that only count under a condition stay in the page (no script); where :has() is understood they show only
+   when their condition holds, and the server ignores them otherwise. Without :has(), all show, with « Seulement si ». */
+.vault-onlyif { color: var(--ps-muted); font-size: var(--ps-step--1); }
+@supports selector(:has(*)) {
+  .vault-onlyif { display: none; }
+  /* Specific enough to beat `.vault-form fieldset { display: grid }` (seen on the E2 specimen: the rights showed). */
+  .vault-form .vault-cond { display: none; }
+  .vault-form:has(input[name="input.ipRegime"][value="assignment"]:checked, input[name="input.ipRegime"][value="licence"]:checked) .vault-cond[data-cond="ip-rights"],
+  .vault-form:has(input[name="input.processesPersonalData"][value="true"]:checked) .vault-cond[data-cond="input.dpaDetails"],
+  .vault-form:has(input[name="clause.insurance"]:checked) .vault-cond[data-cond="clause.insurance"],
+  .vault-form:has(input[name="clause.non-solicitation"]:checked) .vault-cond[data-cond="clause.non-solicitation"],
+  .vault-cond:has([aria-invalid="true"]) { display: grid; }
+}
+
+/* ---------- A document: the text, the rail, « Vérifier » ---------- */
+.vault-doc { gap: var(--ps-space-6); }
+.vault-doc-head { display: grid; gap: var(--ps-space-2); }
+.vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); }
+.vault-rail { display: grid; gap: var(--ps-space-4); align-content: start; min-width: 0; }
+.vault-rail .btn { justify-content: center; min-height: 3rem; }
+.vault-rail details > summary { display: list-item; padding-block: 0.75rem; cursor: pointer; }
+.vault-toc ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.vault-toc a { display: flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+.vault-article { max-width: 46rem; font: var(--ps-weight-text) var(--ps-step-0) / 1.65 var(--ps-font-text); color: var(--ps-text); }
+.vault-article > * + * { margin-top: var(--ps-space-4); }
+.vault-doc-title { font: var(--ps-weight-display) var(--ps-step-2) / var(--ps-lead-2) var(--ps-font-display); }
+.vault-doc-sub { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-clause { display: grid; gap: var(--ps-space-3); scroll-margin-top: 5rem; }
+.vault-clause > h2, .vault-clause > h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); scroll-margin-top: 5rem; }
+.vault-clause h2:focus, .vault-clause h3:focus { outline: none; }
+.vault-clause ul { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--ps-space-2); }
+.vault-party { padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line); }
+.vault-footer { color: var(--ps-muted); font-size: var(--ps-step--1); padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
+/* « Vérifier » never widens the page (L1-159 B2, measured 470 px at 375): shrinking columns, and long commands wrap. */
+.vault-digests { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-2); min-width: 0; }
+.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; }
+.vault-digests .vault-command { white-space: pre-wrap; overflow-wrap: anywhere; }
+.vault-digests dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-1); margin: var(--ps-space-2) 0; min-width: 0; }
+.vault-digests dd { margin: 0 0 var(--ps-space-2); min-width: 0; }
+.vault-skip { position: absolute; left: -9999px; }
+.vault-skip:focus { position: static; display: inline-flex; min-height: 3rem; align-items: center; }
+/* From 64 rem: the text and, under it, « Vérifier »; beside them the rail, which spans both rows and stays in view under
+   the space's sticky header (L1-159 M9). On a phone: rail, text, then « Vérifier », in the order of the markup. */
+.vault-desk-block { display: none; }
+@media (min-width: 64rem) {
+  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "verify rail"; gap: var(--ps-space-6) var(--ps-space-7); align-items: start; }
+  .vault-doc-body > .vault-rail { grid-area: rail; position: sticky; top: 5rem; max-height: calc(100dvh - 6rem); overflow-y: auto; overscroll-behavior: contain; }
+  .vault-doc-body > .vault-article-wrap { grid-area: text; }
+  .vault-doc-body > .vault-digests { grid-area: verify; }
+  .vault-phone-block { display: none; }
+  .vault-desk-block { display: grid; gap: var(--ps-space-2); }
+}
+@media (max-width: 63.99rem) { .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); } .vault-rail .btn { width: 100%; } }
+
+/* ---------- The comparison (M2, the legend, the clauses) ---------- */
+.vault-pair { --vault-gap: 1.5rem; --vault-pair-w: 9.75rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
+.vault-pair > li { flex: 0 0 var(--vault-pair-w); width: var(--vault-pair-w); min-width: 0; }
+/* Sixteen characters of the trace face never run into the neighbour's: they wrap by group of four inside their column. */
+.vault-pair .ui-fp-code { white-space: normal; }
+/* On a phone, two groups of four per line, never one left alone (L1-159). */
+@media (max-width: 47.99rem) { .vault-pair .ui-fp-code { max-width: 10ch; } }
+/* From 48 rem each column holds the sixteen characters on one line and the day after « Version n · » (L1-159). */
+@media (min-width: 48rem) { .vault-pair { --vault-pair-w: 14rem; } }
+.vault-pair .ui-fp { flex-direction: column; align-items: flex-start; }
+.vault-pair-line { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-line { display: block; }
+/* M2: the newer poinçon starts exactly on the older one, then slides to its place: two documents, not one. Only the
+   poinçon moves; its words are in place from 0 ms (L1-159 M6). Both columns have the same width, so one column and
+   one gap is exactly the distance. */
+@media (prefers-reduced-motion: no-preference) {
+  .vault-pair > li:last-child .ui-fp-mark { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
+}
+@keyframes vault-part { from { transform: translateX(calc(-1 * (var(--vault-pair-w) + var(--vault-gap)))); } to { transform: none; } }
+.vault-brief ol { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+.vault-brief li { display: grid; gap: var(--ps-space-1); padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line-strong); }
+.vault-by { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-party-line { font-size: var(--ps-step--1); }
+.vault-legend { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-raised); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font-size: var(--ps-step--1); }
+.vault-legend a { color: var(--ps-aura-text); }
+.vault-legend-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); }
+/* Under the space's sticky header (4 rem), never behind it (L1-159 M8). */
+@media (min-width: 64rem) { .vault-legend { position: sticky; top: 5rem; z-index: 2; } }
+.vault-views { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
+.vault-views label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
+.vault-views select { min-height: 3rem; font-size: 1rem; }
+.vault-diff { position: relative; display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-4) calc(var(--ps-space-4) + 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
+@media (min-width: 64rem) { .vault-diff { scroll-margin-top: 13rem; } }
+.vault-diff::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; transform-origin: left; }
+.vault-diff[data-kind="modified"]::before { background: var(--ps-signal); }
+.vault-diff[data-kind="added"]::before { background: var(--ps-aura); }
+.vault-diff[data-kind="removed"]::before { background: var(--ps-line-strong); }
+/* M3: arriving on a change by its link, the margin rule thickens once (a reply to the person, not a show). */
+@media (prefers-reduced-motion: no-preference) { .vault-diff:target::before { transition: transform var(--ps-dur-ui) var(--ps-ease-out); } html:has(.vault-compare) { scroll-behavior: smooth; } }
+.vault-diff:target::before { transform: scaleX(2); }
+.vault-diff:target { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.vault-diff-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-2) var(--ps-space-3); }
+.vault-diff-head h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.vault-block { position: relative; margin: 0; }
+/* The sign is said by the hidden prefix already: hidden from assistive technology where the alt syntax is understood. */
+.vault-block[data-sign]::before { content: attr(data-sign); content: attr(data-sign) / ""; position: absolute; left: -1.5rem; width: 1.5rem; text-align: center; font: var(--ps-weight-mono) var(--ps-step-0) / 1.65 var(--ps-font-mono); color: var(--ps-text); }
+.vault-block[data-state="same"] { color: var(--ps-muted); }
+/* A bullet of the contract stays a bullet (L1-159 M10); its sign of margin moves out by the bullet's own indent. */
+.vault-block[data-block="bullet"] { display: list-item; list-style: disc outside; margin-inline-start: 1.25rem; }
+.vault-block[data-block="bullet"][data-sign]::before { left: -2.75rem; }
+.vault-diff ins { text-decoration: underline 1px; text-underline-offset: 0.2em; color: var(--ps-aura-text); }
+.vault-diff del { text-decoration: line-through; color: var(--ps-muted); }
+/* « 15 » struck then « 20 » underlined: a hair of space between them, so the two numbers never read as « 1520 ». */
+.vault-diff del + ins { margin-inline-start: 0.3em; }
+.vault-diff[data-kind="added"] ins { text-decoration: none; color: var(--ps-text); }
+.vault-next { font-size: var(--ps-step--1); }
+.vault-next a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
+.vault-same > summary { display: list-item; padding: 0.75rem var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
+.vault-same ol { display: grid; gap: var(--ps-space-2); margin: var(--ps-space-3) 0 0; padding: 0 0 0 var(--ps-space-4); list-style: none; }
+.vault-same details > summary { display: list-item; padding-block: 0.6875rem; cursor: pointer; }
+.vault-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
+@media (min-width: 64rem) { .vault-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.vault-side-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+
+.vault-phone-only { display: none; }
+@media (max-width: 47.99rem) { .vault-phone-only { display: inline; } }
+@media (max-width: 63.99rem) { .vault-rail-stamp svg { width: 64px; height: 64px; } }
+
+/* ---------- 375 px ---------- */
+@media (max-width: 47.99rem) {
+  .vault-actions { flex-direction: column; }
+  .vault-actions .btn { width: 100%; justify-content: center; }
+  .vault-diff { padding-left: calc(var(--ps-space-3) + 1.25rem); }
+  .vault-block[data-sign]::before { left: -1.25rem; width: 1.25rem; }
+  .vault-field input, .vault-field textarea, .vault-picker select, .vault-views select { font-size: 1rem; }
+}
+
+/* ---------- Colour taken away: signs, words, struck and underlined carry everything ---------- */
+@media (forced-colors: active) {
+  .vault-diff::before, .vault-tabs a[aria-current="page"] { background: CanvasText; border-color: CanvasText; }
+  .vault-diff ins, .vault-diff del { color: CanvasText; }
+}
+
+/* ---------- Print: the full version for a party's counsel keeps every mark ---------- */
+@media print {
+  .vault-tabs, .vault-views, .vault-picker, .vault-skip, .vault-next, .back-link { display: none; }
+  .vault-diff, .vault-card { break-inside: avoid; background: none; }
+  .vault-diff ins { text-decoration: underline 1px; }
+  .vault-diff del { text-decoration: line-through; }
+  .vault-pair .ui-fp-mark { animation: none; }
+}
+
+main.spec { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.spec-where { color: var(--ps-muted); font: 500 12px/1.3 var(--ps-font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.spec-note { color: var(--ps-muted); font-size: var(--ps-step--2); }
+</style>
+</head>
+<body>
+<main class="spec">
+<p class="spec-where">E6 · /fr/app/documents</p>
+<div class="vault-page"><nav class="vault-tabs" aria-label="Sections des contrats"><ul><li><a href="/fr/app/contrats">Contrats</a></li><li><a aria-current="page" href="/fr/app/documents">Documents</a></li></ul></nav><header class="app-head"><h1>Documents</h1><p class="vault-lead">Tous les documents de vos affaires. Ils naissent dans l'onglet Documents de chaque affaire.</p></header><div class="vault-section"><div class="ui-filter"><form class="ui-filter-form" role="search" aria-label="Filtres" action="/fr/app/documents" method="get"><div class="ui-field"><label for="docs-filtres-sorte">Sorte</label><select id="docs-filtres-sorte" name="sorte"><option value="" selected="">Toutes</option><option value="service_agreement">Contrat de prestation</option></select></div><div class="ui-field"><label for="docs-filtres-par">Déposé par</label><select id="docs-filtres-par" name="par"><option value="" selected="">Tous</option><option value="vous">Vous</option><option value="autre">Pas vous</option></select></div><button type="submit" class="btn">Filtrer</button></form></div><div class="ui-table-block"><nav class="ui-sortbar" aria-labelledby="docs-sortby"><p id="docs-sortby" class="ui-sortbar-label">Trier par</p><ul><li><a class="ui-sort" data-dir="descending" aria-current="true" href="/fr/app/documents?tri=depose">Déposé<span class="sr-only">, trié par ordre décroissant, trier par ordre croissant</span></a></li></ul></nav><div class="ui-table-frame" role="region" aria-labelledby="docs-caption" tabindex="0"><table class="ui-table" id="docs"><caption id="docs-caption" class="ui-caption">Vos documents, du plus récent au plus ancien</caption><thead><tr><th scope="col">Document</th><th scope="col" class="ui-num">Version</th><th scope="col">Empreinte</th><th scope="col" class="ui-num" aria-sort="descending" data-sortable=""><a class="ui-sort" data-dir="descending" href="/fr/app/documents?tri=depose">Déposé<span class="sr-only">, trier par ordre croissant</span></a></th><th scope="col">Par</th></tr></thead><tbody><tr><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d1">Contrat de prestation · Studio Exemple</a></th><td class="ui-num" data-card="end"><span class="vault-phone-only">Version </span>2</td><td data-card="label"><span class="ui-fp" data-state="filed"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="16" viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M8 0.75L15.25 8L8 15.25L0.75 8Z" stroke-width="1.25"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 2</span><code class="ui-fp-code">ECB8 1E04 2862 4171</code><span class="ui-fp-word">Déposé</span></span></span></td><td class="ui-num" data-card="aside"><time dateTime="2026-10-25T08:41:00Z">25 octobre 2026</time></td><td data-card="body"><span class="vault-phone-only">par </span>le freelance</td></tr><tr><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d2">Contrat de prestation · Atelier Exemple</a></th><td class="ui-num" data-card="end"><span class="vault-phone-only">Version </span>1</td><td data-card="label"><span class="ui-fp" data-state="filed"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="16" viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M8 0.75L15.25 8L8 15.25L0.75 8Z" stroke-width="1.25"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 1</span><code class="ui-fp-code">D4A8 6AF0 E9CA 1083</code><span class="ui-fp-word">Déposé</span></span></span></td><td class="ui-num" data-card="aside"><time dateTime="2026-10-20T09:00:00Z">20 octobre 2026</time></td><td data-card="body"><span class="vault-phone-only">par </span>vous</td></tr></tbody></table></div><nav class="ui-pager" aria-label="Pages de la liste"><p class="ui-pager-summary">1 à 2 sur 2</p></nav></div></div></div><p class="spec-note">Spécimen L1 : données d'exemple (parties « Exemple », empreintes de textes d'exemple, dates d'octobre 2026), rendues par les composants réels du coffre. Pas un compte réel ; l'en-tête et le menu de l'espace ne sont pas dessinés ici.</p>
+</main>
+</body>
+</html>

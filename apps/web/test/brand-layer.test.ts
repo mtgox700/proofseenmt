@@ -132,6 +132,15 @@ describe("the green marks a verified fact or the poinçon, nothing else (Kensa M
         // the same count as the bar of its funnel step. A measured fact, dated, whose source is the answer.
         "app-registre.css: .cr-cited",
         'visibility.css: .vis-step[data-step="cited"] .vis-bar span',
+        // L1, the poinçon d'empreinte struck (LEGENDS_P2_CONCEPT §A.4, §A.5, L1-090): the plate at 16 and 32 px; at 64 and
+        // 128 px the cartouche's language (proof wash, green frame and cells, halo); the halo of the stamp and its dated
+        // sentence. Only for an act every party signed, read from the database (screens in test/support/green-files.ts).
+        'ui.css: .ui-fpm[data-state="sealed"] .ui-fpm-frame',
+        'ui.css: .ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"])',
+        'ui.css: .ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-frame',
+        'ui.css: .ui-fpm[data-state="sealed"]:is([data-level="64"], [data-level="128"]) .ui-fpm-cells',
+        'ui.css: .ui-fp[data-state="sealed"] .ui-fp-mark::before',
+        'ui.css: .ui-fp[data-state="sealed"] .ui-fp-word',
       ].sort(),
     );
   });

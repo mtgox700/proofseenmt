@@ -1,0 +1,190 @@
+# Devis, v1. Trésor (Inès Kader), 2026-10-24. Format : ../../TEMPLATE_FORMAT.md.
+# Données réelles : Quote (dailyRateCents, days, totalCents, currency, billing, status, createdAt), Conversation
+# (organisationId, profileId, applicationId), FreelanceProfile.reference, Organisation.name, BillingIdentity.vatRateBp.
+# Règle existante respectée : l'identité légale du freelance n'est pas montrée à l'entreprise avant qu'il signe le
+# contrat (packages/db/src/contract-view.ts) ; le devis le désigne par sa référence publique.
+
+id: quote
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: quote
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Quote
+
+variables:
+  quote.id:
+    type: string
+    maxLength: 36
+    required: true
+    source: { kind: db, path: Quote.id }
+    frozenAt: render_data
+    label: { fr: "Référence du devis" }
+  document.versionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: true
+    source: { kind: document, field: versionNumber }
+    frozenAt: render_data
+    label: { fr: "Version du document" }
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: db, path: Quote.createdAt }
+    frozenAt: render_data
+    label: { fr: "Date du devis" }
+  seller.reference:
+    type: string
+    maxLength: 16
+    pattern: "^FR-[A-Z0-9]+$"
+    required: true
+    source: { kind: db, path: Quote.conversation.profile.reference }
+    frozenAt: render_data
+    label: { fr: "Référence publique du freelance" }
+  buyer.name:
+    type: string
+    maxLength: 200
+    required: true
+    source: { kind: db, path: Quote.conversation.organisation.name }
+    frozenAt: render_data
+    label: { fr: "Entreprise destinataire" }
+  quote.billing:
+    type: enum
+    values: [fixed, monthly]
+    labels: { fr: { fixed: "au forfait", monthly: "en régie, facturée chaque mois sur relevé validé" } }
+    required: true
+    source: { kind: db, path: Quote.billing }
+    frozenAt: render_data
+    label: { fr: "Mode de prix" }
+  quote.currency:
+    type: string
+    maxLength: 3
+    pattern: "^[A-Z]{3}$"
+    required: true
+    source: { kind: db, path: Quote.currency }
+    frozenAt: render_data
+    label: { fr: "Devise" }
+  quote.dailyRateCents:
+    type: money
+    currency: quote.currency
+    required: true
+    source: { kind: db, path: Quote.dailyRateCents }
+    frozenAt: render_data
+    label: { fr: "Prix journalier hors taxes" }
+  quote.days:
+    type: int
+    min: 1
+    max: 10000
+    required: true
+    source: { kind: db, path: Quote.days }
+    frozenAt: render_data
+    label: { fr: "Jours" }
+  quote.totalCents:
+    type: money
+    currency: quote.currency
+    required: true
+    source: { kind: db, path: Quote.totalCents }
+    frozenAt: render_data
+    label: { fr: "Prix total hors taxes" }
+  computed.vatRegime:
+    type: enum
+    values: [standard, exempt, unknown]
+    labels: { fr: { standard: "TVA facturée", exempt: "franchise en base", unknown: "régime non encore déclaré" } }
+    required: true
+    source: { kind: derived, fn: vatRegimeOfProfile, from: [Quote.conversation.profile.billingIdentity.vatRateBp] }
+    frozenAt: render_data
+    label: { fr: "Régime de TVA du freelance" }
+  computed.vatRateBp:
+    type: bp
+    required: false
+    source: { kind: db, path: Quote.conversation.profile.billingIdentity.vatRateBp }
+    frozenAt: render_data
+    label: { fr: "Taux de TVA du freelance" }
+  platform.commissionBp:
+    type: bp
+    required: true
+    source: { kind: rule, file: packages/db/src/commission-terms.ts, symbol: "commissionTermsFromEnv().commissionBp" }
+    frozenAt: render_data
+    label: { fr: "Taux de commission en vigueur à la date du devis" }
+    note: "Indicatif : le taux qui s'applique est figé dans le contrat à sa création (L1.0 K3) et montré avant signature. Le taux de fidélité éventuel (repeatClient) n'est connu qu'à la création du contrat."
+  platform.feePayer:
+    type: enum
+    values: [freelance, company]
+    labels: { fr: { freelance: "le freelance", company: "l'entreprise" } }
+    required: true
+    default: freelance
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Règle actuelle du code (commission prélevée sur le freelance) en attendant la décision D5 du founder."
+    source: { kind: rule, file: packages/db/src/commission-terms.ts, symbol: "feePayer courant" }
+    frozenAt: render_data
+    label: { fr: "Payeur de la commission" }
+  input.scope:
+    type: text
+    maxLength: 6000
+    required: true
+    source: { kind: pending, request: L1-011 }
+    prefill: { kind: db, path: Quote.conversation.application.jobPost.description }
+    frozenAt: input
+    editableBy: [seller]
+    label: { fr: "Objet de la prestation proposée" }
+  input.deliverables:
+    type: list
+    maxItems: 30
+    itemMaxLength: 500
+    required: true
+    source: { kind: pending, request: L1-011 }
+    frozenAt: input
+    editableBy: [seller]
+    label: { fr: "Livrables proposés" }
+  input.validUntil:
+    type: date
+    required: true
+    source: { kind: pending, request: L1-011 }
+    frozenAt: input
+    editableBy: [seller]
+    label: { fr: "Date de fin de validité du devis" }
+    note: "Sans délai fixé, l'offre vaut pendant un « délai raisonnable » (Code civil 1116 et 1117) : notion floue le jour du litige. Colonne Quote.validUntil demandée."
+
+clauses:
+  - { id: header, kind: locked, sources: [], basis: practice }
+  - { id: scope, kind: locked, sources: [civ-1163] }
+  - { id: price, kind: locked, variantBy: quote.billing, sources: [] , basis: practice }
+  - { id: vat, kind: locked, variantBy: computed.vatRegime, variantRequires: { standard: [computed.vatRateBp] }, sources: [cgi-293b] }
+  - { id: commission, kind: locked, variantBy: platform.feePayer, sources: [], basis: practice }
+  - { id: validity, kind: locked, sources: [civ-1116, civ-1117] }
+  - { id: formation, kind: locked, sources: [civ-1113, civ-1114] }
+  - { id: platform-role, kind: locked, sources: [research-l0-sequestre] }
+
+signature:
+  level: simple
+  order: sequential
+  signatories:
+    - { role: seller, rule: "le freelance émet le devis depuis son compte", mode: issuance }
+    - { role: buyer, rule: "un propriétaire ou administrateur accepte le devis (packages/db/src/quotes.ts)", mode: acceptance }
+
+retention:
+  active: until_thread_closed
+  archive: { years: 5, from: contract_end, when: accepted, sources: [civ-2224, com-l110-4] }
+  onPartyErasure: archive_if_accepted
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - id: R1
+      clause: formation
+      question: "Le devis est rédigé comme une proposition qui n'engage qu'à la signature du contrat (pas une offre au sens de 1114). Est-ce compatible avec le parcours réel (acceptation du devis par un clic, puis contrat créé et signé) et suffisant pour éviter qu'un devis accepté vaille contrat ?"
+    - id: R2
+      clause: header
+      question: "Le freelance est désigné par sa référence publique, son identité légale n'apparaissant qu'au contrat (règle de pseudonymat du code). Une mention légale de devis s'impose-t-elle pour des prestations intellectuelles entre professionnels ? NON VÉRIFIÉ dans cette session."
+    - id: R3
+      clause: commission
+      question: "Information sur la commission au stade du devis : taux en vigueur indicatif, taux figé au contrat. Suffisant au regard de la transparence attendue d'une plateforme (veto Trésor : aucune commission cachée) ?"
+    - id: R4
+      clause: validity
+      question: "Durée de validité fixée par le freelance : rétractation avant l'échéance interdite (1116). Faut-il plafonner la durée choisie ?"

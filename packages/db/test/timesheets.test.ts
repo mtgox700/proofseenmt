@@ -96,7 +96,7 @@ describe("relevés mensuels d'un contrat en régie", () => {
 
   it("un contrat en régie ne se paie pas d'un seul coup : ni par le code, ni en base", async () => {
     const c = await signed();
-    expect(await payments(t.db).open({ userId: c.recruiter }, c.contract, fakeGateway().gateway, 1000)).toEqual({ kind: "monthly_contract" });
+    expect(await payments(t.db).open({ userId: c.recruiter }, c.contract, fakeGateway().gateway)).toEqual({ kind: "monthly_contract" });
     await expect(t.db.payment.create({ data: { contractId: c.contract, amountCents: 100_000, commissionCents: 10_000, currency: "EUR", stripeIntentId: `pi_${c.contract}` } })).rejects.toThrow(/relevé mensuel/);
   });
 

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { CommissionTerms } from "../src/commission-terms";
 import { apiKeys, MAX_ACTIVE_KEYS } from "../src/api-keys";
 import type { LegalSnapshot } from "../src/billing";
 import { billing } from "../src/billing";
@@ -10,7 +11,7 @@ import { messaging } from "../src/messaging";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
 import { userDesk } from "../src/user-desk";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, nextSiret, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance } from "./support/database";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, nextSiret, openTestDatabase, payAndHold, TEST_TERMS, type TestDatabase, verifiedVigilance } from "./support/database";
 
 let t: TestDatabase;
 
@@ -63,7 +64,7 @@ const freelance = async (freelanceName: string): Promise<Freelance> => {
 };
 
 /** Un contrat signé des deux côtés, pas encore payé ; avec un freelance donné, le fil existant est réutilisé. */
-const signedContract = async (org: Company, known?: Freelance, freelanceName = "Camille Test EI") => {
+const signedContract = async (org: Company, known?: Freelance, freelanceName = "Camille Test EI", terms: CommissionTerms = TEST_TERMS) => {
   const { freelanceUser, profile } = known ?? (await freelance(freelanceName));
   const contact = await messaging(t.db).contact({ userId: org.owner }, org.id, profile, "Bonjour, une mission ?");
   if (contact.kind !== "opened" && contact.kind !== "existing") throw new Error(contact.kind);
@@ -71,7 +72,7 @@ const signedContract = async (org: Company, known?: Freelance, freelanceName = "
   const draft = await quotes(t.db).draft({ userId: freelanceUser }, contact.conversation.id, { dailyRateCents: 60_000, days: 10 });
   await quotes(t.db).send({ userId: freelanceUser }, draft?.id ?? "");
   await quotes(t.db).decide({ userId: org.owner }, draft?.id ?? "", "accepted");
-  const created = await contracts(t.db).createFromQuote({ userId: org.owner }, draft?.id ?? "", { startsOn: "2026-11-02" }, NOW);
+  const created = await contracts(t.db, { commissionTerms: () => terms }).createFromQuote({ userId: org.owner }, draft?.id ?? "", { startsOn: "2026-11-02" }, NOW);
   if (created.kind !== "created") throw new Error(created.kind);
   await contracts(t.db).sign({ userId: org.owner }, created.contract.id, NOW);
   await contracts(t.db).sign({ userId: freelanceUser }, created.contract.id, NOW);
@@ -119,7 +120,9 @@ describe("commission de fidélité", () => {
     const known = { freelanceUser: first.freelanceUser, profile: first.profile };
     const second = await signedContract(org, known);
     expect(second.repeatClient).toBe(true);
-    const opened = await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway, 1000, 500);
+    // Le taux effectif (fidélité, plus bas) est écrit sur le contrat dès sa création.
+    expect((await t.db.contract.findUniqueOrThrow({ where: { id: second.contract }, select: { commissionBp: true } })).commissionBp).toBe(500);
+    const opened = await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway);
     // 10 jours à 600 € HT : 6 000 € ; 5 % au lieu de 10 %.
     expect(opened).toMatchObject({ kind: "opened", commissionCents: 30_000 });
     await expect(t.db.contract.update({ where: { id: second.contract }, data: { repeatClient: false } })).rejects.toThrow(/fidélité figée/);
@@ -134,8 +137,9 @@ describe("commission de fidélité", () => {
     const first = await heldContract(org);
     await contracts(t.db).complete({ userId: org.owner }, first.contract);
     await payments(t.db).release(first.contract, first.gateway, PROOFSEEN, NOW);
-    const second = await signedContract(org, { freelanceUser: first.freelanceUser, profile: first.profile });
-    expect(await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway, 1000, 2000)).toMatchObject({ commissionCents: 60_000 });
+    // Le taux de fidélité est lu à la création du contrat, puis figé : c'est là qu'il vaut 20 %.
+    const second = await signedContract(org, { freelanceUser: first.freelanceUser, profile: first.profile }, undefined, { commissionBp: 1000, repeatCommissionBp: 2000 });
+    expect(await payments(t.db).open({ userId: org.owner }, second.contract, fakeGateway().gateway)).toMatchObject({ commissionCents: 60_000 });
   });
 });
 

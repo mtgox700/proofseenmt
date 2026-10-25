@@ -1,0 +1,31 @@
+language: fr
+title: "Exemple de contrat"
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
+  juridique. Relisez-le, et faites-le relire si besoin, avant de le signer.
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}."
+clauses:
+  parties:
+    heading: "Les parties"
+    body: |
+      {{seller}}
+  scope:
+    heading: "Objet"
+    body: |
+      {{input.scope}}
+  price:
+    heading: "Prix"
+    variants:
+      fixed: |
+        Le prix est de {{contract.totalCents}} hors taxes, {{contract.billing}}.
+      monthly: |
+        Le prix est dû chaque mois sur relevé validé, dans la limite de {{contract.totalCents}} hors taxes.
+  vigilance:
+    heading: "Attestation de vigilance"
+    body: |
+      Le Prestataire remet son attestation de vigilance à la conclusion du contrat puis tous les six mois.
+  reference:
+    heading: "Référence"
+    body: |
+      Le Client autorise le Prestataire à le citer comme référence.

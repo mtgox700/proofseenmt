@@ -146,6 +146,14 @@ enum ContractStatus {
   cancelled
 }
 
+/// Qui supporte la commission de Proofseen. Écrit à la création du contrat et figé (déclencheur). Aujourd'hui toujours le
+/// freelance (le code la prélève sur son virement) ; « company » est la variante où l'entreprise paie des frais de
+/// service en plus du prix : la décision D5 du founder, pas encore prise, ne change ce comportement qu'en l'ajoutant ici.
+enum FeePayer {
+  freelance
+  company
+}
+
 /// Les états réels d'un paiement Stripe, échecs compris : un statut manquant se retrouve un jour forcé dans un autre.
 enum PaymentStatus {
   pending
@@ -196,7 +204,9 @@ model User {
   savedSearches           SavedSearch[]
   missionConfirmationsDecided MissionConfirmationRequest[] @relation("MissionConfirmationDecider")
   storedFiles             StoredFile[]
-  applicationsRead        Application[]            @relation("ApplicationReader")
+  documentVersions        DocumentVersion[]
+  documentAccesses        DocumentAccess[]
+  applicationsRead       Application[]            @relation("ApplicationReader")
   savedMissions           SavedMission[]
   companyFollows          CompanyFollow[]
   missionInvitationsSent  MissionInvitation[]
@@ -254,6 +264,7 @@ model Organisation {
   jobPosts      JobPost[]
   conversations Conversation[]
   contracts     Contract[]
+  documents     Document[]
   apiKeys       ApiKey[]
   freelanceLists FreelanceList[]
   missionConfirmations MissionConfirmationRequest[]
@@ -330,6 +341,7 @@ model FreelanceProfile {
   applications   Application[]
   conversations  Conversation[]
   contracts      Contract[]
+  documents      Document[]
   reviews        Review[]          @relation("ReviewTarget")
   waves          Wave[]
   measurements   MeasurementRequest[]
@@ -652,6 +664,7 @@ model Conversation {
   application  Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   messages     Message[]
   quotes       Quote[]
+  documents    Document[]
   reads        ConversationRead[]
   review       ContactReview?
 
@@ -692,11 +705,22 @@ model Quote {
   currency       String      @db.Char(3)
   billing        ContractBilling @default(fixed)
   status         QuoteStatus @default(draft)
+  /// L'objet de la prestation, déterminé ou déterminable (Code civil 1163) : écrit au brouillon, figé à l'envoi (déclencheur),
+  /// recopié au contrat. Nul pour les devis d'avant : jamais inventé.
+  scope          String?
+  /// Les livrables, un par ligne (30 au plus), figés avec l'objet.
+  deliverables   String[]    @default([])
+  /// Dernier jour où le devis peut être accepté (Code civil 1116 : une offre ne se retire pas avant l'échéance fixée) ;
+  /// nul : pas de durée fixée.
+  validUntil     DateTime?   @db.Date
+  /// Le moment où l'entreprise a accepté le devis, posé avec le passage à « accepté » (déclencheur) ; nul pour l'historique.
+  acceptedAt     DateTime?   @db.Timestamptz(3)
   createdAt      DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   contract     Contract?
+  documents    Document[]
 
   @@index([conversationId])
   /// Un seul devis accepté par conversation.
@@ -725,6 +749,18 @@ model Contract {
   /// Le freelance avait déjà été payé par cette entreprise quand le contrat a été créé : sa commission est alors au taux
   /// de fidélité. Figé à la création (déclencheur), donc connu des deux parties avant de signer.
   repeatClient          Boolean        @default(false)
+  /// Taux de commission de Proofseen sur ce contrat, en points de base (1000 = 10 %), fidélité comprise : la valeur
+  /// effective, écrite à la création depuis la configuration du jour, puis figée (déclencheur). Le paiement lit ce champ,
+  /// jamais l'environnement. Nul seulement si aucun taux n'était configuré à la création : le contrat ne peut alors pas
+  /// être payé. Entre 1 et 5000 quand il est écrit.
+  commissionBp          Int?
+  /// Qui supporte cette commission, figé avec le taux.
+  feePayer              FeePayer       @default(freelance)
+  /// L'objet de la prestation et ses livrables, recopiés du devis à la création du contrat et figés (déclencheur), comme
+  /// les autres conditions. Nuls pour les contrats d'avant, acceptés sans objet : jamais inventés (un document de l'affaire
+  /// n'est pas rendu sans eux).
+  scope                 String?
+  deliverables          String[]       @default([])
   /// Nom légal, adresse, SIRET, TVA, pays — écrits à la création, jamais modifiés. Base légale de la conservation :
   /// RGPD art. 17(3)(b), obligations comptables.
   sellerSnapshot        Json
@@ -746,6 +782,7 @@ model Contract {
   timesheets   Timesheet[]
   approvals    ContractApproval[]
   verifiedMission VerifiedMission?
+  documents    Document[]
 
   /// Cible des clés composées de Payment et Invoice : un paiement ne peut pas être dans une autre devise que son contrat.
   @@unique([id, currency])
@@ -765,6 +802,12 @@ model Payment {
   status          PaymentStatus @default(pending)
   /// Virement au compte du freelance, une fois la prestation validée.
   transferId      String?       @unique
+  /// La charge Stripe qui a encaissé ce paiement (`latest_charge` du PaymentIntent, relevée à payment_intent.succeeded).
+  /// Source de tout virement (`source_transaction`) : sans elle, rien n'est viré. Unique : une charge ne finance qu'un
+  /// paiement. Posée une fois, jamais réécrite (déclencheur).
+  chargeId        String?       @unique
+  /// Le jour où les fonds ont été encaissés (confirmation signée du prestataire) : date d'acquittement des factures.
+  paidAt          DateTime?     @db.Timestamptz(3)
   releasedAt      DateTime?     @db.Timestamptz(3)
   /// Réservation d'un versement ou d'un remboursement : posée avant tout appel au prestataire.
   claimedAt       DateTime?     @db.Timestamptz(3)
@@ -888,6 +931,13 @@ model Invoice {
   buyerSnapshot  Json
   issuedAt       DateTime    @default(now()) @db.Timestamptz(3)
   dueOn          DateTime    @db.Date
+  /// Jour (à Paris) où la facture a été réglée, quand elle est émise à la libération des fonds au freelance (L441-9 I :
+  /// règlement réputé réalisé quand les fonds sont mis à la disposition du bénéficiaire) : alors `dueOn` est ce jour même
+  /// (CHECK), et la facture est rendue « acquittée ». Nul pour une facture réglée après son émission.
+  paidOn         DateTime?   @db.Date
+  /// Facture de commission réglée par retenue sur le versement : le numéro de la facture de la mission, que le texte
+  /// d'acquittement cite pour rendre la compensation vérifiable.
+  settlesNumber  String?
   /// Une facture de chaque sorte par contrat : un paiement notifié deux fois n'émet jamais deux factures.
   @@unique([contractId, kind])
 
@@ -1370,6 +1420,106 @@ model StoredFile {
 
   @@index([ownerId, kind, createdAt(sort: Desc)])
   @@index([messageId], where: raw("\"messageId\" IS NOT NULL"), map: "StoredFile_messageId_idx")
+}
+
+/// Les sortes de documents d'une affaire : celles des gabarits v1.
+enum DocumentType {
+  service_agreement
+  quote
+  acceptance_report
+  nda
+  amendment
+}
+
+enum DocumentAction {
+  /// Le document a été ouvert au coffre (sa première version).
+  created
+  version_created
+  downloaded
+}
+
+/// Un document d'une affaire, rangé au coffre : contrat, devis, procès-verbal, accord de confidentialité ou avenant. Il
+/// tient à UNE affaire : un contrat, un devis, une conversation (accord avant contrat), une entreprise ou un profil
+/// (déclencheur à l'insertion). Il ne contient aucun octet : ses versions, immuables, portent le contenu. Un document d'un
+/// contrat est conservé avec lui (durée légale, jamais effacé avec le compte) ; les autres partent avec leur affaire.
+model Document {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  contractId     String?      @db.Uuid
+  quoteId        String?      @db.Uuid
+  conversationId String?      @db.Uuid
+  organisationId String?      @db.Uuid
+  profileId      String?      @db.Uuid
+  type           DocumentType
+  /// Rang parmi les documents de même sorte d'une affaire (les avenants se suivent) ; 1 pour les autres.
+  slot           Int          @default(1)
+  /// Le gabarit d'où viennent les versions, par son identifiant (« service-agreement »).
+  templateId     String
+  /// Langue du texte, « fr » ou « en ».
+  lang           String       @db.Char(2)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+
+  contract     Contract?         @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  quote        Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  conversation Conversation?     @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  organisation Organisation?     @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  profile      FreelanceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  versions     DocumentVersion[]
+  accesses     DocumentAccess[]
+
+  @@unique([contractId, type, slot])
+  @@unique([quoteId, type, slot])
+  @@unique([conversationId, type, slot])
+  @@unique([organisationId, type, slot])
+  @@unique([profileId, type, slot])
+}
+
+/// Une version d'un document : les octets exacts conservés, leur empreinte SHA-256, où ils sont rangés. IMMUABLE
+/// (déclencheur, comme une facture) : seule la référence à l'auteur peut disparaître avec son compte. Une correction est
+/// une nouvelle version, numérotée à la suite, sans trou.
+model DocumentVersion {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  documentId      String   @db.Uuid
+  /// 1, 2, 3… sans trou (déclencheur).
+  number          Int
+  /// SHA-256 des octets exacts conservés, en hexadécimal.
+  sha256          String   @db.Char(64)
+  /// Empreinte du CONTENU du document (SHA-256 du contenu canonique du gabarit rendu), celle que le pied de page du PDF imprime
+  /// et dessine en poinçon ; `sha256` est celle des octets du fichier. Pas une donnée personnelle.
+  contentDigest   String   @db.Char(64)
+  /// Identifiant du fichier sur le volume des dépôts (tiré au hasard, jamais un nom donné par une personne).
+  storageKey      String   @unique @db.Uuid
+  size            Int
+  contentType     String
+  /// Version du gabarit rendu (« 1.0.0 ») et du moteur de rendu : de quoi rejouer le rendu.
+  templateVersion String
+  engine          String
+  /// Les valeurs avec lesquelles le gabarit a été rendu, figées. Elles portent des données personnelles : jamais dans les journaux.
+  variables       Json
+  /// Pourquoi cette version : « première version », « correction du prix », etc.
+  reason          String
+  authorId        String?  @db.Uuid
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@unique([documentId, number])
+}
+
+/// Le journal d'accès d'un document, en ajout seul : qui, quoi, quand. Rien de plus (ni adresse IP, ni navigateur).
+/// Seule la référence à la personne disparaît avec son compte ; les lignes partent avec leur document.
+model DocumentAccess {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  documentId    String         @db.Uuid
+  versionNumber Int?
+  action        DocumentAction
+  userId        String?        @db.Uuid
+  at            DateTime       @default(now()) @db.Timestamptz(3)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([documentId, at])
 }
 
 /// Une expérience déclarée par le freelance. Déclarée, pas vérifiée : la page publique la sépare des missions vérifiées.

@@ -7,7 +7,7 @@ import { InvoiceList } from "@/components/market/InvoiceList";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { PaymentReturn } from "@/components/market/PaymentReturn";
 import { StatusTag } from "@/components/market/StatusTag";
-import { paymentsUi } from "@/data/payments-config";
+import { checkoutOpenFor, paymentsUi } from "@/data/payments-config";
 import { isLang, type Lang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
@@ -18,6 +18,10 @@ import { redirectStatus, showPayClosed, showPayForm, type PayContext } from "@/l
 import { stripeAppearance } from "@/lib/stripe-appearance";
 import { cancelContract, completeContract, saveCostCenter, signContract, writeReview } from "../actions";
 import type { AccountDictionary } from "@/i18n/market/account-fr";
+import { AffairTabs } from "@/components/vault/AffairTabs";
+import { AffairDocumentLine } from "@/components/vault/AffairDocumentLine";
+import { affairSummary } from "@/lib/vault/load";
+import { vaultOpen } from "@/app/api/documents/vault";
 import "@/styles/app-affaire.css";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
@@ -31,7 +35,7 @@ interface PageProps {
 
 const Hidden = ({ name, value }: { readonly name: string; readonly value: string }) => <input type="hidden" name={name} value={value} />;
 
-function Signatures({ lang, c, contract }: { readonly lang: Lang; readonly c: DealsDictionary["contracts"]; readonly contract: ContractDetail }) {
+function Signatures({ lang, c, contract, document }: { readonly lang: Lang; readonly c: DealsDictionary["contracts"]; readonly contract: ContractDetail; readonly document?: React.ReactNode }) {
   const line = (who: string, at: Date | null) => (
     <li>
       <strong>{who}</strong> · <span className="muted">{at === null ? c.notSigned : `${c.signedOn} ${day(at, lang)}`}</span>
@@ -47,6 +51,7 @@ function Signatures({ lang, c, contract }: { readonly lang: Lang; readonly c: De
         {line(contract.seller.legalName ?? c.sellerUnknown, contract.signedByFreelanceAt)}
         {line(contract.buyer.legalName, contract.signedByCompanyAt)}
       </ul>
+      {document}
       {contract.status === "pending_signatures" ? (
         <div className="empty-actions">
           {canSign ? (
@@ -140,9 +145,12 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
     role: contract.role,
     billing: contract.billing,
     paymentStatus: payment?.status ?? null,
-    checkoutOpen: ui?.checkoutOpen === true,
+    checkoutOpen: checkoutOpenFor(ui, contract.commissionBp),
   };
   const returnedFromStripe = redirectStatus(stripeReturn) !== null && contract.side === "company";
+  // The vault's tab (L1.6): drawn only while the vault is open; its count is read by the repository, null if unreadable.
+  const vault = vaultOpen(process.env);
+  const vaultSummary = vault ? await affairSummary(market.db, market.actor, contract.id) : { count: null, latest: null };
 
   return (
     <>
@@ -161,6 +169,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
           </span>
         </p>
       </header>
+      <AffairTabs lang={lang} contractId={contract.id} current="affair" count={vaultSummary.count} open={vault} />
 
       {error === null ? null : (
         <p className="form-error" role="alert">
@@ -202,7 +211,7 @@ export default async function ContractPage({ params, searchParams }: PageProps) 
       </dl>
       {contract.side === "freelance" && contract.repeatClient ? <p className="muted small">{c.repeat}</p> : null}
 
-      <Signatures lang={lang} c={c} contract={contract} />
+      <Signatures lang={lang} c={c} contract={contract} document={<AffairDocumentLine lang={lang} latest={vaultSummary.latest} />} />
 
       {contract.status === "active" || contract.status === "completed" ? (
         <section className="panel" aria-labelledby="payment-title">

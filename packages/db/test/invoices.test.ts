@@ -4,7 +4,9 @@ import { contracts } from "../src/contracts";
 import { invoices, vatOf } from "../src/invoices";
 import { messaging } from "../src/messaging";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
+import { payments } from "../src/payments";
+import { activeContract } from "./support/active-contract";
+import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, PAID_AT, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 let t: TestDatabase;
 
@@ -59,6 +61,8 @@ describe("facture de la mission", () => {
       label: "Prestation de services : 10 jours, du 2026-11-02 au 2026-11-13",
       seller: { legalName: "Camille Test EI", siret: expect.stringMatching(/^552100554\d{5}$/) },
       buyer: { legalName: "Acme SAS" },
+      // Émise sans libération des fonds : pas acquittée, échéance à trente jours (l'acquittement est testé plus bas).
+      paidOn: null,
       dueOn: new Date("2026-12-20T00:00:00Z"),
     });
     expect(first.invoice.number).toMatch(/^FR-[A-Z2-9]{5}-2026-0001$/);
@@ -109,9 +113,72 @@ describe("facture de commission", () => {
     expect(await invoices(t.db).find({ userId: await createUser(t.db) }, commission.invoice.id)).toBeNull();
   });
 
+  it("émise sans libération des fonds, n'est pas acquittée : échéance à trente jours", async () => {
+    const c = await completedContract(0);
+    const commission = await invoices(t.db).issueCommission(c.id, 60_000, PROOFSEEN, NOW);
+    expect(commission).toMatchObject({ kind: "issued", invoice: { paidOn: null, settlesNumber: null, dueOn: new Date("2026-12-20T00:00:00Z") } });
+  });
+
   it("refuse une commission nulle ou négative", async () => {
     const c = await completedContract(0);
     expect(() => invoices(t.db).issueCommission(c.id, 0, PROOFSEEN, NOW)).toThrow(/commission/);
+  });
+});
+
+describe("factures émises à la libération des fonds (C. com. L441-9 I)", () => {
+  /** Un contrat payé, validé, puis libéré à `at` : les deux factures sont émises par la libération elle-même. */
+  const releasedAt = async (at: Date) => {
+    const c = await activeContract(t.db);
+    const fake = fakeGateway();
+    await payAndHold(t.db, c.recruiter, c.id, fake.gateway);
+    await contracts(t.db).complete({ userId: c.recruiter }, c.id);
+    expect(await payments(t.db).release(c.id, fake.gateway, PROOFSEEN, at)).toMatchObject({ kind: "released" });
+    const invoiceOf = (kind: "mission" | "commission") => t.db.invoice.findFirstOrThrow({ where: { contractId: c.id, kind } });
+    return { c, mission: await invoiceOf("mission"), commission: await invoiceOf("commission") };
+  };
+
+  it("sont acquittées le jour de la libération, échéance le même jour : la date de la charge chez Stripe n'y entre pas", async () => {
+    const { mission, commission } = await releasedAt(NOW);
+    // La charge date du 18 novembre (PAID_AT), la libération du 20 : c'est le 20 qui compte.
+    expect(await t.db.payment.findFirstOrThrow({ where: { contractId: mission.contractId }, select: { paidAt: true } })).toEqual({ paidAt: PAID_AT });
+    for (const invoice of [mission, commission]) {
+      expect(invoice.paidOn).toEqual(new Date("2026-11-20T00:00:00Z"));
+      expect(invoice.dueOn).toEqual(new Date("2026-11-20T00:00:00Z"));
+    }
+  });
+
+  it("la facture de commission renvoie à celle de la mission, réglée par compensation avec le même versement", async () => {
+    const { mission, commission } = await releasedAt(NOW);
+    expect(commission.settlesNumber).toBe(mission.number);
+    expect(mission.settlesNumber).toBeNull();
+  });
+
+  it("compte le jour, l'année du numéro et la date à l'heure de Paris : 23 h 30 UTC le 31 décembre est le 1er janvier 2027", async () => {
+    const newYear = new Date("2026-12-31T23:30:00Z");
+    const { mission, commission } = await releasedAt(newYear);
+    expect(mission.number).toMatch(/-2027-\d{4}$/);
+    expect(commission.number).toMatch(/^PS-2027-\d{4}$/);
+    for (const invoice of [mission, commission]) {
+      expect(invoice.issuedAt).toEqual(newYear);
+      expect(invoice.paidOn).toEqual(new Date("2027-01-01T00:00:00Z"));
+      expect(invoice.dueOn).toEqual(new Date("2027-01-01T00:00:00Z"));
+    }
+  });
+
+  it("une facture non acquittée compte ses trente jours depuis le jour de Paris", async () => {
+    const c = await completedContract(0);
+    const issued = await invoices(t.db).issueMission(c.id, new Date("2026-12-31T23:30:00Z"));
+    expect(issued).toMatchObject({ kind: "issued", invoice: { paidOn: null, dueOn: new Date("2027-01-31T00:00:00Z") } });
+  });
+
+  it("la base refuse une facture acquittée dont l'échéance n'est pas le jour du paiement", async () => {
+    const c = await completedContract(0);
+    const issued = await invoices(t.db).issueMission(c.id, NOW);
+    if (issued.kind !== "issued") throw new Error(issued.kind);
+    const row = await t.db.invoice.findUniqueOrThrow({ where: { id: issued.invoice.id } });
+    const copy = { ...row, number: "X-2026-9999", kind: "commission" as const, sellerSnapshot: row.sellerSnapshot ?? {}, buyerSnapshot: row.buyerSnapshot ?? {}, paidOn: new Date("2026-11-18"), dueOn: new Date("2026-12-18") };
+    delete (copy as { id?: string }).id;
+    await expect(t.db.invoice.create({ data: copy })).rejects.toThrow(/Invoice_due_chk/);
   });
 });
 

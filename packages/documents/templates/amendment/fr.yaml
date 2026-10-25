@@ -1,0 +1,101 @@
+# Avenant, texte français, v1. Trésor (Inès Kader), 2026-10-24.
+
+language: fr
+title: "Avenant n° {{amendment.rank}} au contrat de prestation de services"
+subtitle: "Contrat {{contract.id}}, avenant version {{document.versionNumber}} du {{document.issuedOn}}"
+
+reviewNotice: |
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
+  juridique. Relisez-le avant de le signer.
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat, version {{document.versionNumber}}."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}, version {{document.versionNumber}}."
+
+clauses:
+  parties:
+    heading: "Les parties"
+    body: |
+      Entre :
+
+      {{seller}}
+
+      ci-après « le Prestataire »,
+
+      et
+
+      {{buyer}}
+
+      ci-après « le Client », représenté par la personne habilitée qui signe le présent avenant pour son compte.
+
+  base:
+    heading: "Contrat modifié"
+    body: |
+      Le présent avenant modifie le contrat de prestation de services {{contract.id}}, accepté par les deux parties
+      sur Proofseen, tel que modifié le cas échéant par les avenants précédents. Il prend effet le
+      {{input.effectiveOn}}.
+
+  signed-version:
+    heading: "Version du contrat"
+    body: |
+      Le texte du contrat en vigueur à son acceptation est la version {{base.contractVersionNumber}} du contrat de
+      prestation conservée sur Proofseen, d'empreinte numérique {{base.contractDigestShort}}.
+
+  reason:
+    heading: "Raison"
+    body: |
+      {{input.reason}}
+
+  changes:
+    heading: "Modifications"
+    body: |
+      Les parties conviennent des modifications suivantes :
+
+      {{computed.changeLines}}
+
+  new-scope:
+    heading: "Nouvelle rédaction de l'objet"
+    body: |
+      L'article « Objet de la prestation » du contrat est remplacé par le texte suivant :
+
+      {{input.newScope}}
+
+  money:
+    heading: "Effet sur le paiement"
+    variants:
+      none: |
+        Le présent avenant ne modifie pas le prix.
+      decrease_before_payout: |
+        La baisse de prix intervient avant le versement : la différence toutes taxes comprises est remboursée au Client
+        par Stripe, et la commission de Proofseen est calculée sur le prix réduit, comme le prévoit l'article
+        « Réductions, remboursements et contestations de paiement » du contrat.
+      decrease_after_payout: |
+        La baisse de prix intervient après le versement : une facture d'avoir est émise au nom du Prestataire, et le
+        Prestataire rembourse le Client dans les conditions de l'article « Réductions, remboursements et contestations
+        de paiement » du contrat.
+      increase: |
+        Le complément de prix est payé par le Client selon l'article « Paiement sécurisé et versement » du contrat,
+        avant la reprise ou la poursuite de la prestation qu'il rémunère.
+
+  vigilance:
+    heading: "Attestation de vigilance"
+    body: |
+      Avec le présent avenant, le montant cumulé de la prestation atteint {{rule.vigilanceThresholdCents}} hors taxes.
+      L'article « Attestation de vigilance » du contrat s'applique : le Prestataire remet une attestation de vigilance
+      de moins de six mois avant la signature du présent avenant, puis tous les six mois jusqu'à la fin de
+      l'exécution.
+
+  unchanged:
+    heading: "Stipulations inchangées"
+    body: |
+      Toutes les stipulations du contrat que le présent avenant ne modifie pas restent applicables. En cas de
+      contradiction, le présent avenant l'emporte pour ce qu'il modifie.
+
+  evidence:
+    heading: "Signature et preuve"
+    variants:
+      platform_acceptance: |
+        Chaque partie accepte le présent avenant par une acceptation électronique datée, donnée depuis son compte
+        Proofseen authentifié, dans les conditions de preuve du contrat. Chaque partie peut le télécharger et le
+        conserver sur un support durable.
+      otp_simple: |
+        Chaque partie signe le présent avenant par signature électronique simple sur Proofseen, dans les conditions de
+        preuve du contrat. Chaque partie reçoit un exemplaire signé et sa page de preuve.

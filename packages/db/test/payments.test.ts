@@ -4,7 +4,7 @@ import { contracts } from "../src/contracts";
 import { messaging } from "../src/messaging";
 import { payments } from "../src/payments";
 import { quotes } from "../src/quotes";
-import { createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
+import { chargeOf, createOrganisation, createProfile, createUser, DB_STARTUP_MS, fakeGateway, openTestDatabase, payAndHold, type TestDatabase, verifiedVigilance, nextSiret } from "./support/database";
 
 /*
  * Le séquestre, y compris chaque scénario de la revue de sécurité du 2026-10-06 : un paiement retenté après un échec,
@@ -25,8 +25,6 @@ afterAll(async () => {
 const ADDRESS = { line1: "1 rue de Test", postalCode: "75001", city: "Paris", country: "FR" };
 const PROOFSEEN: LegalSnapshot = { legalName: "Proofseen (test)", siret: "12345678900011", vatNumber: "FR12123456789", address: ADDRESS, vatRateBp: 2000 };
 const NOW = new Date("2026-11-20T10:00:00Z");
-/** Taux d'essai : le vrai taux est une décision du founder. */
-const COMMISSION_BP = 1000;
 
 /** Un contrat actif de 10 jours à 600 € HT ; le freelance facture 20 % de TVA et peut recevoir des versements si demandé. */
 const activeContract = async (opts: { payouts?: boolean; dailyRateCents?: number; days?: number } = {}) => {
@@ -60,13 +58,13 @@ describe("parcours séquestre complet", () => {
   it("paie le TTC, bloque, valide, vire le montant moins la commission TTC, émet les deux factures, une seule fois", async () => {
     const c = await activeContract();
     const { gateway, calls, amounts } = fakeGateway();
-    const opened = await payments(t.db).open({ userId: c.recruiter }, c.id, gateway, COMMISSION_BP);
+    const opened = await payments(t.db).open({ userId: c.recruiter }, c.id, gateway);
     expect(opened).toMatchObject({ kind: "opened", amountCents: 720_000, commissionCents: 60_000 });
     const { stripeIntentId } = await paymentOf(c.id);
 
-    expect(await payments(t.db).applyEvent({ id: "evt_1", type: "payment.succeeded", intentId: stripeIntentId }, NOW)).toBe("applied");
-    expect(await payments(t.db).applyEvent({ id: "evt_1", type: "payment.succeeded", intentId: stripeIntentId }, NOW)).toBe("duplicate");
-    expect(await payments(t.db).open({ userId: c.recruiter }, c.id, gateway, COMMISSION_BP)).toEqual({ kind: "already_paid" });
+    expect(await payments(t.db).applyEvent({ id: "evt_1", type: "payment.succeeded", intentId: stripeIntentId, chargeId: chargeOf(stripeIntentId) }, NOW)).toBe("applied");
+    expect(await payments(t.db).applyEvent({ id: "evt_1", type: "payment.succeeded", intentId: stripeIntentId, chargeId: chargeOf(stripeIntentId) }, NOW)).toBe("duplicate");
+    expect(await payments(t.db).open({ userId: c.recruiter }, c.id, gateway)).toEqual({ kind: "already_paid" });
 
     expect((await contracts(t.db).complete({ userId: c.recruiter }, c.id)).kind).toBe("completed");
     const released = await payments(t.db).release(c.id, gateway, PROOFSEEN, NOW);
@@ -83,12 +81,12 @@ describe("scénarios de la revue de sécurité", () => {
   it("un paiement en échec puis réussi au second essai est bloqué, sans second paiement", async () => {
     const c = await activeContract();
     const { gateway, calls } = fakeGateway();
-    await payments(t.db).open({ userId: c.recruiter }, c.id, gateway, COMMISSION_BP);
+    await payments(t.db).open({ userId: c.recruiter }, c.id, gateway);
     const { stripeIntentId } = await paymentOf(c.id);
     await payments(t.db).applyEvent({ id: "evt_fail", type: "payment.failed", intentId: stripeIntentId }, NOW);
     // L'entreprise revient : on reprend la même intention, on n'en ouvre pas une seconde.
-    expect(await payments(t.db).open({ userId: c.recruiter }, c.id, gateway, COMMISSION_BP)).toMatchObject({ kind: "resumed" });
-    await payments(t.db).applyEvent({ id: "evt_ok", type: "payment.succeeded", intentId: stripeIntentId }, NOW);
+    expect(await payments(t.db).open({ userId: c.recruiter }, c.id, gateway)).toMatchObject({ kind: "resumed" });
+    await payments(t.db).applyEvent({ id: "evt_ok", type: "payment.succeeded", intentId: stripeIntentId, chargeId: chargeOf(stripeIntentId) }, NOW);
     expect((await paymentOf(c.id)).status).toBe("held");
     expect(calls.intents).toBe(1);
     expect(await t.db.payment.count({ where: { contractId: c.id } })).toBe(1);
@@ -97,10 +95,10 @@ describe("scénarios de la revue de sécurité", () => {
   it("un litige arrivé avant le paiement bloque le versement jusqu'à ce qu'il soit gagné", async () => {
     const c = await activeContract();
     const { gateway, calls } = fakeGateway();
-    await payments(t.db).open({ userId: c.recruiter }, c.id, gateway, COMMISSION_BP);
+    await payments(t.db).open({ userId: c.recruiter }, c.id, gateway);
     const { stripeIntentId } = await paymentOf(c.id);
     expect(await payments(t.db).applyEvent({ id: "evt_d", type: "dispute.opened", intentId: stripeIntentId }, NOW)).toBe("applied");
-    await payments(t.db).applyEvent({ id: "evt_s", type: "payment.succeeded", intentId: stripeIntentId }, NOW);
+    await payments(t.db).applyEvent({ id: "evt_s", type: "payment.succeeded", intentId: stripeIntentId, chargeId: chargeOf(stripeIntentId) }, NOW);
     await contracts(t.db).complete({ userId: c.recruiter }, c.id);
     expect(await payments(t.db).release(c.id, gateway, PROOFSEEN, NOW)).toEqual({ kind: "blocked" });
     expect(calls.transfers).toBe(0);
@@ -232,13 +230,13 @@ describe("scénarios de la revue de sécurité", () => {
     const snapshots = await t.db.contract.findUniqueOrThrow({ where: { id: c.id }, select: { sellerSnapshot: true, buyerSnapshot: true } });
     const tiny = await t.db.contract.create({
       data: {
-        organisationId: c.org, profileId: c.profile, dailyRateCents: 4, days: 1, totalCents: 4, currency: "EUR",
+        organisationId: c.org, profileId: c.profile, dailyRateCents: 4, days: 1, totalCents: 4, currency: "EUR", commissionBp: 1000,
         sellerSnapshot: snapshots.sellerSnapshot ?? {}, buyerSnapshot: snapshots.buyerSnapshot ?? {}, startsOn: NOW,
         status: "active", acceptedByFreelanceAt: NOW, acceptedByOrgAt: NOW,
       },
       select: { id: true },
     });
-    expect(await payments(t.db).open({ userId: c.recruiter }, tiny.id, fakeGateway().gateway, COMMISSION_BP)).toEqual({ kind: "amount_too_small" });
+    expect(await payments(t.db).open({ userId: c.recruiter }, tiny.id, fakeGateway().gateway)).toEqual({ kind: "amount_too_small" });
   });
 
   it("n'annule pas un contrat qui a de l'argent en jeu", async () => {
@@ -249,18 +247,17 @@ describe("scénarios de la revue de sécurité", () => {
 });
 
 describe("accès et configuration", () => {
-  it("refuse d'ouvrir un paiement sans taux de commission configuré, par le freelance ou par un tiers", async () => {
+  it("refuse d'ouvrir un paiement par le freelance ou par un tiers", async () => {
     const c = await activeContract();
     const { gateway, calls } = fakeGateway();
-    await expect(payments(t.db).open({ userId: c.recruiter }, c.id, gateway, Number.NaN)).rejects.toThrow(/commission/);
-    expect(await payments(t.db).open({ userId: c.freelanceUser }, c.id, gateway, COMMISSION_BP)).toEqual({ kind: "absent" });
-    expect(await payments(t.db).open({ userId: await createUser(t.db) }, c.id, gateway, COMMISSION_BP)).toEqual({ kind: "absent" });
+    expect(await payments(t.db).open({ userId: c.freelanceUser }, c.id, gateway)).toEqual({ kind: "absent" });
+    expect(await payments(t.db).open({ userId: await createUser(t.db) }, c.id, gateway)).toEqual({ kind: "absent" });
     expect(calls.intents).toBe(0);
   });
 
   it("montre la commission au freelance, jamais à l'entreprise", async () => {
     const c = await activeContract();
-    await payments(t.db).open({ userId: c.recruiter }, c.id, fakeGateway().gateway, COMMISSION_BP);
+    await payments(t.db).open({ userId: c.recruiter }, c.id, fakeGateway().gateway);
     expect(await payments(t.db).find({ userId: c.freelanceUser }, c.id)).toMatchObject({ commissionCents: 60_000 });
     expect(await payments(t.db).find({ userId: c.recruiter }, c.id)).toMatchObject({ commissionCents: null, amountCents: 720_000 });
     expect(await payments(t.db).find({ userId: await createUser(t.db) }, c.id)).toBeNull();

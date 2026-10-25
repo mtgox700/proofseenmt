@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the drawing > keeps its reference drawing: the SHA-256 of the empty string, at every level 1`] = `
+[
+  "01110000",
+  "10001001",
+  "10001000",
+  "10010111",
+  "01101010",
+  "00010111",
+  "00011100",
+  "01010101",
+]
+`;

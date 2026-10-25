@@ -1,15 +1,15 @@
 import type { NextResponse } from "next/server";
 import { getDb, payments } from "@proofseen/db";
 import { gatewayFromEnv } from "@proofseen/payments";
-import { commissionBp, repeatCommissionBp } from "@/data/payments-config";
 import { throttled } from "@/data/throttle";
 import { caller, fail, ok, sameOrigin } from "@/lib/api";
 import { logError } from "@/lib/log";
 
 /*
  * The escrowed payment of a contract: its status (GET, both parties — the commission only to the freelancer) and its
- * opening by the company (POST), which returns the client secret the checkout form needs. Nothing opens while the
- * commission rate or the payment provider is not configured.
+ * opening by the company (POST), which returns the client secret the checkout form needs. The commission rate is the one
+ * frozen on the contract when it was created: this route never reads it from the environment. Nothing opens while the
+ * payment provider is not configured, or for a contract that was created without a rate.
  */
 
 export const runtime = "nodejs";
@@ -37,21 +37,22 @@ export async function POST(request: Request, context: Context): Promise<NextResp
   const who = await caller();
   if (who.kind === "refused") return who.response;
   if (await throttled("payment-open", who.actor.userId, RULE, new Date())) return fail("trop de demandes");
-  const rate = commissionBp();
   let gateway;
   try {
     gateway = gatewayFromEnv(process.env);
   } catch {
     gateway = null;
   }
-  if (rate === null || gateway === null) return fail("paiements non configurés");
+  if (gateway === null) return fail("paiements non configurés");
   const { id } = await context.params;
   try {
-    const result = await payments(getDb()).open(who.actor, id, gateway, rate, repeatCommissionBp());
+    const result = await payments(getDb()).open(who.actor, id, gateway);
     if (result.kind === "already_paid") return fail("déjà payé");
     if (result.kind === "amount_too_small") return fail("montant trop faible");
     if (result.kind === "absent") return fail("introuvable");
     if (result.kind === "monthly_contract") return fail("paiement par relevé mensuel");
+    // A contract created while no rate was configured has none, and keeps none: the same answer as an unconfigured provider.
+    if (result.kind === "rate_missing") return fail("paiements non configurés");
     return ok({ paymentId: result.paymentId, clientSecret: result.clientSecret, amountCents: result.amountCents }, result.kind === "opened" ? 201 : 200);
   } catch (error) {
     logError("payment open failed", error);

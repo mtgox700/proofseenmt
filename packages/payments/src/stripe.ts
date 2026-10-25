@@ -1,4 +1,5 @@
-import type { PaymentGateway } from "@proofseen/db";
+import { isSourceCharge, SourceChargeMissingError, type PaymentGateway } from "@proofseen/db";
+import { chargeFacts } from "./charges";
 import { ACCOUNT_ID, onboardingLinkBody, recipientAccountBody, recipientTransfersActive, STRIPE_V2_VERSION } from "./connect";
 
 /*
@@ -109,10 +110,20 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
       return { intentId: id(intent), clientSecret: id(intent, "client_secret") };
     },
 
-    async transfer({ amountCents, currency, destination, contractId, idempotencyKey }) {
+    async transfer({ amountCents, currency, destination, contractId, idempotencyKey, sourceTransaction }) {
+      // Jamais de virement sans source : sans `source_transaction`, Stripe puise dans le solde commun de la plateforme
+      // (https://docs.stripe.com/connect/separate-charges-and-transfers). Refus avant tout appel réseau.
+      if (!isSourceCharge(sourceTransaction)) throw new SourceChargeMissingError();
       const transfer = await post(
         "/transfers",
-        { amount: amountCents, currency: currency.toLowerCase(), destination, transfer_group: contractId, "metadata[contractId]": contractId },
+        {
+          amount: amountCents,
+          currency: currency.toLowerCase(),
+          destination,
+          transfer_group: contractId,
+          source_transaction: sourceTransaction,
+          "metadata[contractId]": contractId,
+        },
         idempotencyKey,
       );
       return { transferId: id(transfer) };
@@ -126,6 +137,23 @@ export const stripeGateway = (config: { readonly secretKey: string; readonly liv
     async intentSecret(intentId) {
       if (!/^pi_[A-Za-z0-9]+$/.test(intentId)) throw new Error("intention invalide");
       return id(await get(`/payment_intents/${intentId}`), "client_secret");
+    },
+
+    // Lectures seules : retrouver puis vérifier la charge d'un paiement. Elles ne créent ni ne modifient rien chez Stripe.
+    async readIntent(intentId) {
+      if (!/^pi_[A-Za-z0-9]+$/.test(intentId)) throw new Error("intention invalide");
+      const intent = await get(`/payment_intents/${intentId}?expand[0]=latest_charge`);
+      const status = intent.status;
+      if (typeof status !== "string") throw new Error("réponse Stripe sans status");
+      // Sans le développement demandé, `latest_charge` n'est qu'un identifiant : pas de faits, donc pas de charge retenue.
+      return { intentId: id(intent), status, charge: chargeFacts(intent.latest_charge) };
+    },
+
+    async readCharge(chargeId) {
+      if (!isSourceCharge(chargeId)) throw new Error("charge invalide");
+      const facts = chargeFacts(await get(`/charges/${chargeId}`));
+      if (facts === null) throw new Error("réponse Stripe sans charge exploitable");
+      return facts;
     },
 
     async findTransfer(contractId) {

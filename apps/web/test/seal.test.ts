@@ -5,6 +5,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Seal } from "../src/components/proof/Seal";
+import { GREEN_FILES, STRIKES_GREEN } from "./support/green-files";
 
 /*
  * Lot 1 of the connected redesign: the poinçon as a React primitive, the same markup as the register of the hub
@@ -52,27 +53,13 @@ describe("the seal of a verified fact", () => {
     expect(() => html({ text: "  ", date: "2026-10-22" })).toThrow();
   });
 
-  it("is placed only on verified facts: the files that may use it are listed here", () => {
+  it("is placed only on verified facts: the files that strike the green, the cartouche or the sealed fingerprint, are listed", () => {
     const users = filesUnder(src)
-      .filter((f) => /\.tsx?$/.test(f) && /from "@\/components\/proof\/Seal"/.test(readFileSync(f, "utf8")))
+      .filter((f) => /\.tsx?$/.test(f) && STRIKES_GREEN.test(readFileSync(f, "utf8")))
       .map((f) => relative(src, f).replace(/\\/g, "/"))
       .sort();
-    // Lots 2 to 4 add their screens here, each with the fact read from the database that earns the green.
-    expect(users).toEqual([
-      // In the sorted order of their paths.
-      // Lot 4: the SIRET checked active in the official register and the URSSAF certificate an operator verified, each
-      // with the day of the check (billing identity of the freelancer, legal identity of the company).
-      "app/[lang]/app/facturation/page.tsx",
-      // Lot 3: a mission confirmed by the client, read in the database (in the companies the person administers, or
-      // with the token of the signed link); a refusal carries no seal.
-      "components/market/ConfirmationAck.tsx",
-      // Lot 4: the last line of the thread of a deal, only when the verified mission (paid on Proofseen) is in the database.
-      "components/market/DealThread.tsx",
-      // Lot 6: the operator's acknowledgement of a URSSAF certificate, read back by vigilanceDesk.verified().
-      "components/operator/VerificationQueues.tsx",
-      // Lot 2, /app/preuves: a verified mission (confirmed by the client, or paid on Proofseen) and an address whose
-      // ownership is proven, read from the person's own rows (verifiedMissions.listMine, ownedUrls.list).
-      "components/registre/ProofRegister.tsx",
-    ]);
+    // The one list of green (L1-090): every screen that strikes it, the cartouche or the sealed fingerprint, with the
+    // fact read from the database that earns it, in test/support/green-files.ts.
+    expect(users).toEqual([...GREEN_FILES]);
   });
 });

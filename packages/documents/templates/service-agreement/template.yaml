@@ -1,0 +1,609 @@
+# Contrat de prestation de services, forfait et régie mensuelle. Gabarit pilote v1.
+# Trésor (Inès Kader), 2026-10-24. Format : ../../TEMPLATE_FORMAT.md. Sources : ../sources.yaml.
+# Données réelles lues sur wt-l1 (f9a5afd) : packages/db/prisma/schema.prisma (Contract, Quote, Organisation,
+# BillingIdentity), packages/db/src/contracts.ts, billing.ts, contract-checks.ts, timesheets.ts,
+# validation-reminders.ts ; colonnes commissionBp et feePayer en cours d'ajout par le backend (L1.0 K3, noms lus dans
+# packages/db/test/commission-frozen.test.ts).
+
+id: service-agreement
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: contract
+languages: [fr, en]
+prevailingLanguage: fr
+attachTo: Contract
+
+variables:
+  # Document
+  contract.id:
+    type: string
+    maxLength: 36
+    required: true
+    source: { kind: db, path: Contract.id }
+    frozenAt: contract_creation
+    label: { fr: "Référence du contrat", en: "Agreement reference" }
+  document.versionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: true
+    source: { kind: document, field: versionNumber }
+    frozenAt: render_data
+    label: { fr: "Version du document", en: "Document version" }
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement", en: "Date of issue" }
+  document.signatureMethod:
+    type: enum
+    values: [platform_acceptance, otp_simple]
+    labels:
+      fr: { platform_acceptance: "acceptation électronique datée", otp_simple: "signature électronique simple par code à usage unique" }
+      en: { platform_acceptance: "dated electronic acceptance", otp_simple: "simple electronic signature with a one-time code" }
+    required: true
+    default: platform_acceptance
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Méthode réelle jusqu'à L2 : un clic daté par partie (contracts.ts, sign()). Passe à otp_simple quand le Sceau (L2.2) est livré."
+    source: { kind: document, field: signatureMethod }
+    frozenAt: render_data
+    label: { fr: "Méthode de signature", en: "Signature method" }
+
+  # Parties (snapshots figés à la création du contrat, billing.ts LegalSnapshot)
+  seller:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.sellerSnapshot }
+    frozenAt: contract_creation
+    label: { fr: "Le Prestataire", en: "The Provider" }
+  buyer:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.buyerSnapshot }
+    frozenAt: contract_creation
+    label: { fr: "Le Client", en: "The Client" }
+  seller.vatRateBp:
+    type: bp
+    required: true
+    source: { kind: db, path: Contract.sellerSnapshot.vatRateBp }
+    frozenAt: contract_creation
+    label: { fr: "Taux de TVA du Prestataire", en: "Provider VAT rate" }
+
+  # Plateforme (packages/hub/src/legal-facts.ts, mentions reprises de Spar-X, décision du founder du 2026-10-07)
+  platform.publisherName:
+    type: string
+    maxLength: 120
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: PUBLISHER.name }
+    frozenAt: render_data
+    label: { fr: "Éditeur de Proofseen", en: "Proofseen publisher" }
+  platform.publisherForm:
+    type: string
+    maxLength: 200
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: PUBLISHER.form }
+    frozenAt: render_data
+    label: { fr: "Forme sociale de l'éditeur", en: "Publisher legal form" }
+  platform.publisherSiren:
+    type: string
+    maxLength: 11
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: PUBLISHER.siren }
+    frozenAt: render_data
+    label: { fr: "SIREN de l'éditeur", en: "Publisher SIREN" }
+  platform.publisherRegistry:
+    type: string
+    maxLength: 120
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: PUBLISHER.registry }
+    frozenAt: render_data
+    label: { fr: "Registre de l'éditeur", en: "Publisher register" }
+  platform.publisherAddress:
+    type: string
+    maxLength: 200
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: PUBLISHER.address }
+    frozenAt: render_data
+    label: { fr: "Siège de l'éditeur", en: "Publisher registered office" }
+  platform.termsVersion:
+    type: date
+    required: true
+    source: { kind: platform, file: packages/hub/src/legal-facts.ts, symbol: LEGAL_VERSION_DATE }
+    frozenAt: contract_creation
+    label: { fr: "Version des conditions d'utilisation", en: "Terms of use version" }
+
+  # Conditions du contrat (Contract, recopiées du devis accepté, figées par déclencheur)
+  contract.billing:
+    type: enum
+    values: [fixed, monthly]
+    labels:
+      fr: { fixed: "au forfait", monthly: "en régie, facturée chaque mois sur relevé validé" }
+      en: { fixed: "fixed price", monthly: "time and materials, invoiced monthly on an approved timesheet" }
+    required: true
+    source: { kind: db, path: Contract.billing }
+    frozenAt: contract_creation
+    label: { fr: "Mode de prix", en: "Pricing mode" }
+  contract.currency:
+    type: string
+    maxLength: 3
+    pattern: "^[A-Z]{3}$"
+    required: true
+    source: { kind: db, path: Contract.currency }
+    frozenAt: contract_creation
+    label: { fr: "Devise", en: "Currency" }
+  contract.dailyRateCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: db, path: Contract.dailyRateCents }
+    frozenAt: contract_creation
+    label: { fr: "Prix journalier hors taxes", en: "Daily rate excluding VAT" }
+  contract.days:
+    type: int
+    min: 1
+    max: 10000
+    required: true
+    source: { kind: db, path: Contract.days }
+    frozenAt: contract_creation
+    label: { fr: "Jours vendus (forfait) ou plafond de jours (régie)", en: "Days sold (fixed price) or day cap (time and materials)" }
+  contract.totalCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: db, path: Contract.totalCents }
+    frozenAt: contract_creation
+    label: { fr: "Prix total hors taxes (forfait) ou plafond hors taxes (régie)", en: "Total price excluding VAT (fixed) or cap excluding VAT (T&M)" }
+  contract.startsOn:
+    type: date
+    required: true
+    source: { kind: db, path: Contract.startsOn }
+    frozenAt: contract_creation
+    label: { fr: "Date de début", en: "Start date" }
+  contract.endsOn:
+    type: date
+    required: false
+    source: { kind: db, path: Contract.endsOn }
+    frozenAt: contract_creation
+    label: { fr: "Date de fin", en: "End date" }
+  contract.costCenter:
+    type: string
+    maxLength: 120
+    required: false
+    source: { kind: db, path: Contract.costCenter }
+    frozenAt: contract_creation
+    label: { fr: "Centre de coûts du Client", en: "Client cost centre" }
+    note: "La colonne existe mais ContractFacts (packages/db/src/document-affairs.ts) ne la porte pas encore : l'adaptateur DocumentRenderer doit l'ajouter, sinon la clause cost-center est toujours omise."
+  contract.commissionBp:
+    type: bp
+    required: true
+    source: { kind: db, path: Contract.commissionBp }
+    frozenAt: contract_creation
+    label: { fr: "Taux de la commission de Proofseen", en: "Proofseen commission rate" }
+    note: "Colonne ajoutée par L1.0 K3 (nullable : un contrat sans taux n'ouvre aucun paiement). Le gabarit refuse de rendre sans taux : la commission doit être connue de son payeur avant signature (veto Trésor)."
+  contract.feePayer:
+    type: enum
+    values: [freelance, company]
+    labels:
+      fr: { freelance: "le Prestataire", company: "le Client" }
+      en: { freelance: "the Provider", company: "the Client" }
+    required: true
+    source: { kind: db, path: Contract.feePayer }
+    frozenAt: contract_creation
+    label: { fr: "Partie qui paie la commission", en: "Party paying the commission" }
+    note: "Valeur actuelle : freelance (décision D5 en attente). La variante company existe déjà pour que D5 ne change que des données. La colonne existe (L1.0 K3) mais ContractFacts ne la porte pas encore : l'adaptateur DocumentRenderer doit l'ajouter, jamais la deviner (veto Trésor : la commission est montrée à celui qui la paie)."
+
+  # Calculs purs (packages/documents/src/derive.ts, arrondis R3 et R6 de tresor/L0_FLUX_ARGENT.md)
+  computed.vatRegime:
+    type: enum
+    values: [standard, exempt]
+    labels: { fr: { standard: "TVA facturée", exempt: "franchise en base" }, en: { standard: "VAT charged", exempt: "VAT exemption" } }
+    required: true
+    source: { kind: derived, fn: vatRegimeOf, from: [seller.vatRateBp] }
+    frozenAt: contract_creation
+    label: { fr: "Régime de TVA du Prestataire", en: "Provider VAT regime" }
+  computed.vatCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: derived, fn: vatOfTotal, from: [contract.totalCents, seller.vatRateBp] }
+    frozenAt: contract_creation
+    label: { fr: "TVA sur le prix total", en: "VAT on the total price" }
+  computed.totalTtcCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: derived, fn: totalWithVat, from: [contract.totalCents, computed.vatCents] }
+    frozenAt: contract_creation
+    label: { fr: "Prix total toutes taxes comprises", en: "Total price including VAT" }
+  computed.commissionHtCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: derived, fn: applyBp, from: [contract.totalCents, contract.commissionBp] }
+    frozenAt: contract_creation
+    label: { fr: "Commission hors taxes sur le prix total", en: "Commission excluding VAT on the total price" }
+  computed.durationShape:
+    type: enum
+    values: [fixed_dated, fixed_open, monthly_dated, monthly_open]
+    labels:
+      fr: { fixed_dated: "forfait daté", fixed_open: "forfait sans date de fin", monthly_dated: "régie datée", monthly_open: "régie sans date de fin" }
+      en: { fixed_dated: "fixed, dated", fixed_open: "fixed, open-ended", monthly_dated: "T&M, dated", monthly_open: "T&M, open-ended" }
+    required: true
+    source: { kind: derived, fn: durationShapeOf, from: [contract.billing, contract.endsOn] }
+    frozenAt: contract_creation
+    label: { fr: "Forme de la durée", en: "Duration shape" }
+  computed.vigilanceRequired:
+    type: boolean
+    required: true
+    source: { kind: derived, fn: vigilanceRequired, from: [contract.totalCents, contract.currency] }
+    frozenAt: signature
+    label: { fr: "Attestation de vigilance exigée", en: "URSSAF vigilance certificate required" }
+    note: "Même calcul que contractBlocker (packages/db/src/contract-checks.ts) : cumul des contrats non annulés des six derniers mois entre les mêmes parties, seuil VIGILANCE_THRESHOLD_BY_CURRENCY (500 000 centimes en EUR, R8222-1)."
+
+  # Règles datées (bloc commun, règle 6 : un seuil légal vit dans un fichier de règles, jamais dans un texte)
+  rule.vigilanceThresholdCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: rule, file: packages/db/src/contract-checks.ts, symbol: "VIGILANCE_THRESHOLD_BY_CURRENCY[contract.currency]" }
+    frozenAt: signature
+    label: { fr: "Seuil de vigilance", en: "Vigilance threshold" }
+    note: "500 000 centimes en EUR (R8222-1) ; seuils prudents plus bas pour USD, CHF et GBP, choisis par la War Room (contract-checks.ts)."
+  rule.recoveryFeeCents:
+    type: money
+    currency: { literal: EUR }
+    required: true
+    source: { kind: rule, file: "packages/documents/rules/payment-terms.ts (à créer)", symbol: RECOVERY_FEE_CENTS }
+    frozenAt: contract_creation
+    label: { fr: "Indemnité forfaitaire pour frais de recouvrement", en: "Fixed recovery fee" }
+    note: "4 000 centimes (D441-5, lu via la recherche Légifrance le 2026-10-24). Aujourd'hui écrit en texte dans packages/invoicing/src/render.ts (RECOVERY_FEE) : à unifier dans le fichier de règles."
+
+  # Objet et livrables : colonnes livrées (migration 20261024150000_vault, L1-077), recopiées du devis et figées à la
+  # création du contrat. Les noms de variables gardent le préfixe input. pour ne pas casser les appelants ; la source fait foi.
+  input.scope:
+    type: text
+    maxLength: 6000
+    required: true
+    source: { kind: db, path: Contract.scope }
+    frozenAt: contract_creation
+    label: { fr: "Objet et description de la prestation", en: "Scope and description of the services" }
+    note: "Saisi par le freelance sur le devis (Quote.scope, filtré par containsDirectContact), recopié et figé sur Contract.scope. Nul pour les contrats d'avant le coffre : aucun contrat de prestation ne leur est rédigé (refusalFor, scope_missing, L1-019)."
+  input.deliverables:
+    type: list
+    maxItems: 30
+    itemMaxLength: 500
+    required: true
+    source: { kind: db, path: Contract.deliverables }
+    frozenAt: contract_creation
+    label: { fr: "Livrables et critères de recette", en: "Deliverables and acceptance criteria" }
+    note: "Quote.deliverables recopié et figé sur Contract.deliverables. Liste vide = absente : le rendu refuse (missing_variable)."
+
+  # Choix des parties : saisies reçues par l'API dans `inputs` (POST /api/documents, POST /api/documents/{id}/versions),
+  # validées par le moteur, figées dans DocumentVersion.variables. Aucune colonne : le code ne les lit pas.
+  input.workMode:
+    type: enum
+    values: [remote, onsite, hybrid]
+    labels:
+      fr: { remote: "à distance", onsite: "dans les locaux du Client", hybrid: "en partie à distance, en partie dans les locaux du Client" }
+      en: { remote: "remotely", onsite: "at the Client's premises", hybrid: "partly remotely, partly at the Client's premises" }
+    required: true
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    prefill: { kind: db, path: Contract.quote.conversation.application.jobPost.workMode }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Lieu d'exécution", en: "Place of performance" }
+  input.acceptanceWindowDays:
+    type: int
+    min: 1
+    max: 30
+    required: true
+    default: 15
+    defaultReason: "Décision du conseil L1-030 (réponse au CHALLENGE L1-015) : 15 jours par défaut, configurable par contrat, 30 au plus (Code de commerce L441-10 III). Le délai court de la déclaration de livraison, que le code n'enregistre pas encore (Contract.deliveredAt absent) : la recette réputée acquise n'est pas encore exécutée par le code."
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Délai de recette ou de validation du relevé, en jours", en: "Acceptance or timesheet approval period, in days" }
+  input.ipRegime:
+    type: enum
+    values: [assignment, licence, retained]
+    labels:
+      fr: { assignment: "cession des droits au Client", licence: "licence d'utilisation au Client", retained: "droits conservés par le Prestataire, droit d'usage du Client" }
+      en: { assignment: "assignment of rights to the Client", licence: "licence to the Client", retained: "rights retained by the Provider, right of use for the Client" }
+    required: true
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Régime de propriété intellectuelle", en: "Intellectual property regime" }
+    note: "Aucun défaut : les parties choisissent. Un contrat sans choix ne rend pas."
+  input.ipPurpose:
+    type: text
+    maxLength: 1000
+    requiredWhen: { var: input.ipRegime, in: [assignment, licence] }
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Destination des droits (usages prévus)", en: "Purpose of the rights (intended uses)" }
+  input.ipTerritory:
+    type: enum
+    values: [world, eu, france]
+    labels:
+      fr: { world: "le monde entier", eu: "les États membres de l'Union européenne", france: "la France" }
+      en: { world: "worldwide", eu: "the Member States of the European Union", france: "France" }
+    requiredWhen: { var: input.ipRegime, in: [assignment, licence] }
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Territoire des droits", en: "Territory of the rights" }
+  input.ipDurationYears:
+    type: int
+    min: 1
+    max: 70
+    requiredWhen: { var: input.ipRegime, in: [assignment, licence] }
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Durée des droits, en années", en: "Duration of the rights, in years" }
+    note: "Durée chiffrée plutôt que « durée légale de protection » : L131-3 exige un domaine délimité quant à la durée ; la formule « durée légale » est à faire valider (point R7)."
+  input.processesPersonalData:
+    type: boolean
+    required: true
+    source: { kind: input, editableBy: [buyer], stage: draft }
+    frozenAt: input
+    editableBy: [buyer]
+    label: { fr: "Le Prestataire traite des données personnelles pour le compte du Client", en: "The Provider processes personal data on behalf of the Client" }
+  input.dpaDetails:
+    type: text
+    maxLength: 4000
+    requiredWhen: { var: input.processesPersonalData, eq: true }
+    required: false
+    source: { kind: input, editableBy: [buyer], stage: draft }
+    frozenAt: input
+    editableBy: [buyer]
+    label: { fr: "Description du traitement confié (objet, durée, nature, finalité, données, personnes concernées)", en: "Description of the processing (subject matter, duration, nature, purpose, data, data subjects)" }
+  input.confidentialityYears:
+    type: int
+    min: 1
+    max: 10
+    required: true
+    default: 5
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Pratique contractuelle courante ; une durée finie évite la prohibition des engagements perpétuels (Code civil 1210). À faire valider (point R9)."
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Durée de la confidentialité après la fin du contrat, en années", en: "Confidentiality period after termination, in years" }
+  input.noticeDays:
+    type: int
+    min: 15
+    max: 180
+    requiredWhen: { var: computed.durationShape, eq: monthly_open }
+    required: false
+    default: 30
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Préavis de résiliation d'une régie sans terme (Code civil 1211) ; à allonger avec l'ancienneté de la relation (Code de commerce L442-1 II). À faire valider (point R12)."
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Préavis de résiliation, en jours", en: "Termination notice, in days" }
+  input.subcontractingAllowed:
+    type: boolean
+    required: true
+    default: false
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Le Client choisit une personne (profil vérifié) : pas de sous-traitance sans son accord écrit."
+    source: { kind: input, editableBy: [buyer], stage: draft }
+    frozenAt: input
+    editableBy: [buyer]
+    label: { fr: "Sous-traitance autorisée par le Client", en: "Subcontracting authorised by the Client" }
+  input.insurerName:
+    type: string
+    maxLength: 200
+    requiredWhen: { clause: insurance, included: true }
+    required: false
+    source: { kind: input, editableBy: [seller], stage: draft }
+    frozenAt: input
+    editableBy: [seller]
+    label: { fr: "Assureur de responsabilité civile professionnelle", en: "Professional liability insurer" }
+  input.insurancePolicy:
+    type: string
+    maxLength: 80
+    requiredWhen: { clause: insurance, included: true }
+    required: false
+    source: { kind: input, editableBy: [seller], stage: draft }
+    frozenAt: input
+    editableBy: [seller]
+    label: { fr: "Numéro de police", en: "Policy number" }
+  input.nonSolicitationMonths:
+    type: int
+    min: 1
+    max: 12
+    requiredWhen: { clause: non-solicitation, included: true }
+    required: false
+    default: 12
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Plafond de 12 mois : au-delà, risque de disproportion (veto Trésor). À faire valider (point R14)."
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Durée de non-sollicitation après la fin, en mois", en: "Non-solicitation period after termination, in months" }
+  decision.d8MonthlyFunding:
+    type: enum
+    values: [monthly_provision, pay_on_timesheet, single_provision]
+    labels:
+      fr: { monthly_provision: "provision du mois", pay_on_timesheet: "paiement sur relevé validé", single_provision: "provision unique" }
+      en: { monthly_provision: "monthly provision", pay_on_timesheet: "payment on approved timesheet", single_provision: "single provision" }
+    requiredWhen: { var: contract.billing, eq: monthly }
+    required: false
+    source: { kind: pending, request: D8 }
+    frozenAt: contract_creation
+    label: { fr: "Mode de paiement de la régie (décision D8 du founder)", en: "T&M funding mode (founder decision D8)" }
+
+clauses:
+  - { id: parties, kind: locked, sources: [civ-1113] }
+  - { id: platform-role, kind: locked, sources: [trav-l8221-6, cgi-289, research-l0-sequestre] }
+  - { id: scope, kind: locked, sources: [civ-1163, civ-1166] }
+  - { id: contract-documents, kind: locked, sources: [civ-1119, civ-1190] }
+  - id: cost-center
+    kind: conditional
+    when: { var: contract.costCenter, present: true }
+    sources: []
+    basis: practice
+  - id: duration
+    kind: locked
+    variantBy: computed.durationShape
+    variantRequires: { fixed_dated: [contract.endsOn], monthly_dated: [contract.endsOn] }
+    sources: [civ-1211, civ-1212, civ-1215]
+  - { id: price, kind: locked, variantBy: contract.billing, sources: [civ-1163] }
+  - { id: vat, kind: locked, variantBy: computed.vatRegime, sources: [cgi-293b] }
+  - id: payment
+    kind: locked
+    variantBy: contract.billing
+    sources: [com-l441-10, com-d441-5, civ-1219, research-l0-sequestre]
+  - id: monthly-funding
+    kind: conditional
+    when: { var: contract.billing, eq: monthly }
+    variantBy: decision.d8MonthlyFunding
+    gates:
+      - { variant: monthly_provision, decision: D8, error: decision_pending }
+      - { variant: pay_on_timesheet, decision: D8, error: decision_pending }
+      - { variant: single_provision, decision: D8, error: decision_pending }
+    sources: [research-l0-sequestre]
+  - { id: commission, kind: locked, variantBy: contract.feePayer, sources: [] , basis: practice }
+  - { id: invoicing, kind: locked, sources: [cgi-289] }
+  - { id: acceptance, kind: locked, variantBy: contract.billing, sources: [com-l441-10, civ-1120] }
+  - { id: refunds, kind: locked, sources: [civ-1193, research-l0-sequestre] }
+  - { id: independence, kind: locked, sources: [trav-l8221-6] }
+  - id: vigilance
+    kind: conditional
+    when: { var: computed.vigilanceRequired, eq: true }
+    sources: [trav-l8222-1, trav-r8222-1, trav-d8222-5]
+    note: "Le code bloque déjà la création et la signature sans attestation vérifiée au-delà du seuil (contractBlocker) : la clause dit en mots ce que la base impose."
+  - { id: subcontracting, kind: locked, variantBy: input.subcontractingAllowed, sources: [], basis: practice }
+  - id: intellectual-property
+    kind: locked
+    variantBy: input.ipRegime
+    variantRequires:
+      assignment: [input.ipPurpose, input.ipTerritory, input.ipDurationYears]
+      licence: [input.ipPurpose, input.ipTerritory, input.ipDurationYears]
+    sources: [cpi-l131-1, cpi-l131-2, cpi-l131-3, cpi-l131-4]
+  - { id: confidentiality, kind: locked, sources: [com-l151-1, civ-1210] }
+  - { id: personal-data, kind: locked, sources: [rgpd-6] }
+  - id: data-processing
+    kind: conditional
+    when: { var: input.processesPersonalData, eq: true }
+    requires: [input.dpaDetails]
+    sources: [rgpd-28]
+  - { id: liability, kind: locked, variantBy: contract.billing, sources: [civ-1231-3, civ-1170, civ-1171] }
+  - id: insurance
+    kind: optional
+    default: excluded
+    toggledBy: seller
+    requires: [input.insurerName, input.insurancePolicy]
+    sources: []
+    basis: practice
+  - { id: force-majeure, kind: locked, sources: [civ-1218] }
+  - id: termination
+    kind: locked
+    variantBy: computed.durationShape
+    variantRequires: { monthly_open: [input.noticeDays] }
+    sources: [civ-1225, civ-1211, com-l442-1, civ-1219]
+  - id: non-solicitation
+    kind: optional
+    default: excluded
+    toggledBy: both
+    requires: [input.nonSolicitationMonths]
+    sources: [civ-1231-3]
+    note: "Volontairement sans clause pénale : la réparation suit le droit commun (dommages prévisibles). Une indemnité forfaitaire serait une clause pénale (1231-5) à chiffrer par l'avocat."
+  - { id: reference, kind: optional, default: excluded, toggledBy: buyer, sources: [], basis: practice }
+  - { id: evidence, kind: locked, variantBy: document.signatureMethod, sources: [civ-1366, civ-1367, civ-1356, civ-1375, decret-2017-1416] }
+  - { id: notices, kind: locked, sources: [], basis: practice }
+  - { id: transfer, kind: locked, sources: [], basis: practice }
+  - { id: amendments, kind: locked, sources: [civ-1193] }
+  - { id: disputes, kind: locked, sources: [civ-2061, cpc-48] }
+  - { id: governing-law, kind: locked, sources: [] , basis: practice }
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: seller, rule: "le freelance titulaire du profil du contrat (contracts.ts, sign())" }
+    - { role: buyer, rule: "un propriétaire ou administrateur de l'organisation du contrat (contracts.ts, sign())" }
+
+retention:
+  active: until_contract_end
+  archive: { years: 5, from: contract_end, sources: [civ-2224, com-l110-4] }
+  accounting: { years: 10, from: fiscal_year_end, sources: [com-l123-22], status: HYPOTHESIS }
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - id: R1
+      clause: platform-role
+      question: "Le rôle de Proofseen (intermédiaire non partie, mandataire de facturation du Prestataire, outil de paiement opéré par Stripe) est-il décrit sans faire de Proofseen un mandataire de paiement au sens du Code monétaire et financier, ni un employeur ? Nom exact de l'entité Stripe à citer (Stripe Technology Europe Ltd selon la recherche L0 §6, source Stripe) : à confirmer."
+    - id: R2
+      clause: contract-documents
+      question: "Le contrat est rédigé à l'avance par Proofseen, tiers aux deux parties. Est-ce un contrat d'adhésion au sens de l'article 1110 (clauses déterminées à l'avance par l'une des parties) ? Conséquences sur 1171 (déséquilibre significatif) et 1190 (interprétation)."
+    - id: R3
+      clause: payment
+      question: "Paiement exigé avant le début de la prestation, avant toute facture : qualification d'acompte et exigibilité de la TVA du Prestataire (question K5 à Bertrand, L0-010) ; rédaction des pénalités de retard dans un paiement d'avance."
+    - id: R4
+      clause: acceptance
+      question: "Recette réputée prononcée à défaut de réserves motivées dans le délai (au plus 30 jours, L441-10 III) : validité de l'acceptation tacite stipulée (1120) et articulation avec la règle actuelle du code (aucun versement automatique, revue humaine, validation-reminders.ts)."
+    - id: R5
+      clause: refunds
+      question: "Engagement du Client d'utiliser la procédure de réserves avant toute contestation de paiement auprès de sa banque ; reprise du virement sur le compte de versement du Prestataire. Validité entre professionnels, et renvoi aux CGU (L5)."
+    - id: R6
+      clause: invoicing
+      question: "Mandat de facturation : le texte accepté aujourd'hui tient en une phrase (apps/web/src/i18n/market/billing-fr.ts). Délai de contestation de chaque facture, responsabilité conservée par le Prestataire, information de l'administration : à prévoir dans le mandat signé (L2.6). Le mandat actuel vise « mes factures de mission » et ne couvre ni les factures rectificatives ni les avoirs (L1-045, Bertrand) : l'article « Réductions, remboursements » suppose un mandat qui les couvre. Mandataire nommé : la société e-kigai (le contrat définit désormais « Proofseen » comme cette société, L1-045)."
+    - id: R7
+      clause: intellectual-property
+      question: "Cession : mentions distinctes et domaine (L131-3) ; prix de cession compris dans le prix forfaitaire, admis pour le logiciel (L131-4) mais à justifier pour les autres oeuvres (documents, graphismes) ; transfert à la recette et au paiement complet ; éléments préexistants et logiciels libres exclus."
+    - id: R8
+      clause: independence
+      question: "La clause d'indépendance suffit-elle face à un faisceau d'indices de subordination dans l'exécution réelle (L8221-6 II) ? Faut-il ajouter une obligation du Client de ne pas intégrer le Prestataire à son organisation hiérarchique ?"
+    - id: R9
+      clause: confidentiality
+      question: "Durée de confidentialité finie (5 ans par défaut) au regard de 1210, et articulation avec le secret des affaires (L151-1) qui peut durer plus longtemps."
+    - id: R10
+      clause: liability
+      question: "Plafond réciproque égal au prix HT (forfait) ou aux sommes HT des douze derniers mois (régie), avec exclusions (faute lourde ou dolosive, atteinte aux personnes, confidentialité, contrefaçon). Compatible avec 1170 et 1171 ?"
+    - id: R11
+      clause: vigilance
+      question: "Le contrôle de l'attestation par un opérateur de Proofseen sur urssaf.fr décharge-t-il le Client de la vérification d'authenticité exigée par D8222-5 ? La clause dit que non ; à confirmer."
+    - id: R12
+      clause: termination
+      question: "Préavis de 30 jours par défaut pour une régie sans terme, à allonger avec l'ancienneté (L442-1 II) ; délai de mise en demeure de 15 jours (1225) ; sort des travaux en cours au forfait."
+    - id: R13
+      clause: disputes
+      question: "Aucune clause attributive de compétence : l'article 48 du CPC la réserve aux parties qui ont toutes contracté en qualité de commerçant, ce que beaucoup de freelances (professions libérales) ne sont pas. Faut-il une clause conditionnelle quand les deux parties sont commerçantes ? Médiation à proposer ?"
+    - id: R14
+      clause: non-solicitation
+      question: "Non-sollicitation réciproque limitée aux personnes ayant participé à la mission, 12 mois au plus, sans indemnité forfaitaire : proportion à valider (jurisprudence NON VÉRIFIÉE dans cette session). Aucune clause de non-concurrence ni de non-contournement de la plateforme dans ce contrat : la seconde relève des CGU (L5)."
+    - id: R15
+      clause: evidence
+      question: "Convention de preuve sans présomption irréfragable (1356) ; portée de l'arrêt Cass. civ. 3e, 5 mars 2026, n° 24-21.034 (inédit) pour une signature simple contestée ; contenu du dossier de preuve suffisant au regard de 1366 et 287 CPC."
+    - id: R16
+      clause: governing-law
+      question: "Client établi hors de France : choix de la loi française (règlement Rome I, NON RELU dans cette session) et version anglaise remise avec la française qui fait foi."
+    - id: R17
+      clause: reference
+      question: "Consentement du Client à être nommé sur le profil du Prestataire comme mission vérifiée : forme suffisante dans un contrat signé, et retrait de ce consentement."
+    - id: R18
+      clause: invoicing
+      question: "VERSION 2 DU GABARIT, à écrire avant toute émission datée du 1er janvier 2027 (non faite en v1, décision du Chancelier) : citer directement le CIBS au lieu du CGI, recommandation de Bertrand (L1-040, L1-073 point 2). Article « Facturation » : remplacer « article 289, I-2, du code général des impôts » par « article L. 216-35 du code des impositions sur les biens et services » (source cibs-l216-35, validFrom 2027-01-01) et dire que l'obligation de facturation n'est remplie que par l'acceptation de chaque facture par le Prestataire. Article « TVA », variante exempt : la mention « article 293 B du CGI » reste admise jusqu'au 30 juin 2028 (BOI-RES-TVA-000253 §3.1) ; ne passer à la franchise du CIBS (L. 233-3 et suivants) que quand le libellé officiel de la mention sera publié (NON VÉRIFIÉ aujourd'hui). Même changement dans en.yaml et dans le devis (variante exempt). La v2 garde les identifiants de clauses pour que la comparaison de versions reste exacte."
+    - id: R19
+      clause: payment
+      question: "Pénalités stipulées à trois fois le taux d'intérêt légal : c'est le plancher de L441-10 II, valable s'il est stipulé ; la facture doit alors imprimer ce taux du contrat (L1-042 point 3, Bertrand), et non le taux BCE majoré de 10 points, qui ne vaut qu'à défaut de stipulation. À confirmer, ainsi que l'écart avec les contrats d'avant le coffre, qui n'ont aucune stipulation."
+    - id: R20
+      clause: evidence
+      question: "Bloc de signature (moteur, src/chrome.ts) : aucun « fait à » ni lieu imprimé. Aucune exigence de lieu n'a été trouvée dans les articles 1364 à 1379 du Code civil lus le 2026-10-24, et un contrat conclu à distance est réputé conclu là où l'acceptation parvient à l'offrant (1121) : imprimer une ville serait un fait inventé. À confirmer."

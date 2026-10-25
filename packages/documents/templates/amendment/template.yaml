@@ -1,0 +1,226 @@
+# Avenant au contrat de prestation, v1. Trésor (Inès Kader), 2026-10-24. Format : ../../TEMPLATE_FORMAT.md.
+# Contrainte réelle : les conditions d'un Contract sont figées par déclencheur (schema.prisma, commentaire du modèle).
+# Un avenant ne réécrit donc jamais la ligne Contract : il s'ajoute à une chaîne (contrat, avenant 1, avenant 2...) et
+# les conditions en vigueur se calculent sur cette chaîne. Modèle de données demandé : REQUEST L1-011 (Amendment).
+
+id: amendment
+version: 1
+status: draft
+effectiveFrom: "2026-10-24"
+documentType: amendment
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Contract
+
+variables:
+  contract.id:
+    type: string
+    maxLength: 36
+    required: true
+    source: { kind: db, path: Contract.id }
+    frozenAt: render_data
+    label: { fr: "Référence du contrat" }
+  contract.currency:
+    type: string
+    maxLength: 3
+    pattern: "^[A-Z]{3}$"
+    required: true
+    source: { kind: db, path: Contract.currency }
+    frozenAt: render_data
+    label: { fr: "Devise" }
+  document.versionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: true
+    source: { kind: document, field: versionNumber }
+    frozenAt: render_data
+    label: { fr: "Version du document" }
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+  document.signatureMethod:
+    type: enum
+    values: [platform_acceptance, otp_simple]
+    labels:
+      fr: { platform_acceptance: "acceptation électronique datée", otp_simple: "signature électronique simple par code à usage unique" }
+    required: true
+    default: platform_acceptance
+    defaultStatus: HYPOTHESIS
+    defaultReason: "Méthode disponible avant le Sceau (L2)."
+    source: { kind: document, field: signatureMethod }
+    frozenAt: render_data
+    label: { fr: "Méthode de signature" }
+  amendment.rank:
+    type: int
+    min: 1
+    max: 99
+    required: true
+    source: { kind: db, path: "Document.slot (Document de sorte amendment du contrat)" }
+    frozenAt: render_data
+    label: { fr: "Numéro de l'avenant" }
+    note: "Le coffre numérote les avenants d'une affaire (Document.slot, unicité contrat, sorte, rang ; L1-077)."
+  base.contractVersionNumber:
+    type: int
+    min: 1
+    max: 999
+    required: false
+    source: { kind: db, path: "DocumentVersion.number (dernière version du Document service_agreement, slot 1, du contrat)" }
+    frozenAt: render_data
+    label: { fr: "Version du contrat de prestation en vigueur à la signature" }
+    note: "Même règle que le procès-verbal : facultative, clause signed-version omise si le contrat n'a pas de document ; « en vigueur à la signature », jamais « signée », tant que le Sceau (L2) ne lie pas la signature à une version."
+  base.contractDigestShort:
+    type: string
+    maxLength: 19
+    required: false
+    source: { kind: db, path: "DocumentVersion.sha256 de la même version, seize premiers caractères groupés par quatre" }
+    frozenAt: render_data
+    label: { fr: "Empreinte de cette version" }
+  seller:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.sellerSnapshot }
+    frozenAt: render_data
+    label: { fr: "Le Prestataire" }
+  buyer:
+    type: party
+    required: true
+    source: { kind: db, path: Contract.buyerSnapshot }
+    frozenAt: render_data
+    label: { fr: "Le Client" }
+  input.effectiveOn:
+    type: date
+    required: true
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Date d'effet" }
+  input.reason:
+    type: text
+    maxLength: 2000
+    required: true
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Raison de l'avenant" }
+  computed.changeLines:
+    type: list
+    maxItems: 20
+    itemMaxLength: 400
+    required: true
+    source: { kind: derived, fn: describeChanges, from: [contract.endsOn, input.newEndsOn, Contract.scope, input.newScope, Contract.deliverables, input.newDeliverables] }
+    frozenAt: render_data
+    label: { fr: "Modifications" }
+    note: "Une phrase par variable modifiée, calculée sans modèle de langage depuis les libellés du gabarit du contrat (« La date de fin passe du 30 novembre 2026 au 15 décembre 2026. »), fournie par l'appelant (passation du moteur). v1 : seules la date de fin, l'objet et les livrables se modifient. Les changements de prix sont IMPOSSIBLES tant qu'aucun modèle d'avenant n'est lu par le paiement (Contract.totalCents est figé ; L3.0 BillingItem) : un avenant de prix signé promettrait un remboursement ou un complément que le code n'exécute pas."
+  input.newScope:
+    type: text
+    maxLength: 6000
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Nouvelle rédaction de l'objet" }
+  input.newEndsOn:
+    type: date
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Nouvelle date de fin" }
+    note: "N'apparaît que dans computed.changeLines. Le code lit encore Contract.endsOn (figé) pour les relances de validation (validation-reminders.ts, plannedEnd) : un report convenu par avenant n'y est pas vu."
+  input.newDeliverables:
+    type: list
+    maxItems: 30
+    itemMaxLength: 500
+    required: false
+    source: { kind: input, editableBy: [seller, buyer], stage: draft }
+    frozenAt: input
+    editableBy: [seller, buyer]
+    label: { fr: "Nouvelle liste des livrables" }
+    note: "N'apparaît que dans computed.changeLines. Le procès-verbal lit encore Contract.deliverables (figé) : tant qu'aucun modèle d'avenant n'existe, il montre les livrables d'origine."
+  computed.vigilanceRequiredAfter:
+    type: boolean
+    required: true
+    source: { kind: derived, fn: vigilanceRequired, from: [contract, amendments] }
+    frozenAt: signature
+    label: { fr: "Attestation de vigilance exigée après l'avenant" }
+    note: "Le seuil s'apprécie sur le montant cumulé, avenants compris (recherche L0 §5.3, recommandation). contractBlocker ne compte aujourd'hui que les contrats : à étendre."
+  rule.vigilanceThresholdCents:
+    type: money
+    currency: contract.currency
+    required: true
+    source: { kind: rule, file: packages/db/src/contract-checks.ts, symbol: "VIGILANCE_THRESHOLD_BY_CURRENCY[contract.currency]" }
+    frozenAt: signature
+    label: { fr: "Seuil de vigilance" }
+  computed.moneyAfterPayout:
+    type: enum
+    values: [none, decrease_before_payout, decrease_after_payout, increase]
+    labels:
+      fr:
+        none: "aucun changement de prix"
+        decrease_before_payout: "baisse de prix avant le versement"
+        decrease_after_payout: "baisse de prix après le versement"
+        increase: "hausse de prix"
+    required: true
+    source: { kind: derived, fn: priceChangeKind, from: [Payment.status] }
+    frozenAt: signature
+    label: { fr: "Effet de l'avenant sur l'argent" }
+    note: "v1 : toujours none, aucun changement de prix n'étant saisissable (voir computed.changeLines). L'adaptateur refuse toute autre valeur tant que les avenants de prix ne sont pas exécutés par le paiement ; les trois autres variantes restent écrites pour la version qui les ouvrira."
+
+clauses:
+  - { id: parties, kind: locked, sources: [], basis: practice }
+  - { id: base, kind: locked, sources: [civ-1193] }
+  - id: signed-version
+    kind: conditional
+    when: { var: base.contractVersionNumber, present: true }
+    requires: [base.contractDigestShort]
+    sources: [civ-1366]
+  - { id: reason, kind: locked, sources: [], basis: practice }
+  - { id: changes, kind: locked, sources: [civ-1193] }
+  - id: new-scope
+    kind: conditional
+    when: { var: input.newScope, present: true }
+    sources: [civ-1163]
+  - { id: money, kind: locked, variantBy: computed.moneyAfterPayout, sources: [research-l0-sequestre] }
+  - id: vigilance
+    kind: conditional
+    when: { var: computed.vigilanceRequiredAfter, eq: true }
+    sources: [trav-r8222-1, trav-d8222-5]
+  - { id: unchanged, kind: locked, sources: [civ-1193] }
+  - { id: evidence, kind: locked, variantBy: document.signatureMethod, sources: [civ-1366, civ-1367, civ-1356, civ-1375] }
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: seller, rule: "le freelance titulaire du profil du contrat" }
+    - { role: buyer, rule: "un propriétaire ou administrateur de l'organisation du contrat" }
+
+retention:
+  active: until_contract_end
+  archive: { years: 5, from: contract_end, sources: [civ-2224, com-l110-4] }
+  accounting: { years: 10, from: fiscal_year_end, sources: [com-l123-22], status: HYPOTHESIS }
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points:
+    - id: R1
+      clause: money
+      question: "Baisse de prix après versement : avoir sous mandat au nom du Prestataire et remboursement par reprise sur son compte de versement (renvoi au contrat et aux CGU). Numérotation et mentions de l'avoir : question de Bertrand (L0-010, point 2)."
+    - id: R2
+      clause: changes
+      question: "Les modifications sont décrites en phrases générées depuis les variables : suffisant comme écrit des modifications, ou faut-il reproduire chaque clause modifiée en entier ?"
+    - id: R3
+      clause: vigilance
+      question: "Seuil de vigilance apprécié avenants compris : à confirmer sur R8222-1 (la recherche L0 le recommande sans l'avoir lu dans le texte)."
+    - id: R4
+      clause: changes
+      question: "v1 limitée à la date de fin, à l'objet et aux livrables, et sans effet dans le code (Contract figé, aucun modèle d'avenant) : un avenant signé engage les parties même si la plateforme continue d'afficher les conditions d'origine. Faut-il un avertissement dans l'avenant tant que le modèle n'existe pas, ou fermer l'avenant en production jusque-là ?"

@@ -38,7 +38,14 @@ describe("signature des webhooks", () => {
 
 describe("traduction des événements", () => {
   it.each([
-    ["payment_intent.succeeded", { id: "pi_1" }, { type: "payment.succeeded", intentId: "pi_1" }],
+    // La charge du paiement (`latest_charge`) est la source de tout virement : elle voyage avec l'événement.
+    ["payment_intent.succeeded", { id: "pi_1", latest_charge: "ch_1" }, { type: "payment.succeeded", intentId: "pi_1", chargeId: "ch_1" }],
+    ["payment_intent.succeeded", { id: "pi_1", latest_charge: { id: "ch_2" } }, { type: "payment.succeeded", intentId: "pi_1", chargeId: "ch_2" }],
+    ["payment_intent.succeeded", { id: "pi_1" }, { type: "payment.succeeded", intentId: "pi_1", chargeId: null }],
+    ["payment_intent.succeeded", { id: "pi_1", latest_charge: null }, { type: "payment.succeeded", intentId: "pi_1", chargeId: null }],
+    // Une valeur qui n'est pas une charge n'est jamais retenue comme source de virement.
+    ["payment_intent.succeeded", { id: "pi_1", latest_charge: "pi_9" }, { type: "payment.succeeded", intentId: "pi_1", chargeId: null }],
+    ["payment_intent.succeeded", { id: "pi_1", latest_charge: "ch_1&destination=acct_x" }, { type: "payment.succeeded", intentId: "pi_1", chargeId: null }],
     ["payment_intent.payment_failed", { id: "pi_1" }, { type: "payment.failed", intentId: "pi_1" }],
     // Montant remboursé cumulé : un remboursement partiel reste partiel.
     ["charge.refunded", { id: "ch_1", payment_intent: "pi_1", amount_refunded: 1500 }, { type: "refund.updated", intentId: "pi_1", amountRefundedCents: 1500 }],
@@ -83,7 +90,7 @@ describe("adaptateur Stripe", () => {
   it("rend une erreur courte, sans le contenu de la réponse", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("détails internes de Stripe", { status: 402 }));
     const gateway = stripeGateway({ secretKey: "sk_test_x" }, fetchMock);
-    const error = await gateway.transfer({ amountCents: 1, currency: "EUR", destination: "acct_1", contractId: "c-1", idempotencyKey: "k" }).catch((e: unknown) => e);
+    const error = await gateway.transfer({ amountCents: 1, currency: "EUR", destination: "acct_1", contractId: "c-1", idempotencyKey: "k", sourceTransaction: "ch_1" }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(StripeError);
     expect(String(error)).not.toContain("détails");
   });
@@ -112,5 +119,19 @@ describe("bac à sable des paiements", () => {
     expect(paymentsSandbox({ STRIPE_SECRET_KEY: "sk_test_abc", PROOFSEEN_PAYMENTS_LIVE: "GO" })).toBe(false);
     expect(paymentsSandbox({ STRIPE_SECRET_KEY: "rk_live_abc", PROOFSEEN_PAYMENTS_LIVE: "GO" })).toBe(false);
     expect(paymentsSandbox({})).toBe(false);
+  });
+});
+
+describe("heure de l'événement", () => {
+  it("un paiement réussi porte l'heure de l'événement Stripe (created, en secondes), pour dater l'encaissement", () => {
+    const payload = { id: "evt_1", type: "payment_intent.succeeded", created: 1_763_456_789, data: { object: { id: "pi_1", latest_charge: "ch_1" } } };
+    expect(toPaymentEvent(payload)).toEqual({ id: "evt_1", type: "payment.succeeded", intentId: "pi_1", chargeId: "ch_1", occurredAt: new Date(1_763_456_789_000) });
+  });
+
+  it("sans heure exploitable, aucune heure n'est inventée", () => {
+    for (const created of [undefined, "hier", -5, 1.5]) {
+      const event = toPaymentEvent({ id: "evt_1", type: "payment_intent.succeeded", created, data: { object: { id: "pi_1" } } });
+      expect(event).toEqual({ id: "evt_1", type: "payment.succeeded", intentId: "pi_1", chargeId: null });
+    }
   });
 });

@@ -27,7 +27,9 @@ describe("the sheet of the deal", () => {
       .filter((f) => /\.tsx?$/.test(f) && read(f).includes('import "@/styles/app-affaire.css";'))
       .map((f) => relative(src, f).replace(/\\/g, "/"))
       .sort();
-    expect(importers).toEqual(["app/[lang]/app/contrats/[id]/page.tsx", "app/[lang]/app/facturation/page.tsx", "app/[lang]/app/factures/page.tsx", "app/[lang]/app/messages/[id]/page.tsx"]);
+    // L1: the vault's pages are pages of the deal (its documents tab, the form that prepares a version, a document and
+    // the comparison of two versions).
+    expect(importers).toEqual(["app/[lang]/app/contrats/[id]/documents/page.tsx", "app/[lang]/app/contrats/[id]/documents/preparer/page.tsx", "app/[lang]/app/contrats/[id]/page.tsx", "app/[lang]/app/documents/[documentId]/comparer/page.tsx", "app/[lang]/app/documents/[documentId]/page.tsx", "app/[lang]/app/facturation/page.tsx", "app/[lang]/app/factures/page.tsx", "app/[lang]/app/messages/[id]/page.tsx"]);
   });
 
   it("writes no green: only the seal of the brand may", () => {

@@ -80,4 +80,21 @@ describe("facture électronique CII (EN 16931)", () => {
     expect(commission).toContain('unitCode="C62"');
     expect(commission).not.toContain("Facture émise par un tiers");
   });
+
+  it("une facture acquittée garde les pénalités, l'indemnité et l'escompte, et y ajoute l'acquittement et l'échéance du jour du règlement", () => {
+    const paid = { ...MISSION, paidOn: new Date("2026-12-18T00:00:00Z"), dueOn: new Date("2026-12-18T00:00:00Z") };
+    const xml = renderCii(paid);
+    expect(wellFormed(xml)).toBe(true);
+    expect(xml).toContain("Facture acquittée le 18/12/2026 par paiement sécurisé Stripe");
+    expect(xml).toContain('<ram:DueDateDateTime><udt:DateTimeString format="102">20261218</udt:DateTimeString>');
+    for (const code of ["PMD", "PMT", "AAB"]) expect(xml).toContain(`<ram:SubjectCode>${code}</ram:SubjectCode>`);
+    expect(xml).toContain("Banque centrale européenne");
+    // La clause du contrat, quand il en stipule une, remplace le taux par défaut.
+    expect(renderCii({ ...paid, latePenaltyClause: "Pénalités de retard : trois fois le taux légal." })).toContain("trois fois le taux légal");
+  });
+
+  it("date l'émission à l'heure de Paris : 23 h 30 UTC le 31 décembre est le 1er janvier", () => {
+    const xml = renderCii({ ...MISSION, issuedAt: new Date("2026-12-31T23:30:00Z"), dueOn: new Date("2027-01-01T00:00:00Z") });
+    expect(xml).toContain('<udt:DateTimeString format="102">20270101</udt:DateTimeString></ram:IssueDateTime>');
+  });
 });

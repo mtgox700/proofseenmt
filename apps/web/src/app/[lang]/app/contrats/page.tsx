@@ -8,6 +8,8 @@ import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { date, money } from "@/lib/format";
 import { pageMarket } from "@/lib/market";
+import { vaultOpen } from "@/app/api/documents/vault";
+import { SectionTabs } from "@/components/vault/AffairTabs";
 
 /** Depends on who is signed in: rendered per request, never frozen at build. */
 export const dynamic = "force-dynamic";
@@ -27,6 +29,8 @@ export default async function ContractsPage({ params }: PageProps) {
   const list = await contractView(market.db).list(market.actor);
   return (
     <>
+      {/* L1.6: « Contrats » and « Documents », the section's two tabs; drawn only while the vault is open (L1-148). */}
+      <SectionTabs lang={lang} current="contracts" open={vaultOpen(process.env)} />
       <header className="app-head">
         <h1>{c.title}</h1>
         <p className="muted measure">{c.lead}</p>
