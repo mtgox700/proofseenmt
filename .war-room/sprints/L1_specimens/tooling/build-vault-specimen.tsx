@@ -32,6 +32,7 @@ import { attribute, type ChainLink } from "../../../../apps/web/src/lib/vault/at
 import { choiceGroups, initialDraft, legendOf } from "../../../../apps/web/src/lib/vault/choices";
 import { compareModels, groupIdentical } from "../../../../apps/web/src/lib/vault/compare";
 import { explainChanges } from "../../../../apps/web/src/lib/vault/explain";
+import { fileName } from "../../../../apps/web/src/lib/vault/file-name";
 import { demoContract } from "../../../../packages/documents/test/support/demo";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -47,7 +48,7 @@ const t = vaultFr;
 const CONTRACT_ID = "00000000-0000-4000-8000-0000000000c1";
 const DOC_ID = "00000000-0000-4000-8000-0000000000d1";
 const template = defaultRegistry().latest("service-agreement") as LoadedTemplate;
-const groups = choiceGroups(template.decl, lang, t.prepare);
+const groups = choiceGroups(template.decl, lang, t.prepare, "fixed");
 
 const contract = {
   id: CONTRACT_ID,
@@ -127,12 +128,12 @@ const foot = `<p class="spec-note">Spécimen L1 : données d'exemple (parties «
 </body>
 </html>
 `;
-const out = join(here, "..", "vault");
+const out = join(here, "..", process.env.VAULT_OUT ?? "vault-r2");
 mkdirSync(out, { recursive: true });
 const write = (name: string, body: string, title: string, where: string) => {
   const page = head(title, where) + body + foot;
   writeFileSync(join(out, `${name}.html`), page);
-  console.log(`wrote vault/${name}.html (${page.length} bytes)`);
+  console.log(`wrote ${process.env.VAULT_OUT ?? "vault-r2"}/${name}.html (${page.length} bytes)`);
 };
 const affair = (body: string, count = 1) =>
   html(h(AffairHead, { lang, deals: dealsFr, contract })) +
@@ -190,21 +191,27 @@ write(
   "E2 · le formulaire revenu du serveur, trois choix manquants",
 );
 // E4: the document, version 2.
-write(
-  "e4",
+const e4Body =
   `<div class="vault-page vault-doc"><p><a class="back-link" href="#"><span aria-hidden="true">←&nbsp;</span>${t.document.back}</a></p><header class="vault-doc-head"><h1>Contrat de prestation</h1><p class="vault-meta">${t.document.line(2, 2, "25 octobre 2026 à 10:41", "le freelance")}</p></header><div class="vault-doc-body">${html(
     h(DocumentRail, { lang, document: detail, version: V2, clauses: m2.clauses, article: t.document.article }),
   )}<div class="vault-article-wrap">${html(h(DocumentView, { model: m2, article: t.document.article, footer: t.document.footer(V2.contentDigest.slice(0, 16).toUpperCase().replace(/(.{4})(?=.)/g, "$1 ")), label: t.document.textLabel }))}</div>${html(
-    h(Digests, { lang, contentDigest: V2.contentDigest, sha256: V2.sha256, fileName: "contrat-de-prestation-v2.pdf" }),
-  )}</div></div>`,
+    h(Digests, { lang, contentDigest: V2.contentDigest, sha256: V2.sha256, fileName: fileName("service_agreement", 2, V2.contentDigest) }),
+  )}</div></div>`;
+write(
+  "e4",
+  e4Body,
   "Contrat de prestation, version 2",
   "E4 · /fr/app/documents/[id]?version=2",
 );
+// E4 with « Vérifier ce document » open, in the real rail and grid (L1-159 B2): the page measures its own width and
+// says it, in its body and to the frame that holds it at 375 px. scrollWidth must equal the width of the viewport.
+const measure = `<script>addEventListener("load", function () { var w = document.documentElement.scrollWidth, v = document.documentElement.clientWidth; document.body.setAttribute("data-measure", w + "/" + v); if (parent !== window) parent.postMessage(w + "/" + v, "*"); });</script>`;
+write("e4-open", e4Body.replace('<details class="vault-digests"', '<details open class="vault-digests"') + measure, "Contrat de prestation, version 2, Vérifier ouvert", "E4 · « Vérifier ce document » ouvert dans le rail réel");
 // E4, « Vérifier ce document » opened, and the footer of the text: the case decided in L1-147 (content in capitals,
 // file in lower case).
 write(
   "e4-verifier",
-  `<div class="vault-page vault-doc">${html(h(Digests, { lang, contentDigest: V2.contentDigest, sha256: V2.sha256, fileName: "contrat-de-prestation-v2.pdf" })).replace("<details", "<details open")}<p class="vault-footer">${t.document.footer(V2.contentDigest.slice(0, 16).toUpperCase().replace(/(.{4})(?=.)/g, "$1 "))}</p></div>`,
+  `<div class="vault-page vault-doc">${html(h(Digests, { lang, contentDigest: V2.contentDigest, sha256: V2.sha256, fileName: fileName("service_agreement", 2, V2.contentDigest) })).replace("<details", "<details open")}<p class="vault-footer">${t.document.footer(V2.contentDigest.slice(0, 16).toUpperCase().replace(/(.{4})(?=.)/g, "$1 "))}</p></div>`,
   "Vérifier ce document",
   "E4 · « Vérifier ce document » ouvert, et le pied du texte",
 );

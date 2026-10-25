@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Documents de l'affaire, deux versions (spécimen L1)</title>
+<title>Documents de l'affaire, sans objet (spécimen L1)</title>
 <style>
 /* Generated from packages/brand/src/tokens.ts: do not edit by hand. */
 @font-face{font-family:"PS Display";src:url(../../../apps/web/public/fonts/ps-display-v1.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
@@ -875,7 +875,10 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-stratum-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); }
 .vault-stratum-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); font-size: var(--ps-step--1); }
 .vault-stratum-links a, .vault-link { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
-.vault-older > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+/* « Lire » is four letters: its target is at least 44 px wide too (L1-159). */
+.vault-stratum-links a { min-width: 2.75rem; justify-content: center; }
+/* Every summary keeps its native disclosure mark (L1-159 M7): a list item, its 48 px from its padding, never a flex box. */
+.vault-older > summary { display: list-item; padding-block: 0.875rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
 
 /* The comparison picker: a GET form, two selects and a button. */
 .vault-picker { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
@@ -889,7 +892,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 @media (prefers-reduced-motion: no-preference) {
   .vault-ink-band { animation: vault-ink calc(var(--ps-dur-trace) * 0.4375) var(--ps-ease-ink) calc(var(--ps-dur-trace) * 0.1875 * var(--band)) both; }
 }
-@keyframes vault-ink { from { opacity: 0.25; } to { opacity: 1; } }
+@keyframes vault-ink { from { opacity: 0.5; } to { opacity: 1; } }
 
 /* ---------- The form « Préparer » ---------- */
 .vault-form fieldset { display: grid; gap: var(--ps-space-3); min-width: 0; margin: 0; padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
@@ -904,8 +907,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-pre { white-space: pre-line; }
 @media (min-width: 48rem) { .vault-facts { grid-template-columns: 12rem minmax(0, 1fr); } .vault-facts > div { display: contents; } }
 .vault-choices { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-.vault-choice { display: flex; align-items: center; gap: var(--ps-space-3); min-height: 3rem; cursor: pointer; }
-.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--ps-aura); }
+/* A radio stays on the first line of a label of two (L1-159): aligned at the top, 48 px of target kept by padding. */
+.vault-choice { display: flex; align-items: flex-start; gap: var(--ps-space-3); min-height: 3rem; padding-block: 0.75rem; cursor: pointer; }
+.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0.125rem 0 0; accent-color: var(--ps-aura); }
 .vault-field { display: grid; gap: var(--ps-space-1); min-width: 0; }
 .vault-field input[type="number"], .vault-field input[type="text"], .vault-field textarea { width: 100%; max-width: 40rem; min-height: 3rem; font-size: 1rem; }
 .vault-field input[type="number"] { max-width: 8rem; }
@@ -937,7 +941,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); }
 .vault-rail { display: grid; gap: var(--ps-space-4); align-content: start; min-width: 0; }
 .vault-rail .btn { justify-content: center; min-height: 3rem; }
-.vault-rail details > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; }
+.vault-rail details > summary { display: list-item; padding-block: 0.75rem; cursor: pointer; }
 .vault-toc ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .vault-toc a { display: flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
 .vault-article { max-width: 46rem; font: var(--ps-weight-text) var(--ps-step-0) / 1.65 var(--ps-font-text); color: var(--ps-text); }
@@ -950,32 +954,46 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-clause ul { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--ps-space-2); }
 .vault-party { padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line); }
 .vault-footer { color: var(--ps-muted); font-size: var(--ps-step--1); padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
-.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; overflow-x: auto; }
-.vault-digests dl { display: grid; gap: var(--ps-space-1); margin: var(--ps-space-2) 0; }
-.vault-digests dd { margin: 0 0 var(--ps-space-2); }
+/* « Vérifier » never widens the page (L1-159 B2, measured 470 px at 375): shrinking columns, and long commands wrap. */
+.vault-digests { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-2); min-width: 0; }
+.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; }
+.vault-digests .vault-command { white-space: pre-wrap; overflow-wrap: anywhere; }
+.vault-digests dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-1); margin: var(--ps-space-2) 0; min-width: 0; }
+.vault-digests dd { margin: 0 0 var(--ps-space-2); min-width: 0; }
 .vault-skip { position: absolute; left: -9999px; }
 .vault-skip:focus { position: static; display: inline-flex; min-height: 3rem; align-items: center; }
+/* From 64 rem: the text and, under it, « Vérifier »; beside them the rail, which spans both rows and stays in view under
+   the space's sticky header (L1-159 M9). On a phone: rail, text, then « Vérifier », in the order of the markup. */
+.vault-desk-block { display: none; }
 @media (min-width: 64rem) {
-  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "text verify" "text ."; grid-template-rows: auto auto 1fr; gap: var(--ps-space-4) var(--ps-space-7); align-items: start; }
-  .vault-doc-body > .vault-rail { grid-area: rail; }
+  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "verify rail"; gap: var(--ps-space-6) var(--ps-space-7); align-items: start; }
+  .vault-doc-body > .vault-rail { grid-area: rail; position: sticky; top: 5rem; max-height: calc(100dvh - 6rem); overflow-y: auto; overscroll-behavior: contain; }
   .vault-doc-body > .vault-article-wrap { grid-area: text; }
   .vault-doc-body > .vault-digests { grid-area: verify; }
+  .vault-phone-block { display: none; }
+  .vault-desk-block { display: grid; gap: var(--ps-space-2); }
 }
 @media (max-width: 63.99rem) { .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); } .vault-rail .btn { width: 100%; } }
 
 /* ---------- The comparison (M2, the legend, the clauses) ---------- */
-.vault-pair { --vault-gap: 1.5rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
-.vault-pair > li { flex: 0 1 11rem; min-width: 0; }
+.vault-pair { --vault-gap: 1.5rem; --vault-pair-w: 9.75rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
+.vault-pair > li { flex: 0 0 var(--vault-pair-w); width: var(--vault-pair-w); min-width: 0; }
 /* Sixteen characters of the trace face never run into the neighbour's: they wrap by group of four inside their column. */
 .vault-pair .ui-fp-code { white-space: normal; }
+/* On a phone, two groups of four per line, never one left alone (L1-159). */
+@media (max-width: 47.99rem) { .vault-pair .ui-fp-code { max-width: 10ch; } }
+/* From 48 rem each column holds the sixteen characters on one line and the day after « Version n · » (L1-159). */
+@media (min-width: 48rem) { .vault-pair { --vault-pair-w: 14rem; } }
 .vault-pair .ui-fp { flex-direction: column; align-items: flex-start; }
 .vault-pair-line { color: var(--ps-muted); font-size: var(--ps-step--1); }
 .vault-line { display: block; }
-/* M2: the newer fingerprint starts exactly on the older one, then slides to its place: two documents, not one. */
+/* M2: the newer poinçon starts exactly on the older one, then slides to its place: two documents, not one. Only the
+   poinçon moves; its words are in place from 0 ms (L1-159 M6). Both columns have the same width, so one column and
+   one gap is exactly the distance. */
 @media (prefers-reduced-motion: no-preference) {
-  .vault-pair > li:last-child { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
+  .vault-pair > li:last-child .ui-fp-mark { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
 }
-@keyframes vault-part { from { transform: translateX(calc(-100% - var(--vault-gap))); } to { transform: none; } }
+@keyframes vault-part { from { transform: translateX(calc(-1 * (var(--vault-pair-w) + var(--vault-gap)))); } to { transform: none; } }
 .vault-brief ol { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
 .vault-brief li { display: grid; gap: var(--ps-space-1); padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line-strong); }
 .vault-by { color: var(--ps-muted); font-size: var(--ps-step--1); }
@@ -983,11 +1001,13 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-legend { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-raised); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font-size: var(--ps-step--1); }
 .vault-legend a { color: var(--ps-aura-text); }
 .vault-legend-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); }
-@media (min-width: 64rem) { .vault-legend { position: sticky; top: 0; z-index: 2; } }
+/* Under the space's sticky header (4 rem), never behind it (L1-159 M8). */
+@media (min-width: 64rem) { .vault-legend { position: sticky; top: 5rem; z-index: 2; } }
 .vault-views { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
 .vault-views label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
 .vault-views select { min-height: 3rem; font-size: 1rem; }
 .vault-diff { position: relative; display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-4) calc(var(--ps-space-4) + 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
+@media (min-width: 64rem) { .vault-diff { scroll-margin-top: 13rem; } }
 .vault-diff::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; transform-origin: left; }
 .vault-diff[data-kind="modified"]::before { background: var(--ps-signal); }
 .vault-diff[data-kind="added"]::before { background: var(--ps-aura); }
@@ -1002,6 +1022,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 /* The sign is said by the hidden prefix already: hidden from assistive technology where the alt syntax is understood. */
 .vault-block[data-sign]::before { content: attr(data-sign); content: attr(data-sign) / ""; position: absolute; left: -1.5rem; width: 1.5rem; text-align: center; font: var(--ps-weight-mono) var(--ps-step-0) / 1.65 var(--ps-font-mono); color: var(--ps-text); }
 .vault-block[data-state="same"] { color: var(--ps-muted); }
+/* A bullet of the contract stays a bullet (L1-159 M10); its sign of margin moves out by the bullet's own indent. */
+.vault-block[data-block="bullet"] { display: list-item; list-style: disc outside; margin-inline-start: 1.25rem; }
+.vault-block[data-block="bullet"][data-sign]::before { left: -2.75rem; }
 .vault-diff ins { text-decoration: underline 1px; text-underline-offset: 0.2em; color: var(--ps-aura-text); }
 .vault-diff del { text-decoration: line-through; color: var(--ps-muted); }
 /* « 15 » struck then « 20 » underlined: a hair of space between them, so the two numbers never read as « 1520 ». */
@@ -1009,9 +1032,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-diff[data-kind="added"] ins { text-decoration: none; color: var(--ps-text); }
 .vault-next { font-size: var(--ps-step--1); }
 .vault-next a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
-.vault-same > summary { display: flex; align-items: center; min-height: 3rem; padding: 0 var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
+.vault-same > summary { display: list-item; padding: 0.75rem var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
 .vault-same ol { display: grid; gap: var(--ps-space-2); margin: var(--ps-space-3) 0 0; padding: 0 0 0 var(--ps-space-4); list-style: none; }
-.vault-same details > summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; }
+.vault-same details > summary { display: list-item; padding-block: 0.6875rem; cursor: pointer; }
 .vault-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
 @media (min-width: 64rem) { .vault-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .vault-side-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
@@ -1041,7 +1064,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
   .vault-diff, .vault-card { break-inside: avoid; background: none; }
   .vault-diff ins { text-decoration: underline 1px; }
   .vault-diff del { text-decoration: line-through; }
-  .vault-pair > li:last-child { animation: none; }
+  .vault-pair .ui-fp-mark { animation: none; }
 }
 
 main.spec { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -1051,8 +1074,8 @@ main.spec { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1200px; margin
 </head>
 <body>
 <main class="spec">
-<p class="spec-where">E1 · S5 · M1 en cours (encre)</p>
-<div class="vault-page"><p><a class="back-link" href="/fr/app/contrats"><span aria-hidden="true">← </span>Tous les contrats</a></p><header class="app-head"><h1>Studio Exemple</h1><p class="thread-meta"><span class="tag tag-signal">À signer</span><span class="muted small">3 000 € HT · 500 € HT par jour × 6 jours = 3 000 € HT</span></p></header><nav class="vault-tabs" aria-label="Sections de l&#x27;affaire"><ul><li><a href="/fr/app/contrats/00000000-0000-4000-8000-0000000000c1">L&#x27;affaire</a></li><li><a aria-current="page" href="/fr/app/contrats/00000000-0000-4000-8000-0000000000c1/documents">Documents (1)</a></li></ul></nav><section class="vault-section"><h2>Documents de l'affaire</h2><p class="vault-lead">Rangés dans l'ordre de leur naissance. Chaque version garde son empreinte : changer une virgule change l'empreinte et son dessin.</p><p class="vault-status" role="status">Version 2 déposée. Empreinte du contenu : 6763 4FE8 4926 051F.</p><div class="vault-cards"><article class="vault-card" aria-labelledby="doc-00000000-0000-4000-8000-0000000000d1"><h3 id="doc-00000000-0000-4000-8000-0000000000d1">Contrat de prestation</h3><p class="vault-meta">Version 2 · déposée le 25 octobre 2026 à 09:41 par vous</p><span class="ui-fp" data-state="filed" data-inking=""><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="32" viewBox="0 0 32 32" width="32" height="32" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M16 1L31 16L16 31L1 16Z" stroke-width="1"></path><path class="vault-ink-base" d="M16 9.85l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9zM9.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM16 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM22.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9zM16 22.85l2.9 2.9l-2.9 2.9l-2.9 -2.9z"></path><path class="ui-fpm-cells vault-ink-band" d="M16 9.85l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 13.1l2.9 2.9l-2.9 2.9l-2.9 -2.9z" style="--band:1"></path><path class="ui-fpm-cells vault-ink-band" d="M9.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM16 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM22.5 16.35l2.9 2.9l-2.9 2.9l-2.9 -2.9zM12.75 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9zM19.25 19.6l2.9 2.9l-2.9 2.9l-2.9 -2.9z" style="--band:2"></path><path class="ui-fpm-cells vault-ink-band" d="M16 22.85l2.9 2.9l-2.9 2.9l-2.9 -2.9z" style="--band:3"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 2</span><code class="ui-fp-code">6763 4FE8 4926 051F</code><span class="ui-fp-word">Déposé</span></span></span><p class="vault-review">Modèle Proofseen v1, en cours de relecture par un avocat.</p><p class="vault-reason">Raison : Délai de recette porté à 20 jours</p><ul class="vault-actions"><li><a class="btn btn-primary" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d1?version=2">Lire</a></li><li><a class="btn" href="/api/documents/00000000-0000-4000-8000-0000000000d1/versions/2" download="contrat-de-prestation-v2.pdf" type="application/pdf">Télécharger le PDF, 413 Ko</a></li><li><a class="btn" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d1/comparer?de=1&amp;a=2">Ce qui a changé depuis la version 1</a></li><li><a class="btn" href="#">Préparer une nouvelle version</a></li></ul><section aria-labelledby="doc-00000000-0000-4000-8000-0000000000d1-strata"><h4 id="doc-00000000-0000-4000-8000-0000000000d1-strata" class="vault-strata-title">Versions précédentes</h4><ol class="vault-strata"><li class="vault-stratum"><span class="vault-stratum-line"><span>Version 1 · 24 octobre 2026 · par l&#x27;entreprise</span><span class="ui-fp" data-state="filed"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="16" viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M8 0.75L15.25 8L8 15.25L0.75 8Z" stroke-width="1.25"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 1</span><code class="ui-fp-code">4A6B EACA 5B02 C831</code><span class="ui-fp-word">Déposé</span></span></span><span class="vault-meta">Remplacée par la version 2</span></span><span class="vault-stratum-links"><a aria-label="Lire, contrat de prestation, version 1" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d1?version=1">Lire</a><a href="/api/documents/00000000-0000-4000-8000-0000000000d1/versions/1" download="contrat-de-prestation-v1.pdf" type="application/pdf">Télécharger</a></span></li></ol><form class="vault-picker" aria-label="Comparer deux versions" action="/fr/app/documents/00000000-0000-4000-8000-0000000000d1/comparer" method="get"><label for="pick-00000000-0000-4000-8000-0000000000d1-de">Comparer la version<select id="pick-00000000-0000-4000-8000-0000000000d1-de" name="de"><option value="1" selected="">1</option><option value="2">2</option></select></label><label for="pick-00000000-0000-4000-8000-0000000000d1-a">à la version<select id="pick-00000000-0000-4000-8000-0000000000d1-a" name="a"><option value="1">1</option><option value="2" selected="">2</option></select></label><button type="submit" class="btn">Comparer</button></form></section></article></div></section></div><p class="spec-note">Spécimen L1 : données d'exemple (parties « Exemple », empreintes de textes d'exemple, dates d'octobre 2026), rendues par les composants réels du coffre. Pas un compte réel ; l'en-tête et le menu de l'espace ne sont pas dessinés ici.</p>
+<p class="spec-where">E1 · S2a</p>
+<div class="vault-page"><p><a class="back-link" href="/fr/app/contrats"><span aria-hidden="true">← </span>Tous les contrats</a></p><header class="app-head"><h1>Studio Exemple</h1><p class="thread-meta"><span class="tag tag-signal">À signer</span><span class="muted small">500 € HT par jour × 6 jours = 3 000 € HT</span></p></header><nav class="vault-tabs" aria-label="Sections de l&#x27;affaire"><ul><li><a href="/fr/app/contrats/00000000-0000-4000-8000-0000000000c1">L&#x27;affaire</a></li><li><a aria-current="page" href="/fr/app/contrats/00000000-0000-4000-8000-0000000000c1/documents">Documents (0)</a></li></ul></nav><section class="vault-section"><h2>Documents de l'affaire</h2><p class="vault-lead">Rangés dans l'ordre de leur naissance. Chaque version garde son empreinte : changer une virgule change l'empreinte et son dessin.</p><section class="empty"><svg class="empty-mark" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M5 1.75H19A3.25 3.25 0 0 0 22.25 5V19A3.25 3.25 0 0 0 19 22.25H5A3.25 3.25 0 0 0 1.75 19V5A3.25 3.25 0 0 0 5 1.75Z"></path></svg><h2 class="empty-title">Ce contrat a été accepté sans objet de prestation décrit : il n&#x27;a pas de contrat de prestation rédigé.</h2><div class="empty-body"><p class="measure">Ses conditions acceptées sont celles de l&#x27;onglet L&#x27;affaire : parties, prix, dates et dates d&#x27;acceptation. Aucun texte ne lui est rédigé après coup.</p></div></section></section></div><p class="spec-note">Spécimen L1 : données d'exemple (parties « Exemple », empreintes de textes d'exemple, dates d'octobre 2026), rendues par les composants réels du coffre. Pas un compte réel ; l'en-tête et le menu de l'espace ne sont pas dessinés ici.</p>
 </main>
 </body>
 </html>

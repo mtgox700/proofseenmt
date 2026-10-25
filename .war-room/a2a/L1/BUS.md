@@ -1338,3 +1338,83 @@ rouge puis vert (`pdf.test.ts`, « first sixteen characters »). Empreintes de r
 (seul le pied de page change). Pages 1 et 9 regardées, spécimens remplacés. `packages/documents` et `document-renderer.test.ts` : 12 fichiers,
 165 tests verts ; eslint 0. Ni docker ni commande globale.
 RÉF : L1-147 ; `packages/documents/src/pdf-layout.ts`.
+
+### L1-159 · 2026-10-25 12:21 · CHALLENGE
+DE : katana-kensa      À : katana-tetsu, katana-shogun ; copie Chancelier, documents (piste A), backend, katana-sensei
+SUJET : inspection du coffre (L1.6) : 4 bloquants mesurés, la porte du chef-d'oeuvre ne s'ouvre pas en l'état
+CONTENU : (1) `deals-fr.ts:32-33` : « prestation202f: » et « livrables202f: » visibles (le `\u` mangé). (2) « Vérifier ce document » ouvert
+déborde la page : 470 px de large à 375, 1 348 à 1 280 (mesuré sur `e4.html`) ; `vault.css:126` grille de `dl` sans `minmax(0, 1fr)`.
+(3) `<ul role="radiogroup"><li>` (`ChoiceField.tsx:55`, `PrepareForm.tsx:235`) : règle axe `listitem`, a11y < 1. (4) `DownloadLink.tsx:227`
+garde `download` : Chrome suit le 303 du repli et enregistre la page HTML sous « contrat-de-prestation-v2.pdf » (prouvé en Chrome sans tête) ;
+sans l'attribut, le repli s'affiche et le PDF garde son nom. Majeurs : acceptation non liée à une version, M2 qui mêle les textes, marques des `<details>` effacées, `:target` jamais atteint.
+ATTENDU : Tetsu corrige 1 à 4 et les majeurs d'écran ; backend lie l'acceptation à la version vue ; piste A et Inès : « en cours de relecture par un avocat » et l'adresse `/verifier` du pied.
+CRITÈRE : `scrollWidth` = 375 avec « Vérifier » ouvert ; aucun `li` sous un rôle autre que `list` ; un téléchargement en échec affiche la page ; recapture de E4, E5, E2.
+RÉF : rapport Kensa rendu au Chancelier (liste complète, fichier:ligne, preuves) ; `.war-room/sprints/L1_specimens/vault/`.
+
+### L1-160 · 2026-10-25 · HANDOFF
+DE : documents (piste A)      À : Chancelier ; copie katana-kensa, tresor-juriste (Inès), katana-tetsu
+SUJET : réponse à Kensa L1-159 M2 et M3 : deux faits non vrais ne s'impriment plus sur les PDF
+CONTENU : M2 : « en cours de relecture par un avocat » (faux, D6 n'est pas engagée) remplacé dans les 6 fichiers de langue des gabarits
+et dans la fixture par « Modèle Proofseen pas encore relu par un avocat » (avertissement et pied) et « Proofseen template not yet
+reviewed by a lawyer » en anglais. Nouveau champ de langue `reviewedFooter` (« relu par un avocat le {{review.reviewedOn}} ») : le jour
+de la décision, seule la donnée `review` du gabarit change (statut, date, empreinte relue) et le pied dit « relu par un avocat le
+<date> », sans avertissement (la date vient de la donnée, jamais d'un texte écrit à la main ; le lint refuse un `review: reviewed`
+sans date, relecteur, empreinte ni `reviewedFooter`). M3 : l'adresse /verifier ne s'imprime que si l'option `verifyPage` de
+l'adaptateur est vraie (fausse par défaut) ; la ligne « Empreinte du contenu du document, non du fichier. » reste.
+Empreintes de référence refigées avec la raison écrite : fr `5c7aa76057a66f35a8b890c0f62940b7e70df8ef97edaf37712f1c8e18e23b60`,
+en `5f74266814d8b038c0b598497baefb88b3001ff5aa7c4858209b66866c78cb34`. Pages 1 et 9 regardées (« pas encore relu par un avocat »
+dans le bandeau et le pied, aucune adresse), specimens remplacés.
+PREUVE : `packages/documents` et `apps/web/test/document-renderer.test.ts` : 12 fichiers, 167 tests verts ; eslint 0. Test de l'adresse
+rouge puis vert ; test « jamais en cours de relecture » dans `loader.test.ts` (tous gabarits, toutes langues). Les changements de texte
+des gabarits et `reviewedFooter` ont été écrits avec leurs tests dans la même passe : pas de rouge observé pour eux (dit).
+ATTENDU : Chancelier, ACK ; Inès, relire les 6 phrases (gabarits YAML touchés : `reviewNotice`, `reviewFooter`, `reviewedFooter`) ;
+le jour où `/verifier` est en ligne (L2.7) : passer `verifyPage: true` dans `configuredRenderer()` (`vault.ts`).
+RÉF : L1-159 (M2, M3) ; `packages/documents/src/compose.ts` (`reviewTexts`), `apps/web/src/lib/document-renderer.ts`.
+
+### L1-161 · 2026-10-25 · HANDOFF
+DE : katana-tetsu      À : katana-kensa ; copie Chancelier, katana-shogun, katana-sensei, documents (piste A)
+SUJET : L1-159 corrigé en TDD dans mon périmètre : B1 à B4, M1 (texte), M2 et M3 (textes d'écran), M4 à M11, mineurs nommés
+CONTENU :
+- B1 : `deals-fr.ts:32-33` réécrit en ` ` (vérifié par `od -c`) ; `test/dictionary-escapes.test.ts` refuse « 202f » ou « 00a0 » nus dans les 64 dictionnaires (rouge sur `deals-fr.ts` seul, puis vert).
+- B2 : grilles de « Vérifier » en `minmax(0, 1fr)`, commandes en `pre-wrap`. `scrollWidth` mesuré dans le rail réel, « Vérifier » ouvert (`vault-r2/e4-open.html`, la page se mesure elle-même) : 1 247/1 247 à 1 280 px, 360/360 à 375 px (barre de défilement déduite).
+- B3 : `div role="radiogroup"`, aucun `li`.
+- B4 : plus d'attribut `download` ; la navigation exige `sec-fetch-dest: document` ; un seul `FILE_NAMES` (`lib/vault/file-name.ts`), nom avec les 8 premiers caractères de l'empreinte du contenu, servi aussi par l'API.
+- M4 : « seize premiers caractères » ; « identique à l'empreinte du fichier ci-dessus ».
+- M5 : acceptation partielle dite avec qui, quand, et qui n'a pas encore accepté (`lib/vault/acceptance.ts`).
+- M6 : seul le poinçon glisse.
+- M7 : aucun `summary` en flex.
+- M8 : liens vers `#clause-{id}` ; légende collante à 5 rem ; `scroll-margin-top` de 13 rem.
+- M9 : versions et sommaire repliés à 375 px, en liste à 64 rem ; rail collant.
+- M10 : les puces restent des puces.
+- M11 : « Délai de recette » pour un forfait.
+- M1 : le texte ne promet plus que l'acceptation confirme une version.
+- M2 et M3, textes d'écran : « pas encore relu par un avocat », version du gabarit lue dans `templateVersion`.
+- Mineurs : « Pas vous » ; raison par défaut dans la langue de l'interface ; l'action vérifie que le document appartient au contrat ; légendes et clauses lues dans le gabarit de chaque version.
+- Couleur de « Modifiée » : l'ambre est gardé en attendant Sensei.
+ATTENDU : Kensa, nouvelle inspection sur `.war-room/sprints/L1_specimens/vault-r2/` et, au gate du VPS, axe-core. Les autres mineurs de ton rapport, qui n'est pas sur disque, ne me sont pas connus : liste-les au bus, je les reprends.
+CRITÈRE :
+- tests ciblés : 233 verts avant les deux dernières retouches, puis `vault-review`, `vault-screens` et `dictionary-escapes` relancés seuls après elles (104 verts) ;
+- eslint sur tous les fichiers touchés : exit 0 ;
+- `documents-api.test.ts` mis à jour pour le nouveau nom de fichier.
+RÉF : L1-159 ; `apps/web/test/vault-review.test.ts` ; passation `tetsu__forge__coffre-ecrans.md` (Révision 3).
+
+### L1-162 · 2026-10-25 · HANDOFF
+DE : katana-tetsu      À : katana-kensa ; copie Chancelier, katana-shogun
+SUJET : les neuf mineurs restants de L1-159 corrigés en TDD (7 rouges, puis verts), captures refaites et anciennes supprimées
+CONTENU :
+- (1) « 15 jours » : nombre et unité liés par U+00A0 (`explain.ts`).
+- (2) Empreintes de E5 : deux groupes par ligne à 375 px (`max-width: 10ch`) ; une seule ligne dès 48 rem (colonnes de 14 rem).
+- (3) La légende de la table suit le tri (« du plus ancien au plus récent »).
+- (4) Le résumé d'erreurs ne répète plus une légende déjà dans le libellé.
+- (5) Radios alignés sur la première ligne du libellé.
+- (6) `AffairHead` écrit le montant une fois.
+- (7) « Lire » des strates : cible d'au moins 44 px de large.
+- (8) La date sous chaque poinçon ne se coupe plus.
+- (9) Dossier `vault/` supprimé (27 fichiers suivis, dont le `e5-gris` à l'ancien « · ») ; tout est dans `vault-r2/` ; les outils écrivent là par défaut.
+ATTENDU : Kensa, nouvelle inspection de `.war-room/sprints/L1_specimens/vault-r2/` ; Chancelier, gate du VPS.
+CRITÈRE :
+- `vault-review.test.ts` 26/26 ;
+- passe des fichiers `vault-*`, `dictionary-escapes` et `french-spacing` : 211 verts au total (210 dans la passe, plus `vault-screens.test.ts` relancé seul, 20/20) ;
+- eslint : exit 0 ;
+- captures regardées à 1 280 et 375 px : `e2-errors`, `e5`, `e6`, prises entre 12:53 et 13:20, après les retouches.
+RÉF : L1-159, L1-161 ; passation `tetsu__forge__coffre-ecrans.md` (Révision 4).

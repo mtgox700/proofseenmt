@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vérifier ce document (spécimen L1)</title>
+<title>Documents (spécimen L1)</title>
 <style>
 /* Generated from packages/brand/src/tokens.ts: do not edit by hand. */
 @font-face{font-family:"PS Display";src:url(../../../apps/web/public/fonts/ps-display-v1.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
@@ -875,7 +875,10 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-stratum-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); }
 .vault-stratum-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); font-size: var(--ps-step--1); }
 .vault-stratum-links a, .vault-link { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
-.vault-older > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+/* « Lire » is four letters: its target is at least 44 px wide too (L1-159). */
+.vault-stratum-links a { min-width: 2.75rem; justify-content: center; }
+/* Every summary keeps its native disclosure mark (L1-159 M7): a list item, its 48 px from its padding, never a flex box. */
+.vault-older > summary { display: list-item; padding-block: 0.875rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
 
 /* The comparison picker: a GET form, two selects and a button. */
 .vault-picker { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
@@ -889,7 +892,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 @media (prefers-reduced-motion: no-preference) {
   .vault-ink-band { animation: vault-ink calc(var(--ps-dur-trace) * 0.4375) var(--ps-ease-ink) calc(var(--ps-dur-trace) * 0.1875 * var(--band)) both; }
 }
-@keyframes vault-ink { from { opacity: 0.25; } to { opacity: 1; } }
+@keyframes vault-ink { from { opacity: 0.5; } to { opacity: 1; } }
 
 /* ---------- The form « Préparer » ---------- */
 .vault-form fieldset { display: grid; gap: var(--ps-space-3); min-width: 0; margin: 0; padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
@@ -904,8 +907,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-pre { white-space: pre-line; }
 @media (min-width: 48rem) { .vault-facts { grid-template-columns: 12rem minmax(0, 1fr); } .vault-facts > div { display: contents; } }
 .vault-choices { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-.vault-choice { display: flex; align-items: center; gap: var(--ps-space-3); min-height: 3rem; cursor: pointer; }
-.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--ps-aura); }
+/* A radio stays on the first line of a label of two (L1-159): aligned at the top, 48 px of target kept by padding. */
+.vault-choice { display: flex; align-items: flex-start; gap: var(--ps-space-3); min-height: 3rem; padding-block: 0.75rem; cursor: pointer; }
+.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0.125rem 0 0; accent-color: var(--ps-aura); }
 .vault-field { display: grid; gap: var(--ps-space-1); min-width: 0; }
 .vault-field input[type="number"], .vault-field input[type="text"], .vault-field textarea { width: 100%; max-width: 40rem; min-height: 3rem; font-size: 1rem; }
 .vault-field input[type="number"] { max-width: 8rem; }
@@ -937,7 +941,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); }
 .vault-rail { display: grid; gap: var(--ps-space-4); align-content: start; min-width: 0; }
 .vault-rail .btn { justify-content: center; min-height: 3rem; }
-.vault-rail details > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; }
+.vault-rail details > summary { display: list-item; padding-block: 0.75rem; cursor: pointer; }
 .vault-toc ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .vault-toc a { display: flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
 .vault-article { max-width: 46rem; font: var(--ps-weight-text) var(--ps-step-0) / 1.65 var(--ps-font-text); color: var(--ps-text); }
@@ -950,32 +954,46 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-clause ul { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--ps-space-2); }
 .vault-party { padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line); }
 .vault-footer { color: var(--ps-muted); font-size: var(--ps-step--1); padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
-.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; overflow-x: auto; }
-.vault-digests dl { display: grid; gap: var(--ps-space-1); margin: var(--ps-space-2) 0; }
-.vault-digests dd { margin: 0 0 var(--ps-space-2); }
+/* « Vérifier » never widens the page (L1-159 B2, measured 470 px at 375): shrinking columns, and long commands wrap. */
+.vault-digests { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-2); min-width: 0; }
+.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; }
+.vault-digests .vault-command { white-space: pre-wrap; overflow-wrap: anywhere; }
+.vault-digests dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-1); margin: var(--ps-space-2) 0; min-width: 0; }
+.vault-digests dd { margin: 0 0 var(--ps-space-2); min-width: 0; }
 .vault-skip { position: absolute; left: -9999px; }
 .vault-skip:focus { position: static; display: inline-flex; min-height: 3rem; align-items: center; }
+/* From 64 rem: the text and, under it, « Vérifier »; beside them the rail, which spans both rows and stays in view under
+   the space's sticky header (L1-159 M9). On a phone: rail, text, then « Vérifier », in the order of the markup. */
+.vault-desk-block { display: none; }
 @media (min-width: 64rem) {
-  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "text verify" "text ."; grid-template-rows: auto auto 1fr; gap: var(--ps-space-4) var(--ps-space-7); align-items: start; }
-  .vault-doc-body > .vault-rail { grid-area: rail; }
+  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "verify rail"; gap: var(--ps-space-6) var(--ps-space-7); align-items: start; }
+  .vault-doc-body > .vault-rail { grid-area: rail; position: sticky; top: 5rem; max-height: calc(100dvh - 6rem); overflow-y: auto; overscroll-behavior: contain; }
   .vault-doc-body > .vault-article-wrap { grid-area: text; }
   .vault-doc-body > .vault-digests { grid-area: verify; }
+  .vault-phone-block { display: none; }
+  .vault-desk-block { display: grid; gap: var(--ps-space-2); }
 }
 @media (max-width: 63.99rem) { .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); } .vault-rail .btn { width: 100%; } }
 
 /* ---------- The comparison (M2, the legend, the clauses) ---------- */
-.vault-pair { --vault-gap: 1.5rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
-.vault-pair > li { flex: 0 1 11rem; min-width: 0; }
+.vault-pair { --vault-gap: 1.5rem; --vault-pair-w: 9.75rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
+.vault-pair > li { flex: 0 0 var(--vault-pair-w); width: var(--vault-pair-w); min-width: 0; }
 /* Sixteen characters of the trace face never run into the neighbour's: they wrap by group of four inside their column. */
 .vault-pair .ui-fp-code { white-space: normal; }
+/* On a phone, two groups of four per line, never one left alone (L1-159). */
+@media (max-width: 47.99rem) { .vault-pair .ui-fp-code { max-width: 10ch; } }
+/* From 48 rem each column holds the sixteen characters on one line and the day after « Version n · » (L1-159). */
+@media (min-width: 48rem) { .vault-pair { --vault-pair-w: 14rem; } }
 .vault-pair .ui-fp { flex-direction: column; align-items: flex-start; }
 .vault-pair-line { color: var(--ps-muted); font-size: var(--ps-step--1); }
 .vault-line { display: block; }
-/* M2: the newer fingerprint starts exactly on the older one, then slides to its place: two documents, not one. */
+/* M2: the newer poinçon starts exactly on the older one, then slides to its place: two documents, not one. Only the
+   poinçon moves; its words are in place from 0 ms (L1-159 M6). Both columns have the same width, so one column and
+   one gap is exactly the distance. */
 @media (prefers-reduced-motion: no-preference) {
-  .vault-pair > li:last-child { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
+  .vault-pair > li:last-child .ui-fp-mark { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
 }
-@keyframes vault-part { from { transform: translateX(calc(-100% - var(--vault-gap))); } to { transform: none; } }
+@keyframes vault-part { from { transform: translateX(calc(-1 * (var(--vault-pair-w) + var(--vault-gap)))); } to { transform: none; } }
 .vault-brief ol { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
 .vault-brief li { display: grid; gap: var(--ps-space-1); padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line-strong); }
 .vault-by { color: var(--ps-muted); font-size: var(--ps-step--1); }
@@ -983,11 +1001,13 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-legend { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-raised); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font-size: var(--ps-step--1); }
 .vault-legend a { color: var(--ps-aura-text); }
 .vault-legend-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); }
-@media (min-width: 64rem) { .vault-legend { position: sticky; top: 0; z-index: 2; } }
+/* Under the space's sticky header (4 rem), never behind it (L1-159 M8). */
+@media (min-width: 64rem) { .vault-legend { position: sticky; top: 5rem; z-index: 2; } }
 .vault-views { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
 .vault-views label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
 .vault-views select { min-height: 3rem; font-size: 1rem; }
 .vault-diff { position: relative; display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-4) calc(var(--ps-space-4) + 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
+@media (min-width: 64rem) { .vault-diff { scroll-margin-top: 13rem; } }
 .vault-diff::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; transform-origin: left; }
 .vault-diff[data-kind="modified"]::before { background: var(--ps-signal); }
 .vault-diff[data-kind="added"]::before { background: var(--ps-aura); }
@@ -1002,6 +1022,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 /* The sign is said by the hidden prefix already: hidden from assistive technology where the alt syntax is understood. */
 .vault-block[data-sign]::before { content: attr(data-sign); content: attr(data-sign) / ""; position: absolute; left: -1.5rem; width: 1.5rem; text-align: center; font: var(--ps-weight-mono) var(--ps-step-0) / 1.65 var(--ps-font-mono); color: var(--ps-text); }
 .vault-block[data-state="same"] { color: var(--ps-muted); }
+/* A bullet of the contract stays a bullet (L1-159 M10); its sign of margin moves out by the bullet's own indent. */
+.vault-block[data-block="bullet"] { display: list-item; list-style: disc outside; margin-inline-start: 1.25rem; }
+.vault-block[data-block="bullet"][data-sign]::before { left: -2.75rem; }
 .vault-diff ins { text-decoration: underline 1px; text-underline-offset: 0.2em; color: var(--ps-aura-text); }
 .vault-diff del { text-decoration: line-through; color: var(--ps-muted); }
 /* « 15 » struck then « 20 » underlined: a hair of space between them, so the two numbers never read as « 1520 ». */
@@ -1009,9 +1032,9 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
 .vault-diff[data-kind="added"] ins { text-decoration: none; color: var(--ps-text); }
 .vault-next { font-size: var(--ps-step--1); }
 .vault-next a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
-.vault-same > summary { display: flex; align-items: center; min-height: 3rem; padding: 0 var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
+.vault-same > summary { display: list-item; padding: 0.75rem var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
 .vault-same ol { display: grid; gap: var(--ps-space-2); margin: var(--ps-space-3) 0 0; padding: 0 0 0 var(--ps-space-4); list-style: none; }
-.vault-same details > summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; }
+.vault-same details > summary { display: list-item; padding-block: 0.6875rem; cursor: pointer; }
 .vault-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
 @media (min-width: 64rem) { .vault-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .vault-side-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
@@ -1041,7 +1064,7 @@ input, select, textarea { font-size: max(16px, var(--ps-step-0)); }
   .vault-diff, .vault-card { break-inside: avoid; background: none; }
   .vault-diff ins { text-decoration: underline 1px; }
   .vault-diff del { text-decoration: line-through; }
-  .vault-pair > li:last-child { animation: none; }
+  .vault-pair .ui-fp-mark { animation: none; }
 }
 
 main.spec { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -1051,14 +1074,8 @@ main.spec { padding: 24px clamp(16px, 3vw, 32px) 48px; max-width: 1200px; margin
 </head>
 <body>
 <main class="spec">
-<p class="spec-where">E4 · « Vérifier ce document » ouvert, et le pied du texte</p>
-<div class="vault-page vault-doc"><details open class="vault-digests" id="verifier"><summary>Vérifier ce document</summary><p>Deux empreintes, deux usages.</p><dl><dt>L&#x27;empreinte du contenu est imprimée en pied de chaque page du PDF et dessine le poinçon.</dt><dd><code>6763 4FE8 4926 051F
-B238 87C2 20DD BFF3
-FD7E 5230 9506 979D
-CD92 D24E 31C5 27C0</code></dd><dt>L&#x27;empreinte du fichier identifie le PDF exact.</dt><dd><code>56d668c4a5e37c80
-129ff0d349ff2a03
-b6a78892def4a889
-963a900a86cbf02d</code></dd></dl><p>Pour la recalculer sur votre ordinateur :</p><dl><div><dt>sous Windows</dt><dd><code>certutil -hashfile contrat-de-prestation-v2.pdf SHA256</code></dd></div><div><dt>sous macOS</dt><dd><code>shasum -a 256 contrat-de-prestation-v2.pdf</code></dd></div><div><dt>sous Linux</dt><dd><code>sha256sum contrat-de-prestation-v2.pdf</code></dd></div></dl><p>Le résultat doit être identique.</p></details><p class="vault-footer">Ce texte est celui du PDF : même empreinte de contenu, 6763 4FE8 4926 051F, vérifiée à l'affichage.</p></div><p class="spec-note">Spécimen L1 : données d'exemple (parties « Exemple », empreintes de textes d'exemple, dates d'octobre 2026), rendues par les composants réels du coffre. Pas un compte réel ; l'en-tête et le menu de l'espace ne sont pas dessinés ici.</p>
+<p class="spec-where">E6 · /fr/app/documents</p>
+<div class="vault-page"><nav class="vault-tabs" aria-label="Sections des contrats"><ul><li><a href="/fr/app/contrats">Contrats</a></li><li><a aria-current="page" href="/fr/app/documents">Documents</a></li></ul></nav><header class="app-head"><h1>Documents</h1><p class="vault-lead">Tous les documents de vos affaires. Ils naissent dans l'onglet Documents de chaque affaire.</p></header><div class="vault-section"><div class="ui-filter"><form class="ui-filter-form" role="search" aria-label="Filtres" action="/fr/app/documents" method="get"><div class="ui-field"><label for="docs-filtres-sorte">Sorte</label><select id="docs-filtres-sorte" name="sorte"><option value="" selected="">Toutes</option><option value="service_agreement">Contrat de prestation</option></select></div><div class="ui-field"><label for="docs-filtres-par">Déposé par</label><select id="docs-filtres-par" name="par"><option value="" selected="">Tous</option><option value="vous">Vous</option><option value="autre">Pas vous</option></select></div><button type="submit" class="btn">Filtrer</button></form></div><div class="ui-table-block"><nav class="ui-sortbar" aria-labelledby="docs-sortby"><p id="docs-sortby" class="ui-sortbar-label">Trier par</p><ul><li><a class="ui-sort" data-dir="descending" aria-current="true" href="/fr/app/documents?tri=depose">Déposé<span class="sr-only">, trié par ordre décroissant, trier par ordre croissant</span></a></li></ul></nav><div class="ui-table-frame" role="region" aria-labelledby="docs-caption" tabindex="0"><table class="ui-table" id="docs"><caption id="docs-caption" class="ui-caption">Vos documents, du plus récent au plus ancien</caption><thead><tr><th scope="col">Document</th><th scope="col" class="ui-num">Version</th><th scope="col">Empreinte</th><th scope="col" class="ui-num" aria-sort="descending" data-sortable=""><a class="ui-sort" data-dir="descending" href="/fr/app/documents?tri=depose">Déposé<span class="sr-only">, trier par ordre croissant</span></a></th><th scope="col">Par</th></tr></thead><tbody><tr><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d1">Contrat de prestation · Studio Exemple</a></th><td class="ui-num" data-card="end"><span class="vault-phone-only">Version </span>2</td><td data-card="label"><span class="ui-fp" data-state="filed"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="16" viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M8 0.75L15.25 8L8 15.25L0.75 8Z" stroke-width="1.25"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 2</span><code class="ui-fp-code">ECB8 1E04 2862 4171</code><span class="ui-fp-word">Déposé</span></span></span></td><td class="ui-num" data-card="aside"><time dateTime="2026-10-25T08:41:00Z">25 octobre 2026</time></td><td data-card="body"><span class="vault-phone-only">par </span>le freelance</td></tr><tr><th scope="row" data-card="title"><a class="ui-row-link" href="/fr/app/documents/00000000-0000-4000-8000-0000000000d2">Contrat de prestation · Atelier Exemple</a></th><td class="ui-num" data-card="end"><span class="vault-phone-only">Version </span>1</td><td data-card="label"><span class="ui-fp" data-state="filed"><span class="ui-fp-mark"><svg class="ui-fpm" data-state="filed" data-level="16" viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true"><path class="ui-fpm-frame" d="M8 0.75L15.25 8L8 15.25L0.75 8Z" stroke-width="1.25"></path></svg></span><span class="ui-fp-text"><span class="sr-only">Empreinte du contrat de prestation, version 1</span><code class="ui-fp-code">D4A8 6AF0 E9CA 1083</code><span class="ui-fp-word">Déposé</span></span></span></td><td class="ui-num" data-card="aside"><time dateTime="2026-10-20T09:00:00Z">20 octobre 2026</time></td><td data-card="body"><span class="vault-phone-only">par </span>vous</td></tr></tbody></table></div><nav class="ui-pager" aria-label="Pages de la liste"><p class="ui-pager-summary">1 à 2 sur 2</p></nav></div></div></div><p class="spec-note">Spécimen L1 : données d'exemple (parties « Exemple », empreintes de textes d'exemple, dates d'octobre 2026), rendues par les composants réels du coffre. Pas un compte réel ; l'en-tête et le menu de l'espace ne sont pas dessinés ici.</p>
 </main>
 </body>
 </html>

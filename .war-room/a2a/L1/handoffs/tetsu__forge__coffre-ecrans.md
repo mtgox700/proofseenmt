@@ -126,3 +126,64 @@ livrables, validité) et six libellés dans `deals-fr.ts`, `deals-en.ts` ; test 
 - **Pas refaites** : `e4@1280` et `e4@375`, `e6@1280` et `e6@375`. Les retouches de ces pages (séparateur, casse du
   pied, « par » sur la carte E6) sont vérifiées par les tests de rendu, pas à l'image.
 - **Mesure de E5 refaite** : médiane 280,5 ms, 39 412 o de HTML ; poste plus chargé qu'à la première mesure.
+
+## Révision 3 : inspection de Kensa (L1-159), corrigée en TDD, bus L1-161
+- **Rouge d'abord.** `test/dictionary-escapes.test.ts` en échec sur `market/deals-fr.ts` seul (63 dictionnaires
+  propres). `test/vault-review.test.ts` en échec à l'import (modules absents).
+- **Cause de B1, faute de ma part.** Mon `sed` de L1-145 avait remplacé les U+202F réels de deux lignes voisines par
+  « 202f ». Corrigé, octets vérifiés par `od -c`. Le garde-fou couvre désormais tous les dictionnaires.
+- **B2, mesuré dans le rail réel**, « Vérifier » ouvert (`.war-room/sprints/L1_specimens/vault-r2/e4-open.html`, la page
+  se mesure elle-même, Chrome sans tête `--dump-dom`) : `scrollWidth` = largeur visible, 1 247/1 247 à 1 280 px et
+  360/360 à 375 px. Kensa mesurait 470 px avant.
+- **Fichiers ajoutés** : `lib/vault/file-name.ts` (le seul `FILE_NAMES`, utilisé aussi par `api/documents/vault.ts`)
+  et `lib/vault/acceptance.ts` (`acceptanceLine`, `waitingLine`). `defaultReason` est dans `lib/vault/versions.ts`.
+- **Composants et fichiers modifiés** :
+  - `ChoiceField` et `PrepareForm` : radios dans un `div` ;
+  - `DownloadLink` : sans `download` ;
+  - `download-fallback.ts` : exige `sec-fetch-dest: document` ;
+  - `Digests` : commandes en `pre-wrap` ;
+  - `DocumentRail` : bloc téléphone replié, bloc bureau en liste, rail collant ;
+  - `ClauseDiff` et `DiffLegend` : puces, cibles `#clause-{id}` ;
+  - `CompareHead` : seul le poinçon bouge ;
+  - `choices.ts` et `explain.ts` : libellé de la variante, gabarit de chaque version ;
+  - action : contrôle du document, raison par défaut ;
+  - `vault-fr.ts` et `vault-en.ts` : textes de relecture, d'acceptation, de « Vérifier » et du filtre.
+- **Tests de l'ancien comportement mis à jour** : `vault-screens`, `vault-explain`, `vault-choices` et
+  `documents-api.test.ts` (nom du fichier servi).
+- **Vert** :
+  - 233 tests sur 234, le seul rouge étant un sélecteur de la règle d'impression, corrigé ;
+  - après les deux dernières retouches, `vault-review`, `vault-screens` et `dictionary-escapes` relancés seuls : 104/104 ;
+  - eslint sur tout le touché : exit 0.
+- **Pas relancé** : `tsc`, comme demandé ; le gate du VPS fera foi.
+- **Captures** : dossier neuf `vault-r2/`, 12:41 à 12:44, toutes postérieures aux retouches. Regardées : `e4-open@375`,
+  `e4-verifier@375`, `e5@375`.
+- **Pas regardées une à une** : `e2-errors`, `e1-s5`, `e6`, `e1-s3`, `e5@1280`, `e4-open@1280`, `e4-verifier@1280`.
+- **NON VÉRIFIÉ** :
+  - axe-core (règle `listitem`) n'est pas installé sur ce poste ;
+  - le téléchargement en échec dans un vrai Chrome (B4) se prouve sur le VPS ;
+  - le rapport complet de Kensa n'est pas sur disque : les autres mineurs restent à me lister.
+- **Reste** :
+  - à 375 px, la date sous chaque poinçon de E5 se coupe entre « octobre » et « 2026 » (mineur, vu à l'image) ;
+  - la couleur de « Modifiée » attend la réponse de Sensei.
+
+## Révision 4 : les neuf mineurs restants de Kensa (L1-159), bus L1-162
+- **Rouge d'abord** : 7 tests nouveaux en échec dans `vault-review.test.ts` (26 tests au total).
+- **Vert** :
+  - `vault-review` 26/26 ;
+  - passe des fichiers `vault-*`, `dictionary-escapes` et `french-spacing` : 210 verts et 1 attente ancienne (la date de E5 désormais insécable) mise à jour ; `vault-screens` relancé seul : 20/20 ;
+  - eslint : exit 0.
+- **Corrections** :
+  - U+00A0 entre nombre et unité (`explain.ts`) ;
+  - empreintes de E5 en deux groupes par ligne au téléphone, sur une ligne dès 48 rem ;
+  - date insécable sous chaque poinçon ;
+  - légende de la table selon le tri (`captionOldest`) ;
+  - résumé d'erreurs sans légende répétée ;
+  - radios en haut sur un libellé de deux lignes ;
+  - montant une seule fois dans l'en-tête de l'affaire ;
+  - « Lire » des strates à 44 px de large au moins.
+- **Captures** :
+  - l'ancien dossier `vault/` est supprimé, captures périmées comprises ;
+  - `vault-r2/` est le seul dossier, les outils y écrivent par défaut ;
+  - regardées : `e2-errors@1280` (12:53) et `@375` (12:53), `e5@1280` (13:11, après l'élargissement des colonnes) et `@375` (13:20), `e6@1280` (12:57) et `@375` (12:57) ;
+  - fichiers intermédiaires supprimés.
+- **NON VÉRIFIÉ** : axe-core, le téléchargement en échec dans un vrai Chrome, `tsc` (non relancé sur consigne) : au gate du VPS.

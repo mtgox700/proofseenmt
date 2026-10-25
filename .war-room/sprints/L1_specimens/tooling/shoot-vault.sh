@@ -5,6 +5,8 @@
 #   bash .war-room/sprints/L1_specimens/tooling/shoot-vault.sh [page ...]
 set -euo pipefail
 dir=".war-room/sprints/L1_specimens"
+out="${VAULT_OUT:-vault-r2}"
+export VAULT_OUT="$out"
 TSX_TSCONFIG_PATH="$dir/tooling/tsconfig.json" node --import tsx/esm --import "./$dir/tooling/css-hook.mjs" "$dir/tooling/build-vault-specimen.tsx"
 chrome="/c/Program Files/Google/Chrome/Application/chrome.exe"
 pages=("$@")
@@ -20,13 +22,13 @@ for y in range(h - 1, -1, -1):
 im.crop((0, 0, w, min(h, last + 32 * scale))).save(sys.argv[1])
 " "$1" "$2"; }
 for name in "${pages[@]}"; do
-  page="file:///$(cygpath -m "$PWD/$dir/vault/$name.html")"
-  shot 1 "1280,${H1280:-6000}" "$dir/vault/$name@1280.png" "$page"; trim "$dir/vault/$name@1280.png" 1
-  frame="$dir/vault/frame-$name.html"
+  page="file:///$(cygpath -m "$PWD/$dir/$out/$name.html")"
+  shot 1 "1280,${H1280:-6000}" "$dir/$out/$name@1280.png" "$page"; trim "$dir/$out/$name@1280.png" 1
+  frame="$dir/$out/frame-$name.html"
   printf '<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#000}iframe{border:0;display:block}</style><iframe src="%s.html" width="375" height="%s"></iframe>' "$name" "${H375:-7000}" > "$frame"
-  shot 2 "520,${H375:-7000}" "$dir/vault/$name@375-raw.png" "file:///$(cygpath -m "$PWD/$frame")"
-  python -I -c "import sys; from PIL import Image; im=Image.open(sys.argv[1]); im.crop((0,0,750,im.height)).save(sys.argv[2])" "$dir/vault/$name@375-raw.png" "$dir/vault/$name@375.png"
-  trim "$dir/vault/$name@375.png" 2
-  rm -f "$dir/vault/$name@375-raw.png" "$frame"
+  shot 2 "520,${H375:-7000}" "$dir/$out/$name@375-raw.png" "file:///$(cygpath -m "$PWD/$frame")"
+  python -I -c "import sys; from PIL import Image; im=Image.open(sys.argv[1]); im.crop((0,0,750,im.height)).save(sys.argv[2])" "$dir/$out/$name@375-raw.png" "$dir/$out/$name@375.png"
+  trim "$dir/$out/$name@375.png" 2
+  rm -f "$dir/$out/$name@375-raw.png" "$frame"
 done
-ls -la --time-style=+%H:%M:%S "$dir"/vault/*.png
+ls -la --time-style=+%H:%M:%S "$dir"/$out/*.png
