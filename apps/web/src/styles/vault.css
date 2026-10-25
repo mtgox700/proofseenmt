@@ -1,0 +1,217 @@
+/* The vault (storyboard L1.6): the documents of an affair, a document, a comparison, the form « Préparer ». Loaded by the
+   components of components/vault only. Every colour a brand token; no green anywhere (in L1 every document is filed,
+   never sealed: the proof colour is not read here, a test refuses it); nothing that animates a shadow or a filter.
+   Two movements only, M1 (a fingerprint inks) and M2 (two fingerprints part), both on transform or opacity, both inside
+   prefers-reduced-motion: no-preference, both timed by brand durations that the brand sets to 0 under reduced motion.
+   Grids keep one shrinking column (minmax(0, 1fr)); targets are 48 px. */
+
+.vault-page, .vault-section, .vault-cards, .vault-card, .vault-form, .vault-doc, .vault-compare, .vault-diffs { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); min-width: 0; }
+.vault-lead { color: var(--ps-muted); max-width: var(--ps-measure); }
+/* Under the page's h1 the sections speak one step lower: the counterpart, then the documents, never two titles alike. */
+.vault-section > h2, .vault-brief > h2, .vault-diffs > h2 { font-size: var(--ps-step-2); line-height: var(--ps-lead-2); letter-spacing: var(--ps-track-2); }
+.vault-compare .vault-doc-head h1, .vault-doc .vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); letter-spacing: var(--ps-track-3); }
+/* The selects of the vault's GET forms, drawn like the fields of the primitives. */
+:is(.vault-picker, .vault-views) select { min-height: 3rem; min-width: 5rem; padding: 0.4rem 2rem 0.4rem 0.7rem; font: inherit; font-size: 1rem; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+:is(.vault-picker, .vault-views) select:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.vault-field :is(input[type="number"], input[type="text"], textarea) { padding: 0.5rem 0.7rem; font: inherit; background: var(--ps-bg); color: var(--ps-text); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); }
+.vault-field :is(input, textarea):focus-visible, .vault-choice input:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- Tabs: links, never a tablist (a tablist needs a script) ---------- */
+.vault-tabs ul { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-5); margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--ps-line); }
+.vault-tabs a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.vault-tabs a[aria-current="page"] { color: var(--ps-text); font-weight: var(--ps-weight-strong); border-bottom-color: var(--ps-aura); }
+@media (hover: hover) and (pointer: fine) { .vault-tabs a:not([aria-current]):hover { color: var(--ps-text); } }
+.vault-tabs a:focus-visible { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- A status line: there from 0 ms, never animated ---------- */
+.vault-status { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line); border-left: 3px solid var(--ps-aura); border-radius: var(--ps-radius); background: var(--ps-surface); }
+.vault-status code, .vault-mono { font: var(--ps-weight-mono) var(--ps-step--1) / 1.4 var(--ps-font-mono); letter-spacing: 0.02em; font-variant-numeric: tabular-nums slashed-zero; }
+.vault-alert { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line); border-left: 3px solid var(--ps-danger); border-radius: var(--ps-radius); background: var(--ps-surface); }
+.vault-alert:focus { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+
+/* ---------- A document of the affair (S5) ---------- */
+.vault-card { gap: var(--ps-space-3); padding: clamp(1rem, 2.5vw, 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius-card); }
+.vault-card > h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.vault-meta { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-review { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-reason { font-size: var(--ps-step--1); }
+.vault-actions { display: flex; flex-wrap: wrap; gap: var(--ps-space-2) var(--ps-space-3); margin: 0; padding: 0; list-style: none; }
+.vault-actions .btn { min-height: 3rem; }
+.vault-closed { color: var(--ps-muted); font-size: var(--ps-step--1); max-width: var(--ps-measure); }
+
+/* The strata: a cut through rock, the newest on top, a rule down the left; the current one has the bar of selection. */
+.vault-strata-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+.vault-strata { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--ps-line); }
+.vault-stratum { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-2) 0 var(--ps-space-2) var(--ps-space-4); min-width: 0; }
+.vault-stratum[aria-current] { box-shadow: inset 2px 0 0 var(--ps-aura); }
+.vault-stratum-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-1) var(--ps-space-3); font-size: var(--ps-step--1); }
+.vault-stratum-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); font-size: var(--ps-step--1); }
+.vault-stratum-links a, .vault-link { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
+.vault-older > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+
+/* The comparison picker: a GET form, two selects and a button. */
+.vault-picker { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
+.vault-picker label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
+.vault-picker select { min-height: 3rem; font-size: 1rem; }
+
+/* M1: the fingerprint of a version just born inks, top band first (§6). The cells are drawn in the line colour from
+   0 ms; the ink is laid over them, row by row. Without the animation (no script needed, reduced motion, an old
+   browser) the ink is simply there: the drawing is the same as FingerprintStamp's at rest. */
+.vault-ink-base { fill: var(--ps-line); }
+@media (prefers-reduced-motion: no-preference) {
+  .vault-ink-band { animation: vault-ink calc(var(--ps-dur-trace) * 0.4375) var(--ps-ease-ink) calc(var(--ps-dur-trace) * 0.1875 * var(--band)) both; }
+}
+@keyframes vault-ink { from { opacity: 0.25; } to { opacity: 1; } }
+
+/* ---------- The form « Préparer » ---------- */
+.vault-form fieldset { display: grid; gap: var(--ps-space-3); min-width: 0; margin: 0; padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
+.vault-form legend { padding: 0 var(--ps-space-2); font: var(--ps-weight-display) var(--ps-step-0) / 1.3 var(--ps-font-display); }
+.vault-owner { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-choice .vault-owner { display: block; }
+.vault-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-3); margin: 0; }
+.vault-facts > div { display: grid; gap: var(--ps-space-1); }
+.vault-facts dt { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-facts dd { margin: 0; overflow-wrap: anywhere; }
+.vault-facts ul { margin: 0; padding-left: 1.25rem; }
+.vault-pre { white-space: pre-line; }
+@media (min-width: 48rem) { .vault-facts { grid-template-columns: 12rem minmax(0, 1fr); } .vault-facts > div { display: contents; } }
+.vault-choices { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.vault-choice { display: flex; align-items: center; gap: var(--ps-space-3); min-height: 3rem; cursor: pointer; }
+.vault-choice input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--ps-aura); }
+.vault-field { display: grid; gap: var(--ps-space-1); min-width: 0; }
+.vault-field input[type="number"], .vault-field input[type="text"], .vault-field textarea { width: 100%; max-width: 40rem; min-height: 3rem; font-size: 1rem; }
+.vault-field input[type="number"] { max-width: 8rem; }
+.vault-hint { color: var(--ps-muted); font-size: var(--ps-step--1); max-width: var(--ps-measure); }
+.vault-error { color: var(--ps-text); font-size: var(--ps-step--1); padding-left: var(--ps-space-3); box-shadow: inset 2px 0 0 var(--ps-danger); }
+.vault-form [aria-invalid="true"] { border-color: var(--ps-danger); }
+.vault-submit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ps-space-3) var(--ps-space-5); }
+.vault-submit .btn { min-height: 3rem; }
+.vault-note { padding: var(--ps-space-3) var(--ps-space-4); border: 1px solid var(--ps-line-strong); border-radius: var(--ps-radius); color: var(--ps-text); max-width: var(--ps-measure); }
+.vault-summary ul { margin: var(--ps-space-2) 0 0; padding-left: 1.25rem; }
+.vault-summary a { color: var(--ps-aura-text); }
+/* Fields that only count under a condition stay in the page (no script); where :has() is understood they show only
+   when their condition holds, and the server ignores them otherwise. Without :has(), all show, with « Seulement si ». */
+.vault-onlyif { color: var(--ps-muted); font-size: var(--ps-step--1); }
+@supports selector(:has(*)) {
+  .vault-onlyif { display: none; }
+  /* Specific enough to beat `.vault-form fieldset { display: grid }` (seen on the E2 specimen: the rights showed). */
+  .vault-form .vault-cond { display: none; }
+  .vault-form:has(input[name="input.ipRegime"][value="assignment"]:checked, input[name="input.ipRegime"][value="licence"]:checked) .vault-cond[data-cond="ip-rights"],
+  .vault-form:has(input[name="input.processesPersonalData"][value="true"]:checked) .vault-cond[data-cond="input.dpaDetails"],
+  .vault-form:has(input[name="clause.insurance"]:checked) .vault-cond[data-cond="clause.insurance"],
+  .vault-form:has(input[name="clause.non-solicitation"]:checked) .vault-cond[data-cond="clause.non-solicitation"],
+  .vault-cond:has([aria-invalid="true"]) { display: grid; }
+}
+
+/* ---------- A document: the text, the rail, « Vérifier » ---------- */
+.vault-doc { gap: var(--ps-space-6); }
+.vault-doc-head { display: grid; gap: var(--ps-space-2); }
+.vault-doc-head h1 { font-size: var(--ps-step-3); line-height: var(--ps-lead-3); }
+.vault-rail { display: grid; gap: var(--ps-space-4); align-content: start; min-width: 0; }
+.vault-rail .btn { justify-content: center; min-height: 3rem; }
+.vault-rail details > summary { display: flex; align-items: center; min-height: 3rem; cursor: pointer; }
+.vault-toc ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.vault-toc a { display: flex; align-items: center; min-height: 2.75rem; color: var(--ps-aura-text); font-size: var(--ps-step--1); }
+.vault-article { max-width: 46rem; font: var(--ps-weight-text) var(--ps-step-0) / 1.65 var(--ps-font-text); color: var(--ps-text); }
+.vault-article > * + * { margin-top: var(--ps-space-4); }
+.vault-doc-title { font: var(--ps-weight-display) var(--ps-step-2) / var(--ps-lead-2) var(--ps-font-display); }
+.vault-doc-sub { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-clause { display: grid; gap: var(--ps-space-3); scroll-margin-top: 5rem; }
+.vault-clause > h2, .vault-clause > h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); scroll-margin-top: 5rem; }
+.vault-clause h2:focus, .vault-clause h3:focus { outline: none; }
+.vault-clause ul { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--ps-space-2); }
+.vault-party { padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line); }
+.vault-footer { color: var(--ps-muted); font-size: var(--ps-step--1); padding-top: var(--ps-space-4); border-top: 1px solid var(--ps-line); }
+.vault-digests code { display: block; font: var(--ps-weight-mono) var(--ps-step--1) / 1.5 var(--ps-font-mono); font-variant-numeric: tabular-nums slashed-zero; white-space: pre; overflow-x: auto; }
+.vault-digests dl { display: grid; gap: var(--ps-space-1); margin: var(--ps-space-2) 0; }
+.vault-digests dd { margin: 0 0 var(--ps-space-2); }
+.vault-skip { position: absolute; left: -9999px; }
+.vault-skip:focus { position: static; display: inline-flex; min-height: 3rem; align-items: center; }
+@media (min-width: 64rem) {
+  .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; grid-template-areas: "text rail" "text verify" "text ."; grid-template-rows: auto auto 1fr; gap: var(--ps-space-4) var(--ps-space-7); align-items: start; }
+  .vault-doc-body > .vault-rail { grid-area: rail; }
+  .vault-doc-body > .vault-article-wrap { grid-area: text; }
+  .vault-doc-body > .vault-digests { grid-area: verify; }
+}
+@media (max-width: 63.99rem) { .vault-doc-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-5); } .vault-rail .btn { width: 100%; } }
+
+/* ---------- The comparison (M2, the legend, the clauses) ---------- */
+.vault-pair { --vault-gap: 1.5rem; display: flex; gap: var(--vault-gap); margin: 0; padding: 0; list-style: none; }
+.vault-pair > li { flex: 0 1 11rem; min-width: 0; }
+/* Sixteen characters of the trace face never run into the neighbour's: they wrap by group of four inside their column. */
+.vault-pair .ui-fp-code { white-space: normal; }
+.vault-pair .ui-fp { flex-direction: column; align-items: flex-start; }
+.vault-pair-line { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-line { display: block; }
+/* M2: the newer fingerprint starts exactly on the older one, then slides to its place: two documents, not one. */
+@media (prefers-reduced-motion: no-preference) {
+  .vault-pair > li:last-child { animation: vault-part var(--ps-dur-reveal) var(--ps-ease-out) both; }
+}
+@keyframes vault-part { from { transform: translateX(calc(-100% - var(--vault-gap))); } to { transform: none; } }
+.vault-brief ol { display: grid; gap: var(--ps-space-4); margin: 0; padding: 0; list-style: none; }
+.vault-brief li { display: grid; gap: var(--ps-space-1); padding-left: var(--ps-space-4); border-left: 1px solid var(--ps-line-strong); }
+.vault-by { color: var(--ps-muted); font-size: var(--ps-step--1); }
+.vault-party-line { font-size: var(--ps-step--1); }
+.vault-legend { display: grid; gap: var(--ps-space-1); padding: var(--ps-space-3) var(--ps-space-4); background: var(--ps-raised); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); font-size: var(--ps-step--1); }
+.vault-legend a { color: var(--ps-aura-text); }
+.vault-legend-links { display: flex; flex-wrap: wrap; gap: 0 var(--ps-space-4); }
+@media (min-width: 64rem) { .vault-legend { position: sticky; top: 0; z-index: 2; } }
+.vault-views { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ps-space-3); }
+.vault-views label { display: grid; gap: var(--ps-space-1); font-size: var(--ps-step--1); color: var(--ps-muted); }
+.vault-views select { min-height: 3rem; font-size: 1rem; }
+.vault-diff { position: relative; display: grid; gap: var(--ps-space-3); padding: var(--ps-space-4) var(--ps-space-4) var(--ps-space-4) calc(var(--ps-space-4) + 1.5rem); background: var(--ps-surface); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); scroll-margin-top: 6rem; }
+.vault-diff::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; transform-origin: left; }
+.vault-diff[data-kind="modified"]::before { background: var(--ps-signal); }
+.vault-diff[data-kind="added"]::before { background: var(--ps-aura); }
+.vault-diff[data-kind="removed"]::before { background: var(--ps-line-strong); }
+/* M3: arriving on a change by its link, the margin rule thickens once (a reply to the person, not a show). */
+@media (prefers-reduced-motion: no-preference) { .vault-diff:target::before { transition: transform var(--ps-dur-ui) var(--ps-ease-out); } html:has(.vault-compare) { scroll-behavior: smooth; } }
+.vault-diff:target::before { transform: scaleX(2); }
+.vault-diff:target { outline: var(--ps-ring) solid var(--ps-focus); outline-offset: 2px; }
+.vault-diff-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ps-space-2) var(--ps-space-3); }
+.vault-diff-head h3 { font: var(--ps-weight-display) var(--ps-step-1) / var(--ps-lead-1) var(--ps-font-display); }
+.vault-block { position: relative; margin: 0; }
+/* The sign is said by the hidden prefix already: hidden from assistive technology where the alt syntax is understood. */
+.vault-block[data-sign]::before { content: attr(data-sign); content: attr(data-sign) / ""; position: absolute; left: -1.5rem; width: 1.5rem; text-align: center; font: var(--ps-weight-mono) var(--ps-step-0) / 1.65 var(--ps-font-mono); color: var(--ps-text); }
+.vault-block[data-state="same"] { color: var(--ps-muted); }
+.vault-diff ins { text-decoration: underline 1px; text-underline-offset: 0.2em; color: var(--ps-aura-text); }
+.vault-diff del { text-decoration: line-through; color: var(--ps-muted); }
+/* « 15 » struck then « 20 » underlined: a hair of space between them, so the two numbers never read as « 1520 ». */
+.vault-diff del + ins { margin-inline-start: 0.3em; }
+.vault-diff[data-kind="added"] ins { text-decoration: none; color: var(--ps-text); }
+.vault-next { font-size: var(--ps-step--1); }
+.vault-next a { display: inline-flex; align-items: center; min-height: 3rem; color: var(--ps-aura-text); }
+.vault-same > summary { display: flex; align-items: center; min-height: 3rem; padding: 0 var(--ps-space-4); cursor: pointer; color: var(--ps-muted); border: 1px dashed var(--ps-line); border-radius: var(--ps-radius); }
+.vault-same ol { display: grid; gap: var(--ps-space-2); margin: var(--ps-space-3) 0 0; padding: 0 0 0 var(--ps-space-4); list-style: none; }
+.vault-same details > summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; }
+.vault-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-space-4); }
+@media (min-width: 64rem) { .vault-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.vault-side-title { font: var(--ps-weight-mono) var(--ps-step--2) / 1.4 var(--ps-font-mono); letter-spacing: var(--ps-track-label); text-transform: uppercase; color: var(--ps-muted); }
+
+.vault-phone-only { display: none; }
+@media (max-width: 47.99rem) { .vault-phone-only { display: inline; } }
+@media (max-width: 63.99rem) { .vault-rail-stamp svg { width: 64px; height: 64px; } }
+
+/* ---------- 375 px ---------- */
+@media (max-width: 47.99rem) {
+  .vault-actions { flex-direction: column; }
+  .vault-actions .btn { width: 100%; justify-content: center; }
+  .vault-diff { padding-left: calc(var(--ps-space-3) + 1.25rem); }
+  .vault-block[data-sign]::before { left: -1.25rem; width: 1.25rem; }
+  .vault-field input, .vault-field textarea, .vault-picker select, .vault-views select { font-size: 1rem; }
+}
+
+/* ---------- Colour taken away: signs, words, struck and underlined carry everything ---------- */
+@media (forced-colors: active) {
+  .vault-diff::before, .vault-tabs a[aria-current="page"] { background: CanvasText; border-color: CanvasText; }
+  .vault-diff ins, .vault-diff del { color: CanvasText; }
+}
+
+/* ---------- Print: the full version for a party's counsel keeps every mark ---------- */
+@media print {
+  .vault-tabs, .vault-views, .vault-picker, .vault-skip, .vault-next, .back-link { display: none; }
+  .vault-diff, .vault-card { break-inside: avoid; background: none; }
+  .vault-diff ins { text-decoration: underline 1px; }
+  .vault-diff del { text-decoration: line-through; }
+  .vault-pair > li:last-child { animation: none; }
+}
