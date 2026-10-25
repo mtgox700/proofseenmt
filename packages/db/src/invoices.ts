@@ -4,6 +4,7 @@ import type { Db } from "./client";
 import { isUniqueViolation } from "./errors";
 import type { Prisma } from "./generated/client";
 import type { InvoiceKind } from "./generated/enums";
+import { parisDay, settlementDay } from "./invoice-settlement";
 import type { Actor } from "./messaging";
 
 /*
@@ -17,6 +18,10 @@ import type { Actor } from "./messaging";
  * un paiement notifié deux fois rend la facture déjà émise. Une facture émise ne se modifie ni ne se supprime.
  *
  * La facture de commission n'est montrée qu'au freelance : l'entreprise n'a pas à connaître ce que Proofseen prélève.
+ *
+ * Les deux factures sont émises à la libération des fonds : elles sont alors acquittées (`paidOn`), avec pour échéance le
+ * jour de la libération, à l'heure de Paris (voir invoice-settlement.ts). L'échéance à trente jours ne reste que pour une
+ * facture émise sans libération.
  */
 
 export const PROOFSEEN_ISSUER = "proofseen";
@@ -40,6 +45,10 @@ export interface InvoiceRecord {
   readonly buyer: LegalSnapshot;
   readonly issuedAt: Date;
   readonly dueOn: Date;
+  /** Jour du règlement quand la facture est émise après l'encaissement (alors `dueOn` est ce jour) ; nul sinon. */
+  readonly paidOn: Date | null;
+  /** Pour une facture de commission réglée par retenue sur le versement : le numéro de la facture de la mission. */
+  readonly settlesNumber: string | null;
 }
 
 export type IssueResult =
@@ -72,6 +81,8 @@ const SELECT = {
   buyerSnapshot: true,
   issuedAt: true,
   dueOn: true,
+  paidOn: true,
+  settlesNumber: true,
 } as const;
 
 type Row = Prisma.InvoiceGetPayload<{ select: typeof SELECT }>;
@@ -146,6 +157,11 @@ const issue = async (
       const year = parisYear(now);
       const sequence = await allocate(tx, spec.issuer, year);
       const vatCents = vatOf(spec.netCents, spec.vatRateBp);
+      // Acquittée le jour où les fonds sont mis à la disposition du freelance (la libération), à l'heure de Paris ; sinon
+      // l'échéance habituelle. La commission est retenue sur ce versement : elle renvoie à la facture de la mission.
+      const paidOn = await settlementDay(tx, contractId, now);
+      const dueOn = paidOn ?? new Date(parisDay(now).getTime() + DEFAULT_PAYMENT_TERM_DAYS * DAY_MS);
+      const settles = kind === "commission" ? await tx.invoice.findUnique({ where: { contractId_kind: { contractId, kind: "mission" } }, select: { number: true } }) : null;
       const row = await tx.invoice.create({
         data: {
           number: `${spec.prefix}-${year}-${String(sequence).padStart(4, "0")}`,
@@ -161,7 +177,9 @@ const issue = async (
           sellerSnapshot: spec.seller as unknown as Prisma.InputJsonObject,
           buyerSnapshot: spec.buyer as unknown as Prisma.InputJsonObject,
           issuedAt: now,
-          dueOn: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + DEFAULT_PAYMENT_TERM_DAYS * DAY_MS),
+          dueOn,
+          paidOn,
+          settlesNumber: settles?.number ?? null,
         },
         select: SELECT,
       });

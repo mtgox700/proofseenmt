@@ -1,4 +1,4 @@
-import { LATE_PENALTY, NO_DISCOUNT, RECOVERY_FEE, VAT_EXEMPT, type InvoiceDocument, type Party } from "./render";
+import { acquittalMention, latePenaltyLine, NO_DISCOUNT, RECOVERY_FEE, VAT_EXEMPT, type InvoiceDocument, type Party } from "./render";
 
 /*
  * La facture au format électronique structuré : XML « Cross Industry Invoice » (UN/CEFACT, profil EN 16931), la partie
@@ -25,7 +25,11 @@ const x = (value: string): string => xmlSafe(value).replace(/[&<>"']/g, (c) => E
 
 const amount = (cents: number): string => (cents / 100).toFixed(2);
 const percent = (bp: number): string => (bp / 100).toFixed(2);
+/** Un jour civil (échéance : une colonne DATE, minuit UTC du jour voulu), en AAAAMMJJ. */
 const day = (d: Date): string => d.toISOString().slice(0, 10).replace(/-/g, "");
+/** Un instant (la date d'émission) à l'heure de Paris, en AAAAMMJJ : la même horloge que l'année du numéro de la facture. */
+const PARIS_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" });
+const parisDay = (d: Date): string => PARIS_DAY.format(d).replace(/-/g, "");
 
 /** Code de type de facture : 380, facture commerciale, pour la mission émise sous mandat comme pour la commission. */
 export const invoiceTypeCode = (_kind: InvoiceDocument["kind"]): "380" => "380";
@@ -51,6 +55,7 @@ const note = (content: string, subject?: string): string =>
   `<ram:IncludedNote><ram:Content>${x(content)}</ram:Content>${subject === undefined ? "" : `<ram:SubjectCode>${subject}</ram:SubjectCode>`}</ram:IncludedNote>`;
 
 export const renderCii = (doc: InvoiceDocument): string => {
+  const acquittal = acquittalMention(doc);
   const exempt = doc.vatRateBp === 0;
   const category = exempt ? "E" : "S";
   const lineTax = `<ram:ApplicableTradeTax><ram:TypeCode>VAT</ram:TypeCode><ram:CategoryCode>${category}</ram:CategoryCode><ram:RateApplicablePercent>${percent(doc.vatRateBp)}</ram:RateApplicablePercent></ram:ApplicableTradeTax>`;
@@ -71,9 +76,11 @@ export const renderCii = (doc: InvoiceDocument): string => {
     "<rsm:ExchangedDocument>",
     `<ram:ID>${x(doc.number)}</ram:ID>`,
     `<ram:TypeCode>${invoiceTypeCode(doc.kind)}</ram:TypeCode>`,
-    `<ram:IssueDateTime><udt:DateTimeString format="102">${day(doc.issuedAt)}</udt:DateTimeString></ram:IssueDateTime>`,
+    `<ram:IssueDateTime><udt:DateTimeString format="102">${parisDay(doc.issuedAt)}</udt:DateTimeString></ram:IssueDateTime>`,
     doc.kind === "mission" ? note(`Facture émise par un tiers : Proofseen au nom et pour le compte de ${doc.seller.legalName}, sous mandat de facturation.`) : "",
-    note(LATE_PENALTY, "PMD"),
+    // Pénalités, indemnité et escompte sur toute facture (L441-9 I) ; l'acquittement s'y ajoute, il ne les remplace pas.
+    note(latePenaltyLine(doc), "PMD"),
+    acquittal === null ? "" : note(acquittal),
     note(RECOVERY_FEE, "PMT"),
     note(NO_DISCOUNT, "AAB"),
     "</rsm:ExchangedDocument>",

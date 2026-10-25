@@ -7,7 +7,17 @@ import { PrismaPGlite } from "pglite-prisma-adapter";
 import { allMigrationsSql } from "../../prisma/migrations";
 import type { Db } from "../../src/client";
 import { PrismaClient } from "../../src/generated/client";
-import { payments, type PaymentGateway } from "../../src/payments";
+import { payments, type ChargeFacts, type PaymentGateway } from "../../src/payments";
+import { SourceChargeMissingError } from "../../src/payment-errors";
+
+/*
+ * Le taux de commission est fourni par l'appelant à la création d'un contrat (`commissionTerms`) puis figé ; ce paquet ne
+ * lit pas l'environnement. Les tests qui ne s'en occupent pas créent leurs contrats sans conditions : la base de test
+ * (et elle seule, aucune migration ne pose ce défaut) leur donne le taux d'essai de 10 %, comme si la configuration en
+ * avait un. Le vrai taux est une décision du founder.
+ */
+export const TEST_COMMISSION_BP = 1000;
+export const TEST_TERMS = { commissionBp: TEST_COMMISSION_BP, repeatCommissionBp: 500 } as const;
 
 /*
  * Une vraie base Postgres par fichier de test, en mémoire (PGlite), avec la migration de production appliquée telle
@@ -50,6 +60,10 @@ const template = async (): Promise<Blob> => {
 export const openTestDatabase = async (): Promise<TestDatabase> => {
   const pg = new PGlite({ loadDataDir: await template() });
   await pg.waitReady;
+  // Comme le serveur de production (UTC) : PGlite prend sinon le fuseau du poste (Etc/GMT-1 à Paris l'hiver), et l'adaptateur
+  // décale alors les instants envoyés, ce qui fausse tout test près de minuit.
+  await pg.exec("SET TIME ZONE 'UTC'");
+  await pg.exec(`ALTER TABLE "Contract" ALTER COLUMN "commissionBp" SET DEFAULT ${TEST_COMMISSION_BP}`);
   const db: Db = new PrismaClient({ adapter: new PrismaPGlite(pg) });
   return {
     pg,
@@ -121,11 +135,16 @@ export const createOrganisation = async (db: Db, ownerId: string): Promise<strin
  * du compte de versement chez le prestataire (prêt par défaut).
  */
 export const fakeGateway = () => {
-  const calls = { intents: 0, transfers: 0, refunds: 0, accounts: 0, readiness: 0 };
+  const calls = { intents: 0, transfers: 0, refunds: 0, accounts: 0, readiness: 0, reads: 0 };
+  /** Ce que Stripe sait d'une intention encaissée (`collect`), par intention ; les charges, par identifiant. */
+  const collected = new Map<string, ChargeFacts>();
+  const charges = new Map<string, ChargeFacts>();
   const byKey = new Map<string, string>();
   const transfersByContract = new Map<string, string>();
   const amounts: number[] = [];
-  const state = { failNextTransfer: false, payoutReady: true };
+  /** La charge source de chaque virement, dans l'ordre : le prestataire réel refuse un virement sans elle. */
+  const sources: string[] = [];
+  const state = { failNextTransfer: false, payoutReady: true, failReads: false };
   const stable = (prefix: string, key: string): string => {
     const known = byKey.get(key);
     if (known !== undefined) return known;
@@ -134,21 +153,24 @@ export const fakeGateway = () => {
     return id;
   };
   const gateway: PaymentGateway = {
-    async createIntent({ idempotencyKey }) {
+    async createIntent({ idempotencyKey, amountCents, currency }) {
       calls.intents += 1;
       const intentId = stable("pi", idempotencyKey);
+      INTENTS.set(intentId, { amountCents, currency: currency.toUpperCase() });
       return { intentId, clientSecret: `${intentId}_secret` };
     },
     async intentSecret(intentId) {
       return `${intentId}_secret`;
     },
-    async transfer({ idempotencyKey, contractId, amountCents }) {
+    async transfer({ idempotencyKey, contractId, amountCents, sourceTransaction }) {
       if (state.failNextTransfer) {
         state.failNextTransfer = false;
         throw new TypeError("fetch failed");
       }
+      if (!/^(ch|py)_[A-Za-z0-9]+$/.test(sourceTransaction ?? "")) throw new SourceChargeMissingError();
       calls.transfers += 1;
       amounts.push(amountCents);
+      sources.push(sourceTransaction);
       const transferId = stable("tr", idempotencyKey);
       transfersByContract.set(contractId, transferId);
       return { transferId };
@@ -171,15 +193,53 @@ export const fakeGateway = () => {
       calls.readiness += 1;
       return state.payoutReady;
     },
+    async readIntent(intentId) {
+      calls.reads += 1;
+      if (state.failReads) throw new TypeError("fetch failed");
+      const charge = collected.get(intentId) ?? null;
+      return { intentId, status: charge === null ? "requires_payment_method" : "succeeded", charge };
+    },
+    async readCharge(chargeId) {
+      calls.reads += 1;
+      if (state.failReads) throw new TypeError("fetch failed");
+      const known = charges.get(chargeId);
+      if (known !== undefined) return known;
+      // Une charge par convention (`chargeOf`) d'une intention créée dans ce fichier de test : payée, jamais remboursée.
+      for (const [intentId, intent] of INTENTS) {
+        if (chargeOf(intentId) === chargeId) return { chargeId, intentId, currency: intent.currency, amountCents: intent.amountCents, refundedCents: 0, paid: true, createdAt: null };
+      }
+      throw new Error("charge inconnue");
+    },
   };
-  return { gateway, calls, amounts, state };
+  /**
+   * Stripe encaisse l'intention : sa charge existe désormais (lue par `readIntent`), avec les faits que le test veut
+   * contredire s'il le veut (`override`).
+   */
+  const collect = (intentId: string, override: Partial<ChargeFacts> = {}): ChargeFacts => {
+    const intent = INTENTS.get(intentId);
+    if (intent === undefined) throw new Error("intention inconnue");
+    const facts: ChargeFacts = { chargeId: chargeOf(intentId), intentId, currency: intent.currency, amountCents: intent.amountCents, refundedCents: 0, paid: true, createdAt: PAID_AT, ...override };
+    collected.set(intentId, facts);
+    charges.set(facts.chargeId, facts);
+    return facts;
+  };
+  return { gateway, calls, amounts, sources, state, collect };
 };
+
+/** Les intentions créées par les passerelles simulées de ce fichier de test : montant et devise, pour recouper les charges. */
+const INTENTS = new Map<string, { amountCents: number; currency: string }>();
+
+/** Le jour où `payAndHold` fait encaisser le paiement : avant les dates d'émission des factures des tests. */
+export const PAID_AT = new Date("2026-11-18T09:30:00Z");
+
+/** La charge que Stripe associe à une intention : une par intention, lisible, jamais partagée. */
+export const chargeOf = (intentId: string): string => `ch_${intentId.replace(/^pi_/, "")}`;
 
 /** Ouvre le paiement d'un contrat actif et le fait confirmer par le prestataire : les fonds sont bloqués. */
 export const payAndHold = async (db: Db, adminUserId: string, contractId: string, gateway: PaymentGateway = fakeGateway().gateway): Promise<string> => {
-  const opened = await payments(db).open({ userId: adminUserId }, contractId, gateway, 1000);
+  const opened = await payments(db).open({ userId: adminUserId }, contractId, gateway);
   if (opened.kind !== "opened" && opened.kind !== "resumed") throw new Error(`paiement non ouvert : ${opened.kind}`);
   const { stripeIntentId } = await db.payment.findUniqueOrThrow({ where: { id: opened.paymentId }, select: { stripeIntentId: true } });
-  await payments(db).applyEvent({ id: `evt_hold_${opened.paymentId}`, type: "payment.succeeded", intentId: stripeIntentId }, new Date());
+  await payments(db).applyEvent({ id: `evt_hold_${opened.paymentId}`, type: "payment.succeeded", intentId: stripeIntentId, chargeId: chargeOf(stripeIntentId) }, PAID_AT);
   return stripeIntentId;
 };

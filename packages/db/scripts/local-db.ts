@@ -69,7 +69,8 @@ await messaging(db).decide({ userId: freelance }, contact.conversation.id, "acce
 const quote = await quotes(db).draft({ userId: freelance }, contact.conversation.id, { dailyRateCents: 50_000, days: 3 });
 await quotes(db).send({ userId: freelance }, quote?.id ?? "");
 await quotes(db).decide({ userId: recruiter }, quote?.id ?? "", "accepted");
-const contract = await contracts(db).createFromQuote({ userId: recruiter }, quote?.id ?? "", { startsOn: "2026-11-02" });
+// Taux d'essai local (10 %, fidélité 5 %) : le vrai taux est une décision du founder et vient de la configuration de l'application.
+const contract = await contracts(db, { commissionTerms: () => ({ commissionBp: 1000, repeatCommissionBp: 500 }) }).createFromQuote({ userId: recruiter }, quote?.id ?? "", { startsOn: "2026-11-02" });
 if (contract.kind !== "created") throw new Error(`contrat de test non créé : ${contract.kind}`);
 await contracts(db).sign({ userId: recruiter }, contract.contract.id, new Date());
 await contracts(db).sign({ userId: freelance }, contract.contract.id, new Date());
@@ -82,8 +83,12 @@ const simulated: PaymentGateway = {
   createAccount: async () => ({ accountId: "acct_localtest" }),
   onboardingLink: async () => ({ url: "https://connect.example.invalid/acct_localtest" }),
   payoutAccountReady: async () => false,
+  readIntent: async (intentId) => ({ intentId, status: "requires_payment_method", charge: null }),
+  readCharge: async () => {
+    throw new Error("charge inconnue : aucun prestataire réel en local");
+  },
 };
-await payments(db).open({ userId: recruiter }, contract.contract.id, simulated, 1000);
+await payments(db).open({ userId: recruiter }, contract.contract.id, simulated);
 await db.$disconnect();
 
 const server = new PGLiteSocketServer({ db: pg, port: PORT, host: "127.0.0.1", maxConnections: 10 });

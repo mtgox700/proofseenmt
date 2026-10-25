@@ -161,7 +161,7 @@ describe("virement au compte v2 (POST /v1/transfers)", () => {
   it("reste un virement v1 vers l'identifiant acct_ du compte, avec son groupe et sa clé d'idempotence", async () => {
     const fetchMock = vi.fn().mockResolvedValue(ok({ id: "tr_1" }));
     const gateway = stripeGateway({ secretKey: "sk_test_x" }, fetchMock);
-    expect(await gateway.transfer({ amountCents: 648_000, currency: "EUR", destination: "acct_1Nv0FGQ9RKHgCVdK", contractId: "c-1", idempotencyKey: "release-p1" })).toEqual({ transferId: "tr_1" });
+    expect(await gateway.transfer({ amountCents: 648_000, currency: "EUR", destination: "acct_1Nv0FGQ9RKHgCVdK", contractId: "c-1", idempotencyKey: "release-p1", sourceTransaction: "ch_3Nv0FGQ9RKHgCVdK" })).toEqual({ transferId: "tr_1" });
     const { url, init, headers } = call(fetchMock);
     expect(url).toBe("https://api.stripe.com/v1/transfers");
     expect(headers["content-type"]).toBe("application/x-www-form-urlencoded");
@@ -171,5 +171,6 @@ describe("virement au compte v2 (POST /v1/transfers)", () => {
     expect(form.get("amount")).toBe("648000");
     expect(form.get("currency")).toBe("eur");
     expect(form.get("transfer_group")).toBe("c-1");
+    expect(form.get("source_transaction")).toBe("ch_3Nv0FGQ9RKHgCVdK");
   });
 });

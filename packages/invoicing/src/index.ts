@@ -1,5 +1,7 @@
 export {
-  LATE_PENALTY,
+  acquittalMention,
+  LEGAL_DEFAULT_PENALTY,
+  latePenaltyLine,
   missingMentions,
   money,
   NO_DISCOUNT,

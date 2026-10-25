@@ -1,36 +1,21 @@
-import { MAX_COMMISSION_BP, type LegalSnapshot } from "@proofseen/db";
+import { commissionTermsFromEnv, type CommissionTerms, type LegalSnapshot } from "@proofseen/db";
 import { gatewayFromEnv, paymentsSandbox } from "@proofseen/payments";
 import { isTestKey, publishableKey } from "../lib/stripe-public";
 
 /*
  * Payment settings that belong to the founder, read from the environment and never defaulted here:
- *  - the commission rate (PROOFSEEN_COMMISSION_BP, in basis points: 1000 = 10 %) — a pricing decision;
+ *  - the commission rate (PROOFSEEN_COMMISSION_BP, in basis points: 1000 = 10 %) — a pricing decision. It is read here,
+ *    at the application boundary, when a contract is created (`contractCommissionTerms`, handed to packages/db, which
+ *    never reads the environment) and frozen on the contract: the payment route never reads it, so a change of
+ *    configuration cannot alter a contract already signed. `checkoutOpen` only tells whether new contracts can be paid;
  *  - Proofseen's own legal identity, printed on commission invoices (PROOFSEEN_LEGAL_NAME, PROOFSEEN_SIRET,
  *    PROOFSEEN_VAT_NUMBER, PROOFSEEN_ADDRESS_LINE1, PROOFSEEN_ADDRESS_POSTAL_CODE, PROOFSEEN_ADDRESS_CITY,
  *    PROOFSEEN_ADDRESS_COUNTRY).
  * Missing settings close the payment routes with a clear answer instead of inventing a value.
  */
 
-const commissionBpFrom = (env: Readonly<Record<string, string | undefined>>): number | null => {
-  const raw = (env.PROOFSEEN_COMMISSION_BP ?? "").trim();
-  const value = Number(raw);
-  return raw !== "" && Number.isInteger(value) && value >= 1 && value <= MAX_COMMISSION_BP ? value : null;
-};
-
-export const commissionBp = (): number | null => commissionBpFrom(process.env);
-
-/** Default loyalty rate (War Room decision, 2026-10-07): 5 % once the company already paid this freelancer. */
-const DEFAULT_REPEAT_COMMISSION_BP = 500;
-
-/**
- * The loyalty rate (PROOFSEEN_REPEAT_COMMISSION_BP), applied only when lower than the standard rate. A malformed value
- * falls back to the default rather than to the standard rate: a typo must not silently remove a published discount.
- */
-export const repeatCommissionBp = (): number => {
-  const raw = (process.env.PROOFSEEN_REPEAT_COMMISSION_BP ?? "").trim();
-  const value = Number(raw);
-  return raw !== "" && Number.isInteger(value) && value >= 1 && value <= MAX_COMMISSION_BP ? value : DEFAULT_REPEAT_COMMISSION_BP;
-};
+/** The commission terms to freeze on a contract created now, or `null` when no rate is configured (that contract cannot be paid). */
+export const contractCommissionTerms = (env: Readonly<Record<string, string | undefined>> = process.env): CommissionTerms | null => commissionTermsFromEnv(env);
 
 export const proofseenIdentity = (): LegalSnapshot | null => {
   const read = (name: string): string => (process.env[name] ?? "").trim();
@@ -53,9 +38,16 @@ type Env = Readonly<Record<string, string | undefined>>;
 export interface PaymentsUi {
   readonly publishableKey: string;
   readonly testMode: boolean;
-  /** The commission rate is set: the company can pay a contract. Without it, only the payout account opens. */
+  /** The payment provider is ready on both sides. Whether a given contract can be paid also depends on its own rate: see `checkoutOpenFor`. */
   readonly checkoutOpen: boolean;
 }
+
+/**
+ * Whether the checkout shows on a contract: the provider is ready AND the contract carries its frozen commission rate.
+ * A contract born without a rate can never be paid, whatever the environment says today; one with a rate stays payable
+ * if the variable later disappears.
+ */
+export const checkoutOpenFor = (ui: PaymentsUi | null, contractCommissionBp: number | null): boolean => ui?.checkoutOpen === true && contractCommissionBp !== null;
 
 /**
  * The payment screens open only when the browser and the server agree: a well-formed publishable key
@@ -73,5 +65,5 @@ export const paymentsUi = (env: Env = process.env): PaymentsUi | null => {
     gatewayReady = false;
   }
   if (!gatewayReady || isTestKey(key) !== paymentsSandbox(env)) return null;
-  return { publishableKey: key, testMode: isTestKey(key), checkoutOpen: commissionBpFrom(env) !== null };
+  return { publishableKey: key, testMode: isTestKey(key), checkoutOpen: true };
 };

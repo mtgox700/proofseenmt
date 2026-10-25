@@ -1,7 +1,7 @@
 export { createDb, getDb, type Db } from "./client";
 export * from "./generated/enums";
 export { auditRequests, NewAuditRequestSchema, type AuditRequestRecord, type AuditRequests, type NewAuditRequest } from "./audit-requests";
-export { NO_CONTACT } from "./contact-detection";
+export { containsDirectContact, NO_CONTACT } from "./contact-detection";
 export { linkCarriesContact } from "./contact-urls";
 export {
   containsContact,
@@ -173,14 +173,53 @@ export {
 } from "./billing";
 export {
   BELOW_MINIMUM,
+  MAX_DELIVERABLES,
+  MAX_SCOPE_CHARS,
   MIN_QUOTE_TOTAL_CENTS,
+  NewQuoteInputSchema,
   QuoteInputSchema,
   quotes,
+  SCOPE_REQUIRED,
+  VALIDITY_PAST,
   type DecideQuoteResult,
   type QuoteInput,
   type QuoteRecord,
   type Quotes,
 } from "./quotes";
+export {
+  AFFAIR_KINDS,
+  AffairSchema,
+  DOCUMENT_LANGS,
+  DOCUMENT_TYPES,
+  documents,
+  MINE_PAGE_SIZE,
+  MineQuerySchema,
+  NewVersionSchema,
+  RenderRefusedError,
+  type Affair,
+  type AffairFacts,
+  type AffairKind,
+  type DocumentDetail,
+  type DocumentLang,
+  type DocumentRenderer,
+  type Documents,
+  type DocumentSummary,
+  type FrozenVersion,
+  type MinePage,
+  type MineQuery,
+  type NewVersion,
+  type OpenedVersion,
+  type PartyRole,
+  type PrepareResult,
+  type RecordResult as DocumentRecordResult,
+  type Refusal,
+  type RenderedDocument,
+  type RenderRequest,
+  type VersionAuthor,
+  type VersionSummary,
+  type VersionTarget,
+} from "./documents";
+export type { ContractFacts, QuoteFacts } from "./document-affairs";
 export {
   ContractDraftSchema,
   contracts,
@@ -200,9 +239,18 @@ export {
   type IssueResult,
 } from "./invoices";
 export {
+  commissionTermsFromEnv,
+  DEFAULT_REPEAT_COMMISSION_BP,
+  effectiveCommissionBp,
   MAX_COMMISSION_BP,
+  type CommissionTerms,
+} from "./commission-terms";
+export { isSourceCharge, SourceChargeMismatchError, SourceChargeMissingError } from "./payment-errors";
+export {
   payments,
+  type ChargeFacts,
   type EventResult,
+  type IntentFacts,
   type OpenPaymentResult,
   type PayoutAccountResult,
   type PaymentEvent,

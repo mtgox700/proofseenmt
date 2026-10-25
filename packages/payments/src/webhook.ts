@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { PaymentEvent } from "@proofseen/db";
+import { isSourceCharge, type PaymentEvent } from "@proofseen/db";
 import { z } from "zod";
 
 /*
@@ -58,6 +58,8 @@ export const verifyStripeSignatureWithAny = (rawBody: string, header: string | n
 const EventSchema = z.object({
   id: z.string().min(1),
   type: z.string(),
+  // L'heure de l'événement, en secondes : lue avec indulgence (un événement n'est pas rejeté pour une heure illisible).
+  created: z.unknown().optional(),
   data: z.object({ object: z.record(z.string(), z.unknown()) }),
 });
 
@@ -97,6 +99,19 @@ export type WebhookEvent = Exclude<PaymentEvent, { readonly type: "account.updat
 
 const str = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
 
+/**
+ * La charge d'un paiement réussi (`latest_charge` : un identifiant, ou l'objet charge si Stripe l'a développé). Tout ce qui
+ * n'est pas une charge est écarté : l'identifiant finit dans le corps d'un virement.
+ */
+const chargeOf = (value: unknown): string | null => {
+  const candidate = typeof value === "object" && value !== null ? (value as { readonly id?: unknown }).id : value;
+  return isSourceCharge(candidate) ? candidate : null;
+};
+
+/** L'heure de l'événement (`created`, en secondes depuis 1970), ou rien si elle n'est pas un entier positif : jamais inventée. */
+const occurredAtOf = (created: unknown): { readonly occurredAt: Date } | Record<string, never> =>
+  typeof created === "number" && Number.isInteger(created) && created > 0 ? { occurredAt: new Date(created * 1000) } : {};
+
 const accountSignal = (id: string, accountId: string | null): AccountSignal | null =>
   accountId !== null && /^acct_[A-Za-z0-9]+$/.test(accountId) ? { id, type: "account.signal", accountId } : null;
 
@@ -112,13 +127,15 @@ export const toPaymentEvent = (payload: unknown): WebhookEvent | null => {
   if (typeof payload === "object" && payload !== null && (payload as { object?: unknown }).object === "v2.core.event") return fromThinEvent(payload);
   const parsed = EventSchema.safeParse(payload);
   if (!parsed.success) return null;
-  const { id, type, data } = parsed.data;
+  const { id, type, data, created } = parsed.data;
   const object = data.object;
-  const simple = (t: "payment.succeeded" | "payment.failed" | "payment.canceled" | "dispute.opened", intentId: string | null): WebhookEvent | null =>
+  const simple = (t: "payment.failed" | "payment.canceled" | "dispute.opened", intentId: string | null): WebhookEvent | null =>
     intentId === null ? null : { id, type: t, intentId };
   switch (type) {
-    case "payment_intent.succeeded":
-      return simple("payment.succeeded", str(object.id));
+    case "payment_intent.succeeded": {
+      const intentId = str(object.id);
+      return intentId === null ? null : { id, type: "payment.succeeded", intentId, chargeId: chargeOf(object.latest_charge), ...occurredAtOf(created) };
+    }
     case "payment_intent.payment_failed":
       return simple("payment.failed", str(object.id));
     case "payment_intent.canceled":
