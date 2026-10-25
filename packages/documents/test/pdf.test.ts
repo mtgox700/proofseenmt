@@ -130,7 +130,8 @@ describe("text in the PDF (selectable, with accents and foreign names)", () => {
     for (const word of ["Contrat de prestation de services", "Łukasz", "Nguyễn-Dvořák", "Çağrı", "L'HAŸ-LES-ROSES", "Bâtiment B", "Société Exemple", "indépendant", "Éditeur Exemple"]) {
       expect(squashed, word).toContain(word);
     }
-    expect(text).toContain(`«${NNBSP}le Prestataire${NNBSP}»`);
+    // On the flattened text: the stream extractor may break a line between two words, never inside the narrow spaces.
+    expect(squashed).toContain(`«${NNBSP}le Prestataire${NNBSP}»`);
     expect(text).not.toContain("�");
     expect(text).not.toMatch(/[□▯]/u);
   });

@@ -1,4 +1,4 @@
-/* global process, console, Buffer, URL */
+/* global process, console, URL */
 // Integrity check of the PDF fonts: every TTF listed in manifest.json must have the recorded size and SHA-256.
 // A changed font changes the bytes of every PDF, so the reference-document hash test (L1-006, condition 3) would fail
 // without saying why; this check says why. No dependency. Usage: node packages/brand/pdf-fonts/verify.mjs
