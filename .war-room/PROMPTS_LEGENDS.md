@@ -199,8 +199,18 @@ Erreurs déjà payées sur ce projet, à ne jamais refaire :
   de travail neuf depuis `origin/main`, chemin et révision dans le brief.
 - **Échappements corrompus** par des écritures de script : `\b` devient un retour arrière, `\n` un vrai saut de ligne
   dans une regex, `\u003c` est décodé. Écrire avec les outils Edit/Write, vérifier avec `od -c`.
-- **Allowlist triée de `seal.test.ts`** : toute nouvelle utilisation du poinçon s'ajoute à sa place triée, avec le
-  fait lu en base qui mérite le vert.
+  Rechute le 2026-10-25 (L1-159, B1) : un `sed` a mangé les U+202F de `deals-fr.ts` et laissé « prestation202f: » à
+  l'écran ; `dictionary-escapes.test.ts` refuse désormais tout « 202f » ou « 00a0 » nu dans les dictionnaires.
+- **Liste unique du vert** : toute nouvelle utilisation du poinçon ou d'un état « poinçonné » s'ajoute, triée, à
+  `apps/web/test/support/green-files.ts`, tenue par `seal.test.ts` (L1-120), avec le fait lu en base qui mérite le vert.
+- **Processus et conteneurs** (incident du 2026-10-25, L1-039) : un agent ne touche qu'à ce qu'il a créé, désigné par
+  nom ou identifiant exact ; jamais de `docker kill $(docker ps -q)`, `docker stop` sans nom, `docker system prune`,
+  `taskkill /im node.exe` : le poste et le VPS hébergent d'autres projets (`phantera`, `xprod`, `demomea`).
+- **Poste du founder saturé** (2026-10-25 : plus de 130 processus node, `tsc` 19 min) : tests ciblés et eslint en local,
+  gate complet, `next build` et images sur le VPS (`/root/gate-l1.sh`, sortie complète, marqueur `GATE-END`).
+- **Lecteurs de PDF** : sans poppler (gate Linux), l'extracteur des flux coupe les mots au trait d'union et met un saut
+  de ligne entre deux mots ; les tests lisent le texte aplati, les octets du PDF sont les mêmes partout.
+- **PGlite prend le fuseau du poste** : `openTestDatabase` force `SET TIME ZONE 'UTC'` comme la production (L1.0).
 - **Vocabulaire de vérité** (`truth-vocabulary.test.ts`) : jamais « vérifié sur pièce » ; une mission vérifiée l'est
   par confirmation du client ou paiement sur Proofseen.
 - **Lighthouse local** faux (0,25 à 0,88 selon la charge) : mesurer sur le VPS.
@@ -284,6 +294,9 @@ construite, testée, et reste fermée en production par un drapeau tant que la d
 | D10 | Moyen de paiement par défaut de l'entreprise : prélèvement ou virement SEPA, la carte en option ? Sur une mission de 10 000 EUR HT, la carte coûte 21 à 37 % de la commission, le SEPA environ 3 % (tarifs Stripe lus le 2026-10-24). | SEPA par défaut, carte permise, surcoût absorbé pendant la bêta puis réexaminé. | rien |
 | D11 | Confirmes-tu le taux de fidélité de 5 %, aujourd'hui écrit dans le code comme valeur de repli (décision prise par délégation), ou le fermes-tu sans variable comme le taux principal ? | À trancher avec D5. | rien |
 | D12 | Seuils de l'apporteur : plafond annuel de commission par client apporté, délai de garde avant versement, versement minimal. | Valeurs proposées par Camille (§7 de son document), à revoir après lecture des délais de contestation chez Stripe. | L3 |
+| D13 | Demandes-tu un rescrit (LPF L80 B) sur la qualification « consignation » des fonds retenus jusqu'à la validation (TVA du freelance due à la libération, sans facture d'acompte) ? | CGU écrites en consignation, validées par l'expert-comptable (D6) ; rescrit seulement s'il le conseille (`tresor/L1/compta/REPONSES_L1.md`). | rien |
+| D14 | Clé de chiffrement au repos du coffre et des dépôts : la poses-tu toi-même dans `.env.production` au prochain GO DEPLOY ? | Oui, générée par toi, jamais vue par la Légion. D'ici là le coffre reste fermé en production (`PROOFSEEN_VAULT_OPEN` absent). | l'ouverture du coffre |
+| D15 | Copie des sauvegardes hors du VPS (aujourd'hui la base et le volume des dépôts sont sauvegardés sur la même machine) : quel stockage externe ? | Un stockage objet en Europe, chiffré, avec rétention 30 jours ; comparatif à préparer. | rien, mais un incident disque perdrait tout |
 
 ---
 

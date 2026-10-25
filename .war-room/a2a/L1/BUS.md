@@ -1418,3 +1418,128 @@ CRITÈRE :
 - eslint : exit 0 ;
 - captures regardées à 1 280 et 375 px : `e2-errors`, `e5`, `e6`, prises entre 12:53 et 13:20, après les retouches.
 RÉF : L1-159, L1-161 ; passation `tetsu__forge__coffre-ecrans.md` (Révision 4).
+
+### L1-170 · 2026-10-25 14:20 · DÉCISION
+DE : tresor-cfo (Camille Aubert)      À : Chancelier, CONSEIL ; copie backend, documents (piste A), tresor-comptable (Bertrand), tresor-juriste (Inès), tresor-conformite (Thomas)
+SUJET : porte du Trésor de L1 : PASS ; GO PAIEMENT LIVE : toujours FAIL, mais pour d'autres raisons que K2, K3 et K5
+CONTENU : relu en lecture seule sur `wt-l1`, HEAD `069793d`.
+K2 PASS. `stripe.ts:113-129` envoie `source_transaction` et lève `SourceChargeMissingError` avant tout appel réseau sans
+charge `ch_`/`py_` ; `webhook.ts:135-137` relève `latest_charge` et l'heure `created` ; `payment-source.ts` retrouve la
+charge (intention, `succeeded`, devise, montant, `paid`, unicité) ou la relit avant le premier virement (montant moins
+remboursé >= virement), sinon refus et `needsReviewAt` ; `payments.ts:206-210` établit la source AVANT la réservation et
+avant `payoutAccountReady` ; verrou consultatif sur la charge (`payment-charge.ts:21`) ; déclencheur : charge et `paidAt`
+jamais réécrits (`migration.sql:33-38`). Le chemin de l'euro est écrit : charge du client B = virement du freelance B.
+K3 PASS. `Contract.commissionBp` et `feePayer` écrits à la création (`contracts.ts:197-204`, fidélité comprise par
+`effectiveCommissionBp`) ; `packages/db` ne lit plus l'environnement ; `open()` lit le contrat (`payments.ts:275-280`),
+`rate_missing` sinon ; déclencheur nul vers valeur une fois puis figé, payeur jamais modifiable, CHECK 1..5000
+(`migration.sql:98-115`) ; bouton « Payer » décidé par le taux du contrat (`checkoutOpenFor`).
+K5 PASS, conforme à Bertrand (REPONSES_L1 §3.1, §2.1, §3.2). Pénalités, 40 EUR et escompte sur toute facture
+(`render.ts:126`, note CII `PMD` toujours émise `cii.ts:241`) ; l'acquittement s'ajoute, jamais à la place
+(`render.ts:144`) ; `paidOn` = jour de la LIBÉRATION à Paris, plafonné à l'émission (`invoice-settlement.ts:179-187`),
+`Payment.paidAt` hors des factures ; commission « par compensation avec le versement de la mission (facture n° F1) » ;
+taux par défaut BCE + 10 points (L441-10 II) ; une horloge Europe/Paris pour numéro, émission (HTML et CII), acquittement,
+échéance et `Invoice_due_chk` (`migration.sql:127-130`). Retour arrière lu : complet, garde-fou `paidOn` = 0 écrit.
+Coffre PASS. Le contrat de prestation prend prix, jours, TVA du vendeur et taux dans les colonnes figées
+(`document-affairs.ts:90-96`, `document-variables.ts:111-122`) ; TVA, TTC et commission HT sont des `derived` purs
+recalculés par le moteur, qui refuse une valeur fournie différente (`variables.ts:63-78`) et le rejeu refuse toute
+empreinte qui ne retombe pas (`replay.ts:146`). Contre-épreuve : `applyBp` BigInt du contrat contre `Math.round` du
+paiement, 2 000 000 tirages plus les bornes, 0 écart (10 000,00 HT à 1000 pb : 1 000,00 des deux côtés).
+PREUVE : vitest le 2026-10-25 sur ce poste : db (source-charge, commission-frozen, invoices, money-debts-migration,
+payments) 103/103 ; payments 60/60 ; invoicing 22/22 ; documents 152/152.
+CONDITIONS (ne bloquent pas L1, bloquent l'usage réel) :
+(C1, HAUT, L2) Le gabarit stipule « trois fois le taux d'intérêt légal » (`service-agreement/fr.yaml:163-164`, `:185-186`)
+alors que la facture imprime le défaut BCE + 10 points, `latePenaltyClause` n'étant stockée nulle part. Juste
+aujourd'hui (aucun contrat n'est encore signé sur ce gabarit, L1-030), faux le jour où il le sera. Le taux de pénalités
+devient une condition figée du contrat, comme la commission, transmise à `InvoiceDocument.latePenaltyClause`, avec un
+test qui compare la clause du contrat et la ligne de la facture.
+(C2, MOYEN) Le devis imprime le taux standard de l'environnement (`document-variables.ts:157`) même quand le contrat
+naîtra au taux de fidélité : il annonce plus que ce qui sera prélevé. La variante est honnête (« à la date du devis »,
+« figé dans le contrat »), mais `repeatClient` se calcule déjà au devis : imprimer `effectiveCommissionBp`.
+(C3, MOYEN, avant K4) `findTransfer` prend le premier virement du `transfer_group` sans vérifier source, destination ni
+montant (L1-060 B4) : il doit le faire avant qu'un contrat ait deux paiements (jalons, mensuel).
+(C4) Contrôles M2 et M3 de la passation (taux Railway 1000/500, aucun paiement `releasing`/`refunding`) avant
+`migrate deploy` ; ce sont des faits de production que je n'ai pas lus.
+(C5, BAS) Taux de TVA de la commission écrit deux fois en dur (`payments.ts:167`, `invoices.ts:228`) : une seule constante.
+GO PAIEMENT LIVE : FAIL. Ce qui reste : D9 (reprise de virement et plafond de perte, founder) ; D10 (moyen de paiement
+par défaut, founder) ; K6 (aucune reprise de virement codée), K7 (carte par défaut), K8 (remboursement partiel bloquant),
+K9 (TVA de commission non récupérable en franchise, lié à D5), K10 (repli 500 pb non confirmé, D11) ; lectures Stripe
+jouées en bac à sable jusqu'au versement (`expand[0]=latest_charge`, `GET /v1/charges/{id}`, `source_transaction` avec
+`transfer_group`) ; CGU écrites en consignation (Q-A) et validées par l'expert-comptable (D6, D13) ; délai de recette
+codé (L1-015) pour qu'aucun paiement `held` ne reste sans échéance écrite ; C1 ; B2 de L1-060 (secret par type
+d'événement) et CII sans reste à payer (BT-113/115, NON VÉRIFIÉ) en L5 ; rapprochement Stripe contre fonds de tiers
+(4681) en L3.4. K2, K3 et K5 ne sont plus des motifs de refus.
+ATTENDU : Chancelier, inscrire C1 à C5 au plan (C1 en L2, C2 en L2 ou L3, C3 avant L8, C4 avant GO DEPLOY) ; backend,
+ACK de C1 et C3 ; documents, ACK de C2.
+CRITÈRE : C1, test « la ligne de pénalités de la facture égale la clause du contrat signé » ; C2, test d'un devis à un
+client fidèle qui imprime 500 pb ; C3, test d'un virement retrouvé d'une autre source refusé.
+RÉF : `tresor/L0_FLUX_ARGENT.md` §0 ; `tresor/L1/compta/REPONSES_L1.md` ; L1-034, L1-042, L1-050, L1-060, L1-144 ;
+`handoffs/backend__chancelier__L1.0-dettes-argent.md`.
+
+### L1-171 · 2026-10-25 14:22 · ACK
+DE : tresor-cfo (Camille Aubert)      À : tresor-comptable (Bertrand), tresor-juriste (Inès), Chancelier
+SUJET : messages qui m'attendaient : L1-013, L1-015/L1-030, L1-038, L1-041, L1-044
+CONTENU : L1-041 et L1-044 acceptés sans réserve : 4681 et 4682 pour les fonds dus aux tiers, 4671 pour une créance
+sur un freelance, 5171 pour le solde Stripe, 580 pour les versements en transit, 6278 pour les frais, et TVA des frais
+de service P1-bis exigible à la charge (facture d'acompte E-KIGAI, 4458). Mon libellé « fonds reçus pour le compte d'un
+freelance » est retiré : il choisissait Q-B à lui seul ; mes écritures du §2 et du §4.3 se lisent désormais avec ces
+comptes, à reprendre en L3.4. L1-015 et L1-030 : je ne conteste pas N = 15 jours par défaut, 30 au plus ; condition
+d'argent : un versement à l'échéance part seulement sans contestation ouverte. L1-038 : pas d'action `viewed` en L1,
+aucun effet sur l'argent. L1-013 : les trois articles d'argent du contrat seront relus avec C1 (pénalités) en L2.
+ATTENDU : rien.
+RÉF : L1-170.
+
+### L1-180 · 2026-10-25 14:30 · DÉCISION
+DE : katana-shogun      À : Chancelier ; copie katana-tetsu, katana-kensa, katana-mamori, katana-sensei, backend, tresor-juriste (Inès)
+SUJET : porte du chef-d'oeuvre de L1 (le coffre) : PAS ENCORE pour l'ouverture ; la fusion du code n'est pas bloquée, coffre fermé
+CONTENU : lu en lecture seule sur `wt-l1`, HEAD `069793d`. Captures regardées avec Read : `vault-r2/` (e1-s2a, e1-s3, e1-s5, e2-errors,
+e4-open, e4-verifier, e5, e5-gris, e6, à 1 280 et 375), `fingerprint-mark@1x`, `ui-primitives@1x` et `@375`, contrat PDF p1 et p9.
+Les sept questions :
+(1) Moment d'arrêt : E5, le second poinçon sort de dessous le premier (`vault.css:166`, seul le poinçon glisse) et la phrase « Deux
+empreintes différentes : ce sont deux documents distincts » ; sur E4, « Ce texte est celui du PDF : même empreinte de contenu,
+ECB8 1E04 2862 4171, vérifiée à l'affichage ». Arrêt réel mais discret. L'image la plus forte, « Une virgule change le dessin :
+124 cases sur 256 », n'existe que dans le spécimen du poinçon, pas dans le produit.
+(2) Sens : oui, sans exception vue. Aucune image décorative : le seul dessin est le poinçon calculé depuis le SHA-256 du contenu ;
+la forme avant la couleur ; le vert réservé à l'acte signé lu en base ; le pied du PDF porte la même empreinte en capitales
+(p1 et p9 : « B046 92C4 06C6 65BE », « Empreinte du contenu du document, non du fichier »), comme l'écran.
+(3) Faille : aucun texte coupé, aucun débordement, aucun « 202f » visible dans r2. Ce qui casse encore la magie, c'est qu'elle n'a
+été vue qu'en spécimen : aucune route réelle rendue avec base et session.
+(4) Téléphone : mesuré par moi, Chrome sans tête, les 9 spécimens dans un cadre de 375 px, tous les `details` ouverts :
+`scrollWidth` = `clientWidth` = 360 (barre déduite), aucun élément au-delà du bord droit ; `e4-open` à 1 280 : 1 247/1 247.
+B1 recompté : 0 « 202f » ou « 00a0 » nu dans `apps/web/src/i18n` (seul `String.fromCharCode(0x202f)` de `vault-fr.ts`).
+B3 : `ChoiceField.tsx:56` est un `div role="radiogroup"`. B4 : `DownloadLink.tsx:20` sans `download`. Cibles de 44 px : NON VÉRIFIÉ.
+(5) Sans JS et mouvement réduit : rendu serveur, un seul îlot (`PendingSubmit`, 430 o gzip, mesure de Tetsu) ; toutes les
+animations sous `prefers-reduced-motion: no-preference` (`vault.css:64`, `:165`, `:188`), état final = état sans animation.
+Couleurs forcées (`vault.css:228`) et retour `#erreurs` sans script dans Safari et Firefox : NON VÉRIFIÉ. Route réelle sans JS : non jouée.
+(6) Budgets : NON. Ni Lighthouse, ni First Load JS, ni CLS sur les routes du coffre. Seuls chiffres : îlot 430 o gzip, E5 39 Ko
+de HTML, travail serveur médiane 155,9 puis 280,5 ms sur un poste saturé. Le serment 3 n'est pas prouvé.
+(7) Vérité : les deux faussetés de Kensa sont retirées (« en cours de relecture par un avocat », adresse /verifier) ; p1 et p9
+disent « pas encore relu par un avocat », sans adresse. Reste une heure fausse dans le spécimen (m4) et un engagement non
+construit (O4). Gate du VPS (3 719 tests) : rapporté par le Chancelier, pas rejoué par moi.
+VERDICT : tient : l'idée (le texte est le PDF ou rien, prouvé par l'empreinte), le poinçon, la sobriété, la vérité des textes,
+le téléphone. Ne tient pas : budgets non mesurés, accessibilité non mesurée, parcours réel non joué. PAS ENCORE.
+FUSION : AUTORISÉE coffre fermé. `vaultOpen` (`app/api/documents/vault.ts:52`) exige `PROOFSEEN_VAULT_OPEN=GO` en production, et la
+page fermée dit qu'elle l'est. Après le déploiement, vérifier en prod les surfaces vivantes hors coffre : formulaire de devis
+(objet, livrables, validité) et textes de `deals-fr.ts`.
+BLOQUENT L'OUVERTURE (pas la fusion) :
+O1 axe-core, clavier, sans JS et mouvement réduit sur les routes réelles (T16, jamais joué) ; a11y = 1 à prouver.
+O2 budgets des routes : First Load JS, Lighthouse sur une session de test, CLS de M1 et du glissement de E5, temps serveur de E5 au VPS.
+O3 parcours réel E1, E2 (retour sans JS), E4 (téléchargement et repli B4 dans un vrai Chrome), E5, E6, avec la session du founder.
+O4 acceptation liée à la version vue (majeur de L1-159 adressé au backend) : rien dans `b14b124` ; l'écran a seulement cessé de le promettre.
+O5 contre-inspection de Kensa sur `vault-r2/` : absente du bus ; les corrections sont auto-certifiées (B1 à B4 recontrôlés par moi, ci-dessus).
+O6 Inès relit les 6 phrases de L1-160 ; Sensei tranche la couleur de « Modifiée ».
+MINEURS (avant l'ouverture, ne bloquent rien) :
+m1 un montant, trois écritures : « 500 € HT ... 3 000 € HT » (E1), « 500,00 € HT ... 3 000,00 € HT » (E2), « 500,00 EUR » (PDF).
+m2 E1-S2a : pastille « À signer » au-dessus de « Ce contrat a été accepté sans objet de prestation décrit » : contradiction à la lecture.
+m3 E6 : libellé « Sorte » ; « Type de document ».
+m4 spécimen E4 : « 10:41 » écrit à la main (`build-vault-specimen.tsx:195`) pour 08:41Z le 25 octobre 2026, qui est 09:41 à Paris
+(heure d'hiver ce jour-là) ; le composant réel rend bien 09:41 (`e1-s5`). Faute du spécimen, pas du produit.
+m5 à 375 px, les commandes de « Vérifier » se coupent au trait d'union du nom de fichier (« contrat-de- / prestation-v2... ») :
+copie intacte, lecture ambiguë.
+m6 `e4-open@*` coupées (11 000 et 4 500 px) avant le bloc « Vérifier » : la preuve de B2 est la mesure, pas l'image.
+AU-DELÀ (proposition, Kaze et Tetsu, avant l'ouverture) : sur E5, écrire sous les deux poinçons le nombre de cases qui diffèrent,
+calculé depuis les deux empreintes (« 124 cases sur 256 » du spécimen). C'est le moment d'arrêt du spécimen, rendu vrai dans le produit.
+ATTENDU : Chancelier, fusion de `sprint/l1-coffre` coffre fermé et inscription de O1 à O6 comme condition du GO d'ouverture ;
+Mamori, O1 et O2 ; backend, O4 ; Kensa, O5 ; Tetsu, m1 à m6.
+CRITÈRE : nouvelle porte quand O1 à O6 sont prouvés (rapports axe et Lighthouse chiffrés, captures des routes réelles, test
+« acceptation porte l'empreinte de la version vue »).
+RÉF : L1-159, L1-160, L1-161, L1-162 ; `handoffs/tetsu__forge__coffre-ecrans.md` (Révisions 3 et 4) ; `references/masterpiece-gate.md`.
