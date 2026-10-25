@@ -17,9 +17,17 @@ const config: NextConfig = {
   // answers it with the 404 of the brand instead of the default page of Next.
   experimental: { serverActions: { bodySizeLimit: "16mb" }, globalNotFound: true },
   // PDF text extraction (CV import) runs the PDF.js build shipped by unpdf as is, outside the server bundle.
-  serverExternalPackages: ["unpdf"],
+  // PDF writing (document vault, L1) runs pdfmake as is: pdfkit reads its own data files from disk at startup (the AFM metrics
+  // of the standard fonts), which a bundle moves away. pdfkit is not listed: only pdfmake requires it, from its own folder.
+  serverExternalPackages: ["unpdf", "pdfmake"],
+  // The vault route renders the YAML templates and the brand TTF fonts from disk at run time; the tracer cannot see them
+  // (they are read by path, not imported), so a traced deployment (standalone) must be told. The production image runs the
+  // whole monorepo, where they are present anyway.
+  outputFileTracingIncludes: {
+    "/api/documents/**": ["../../packages/documents/templates/**/*", "../../packages/brand/pdf-fonts/*.ttf", "../../packages/brand/pdf-fonts/manifest.json"],
+  },
   // Les paquets du monorepo sont publiés en TypeScript source : Next les compile avec l'application.
-  transpilePackages: ["@proofseen/access", "@proofseen/brand", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
+  transpilePackages: ["@proofseen/documents", "@proofseen/access", "@proofseen/brand", "@proofseen/client-store", "@proofseen/workspace", "@proofseen/deliverable", "@proofseen/presale", "@proofseen/profiles", "@proofseen/stats", "@proofseen/core", "@proofseen/hub", "@proofseen/db", "@proofseen/engines", "@proofseen/notify", "@proofseen/payments", "@proofseen/invoicing", "@proofseen/measure", "@proofseen/extract"],
   async redirects() {
     return [
       { source: "/", destination: "/fr", permanent: false },

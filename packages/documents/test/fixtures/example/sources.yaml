@@ -1,0 +1,32 @@
+# Registre de sources des fixtures de test (jamais du droit réel : seulement de quoi exercer le moteur).
+sources:
+  civ-1113:
+    title: "Code civil, art. 1113"
+    url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070721/LEGISCTA000032006712/"
+    readOn: "2026-10-24"
+    read: official
+    validUntil: null
+  civ-1163:
+    title: "Code civil, art. 1163"
+    url: "https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006070721/LEGISCTA000032008690/"
+    readOn: "2026-10-24"
+    read: official
+    validUntil: null
+  com-l441-10:
+    title: "Code de commerce, art. L441-10"
+    url: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000046519587/"
+    readOn: "2026-10-24"
+    read: official
+    validUntil: null
+  trav-r8222-1:
+    title: "Code du travail, art. R8222-1"
+    url: "https://code.travail.gouv.fr/code-du-travail/r8222-1"
+    readOn: "2026-10-24"
+    read: official
+    validUntil: null
+  old-rule:
+    title: "Une règle fictive qui cesse de s'appliquer le 2026-12-31"
+    url: "https://example.org/old-rule"
+    readOn: "2026-10-24"
+    read: official
+    validUntil: "2026-12-31"

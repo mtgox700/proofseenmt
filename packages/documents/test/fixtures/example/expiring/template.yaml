@@ -1,0 +1,38 @@
+# Un gabarit dont une clause cite une règle qui cesse de s'appliquer le 2026-12-31 (test source_expired).
+id: expiring
+version: 1
+status: draft
+effectiveFrom: "2026-01-01"
+documentType: nda
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Conversation
+
+variables:
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+
+clauses:
+  - { id: only, kind: locked, sources: [old-rule] }
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: seller, rule: "le signataire" }
+
+retention:
+  active: until_contract_end
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points: []

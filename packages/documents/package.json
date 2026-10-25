@@ -1,0 +1,15 @@
+{
+  "name": "@proofseen/documents",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@proofseen/brand": "workspace:*",
+    "pdfmake": "0.3.12",
+    "yaml": "2.9.1",
+    "zod": "^4.6.5"
+  }
+}

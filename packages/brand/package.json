@@ -8,6 +8,8 @@
     "./tokens.css": "./tokens.css",
     "./chrome.css": "./chrome.css",
     "./profile-card.css": "./profile-card.css",
-    "./seal.css": "./seal.css"
+    "./seal.css": "./seal.css",
+    "./pdf-fonts/*": "./pdf-fonts/*",
+    "./fingerprint-mark": "./src/fingerprint-mark.ts"
   }
 }

@@ -1,0 +1,62 @@
+# Une condition qui lit une variable facultative sans `present` : si la donnée manque, le rendu refuse (test condition_unresolvable).
+id: conditional
+version: 1
+status: draft
+effectiveFrom: "2026-01-01"
+documentType: nda
+languages: [fr]
+prevailingLanguage: fr
+attachTo: Conversation
+
+variables:
+  document.issuedOn:
+    type: date
+    required: true
+    source: { kind: document, field: issuedOn }
+    frozenAt: render_data
+    label: { fr: "Date d'établissement" }
+  opt.flag:
+    type: boolean
+    required: false
+    source: { kind: input, editableBy: [seller], stage: draft }
+    frozenAt: input
+    label: { fr: "Drapeau facultatif" }
+  opt.count:
+    type: int
+    min: 0
+    max: 100
+    required: false
+    source: { kind: input, editableBy: [seller], stage: draft }
+    frozenAt: input
+    label: { fr: "Compteur facultatif" }
+
+clauses:
+  - { id: always, kind: locked, sources: [], basis: practice }
+  - id: when-flag
+    kind: conditional
+    when: { var: opt.flag, eq: true }
+    sources: []
+    basis: practice
+  - id: when-count
+    kind: conditional
+    when: { all: [ { var: opt.count, present: true }, { not: { var: opt.count, gte: 10 } } ] }
+    sources: []
+    basis: practice
+
+signature:
+  level: simple
+  order: parallel
+  signatories:
+    - { role: seller, rule: "le signataire" }
+
+retention:
+  active: until_contract_end
+  onPartyErasure: archive
+  draftsOnPartyErasure: delete
+
+review:
+  status: draft
+  reviewedBy: null
+  reviewedOn: null
+  reviewedDigest: null
+  points: []

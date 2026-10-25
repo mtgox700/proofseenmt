@@ -1,0 +1,9 @@
+language: fr
+title: "Règle à durée limitée"
+reviewNotice: "Fixture de test."
+reviewFooter: "Fixture de test."
+clauses:
+  only:
+    heading: "Seule clause"
+    body: |
+      Le {{document.issuedOn}} est une date.
