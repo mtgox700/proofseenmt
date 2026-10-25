@@ -67,7 +67,8 @@ describe("the connected space shows its final state from the first paint (Kensa 
         stack.pop();
         prelude = "";
       } else if (char === ";") {
-        if (/^animation(?:-name)?\s*:/.test(prelude.trim()) && !stack.some((s) => /prefers-reduced-motion:\s*no-preference/.test(s))) bare.push(`${stack.join(" > ")} { ${prelude.trim()} }`);
+        // `animation: none` stops motion (the vault's print view needs it), it never runs one.
+        if (/^animation(?:-name)?\s*:/.test(prelude.trim()) && !/:\s*none\s*$/.test(prelude.trim()) && !stack.some((s) => /prefers-reduced-motion:\s*no-preference/.test(s))) bare.push(`${stack.join(" > ")} { ${prelude.trim()} }`);
         prelude = "";
       } else {
         prelude += char;

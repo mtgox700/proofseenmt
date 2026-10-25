@@ -50,7 +50,10 @@ const infoValue = (raw: string, key: string): string | undefined => {
 };
 
 const pagesOf = (pdf: Buffer): number => (pdf.toString("latin1").match(/\/Type \/Page(?![a-z])/g) ?? []).length;
-const flat = (text: string): string => text.replace(/[ \n\r\t]+/g, " ");
+// The stream extractor (used where poppler is absent, as in the Linux gate) separates text runs with a space, and pdfmake
+// cuts a hyphenated word into two runs: « Nguyễn- Dvořák ». The PDF bytes are the same on every platform (reference
+// digest), so only the reading is rejoined here.
+const flat = (text: string): string => text.replace(/[ \n\r\t]+/g, " ").replace(/(\p{L})- (?=\p{L})/gu, "$1-");
 
 const modelOf = (variables: Record<string, unknown>, options: Parameters<typeof renderTemplate>[4] = {}) => {
   const rendered = renderTemplate("service-agreement", 1, "fr", variables, options);

@@ -1,3 +1,4 @@
+/* global process, console, Buffer, URL */
 // Specimen of the PDF fonts rendered with pdfkit (the engine under pdfmake), fixed dates: same fonts, same bytes.
 // Usage: PDFKIT_FROM=<folder whose node_modules has pdfkit 0.20.2> node specimen.mjs <fonts folder> <out.pdf> [web.ttf]
 // The optional third argument is the site font converted as is (WOFF2 to TTF), to show the glyphs it lacks.

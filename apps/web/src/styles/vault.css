@@ -61,7 +61,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .vault-ink-band { animation: vault-ink calc(var(--ps-dur-trace) * 0.4375) var(--ps-ease-ink) calc(var(--ps-dur-trace) * 0.1875 * var(--band)) both; }
 }
-@keyframes vault-ink { from { opacity: 0.25; } to { opacity: 1; } }
+@keyframes vault-ink { from { opacity: 0.5; } to { opacity: 1; } }
 
 /* ---------- The form « Préparer » ---------- */
 .vault-form fieldset { display: grid; gap: var(--ps-space-3); min-width: 0; margin: 0; padding: var(--ps-space-4); border: 1px solid var(--ps-line); border-radius: var(--ps-radius); }
