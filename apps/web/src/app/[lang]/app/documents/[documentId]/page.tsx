@@ -8,7 +8,8 @@ import { writtenDate } from "@/components/ui/when";
 import { Digests } from "@/components/vault/Digests";
 import { DocumentRail } from "@/components/vault/DocumentRail";
 import { DocumentView } from "@/components/vault/DocumentView";
-import { DownloadLink, fileName } from "@/components/vault/DownloadLink";
+import { DownloadLink } from "@/components/vault/DownloadLink";
+import { fileName } from "@/lib/vault/file-name";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { logError } from "@/lib/log";
@@ -105,7 +106,7 @@ export default async function DocumentPage({ params, searchParams }: PageProps) 
             </div>
           )}
         </div>
-        <Digests lang={lang} contentDigest={version.contentDigest} sha256={version.sha256} fileName={fileName(document.type, version.number)} />
+        <Digests lang={lang} contentDigest={version.contentDigest} sha256={version.sha256} fileName={fileName(document.type, version.number, version.contentDigest)} />
       </div>
     </div>
   );

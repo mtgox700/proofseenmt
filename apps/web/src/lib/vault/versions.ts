@@ -1,5 +1,6 @@
 import type { VersionSummary } from "@proofseen/db";
 import type { VaultDictionary } from "@/i18n/market/vault-fr";
+import { vaultText } from "./dictionary";
 
 /*
  * Small facts about versions that several screens of the vault say the same way (storyboard L1.6, §4): who wrote a
@@ -66,3 +67,9 @@ export function readCompare(de: string | null, a: string | null, latest: number)
   if (x === y) return { kind: "same", number: x };
   return x > y ? { kind: "redirect", from: y, to: x } : { kind: "ok", from: x, to: y };
 }
+
+/** The reason of a version nobody explained, in the language of the page that posted it (L1-159). */
+export const defaultReason = (lang: "fr" | "en", expected: number): string => {
+  const card = vaultText(lang).card;
+  return expected === 0 ? card.firstVersion : card.nextVersion;
+};

@@ -13,6 +13,9 @@ import { VaultStamp } from "./VaultStamp";
  * 0 ms. Played on every opening of a comparison, a request of the person; never on an anchor inside the page.
  */
 
+/** The day under a poinçon is one piece: « 24 octobre 2026 » never breaks before its year (L1-159). */
+const NBSP = String.fromCharCode(0xa0);
+
 export interface CompareHeadProps {
   readonly lang: Lang;
   readonly type: string;
@@ -28,7 +31,7 @@ export function CompareHead({ lang, type, older, newer }: CompareHeadProps) {
       <VaultStamp lang={lang} contentDigest={version.contentDigest} size={96} subject={t.card.subject(type, version.number)} />
       {/* Two clean lines under the poinçon, never a separator at the head of one: the version and its day, then who. */}
       <p className="vault-pair-line">
-        <span className="vault-line">{c.stampVersion(version.number, writtenDate(version.createdAt, lang, "day"))}</span>
+        <span className="vault-line">{c.stampVersion(version.number, writtenDate(version.createdAt, lang, "day").replace(/ /g, NBSP))}</span>
         <span className="vault-line">{c.stampBy(authorLabel(version, t.who))}</span>
       </p>
     </li>

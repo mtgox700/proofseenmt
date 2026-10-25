@@ -38,7 +38,12 @@ export function ErrorSummary({ lang, groups, problems, facts, refusal, message }
   const refusalText = refusal === null ? null : refusal === "monthly" ? t.states.monthly : p.refusal[refusal];
   const items = problems.flatMap((problem) => {
     const found = fieldOf(problem.name);
-    return found === null ? [] : [{ href: `#${found.field.id}`, text: p.summaryItem(found.group.legend, lowerFirst(found.field.label)) }];
+    if (found === null) return [];
+    // A label that already says its legend is said alone: « Régime de propriété intellectuelle », not the legend twice.
+    const { legend } = found.group;
+    const { label } = found.field;
+    const repeats = label.toLocaleLowerCase(lang).includes(legend.toLocaleLowerCase(lang));
+    return [{ href: `#${found.field.id}`, text: repeats ? label : p.summaryItem(legend, lowerFirst(label)) }];
   });
   return (
     <div id="erreurs" className="vault-alert vault-summary" role="alert" tabIndex={-1}>

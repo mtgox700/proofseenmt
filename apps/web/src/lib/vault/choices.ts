@@ -124,14 +124,22 @@ function conditionOf(decl: VariableDecl): Condition | null {
 const controlOf = (decl: VariableDecl): Control =>
   decl.type === "enum" ? "radio" : decl.type === "boolean" ? "boolean" : decl.type === "int" ? "number" : decl.type === "text" ? "textarea" : "text";
 
-function fieldOf(name: string, decl: VariableDecl, lang: Lang, t: VaultDictionary["prepare"]): FieldSpec {
+export type Billing = "fixed" | "monthly";
+
+/** The template's label of a variable, or the label of the variant this contract has when the template's covers two. */
+export function labelFor(name: string, decl: VariableDecl, lang: Lang, t: VaultDictionary["prepare"], billing: Billing | null): string {
+  if (name === "input.acceptanceWindowDays" && billing === "fixed") return t.variantLabels.acceptanceWindowFixed;
+  return (lang === "en" ? decl.label.en : undefined) ?? decl.label.fr;
+}
+
+function fieldOf(name: string, decl: VariableDecl, lang: Lang, t: VaultDictionary["prepare"], billing: Billing | null): FieldSpec {
   const labels = decl.labels?.[lang] ?? decl.labels?.fr ?? {};
   const hint = HINTS[name];
   return {
     name,
     id: fieldId(name),
     control: controlOf(decl),
-    label: (lang === "en" ? decl.label.en : undefined) ?? decl.label.fr,
+    label: labelFor(name, decl, lang, t, billing),
     options: decl.type === "enum" ? (decl.values ?? []).map((value) => ({ value, label: labels[value] ?? value })) : [],
     min: decl.min ?? null,
     max: decl.max ?? null,
@@ -143,10 +151,10 @@ function fieldOf(name: string, decl: VariableDecl, lang: Lang, t: VaultDictionar
 }
 
 /** The fieldsets of the form, from the template's declaration; a variable the template does not declare is left out. */
-export function choiceGroups(decl: Decl, lang: Lang, t: VaultDictionary["prepare"]): readonly GroupSpec[] {
+export function choiceGroups(decl: Decl, lang: Lang, t: VaultDictionary["prepare"], billing: Billing | null = null): readonly GroupSpec[] {
   const field = (name: string): FieldSpec[] => {
     const variable = decl.variables[name];
-    return variable === undefined || variable.source.kind !== "input" ? [] : [fieldOf(name, variable, lang, t)];
+    return variable === undefined || variable.source.kind !== "input" ? [] : [fieldOf(name, variable, lang, t, billing)];
   };
   return LAYOUT.map((group): GroupSpec => {
     const fields = group.fields.flatMap(field);

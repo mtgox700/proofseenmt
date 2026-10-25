@@ -33,6 +33,7 @@ export const textsOf = (text: LanguageText): readonly string[] => [
   ...(text.subtitle === undefined ? [] : [text.subtitle]),
   text.reviewNotice,
   text.reviewFooter,
+  ...(text.reviewedFooter === undefined ? [] : [text.reviewedFooter]),
   ...Object.values(text.clauses).flatMap((clause) => [clause.heading, ...(clause.body === undefined ? [] : [clause.body]), ...Object.values(clause.variants ?? {})]),
 ];
 

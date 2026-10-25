@@ -172,8 +172,8 @@ describe("TEMPLATE_FORMAT.md §9, expected renders", () => {
   it("4. clauses numbered from 1, the vigilance clause only when the data say so, the review notice on top and the review line at the foot", () => {
     const model = success(render(exampleVariables(), { optionalClauses: { reference: "included" } }));
     expect(model.clauses.map((c) => [c.number, c.id])).toEqual([[1, "parties"], [2, "scope"], [3, "price"], [4, "reference"]]);
-    expect(model.reviewNotice).toContain("en cours de relecture par un avocat");
-    expect(model.reviewFooter).toBe("Modèle Proofseen en cours de relecture par un avocat.");
+    expect(model.reviewNotice).toContain("pas encore relu par un avocat");
+    expect(model.reviewFooter).toBe("Modèle Proofseen pas encore relu par un avocat.");
     const withVigilance = success(render(exampleVariables({ "computed.vigilanceRequired": true }), { optionalClauses: { reference: "included" } }));
     expect(withVigilance.clauses.map((c) => [c.number, c.id])).toEqual([[1, "parties"], [2, "scope"], [3, "price"], [4, "vigilance"], [5, "reference"]]);
   });
@@ -218,7 +218,8 @@ describe("review attestation (principle 7)", () => {
     const { registry: reviewed, dir } = reviewedRegistry();
     const clean = success(renderTemplate("example", 1, "fr", exampleVariables(), { registry: reviewed }));
     expect(clean.reviewNotice).toBeNull();
-    expect(clean.reviewFooter).toBeNull();
+    // La relecture attestée : plus d'avertissement, et le pied de page le dit avec la date, lue dans le gabarit (L1-159, Kensa M2).
+    expect(clean.reviewFooter).toBe("Modèle Proofseen relu par un avocat le 2 novembre 2026.");
 
     const file = join(dir, "example", "fr.yaml");
     writeFileSync(file, readFileSync(file, "utf8").replace("Le prix est de", "Le prix total est de"));

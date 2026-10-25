@@ -1,9 +1,10 @@
 language: fr
 title: "Exemple de contrat"
 reviewNotice: |
-  Document établi à partir d'un modèle Proofseen en cours de relecture par un avocat. Il ne constitue pas un conseil
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
   juridique. Relisez-le, et faites-le relire si besoin, avant de le signer.
-reviewFooter: "Modèle Proofseen en cours de relecture par un avocat."
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}."
 clauses:
   parties:
     heading: "Les parties"

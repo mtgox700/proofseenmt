@@ -7,6 +7,7 @@ import { throttled } from "@/data/throttle";
 import { caller, fail, jsonBody, sameOrigin, type Caller } from "@/lib/api";
 import { createDocumentRenderer } from "@/lib/document-renderer";
 import { logError } from "@/lib/log";
+import { fileName } from "@/lib/vault/file-name";
 
 /*
  * The vault API (L1): the documents of an affair, their versions, the download of one version, and the creation of a
@@ -230,14 +231,6 @@ export const addDocumentVersion = async (request: Request, id: string, deps: Vau
   }
 };
 
-const FILE_NAMES: Readonly<Record<string, string>> = {
-  service_agreement: "contrat-de-prestation",
-  quote: "devis",
-  acceptance_report: "proces-verbal-de-recette",
-  nda: "accord-de-confidentialite",
-  amendment: "avenant",
-};
-
 /** Sert les octets d'une version : jamais mis en cache, jamais indexés, toujours en téléchargement, et seulement s'ils correspondent à l'empreinte enregistrée. */
 export const downloadVersion = async (id: string, rawNumber: string, deps: VaultDeps): Promise<Response> => {
   const entered = await gate(deps);
@@ -253,7 +246,8 @@ export const downloadVersion = async (id: string, rawNumber: string, deps: Vault
       logError("vault: stored bytes do not match their fingerprint");
       return fail("erreur serveur");
     }
-    const name = `${FILE_NAMES[opened.document.type] ?? "document"}-v${opened.version.number}.pdf`;
+    // One name for the file, shared with the screens (L1-159): kind, version, eight characters of the content fingerprint.
+    const name = fileName(opened.document.type, opened.version.number, opened.version.contentDigest);
     return new Response(new Uint8Array(bytes), {
       status: 200,
       headers: {

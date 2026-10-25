@@ -31,7 +31,7 @@ const explain = (older: VersionFacts, newer: VersionFacts, table?: ExplainTable)
 describe("explainChanges (T7)", () => {
   it("says a number with its unit, from the template's label", () => {
     const { changes } = explain(facts(1), facts(2, { "input.acceptanceWindowDays": 20 }));
-    expect(changes.map((c) => c.sentence)).toEqual([`Délai de recette ou de validation du relevé${N}: 15 jours devient 20 jours.`]);
+    expect(changes.map((c) => c.sentence)).toEqual([`Délai de recette${N}: 15${String.fromCharCode(0xa0)}jours devient 20${String.fromCharCode(0xa0)}jours.`]);
     expect(changes[0]?.clause).toBe("acceptance");
     expect(changes[0]?.parties).toBeNull();
   });

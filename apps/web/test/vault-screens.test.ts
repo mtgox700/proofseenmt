@@ -30,6 +30,8 @@ import { demoContract } from "../../../packages/documents/test/support/demo";
 const N = String.fromCharCode(0x202f);
 /** The separator of the vault: a no-break space before « · », so it never begins a line. */
 const D = `${String.fromCharCode(0xa0)}· `;
+/** A no-break space: the day under a poinçon is one piece (L1-159). */
+const NB = String.fromCharCode(0xa0);
 const html = (node: ReactElement) => renderToStaticMarkup(node);
 const hex = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 const ID = "00000000-0000-4000-8000-0000000000d1";
@@ -90,20 +92,20 @@ describe("a document of the affair (T6)", () => {
     expect(out).toContain(doc.latest!.contentDigest.slice(0, 4).toUpperCase());
     expect(out).not.toContain(doc.latest!.sha256.slice(0, 4).toUpperCase() + " ");
     expect(out).toContain(`Télécharger le PDF, 412${N}Ko`);
-    expect(out).toContain('download="contrat-de-prestation-v3.pdf"');
+    expect(out).toContain('href="/api/documents/00000000-0000-4000-8000-0000000000d1/versions/3"');
     expect(out).toContain("Ce qui a changé depuis la version 2");
     expect(out).toContain(`Version 2${D}23 octobre 2026${D}par vous`);
     expect(out).toContain(`Version 1${D}22 octobre 2026${D}par l&#x27;entreprise`);
     expect(out).toContain("Remplacée par la version 2");
     expect(out).toContain('action="/fr/app/documents/00000000-0000-4000-8000-0000000000d1/comparer"');
-    expect(out).toContain(vaultFr.card.review);
+    expect(out).toContain(vaultFr.card.review("1"));
   });
 
   it("says why no new version may be prepared, instead of a button", () => {
     const out = html(createElement(DocumentCard, { lang: "fr", document: detail(1), inking: null, underReview: false, prepareHref: null, closedLine: "Plus de nouvelle version." }));
     expect(out).not.toContain("Préparer une nouvelle version");
     expect(out).toContain("Plus de nouvelle version.");
-    expect(out).not.toContain(vaultFr.card.review);
+    expect(out).not.toContain("pas encore relu");
   });
 
   it("inks (M1) the stamp of a version just born: the same drawing, ink in bands, the same words", () => {
@@ -129,8 +131,8 @@ describe("the form « Préparer » (T10)", () => {
     const out = html(createElement(ErrorSummary, { lang: "fr", groups, problems: [{ name: "input.ipRegime", kind: "choose" }, { name: "input.confidentialityYears", kind: "number" }], facts: [], refusal: null, message: null }));
     expect(out).toContain('role="alert"');
     expect(out).toContain(`Il manque 2 choix pour préparer le contrat${N}:`);
-    expect(out).toContain(`<a href="#f-ip-regime">Propriété intellectuelle${N}: régime de propriété intellectuelle</a>`);
-    expect(out).toContain(`<a href="#f-confidentiality-years">Confidentialité${N}: durée de la confidentialité après la fin du contrat, en années</a>`);
+    expect(out).toContain(`<a href="#f-ip-regime">Régime de propriété intellectuelle</a>`);
+    expect(out).toContain(`<a href="#f-confidentiality-years">Durée de la confidentialité après la fin du contrat, en années</a>`);
     expect(out).not.toContain("input.");
   });
 });
@@ -178,7 +180,7 @@ describe("the comparison (T9)", () => {
   it("chains to the next change by a link, and folds identical clauses with their count", () => {
     if (modified === undefined || modified.kind !== "modified") throw new Error("no modified clause");
     const out = html(createElement(ClauseDiff, { v, diff: modified, byModel: false, next: { id: "liability", number: 19, heading: "Responsabilité" } }));
-    expect(out).toContain(`<a href="#clause-liability-h">Changement suivant${N}: article 19, Responsabilité</a>`);
+    expect(out).toContain(`<a href="#clause-liability">Changement suivant${N}: article 19, Responsabilité</a>`);
     const group = groupIdentical(comparison.clauses).find((g) => g.kind === "identical");
     if (group?.kind !== "identical") throw new Error("no identical group");
     const same = html(createElement(SameClauses, { v, group }));
@@ -192,7 +194,7 @@ describe("the comparison (T9)", () => {
     expect(out).toContain(`Deux empreintes différentes${N}: ce sont deux documents distincts.`);
     expect(out.match(/data-level="128"/g)?.length).toBe(2);
     // Two clean lines under each poinçon: never a « · » at the head of a line (seen on the specimen, fixed).
-    expect(out).toContain(`<span class="vault-line">Version 2${D}23 octobre 2026</span><span class="vault-line">par vous</span>`);
+    expect(out).toContain(`<span class="vault-line">Version 2${D}23${NB}octobre${NB}2026</span><span class="vault-line">par vous</span>`);
     expect(out).not.toMatch(/> ?· /);
   });
 

@@ -52,7 +52,7 @@ export function Digests({ lang, contentDigest, sha256, fileName }: DigestsProps)
           <div key={command.os}>
             <dt>{command.os}</dt>
             <dd>
-              <code>{command.line}</code>
+              <code className="vault-command">{command.line}</code>
             </dd>
           </div>
         ))}

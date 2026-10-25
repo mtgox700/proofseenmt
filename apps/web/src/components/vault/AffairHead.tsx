@@ -3,7 +3,6 @@ import type { ContractDetail } from "@proofseen/db";
 import { StatusTag } from "@/components/market/StatusTag";
 import type { Lang } from "@/i18n/types";
 import type { DealsDictionary } from "@/i18n/market/deals-fr";
-import { SEP } from "@/i18n/market/vault-fr";
 import { money } from "@/lib/format";
 
 /*
@@ -33,7 +32,7 @@ export function AffairHead({ lang, deals, contract }: AffairHeadProps) {
         <p className="thread-meta">
           <StatusTag status={contract.status} label={c.status[contract.status]} />
           <span className="muted small">
-            {`${total} ${c.exclVat}${SEP}`}
+            {/* The amount once (L1-159): the line of the quote already ends with it. */}
             {deals.quotes.line(money(contract.dailyRateCents, contract.currency, lang), contract.days, total)}
           </span>
         </p>

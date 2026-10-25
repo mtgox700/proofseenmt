@@ -22,7 +22,12 @@ const PRINT_REFERENCE = fileURLToPath(new URL("./support/print-reference.ts", im
  * imprimée est celle du contenu et non du fichier ; (3) le poinçon de la marque, niveau 64, 12 mm, en vecteur, branché dans
  * l'emplacement réservé (`hallmark.ts`, `@proofseen/brand/fingerprint-mark`, décision de Shogun L1-090 point 1, PASS L1-120) ;
  * (4) décision L1-147 : l'empreinte du CONTENU s'imprime en capitales groupées par quatre (comme à l'écran), celle d'un
- * FICHIER reste en minuscules (`fileDigestGroups`) ; seul le pied de page change, par rapport à `9f3c34fa…` et `530a37f2…`.
+ * FICHIER reste en minuscules (`fileDigestGroups`) ; seul le pied de page change, par rapport à `9f3c34fa…` et `530a37f2…` ;
+ * (5) Kensa L1-159 M2 : « en cours de relecture par un avocat » était faux (la relecture D6 n'est pas engagée) : l'avertissement et
+ * le pied disent « pas encore relu par un avocat » (texte des gabarits ; `reviewedFooter` est prêt pour « relu par un avocat le
+ * <date> » quand la donnée `review` du gabarit sera renseignée) ; ce changement de mots fait passer fr et en à `5c7aa760…` et
+ * `5f742668…`. L'adresse /verifier n'est plus imprimée par défaut (M3, option `verifyPage` de l'adaptateur) : le PDF de référence
+ * ne la portait déjà pas.
  * Elles ne bougent plus qu'avec la raison écrite ci-dessous (L1-120 : « aucun autre changement de dessin du poinçon sans
  * nouvelle DÉCISION de la Création »).
  *
@@ -39,8 +44,8 @@ const PRINT_REFERENCE = fileURLToPath(new URL("./support/print-reference.ts", im
  *     pdfmake pdfkit fontkit`, `node --version`).
  */
 const REFERENCE_FINGERPRINT = {
-  fr: "407c1fc2cd72ce1aed4d671eebb6ae56415a9383d2d94b1679e7e79dc6b6fe3f",
-  en: "ede94235c4d554296b8e0b4e75f362c3264556be17bde77a4e506bd4885fedb5",
+  fr: "5c7aa76057a66f35a8b890c0f62940b7e70df8ef97edaf37712f1c8e18e23b60",
+  en: "5f74266814d8b038c0b598497baefb88b3001ff5aa7c4858209b66866c78cb34",
 } as const;
 
 /** La valeur d'une entrée du dictionnaire Info (pdfkit les écrit en objets indirects : `/Title 44 0 R`). */
@@ -166,7 +171,7 @@ describe("text in the PDF (selectable, with accents and foreign names)", () => {
 
   it("prints the review line at the foot of every page while the template is in review", async () => {
     const pdf = await referencePdf("fr");
-    expect(flat(extractFromStreams(pdf)).split("Modèle Proofseen en cours de relecture par un avocat, version 1.").length - 1).toBe(pagesOf(pdf));
+    expect(flat(extractFromStreams(pdf)).split("Modèle Proofseen pas encore relu par un avocat, version 1.").length - 1).toBe(pagesOf(pdf));
   });
 
   it("prints the test watermark on every page of a test render, and on none otherwise", async () => {

@@ -93,7 +93,7 @@ describe("service agreement v1, French, fixed price (demonstration data)", () =>
 
   it("the review notice is on top while the template is in review", () => {
     const doc = model(render(demoContract()));
-    expect(doc.reviewNotice).toContain("en cours de relecture par un avocat");
+    expect(doc.reviewNotice).toContain("pas encore relu par un avocat");
     expect(doc.reviewFooter).toContain("version 1");
     expect(doc.title).toBe("Contrat de prestation de services");
     expect(doc.subtitle).toContain("00000000-0000-4000-8000-000000000001");

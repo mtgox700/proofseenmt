@@ -5,11 +5,12 @@ import { MarketUnavailable } from "@/components/market/MarketUnavailable";
 import { AffairHead } from "@/components/vault/AffairHead";
 import { AffairTabs } from "@/components/vault/AffairTabs";
 import { DocumentCard } from "@/components/vault/DocumentCard";
-import { VaultState, acceptedBy } from "@/components/vault/VaultState";
+import { VaultState } from "@/components/vault/VaultState";
 import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { pageMarket } from "@/lib/market";
-import { affairState, type AffairState } from "@/lib/vault/affair-state";
+import { acceptanceLine, waitingLine } from "@/lib/vault/acceptance";
+import { affairState, type AffairContract, type AffairState } from "@/lib/vault/affair-state";
 import { vaultText } from "@/lib/vault/dictionary";
 import { affairDocuments } from "@/lib/vault/load";
 import { inkingVersion } from "@/lib/vault/versions";
@@ -25,12 +26,10 @@ interface PageProps {
   readonly searchParams: Promise<{ depose?: string; erreur?: string; derniere?: string }>;
 }
 
-function closedLine(state: Extract<AffairState, { kind: "list" }>, lang: "fr" | "en", latest: number): string | null {
-  const card = vaultText(lang).card;
-  if (state.cancelled) return card.closedCancelled;
-  if (state.acceptance === null) return null;
-  const { who, date } = acceptedBy(state.acceptance, lang);
-  return card.closedAfter(who, date, latest);
+/** Why no new version: cancelled, or who accepted and when, and who has not yet (L1-159 M5). */
+function closedLine(state: Extract<AffairState, { kind: "list" }>, contract: AffairContract, lang: "fr" | "en", latest: number): string | null {
+  if (state.cancelled) return vaultText(lang).card.closedCancelled;
+  return acceptanceLine(contract, lang, latest);
 }
 
 export default async function AffairDocumentsPage({ params, searchParams }: PageProps) {
@@ -87,12 +86,12 @@ export default async function AffairDocumentsPage({ params, searchParams }: Page
                 inking={detail.type === "service_agreement" ? inking : null}
                 underReview={underReview}
                 prepareHref={state.canPrepare && detail.type === "service_agreement" ? `${base}/documents/preparer` : null}
-                closedLine={state.canPrepare ? null : closedLine(state, lang, detail.latest?.number ?? 0)}
+                closedLine={state.canPrepare ? null : closedLine(state, contract, lang, detail.latest?.number ?? 0)}
               />
             ))}
           </div>
         ) : (
-          <VaultState lang={lang} state={state} side={contract.side} affairHref={base} prepareHref={`${base}/documents/preparer`} retryHref={`${base}/documents`} />
+          <VaultState lang={lang} state={state} side={contract.side} affairHref={base} prepareHref={`${base}/documents/preparer`} retryHref={`${base}/documents`} waiting={waitingLine(contract, lang)} />
         )}
       </section>
     </div>

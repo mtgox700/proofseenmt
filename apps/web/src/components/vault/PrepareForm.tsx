@@ -107,16 +107,14 @@ export function PrepareForm(props: PrepareFormProps) {
         <fieldset>
           <legend>{t.legends.lang}</legend>
           <p className="vault-hint">{t.hints.lang}</p>
-          <ul className="vault-choices" role="radiogroup" aria-label={t.langLabel}>
+          <div className="vault-choices" role="radiogroup" aria-label={t.langLabel}>
             {(["fr", "en"] as const).map((code) => (
-              <li key={code}>
-                <label className="vault-choice" htmlFor={`f-lang-${code}`}>
-                  <input id={`f-lang-${code}`} type="radio" name="docLang" value={code} defaultChecked={(values.docLang ?? lang) === code} />
-                  <span lang={code}>{t.langs[code]}</span>
-                </label>
-              </li>
+              <label key={code} className="vault-choice" htmlFor={`f-lang-${code}`}>
+                <input id={`f-lang-${code}`} type="radio" name="docLang" value={code} defaultChecked={(values.docLang ?? lang) === code} />
+                <span lang={code}>{t.langs[code]}</span>
+              </label>
             ))}
-          </ul>
+          </div>
         </fieldset>
       ) : null}
 

@@ -80,7 +80,7 @@ export default async function PreparePage({ params, searchParams }: PageProps) {
   const template = defaultRegistry().latest("service-agreement");
   if (template === undefined) redirect(`${tab}?erreur=moteur`);
   const t = vaultText(lang);
-  const groups = choiceGroups(template.decl, lang, t.prepare);
+  const groups = choiceGroups(template.decl, lang, t.prepare, contract.billing);
   const { brouillon } = await searchParams;
   const kept = brouillon === undefined ? null : drafts().take(brouillon, market.actor.userId, id, new Date());
   const values = kept?.values ?? initialDraft(template.decl, groups, frozen === null ? null : { values: frozenValues.values ?? {}, optionalClauses: frozenValues.optionalClauses ?? {} });

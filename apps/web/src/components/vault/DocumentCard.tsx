@@ -43,7 +43,7 @@ export function DocumentCard({ lang, document, inking, underReview, prepareHref,
       <h3 id={titleId}>{typeName}</h3>
       <p className="vault-meta">{card.version(latest.number, writtenDate(latest.createdAt, lang, "minute"), authorLabel(latest, t.who))}</p>
       <VaultStamp lang={lang} contentDigest={latest.contentDigest} size={32} subject={card.subject(document.type, latest.number)} inking={inking === latest.number} />
-      {underReview ? <p className="vault-review">{card.review}</p> : null}
+      {underReview ? <p className="vault-review">{card.review(latest.templateVersion)}</p> : null}
       <p className="vault-reason">{card.reason(latest.reason)}</p>
       <ul className="vault-actions">
         <li>

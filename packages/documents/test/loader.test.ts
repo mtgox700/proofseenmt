@@ -55,6 +55,19 @@ describe("the packaged templates (transform of the Tresor structural check)", ()
     const again = loadRegistry(TEMPLATES_DIR).find("service-agreement", 1);
     expect(again?.digest).toBe(template?.digest);
   });
+
+  it("never prints that a review is under way (L1-159, Kensa M2: D6 is not engaged), says what is true, and can say the review is done", () => {
+    for (const t of registry.all()) {
+      for (const [lang, text] of Object.entries(t.texts)) {
+        const where = `${t.decl.id}/${lang}`;
+        const printed = [text.reviewNotice, text.reviewFooter, text.reviewedFooter ?? ""].join("\n");
+        expect(printed, where).not.toMatch(/en cours de relecture|under review|being reviewed/i);
+        expect(`${text.reviewNotice} ${text.reviewFooter}`, where).toMatch(lang === "fr" ? /pas encore relu par un avocat/ : /not yet (?:been )?reviewed by a lawyer/);
+        // La phrase « relu le ... » existe déjà : le jour de la décision, seule la donnée du gabarit change (`review`).
+        expect(text.reviewedFooter, where).toMatch(/\{\{review\.reviewedOn\}\}/);
+      }
+    }
+  });
 });
 
 describe("source registry", () => {

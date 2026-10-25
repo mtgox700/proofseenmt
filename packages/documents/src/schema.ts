@@ -146,6 +146,11 @@ export const LanguageSchema = z.strictObject({
   subtitle: z.string().optional(),
   reviewNotice: z.string().min(1),
   reviewFooter: z.string().min(1),
+  /**
+   * Pied de page quand la relecture est attestée (`review.status: reviewed` et empreinte relue égale à celle du contenu) :
+   * « relu par un avocat le {{review.reviewedOn}} ». La date vient de la donnée `review` du gabarit, jamais du texte.
+   */
+  reviewedFooter: z.string().min(1).optional(),
   clauses: z.record(z.string(), ClauseText),
 });
 export type LanguageText = z.infer<typeof LanguageSchema>;

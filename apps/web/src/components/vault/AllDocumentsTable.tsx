@@ -117,7 +117,7 @@ export function AllDocumentsTable(props: AllDocumentsTableProps) {
       <DataTable
         lang={lang}
         id="docs"
-        caption={a.caption}
+        caption={sort.direction === "ascending" ? a.captionOldest : a.caption}
         columns={columns}
         rows={items}
         rowKey={(row) => row.id}

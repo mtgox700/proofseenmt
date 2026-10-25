@@ -6,10 +6,11 @@ title: "Service agreement"
 subtitle: "Reference {{contract.id}}, version {{document.versionNumber}} of {{document.issuedOn}}"
 
 reviewNotice: |
-  This document was produced from a Proofseen template that is being reviewed by a lawyer. It is not legal advice and
+  This document was produced from a Proofseen template that has not yet been reviewed by a lawyer. It is not legal advice and
   does not replace the advice of your own counsel. Read it, and have it reviewed if needed, before signing. This
   English text is a translation: the French version prevails.
-reviewFooter: "Proofseen template under review by a lawyer, version {{document.versionNumber}}. The French version prevails."
+reviewFooter: "Proofseen template not yet reviewed by a lawyer, version {{document.versionNumber}}. The French version prevails."
+reviewedFooter: "Proofseen template reviewed by a lawyer on {{review.reviewedOn}}, version {{document.versionNumber}}. The French version prevails."
 
 clauses:
   parties:

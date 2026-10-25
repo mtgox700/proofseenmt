@@ -70,13 +70,21 @@ export const vaultFr = {
     },
     version: (n: number, date: string, by: string) => `Version ${n}${SEP}déposée le ${date} par ${by}`,
     filed: "Déposé",
-    review: "Modèle Proofseen v1, en cours de relecture par un avocat.",
+    /** The version of the template the version was rendered with (`templateVersion`); L1-159 M2: not yet reviewed. */
+    review: (templateVersion: string) => `Modèle Proofseen v${templateVersion}, pas encore relu par un avocat.`,
     reason: (reason: string) => `Raison${N}: ${reason}`,
     firstVersion: "première version",
+    nextVersion: "nouvelle version",
     read: "Lire",
     download: (size: string) => `Télécharger le PDF, ${size}`,
     changesSince: (n: number) => `Ce qui a changé depuis la version ${n}`,
     prepareNext: "Préparer une nouvelle version",
+    closedPartial: (by: string, date: string, pending: string, latest: number) =>
+      `Plus de nouvelle version${N}: le contrat a été accepté par ${by} le ${date}${N}; ${pending}. Le texte rédigé le plus récent est la version ${latest}.`,
+    closedBoth: (first: string, firstDate: string, second: string, secondDate: string, latest: number) =>
+      `Plus de nouvelle version${N}: le contrat a été accepté par ${first} le ${firstDate}, puis par ${second} le ${secondDate}. Le texte rédigé le plus récent est la version ${latest}.`,
+    notYet: (who: string) => `${who} ne l'a pas encore accepté`,
+    youNotYet: "vous ne l'avez pas encore accepté",
     closedAfter: (by: string, date: string, latest: number) =>
       `Plus de nouvelle version${N}: le contrat a été accepté par ${by} le ${date}. Le texte rédigé le plus récent est la version ${latest}.`,
     closedCancelled: `Plus de nouvelle version${N}: ce contrat a été annulé.`,
@@ -93,7 +101,7 @@ export const vaultFr = {
   picker: { label: "Comparer deux versions", from: "Comparer la version", to: "à la version", submit: "Comparer" },
   prepare: {
     title: (n: number) => `Préparer le contrat de prestation, version ${n}`,
-    lead: `Les conditions acceptées au devis ne changent pas ici${N}: parties, objet, livrables, prix et dates viennent du contrat. Vous choisissez le reste. Chaque choix dit à qui il revient${N}; l'autre partie le confirme en acceptant le contrat, ou le change dans une nouvelle version.`,
+    lead: `Les conditions acceptées au devis ne changent pas ici${N}: parties, objet, livrables, prix et dates viennent du contrat. Vous choisissez le reste. Chaque choix dit à qui il revient${N}; l'autre partie peut le changer dans une nouvelle version, tant que personne n'a accepté le contrat.`,
     fromContract: "Ce qui vient du contrat",
     facts: { provider: "Prestataire", client: "Client", scope: "Objet", deliverables: "Livrables", price: "Prix", dates: "Dates", commission: "Commission de Proofseen et qui la paie" },
     scopeMore: "Lire l'objet en entier",
@@ -122,6 +130,11 @@ export const vaultFr = {
     langs: { fr: "Français", en: "English" },
     reasonLabel: "Raison de cette version",
     optionalLegend: "Articles facultatifs",
+    /**
+     * A label of the template that covers two variants, said for the one this contract has (L1-159 M11): the template's
+     * « Délai de recette ou de validation du relevé » is, for a fixed-price contract, the acceptance window only.
+     */
+    variantLabels: { acceptanceWindowFixed: "Délai de recette, en jours" },
     legends: {
       workMode: "Lieu d'exécution",
       ipRegime: "Propriété intellectuelle",
@@ -142,7 +155,7 @@ export const vaultFr = {
     commission: (rate: string, payer: string) => `${rate}, à la charge ${payer}`,
     payers: { freelance: "du freelance", company: "de l'entreprise" },
     draftLost: `Votre saisie précédente n'a pas été gardée${N}: elle ne vit que dix minutes sur le serveur. Recommencez ici.`,
-    reviewNote: "Ce modèle est en cours de relecture par un avocat. Le document le dit en tête et en pied de page. Relisez-le avant de l'accepter.",
+    reviewNote: "Ce modèle Proofseen n'a pas encore été relu par un avocat, et le document le dit en tête. Relisez-le avant de l'accepter.",
     submit: (n: number) => `Préparer la version ${n}`,
     pending: (n: number) => `Préparation de la version ${n}…`,
     cancel: "Annuler",
@@ -183,13 +196,13 @@ export const vaultFr = {
     verify: {
       summary: "Vérifier ce document",
       intro: "Deux empreintes, deux usages.",
-      content: "L'empreinte du contenu est imprimée en pied de chaque page du PDF et dessine le poinçon.",
+      content: `L'empreinte du contenu dessine le poinçon${N}; ses seize premiers caractères sont imprimés en pied de chaque page du PDF.`,
       file: "L'empreinte du fichier identifie le PDF exact.",
       how: `Pour la recalculer sur votre ordinateur${N}:`,
       windows: "sous Windows",
       mac: "sous macOS",
       linux: "sous Linux",
-      same: "Le résultat doit être identique.",
+      same: "Le résultat doit être identique à l'empreinte du fichier ci-dessus.",
     },
   },
   compare: {
@@ -253,8 +266,9 @@ export const vaultFr = {
   all: {
     title: "Documents",
     lead: "Tous les documents de vos affaires. Ils naissent dans l'onglet Documents de chaque affaire.",
-    filters: { type: "Sorte", typeAny: "Toutes", by: "Déposé par", byAny: "Tous", you: "Vous", other: "L'autre partie" },
+    filters: { type: "Sorte", typeAny: "Toutes", by: "Déposé par", byAny: "Tous", you: "Vous", other: "Pas vous" },
     caption: "Vos documents, du plus récent au plus ancien",
+    captionOldest: "Vos documents, du plus ancien au plus récent",
     columns: { document: "Document", version: "Version", digest: "Empreinte", filed: "Déposé", by: "Par" },
     range: (first: number, last: number, total: number) => `${first} à ${last} sur ${total}`,
     empty: { title: "Aucun document pour l'instant.", body: "Les documents naissent dans l'onglet Documents de chaque affaire, avant la première acceptation du contrat." },

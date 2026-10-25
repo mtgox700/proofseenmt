@@ -165,7 +165,8 @@ describe("créer, lire, télécharger", () => {
     const file = await downloadVersion(created.data.document.id, "1", r.deps);
     expect(file.headers.get("cache-control")).toBe("no-store");
     expect(file.headers.get("x-robots-tag")).toBe("noindex");
-    expect(file.headers.get("content-disposition")).toBe('attachment; filename="contrat-de-prestation-v1.pdf"');
+    // L1-159: the one file name, kind, version and the first eight characters of the content fingerprint.
+    expect(file.headers.get("content-disposition")).toBe(`attachment; filename="contrat-de-prestation-v1-${digestOf("service_agreement v1").slice(0, 8)}.pdf"`);
     expect(file.headers.get("content-type")).toBe("application/pdf");
     expect(file.headers.get("x-content-type-options")).toBe("nosniff");
     expect(file.headers.get("content-security-policy")).toContain("sandbox");

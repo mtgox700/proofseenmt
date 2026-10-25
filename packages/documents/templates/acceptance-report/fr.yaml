@@ -5,9 +5,10 @@ title: "Procès-verbal de recette"
 subtitle: "Contrat {{contract.id}}, procès-verbal version {{document.versionNumber}} du {{document.issuedOn}}"
 
 reviewNotice: |
-  Document établi à partir d'un modèle Proofseen en cours de relecture par un avocat. Il ne constitue pas un conseil
+  Document établi à partir d'un modèle Proofseen pas encore relu par un avocat. Il ne constitue pas un conseil
   juridique. Relisez-le avant de le signer.
-reviewFooter: "Modèle Proofseen en cours de relecture par un avocat, version {{document.versionNumber}}."
+reviewFooter: "Modèle Proofseen pas encore relu par un avocat, version {{document.versionNumber}}."
+reviewedFooter: "Modèle Proofseen relu par un avocat le {{review.reviewedOn}}, version {{document.versionNumber}}."
 
 clauses:
   parties:

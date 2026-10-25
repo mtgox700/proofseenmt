@@ -1,6 +1,8 @@
 import type { DocumentModel, LoadedTemplate } from "@proofseen/documents";
 import type { Lang } from "@/i18n/types";
 import type { VaultDictionary } from "@/i18n/market/vault-fr";
+import { labelFor, type Billing } from "./choices";
+import { vaultText } from "./dictionary";
 import type { Comparison } from "./compare";
 
 /*
@@ -57,7 +59,9 @@ export interface Explanation {
 
 export interface ExplainArgs {
   readonly lang: Lang;
+  /** The template of the newer version; `olderTemplate` that of the older one, for a clause it no longer has. */
   readonly template: LoadedTemplate;
+  readonly olderTemplate?: LoadedTemplate;
   readonly older: VersionFacts;
   readonly newer: VersionFacts;
   readonly comparison: Comparison;
@@ -67,6 +71,8 @@ export interface ExplainArgs {
   readonly table?: ExplainTable;
 }
 
+/** A number and its unit never part at the end of a line (« 15 jours », L1-159). */
+const NBSP = String.fromCharCode(0xa0);
 const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
 
 /** The variables a clause reads: in its declaration (variant, condition, requirements) and in its texts. */
@@ -86,7 +92,6 @@ export function clauseVariables(template: LoadedTemplate, lang: Lang, id: string
 }
 
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-const labelOf = (decl: VariableDecl, lang: Lang): string => (lang === "en" ? decl.label.en : undefined) ?? decl.label.fr;
 
 type Unit = "days" | "months" | "years";
 /** « Délai de recette ou de validation du relevé, en jours » is the label « Délai de recette ou de validation du relevé » and the unit days. */
@@ -97,7 +102,8 @@ export function splitUnit(label: string, suffix: VaultDictionary["compare"]["uni
 
 function sentenceFor(name: string, decl: VariableDecl, before: unknown, after: unknown, args: ExplainArgs, heading: string | null): { readonly kind: ChangeKind; readonly sentence: string } {
   const { lang, t } = args;
-  const label = labelOf(decl, lang);
+  const billing = args.newer.values["contract.billing"];
+  const label = labelFor(name, decl, lang, vaultText(lang).prepare, billing === "fixed" || billing === "monthly" ? (billing as Billing) : null);
   const unset = t.phrase.unset;
   if (decl.type === "enum") {
     const labels = decl.labels?.[lang] ?? decl.labels?.fr ?? {};
@@ -107,7 +113,7 @@ function sentenceFor(name: string, decl: VariableDecl, before: unknown, after: u
   if (decl.type === "boolean" && typeof before === "boolean" && typeof after === "boolean") return { kind: "boolean", sentence: t.phrase.boolean(label, before, after) };
   if (decl.type === "int") {
     const split = splitUnit(label, t.units.suffix);
-    const say = (value: unknown) => (typeof value !== "number" ? unset : split.unit === null ? String(value) : `${value} ${t.units[split.unit](value)}`);
+    const say = (value: unknown) => (typeof value !== "number" ? unset : split.unit === null ? String(value) : `${value}${NBSP}${t.units[split.unit](value)}`);
     return { kind: "number", sentence: t.phrase.number(split.label, say(before), say(after)) };
   }
   return { kind: "text", sentence: t.phrase.text(label, heading ?? label) };
@@ -133,7 +139,9 @@ export function explainChanges(args: ExplainArgs): Explanation {
   const anchorOf = (name: string): string | null => clauseOrder.find((id) => changedClauses.has(id) && varsOf.get(id)?.has(name)) ?? clauseOrder.find((id) => varsOf.get(id)?.has(name)) ?? null;
   // A choice required only by an article added or removed is said by that article, not twice.
   const addedOrRemoved = comparison.clauses.filter((diff) => diff.kind === "added" || diff.kind === "removed").map((diff) => diff.clause.id);
-  const requiredByMoved = new Set(addedOrRemoved.flatMap((id) => decl.clauses.find((c) => c.id === id)?.requires ?? []));
+  // A clause the newer template no longer has is read in the older one (L1-159: each version's own template).
+  const clauseOf = (id: string) => decl.clauses.find((c) => c.id === id) ?? args.olderTemplate?.decl.clauses.find((c) => c.id === id);
+  const requiredByMoved = new Set(addedOrRemoved.flatMap((id) => clauseOf(id)?.requires ?? []));
 
   const changes: { readonly change: Change; readonly at: number }[] = [];
   const changedNames = new Set<string>();
@@ -150,7 +158,7 @@ export function explainChanges(args: ExplainArgs): Explanation {
   }
   for (const diff of comparison.clauses) {
     if (diff.kind !== "added" && diff.kind !== "removed") continue;
-    const clauseDecl = decl.clauses.find((c) => c.id === diff.clause.id);
+    const clauseDecl = clauseOf(diff.clause.id);
     const when = clauseDecl?.when !== undefined && "var" in clauseDecl.when ? clauseDecl.when.var : null;
     const follows = when === null ? null : args.legendOf(when);
     const base = diff.kind === "added" ? t.phrase.clauseAdded(diff.clause.heading) : t.phrase.clauseRemoved(diff.clause.heading);

@@ -6,6 +6,7 @@ import { createDocumentRenderer, splitInputs } from "../src/lib/document-rendere
 import { amendmentVariables, ndaVariables, quoteVariables, reportVariables, vigilanceOf, type Context } from "../src/lib/document-variables";
 import { activeContract, type ActiveContract } from "../../../packages/db/test/support/active-contract";
 import { DB_STARTUP_MS, openTestDatabase, type TestDatabase } from "../../../packages/db/test/support/database";
+import { extractFromStreams } from "../../../packages/documents/test/support/pdf-text";
 
 /*
  * The adapter between the vault and the document engine, played on a real test database with the REAL engine (templates,
@@ -36,13 +37,13 @@ const CHOICES = { "input.workMode": "remote", "input.ipRegime": "retained", "inp
 
 const pending = (days = 5): Promise<ActiveContract> => activeContract(t.db, { days, scope: SCOPE, deliverables: DELIVERABLES, signed: false });
 
-const rig = (actor: Actor): { readonly deps: VaultDeps; readonly files: Map<string, Buffer> } => {
+const rig = (actor: Actor, verifyPage?: boolean): { readonly deps: VaultDeps; readonly files: Map<string, Buffer> } => {
   const files = new Map<string, Buffer>();
   const deps: VaultDeps = {
     open: true,
     db: () => t.db,
     authenticate: async () => ({ kind: "actor", actor }) as Awaited<ReturnType<VaultDeps["authenticate"]>>,
-    renderer: createDocumentRenderer({ db: () => t.db }),
+    renderer: createDocumentRenderer({ db: () => t.db, ...(verifyPage === undefined ? {} : { verifyPage }) }),
     storage: {
       write: async (key, bytes) => void files.set(key, Buffer.from(bytes)),
       read: async (key) => files.get(key) ?? null,
@@ -138,6 +139,23 @@ describe("the service agreement through the real engine", () => {
     // L1-133 : le rejeu des données figées redonne exactement l'empreinte de contenu rangée (aperçu vérifié, /verifier).
     const replayed = engine.replayVersion({ templateId: "service-agreement", templateVersion: data.version.templateVersion, engine: data.version.engine, variables: stored.variables });
     expect(replayed.ok && replayed.value.contentDigest).toBe(variables.contentDigest);
+  });
+
+  it("prints the verification address only when the verification page exists (option off by default, L1-159 Kensa M3)", async () => {
+    const printed = async (verifyPage: boolean | undefined): Promise<string> => {
+      const c = await pending();
+      const { deps, files } = rig({ userId: c.recruiter }, verifyPage);
+      expect((await createDocument(open(c, { inputs: CHOICES }), deps)).status).toBe(201);
+      const [[, bytes]] = [...files.entries()];
+      return extractFromStreams(bytes ?? Buffer.alloc(0)).replace(/\s+/g, " ");
+    };
+    const without = await printed(undefined);
+    expect(without).toContain("non du fichier");
+    expect(without).not.toContain("Vérification");
+    expect(without).not.toContain("verifier");
+    const withPage = await printed(true);
+    expect(withPage).toContain("Vérification");
+    expect(withPage).toContain("verifier");
   });
 
   it("never lets a typed value override a fact of the contract", async () => {

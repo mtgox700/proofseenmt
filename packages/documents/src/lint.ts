@@ -152,6 +152,13 @@ const clauseTextProblems = (clause: ClauseDecl, text: ClauseText | undefined, co
 const languageProblems = (lang: string, text: LanguageText, input: LintInput): readonly string[] => {
   const context: Context = { lang, decl: input.decl };
   const header = [text.title, text.subtitle ?? "", text.reviewNotice, text.reviewFooter].flatMap((t) => placeholderProblems(t, context, true));
+  // Le pied « relu » lit la date de relecture dans la donnée `review` : seul placeholder qui n'est pas une variable.
+  const reviewed = text.reviewedFooter ?? "";
+  const reviewedProblems = [
+    ...placeholderProblems(reviewed.split("{{review.reviewedOn}}").join(""), context, true),
+    ...(input.decl.review.status === "reviewed" && text.reviewedFooter === undefined ? [`${lang}: review.status is reviewed but the language has no reviewedFooter`] : []),
+    ...(input.decl.review.status === "reviewed" && (input.decl.review.reviewedOn === null || input.decl.review.reviewedBy === null || input.decl.review.reviewedDigest === null) ? [`${lang}: review.status is reviewed without reviewedBy, reviewedOn and reviewedDigest`] : []),
+  ];
   const headings = Object.entries(text.clauses).flatMap(([id, c]) => placeholderProblems(c.heading, { ...context, clause: input.decl.clauses.find((x) => x.id === id) }, true));
   const known = new Set(input.decl.clauses.map((c) => c.id));
   return [
@@ -159,6 +166,7 @@ const languageProblems = (lang: string, text: LanguageText, input: LintInput): r
     ...input.decl.clauses.flatMap((clause) => clauseTextProblems(clause, text.clauses[clause.id], context)),
     ...Object.keys(text.clauses).filter((id) => !known.has(id)).map((id) => `${lang}: text for unknown clause ${id}`),
     ...header,
+    ...reviewedProblems,
     ...headings,
     ...vocabularyProblems(`${input.decl.id}/${lang}`, text),
   ];

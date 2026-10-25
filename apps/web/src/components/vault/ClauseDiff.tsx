@@ -32,9 +32,10 @@ export interface ClauseView {
 
 const text = (block: Block) => runsText(blockRuns(block));
 
-function Paragraph({ sign, state, children }: { readonly sign?: string; readonly state: "same" | "changed" | "added" | "removed"; readonly children: ReactNode }) {
+function Paragraph({ sign, state, bullet = false, children }: { readonly sign?: string; readonly state: "same" | "changed" | "added" | "removed"; readonly bullet?: boolean; readonly children: ReactNode }) {
+  // A bullet of the contract stays a bullet in the comparison (L1-159 M10): drawn as a list item by CSS.
   return (
-    <p className="vault-block" data-sign={sign} data-state={state}>
+    <p className="vault-block" data-sign={sign} data-state={state} data-block={bullet ? "bullet" : undefined}>
       {children}
     </p>
   );
@@ -42,11 +43,17 @@ function Paragraph({ sign, state, children }: { readonly sign?: string; readonly
 
 function BlockRow({ diff, v, side }: { readonly diff: BlockDiff; readonly v: ClauseView; readonly side: "before" | "after" | "both" }): ReactNode {
   const sr = vaultText(v.lang).compare.sr;
-  if (diff.kind === "same") return <Paragraph state="same">{text(diff.block)}</Paragraph>;
+  const bullet = (diff.kind === "changed" ? diff.after.kind : diff.block.kind) === "bullet";
+  if (diff.kind === "same")
+    return (
+      <Paragraph state="same" bullet={bullet}>
+        {text(diff.block)}
+      </Paragraph>
+    );
   if (diff.kind === "added") {
     if (side === "before") return null;
     return (
-      <Paragraph sign={PLUS} state="added">
+      <Paragraph sign={PLUS} state="added" bullet={bullet}>
         <ins dateTime={v.addedOn}>
           <span className="sr-only">{sr.added}</span>
           {text(diff.block)}
@@ -58,7 +65,7 @@ function BlockRow({ diff, v, side }: { readonly diff: BlockDiff; readonly v: Cla
   if (diff.kind === "removed") {
     if (side === "after") return null;
     return (
-      <Paragraph sign={MINUS} state="removed">
+      <Paragraph sign={MINUS} state="removed" bullet={bullet}>
         <del dateTime={v.removedOn}>
           <span className="sr-only">{sr.removed}</span>
           {text(diff.block)}
@@ -86,7 +93,7 @@ function BlockRow({ diff, v, side }: { readonly diff: BlockDiff; readonly v: Cla
     );
   }
   return (
-    <Paragraph state="changed">
+    <Paragraph state="changed" bullet={bullet}>
       <InlineDiff lang={v.lang} pieces={diff.pieces} addedOn={v.addedOn} removedOn={v.removedOn} side={side} />
     </Paragraph>
   );
@@ -134,7 +141,7 @@ export function ClauseDiff({ v, diff, byModel, next }: ClauseDiffProps) {
       ) : null}
       {diff.kind === "added"
         ? clause.blocks.map((block, i) => (
-            <Paragraph key={i} sign={PLUS} state="added">
+            <Paragraph key={i} sign={PLUS} state="added" bullet={block.kind === "bullet"}>
               {i === 0 ? <span className="sr-only">{t.sr.added}</span> : null}
               {text(block)}
             </Paragraph>
@@ -150,7 +157,7 @@ export function ClauseDiff({ v, diff, byModel, next }: ClauseDiffProps) {
           </details>
         )
       ) : null}
-      <p className="vault-next">{next === null ? <a href="#en-bref">{t.end}</a> : <a href={`#clause-${next.id}-h`}>{t.next(String(next.number), next.heading)}</a>}</p>
+      <p className="vault-next">{next === null ? <a href="#en-bref">{t.end}</a> : <a href={`#clause-${next.id}`}>{t.next(String(next.number), next.heading)}</a>}</p>
     </section>
   );
 }
@@ -160,7 +167,7 @@ function RemovedText({ blocks, v }: { readonly blocks: readonly Block[]; readonl
   return (
     <>
       {blocks.map((block, i) => (
-        <Paragraph key={i} sign={MINUS} state="removed">
+        <Paragraph key={i} sign={MINUS} state="removed" bullet={block.kind === "bullet"}>
           <del dateTime={v.removedOn}>
             {i === 0 ? <span className="sr-only">{sr.removed}</span> : null}
             {text(block)}

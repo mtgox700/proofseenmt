@@ -26,7 +26,7 @@ export function DiffLegend({ lang, clauses }: DiffLegendProps) {
   return (
     <div className="vault-legend">
       <p>
-        {firstChange === null ? sentence : <a href={`#clause-${first("modified") ?? first("added") ?? firstChange}-h`}>{sentence}</a>}
+        {firstChange === null ? sentence : <a href={`#clause-${first("modified") ?? first("added") ?? firstChange}`}>{sentence}</a>}
       </p>
       <p className="vault-legend-links">
         {[
@@ -36,7 +36,7 @@ export function DiffLegend({ lang, clauses }: DiffLegendProps) {
         ].map(([kind, word]) => {
           const id = first(kind);
           return id === null ? null : (
-            <a key={kind} href={`#clause-${id}-h`}>
+            <a key={kind} href={`#clause-${id}`}>
               {word}
             </a>
           );

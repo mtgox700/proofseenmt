@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { containsDirectContact, contractView, getDb } from "@proofseen/db";
+import { containsDirectContact, contractView, documents, getDb } from "@proofseen/db";
 import { vaultOpen } from "@/app/api/documents/vault";
 import { deleteStored, writeStored } from "@/data/uploads";
 import { throttled } from "@/data/throttle";
@@ -12,6 +12,7 @@ import { choiceGroups, engineProblems, readChoices, type Problem } from "@/lib/v
 import { vaultText } from "@/lib/vault/dictionary";
 import { drafts, type KeptDraft } from "@/lib/vault/drafts";
 import { recordVersion, type RecordOutcome } from "@/lib/vault/record-version";
+import { defaultReason } from "@/lib/vault/versions";
 
 /*
  * « Préparer » (storyboard L1.6, §4 E2, T10): a plain form posted here, without JavaScript. The choices are read by the
@@ -46,11 +47,16 @@ export async function prepareVersion(formData: FormData): Promise<void> {
   if (!EXPECTED.test(rawExpected)) redirect(`${tab}?erreur=invalide`);
   const expected = Number(rawExpected);
   const documentId = uuidOf(formData.get("documentId"));
+  // The document named by the form must be this contract's (L1-159): never a version added to another affair's document.
+  if (documentId !== null) {
+    const named = await documents(market.db).find(market.actor, documentId);
+    if (named === null || named.affair.kind !== "contract" || named.affair.id !== contractId || named.type !== "service_agreement") redirect(`${tab}?erreur=invalide`);
+  }
 
   const engine = await import("@proofseen/documents");
   const template = engine.defaultRegistry().latest(TEMPLATE);
   if (template === undefined) redirect(`${tab}?erreur=moteur`);
-  const groups = choiceGroups(template.decl, lang, vaultText(lang).prepare);
+  const groups = choiceGroups(template.decl, lang, vaultText(lang).prepare, contract.billing);
   const read = readChoices(groups, (name) => {
     const value = formData.get(name);
     return typeof value === "string" ? value : null;
@@ -74,7 +80,7 @@ export async function prepareVersion(formData: FormData): Promise<void> {
       market.actor,
       documentId === null ? { affair: { kind: "contract", id: contractId }, type: "service_agreement", lang: docLang } : { documentId },
       expected,
-      reason === "" ? (expected === 0 ? "première version" : "nouvelle version") : reason,
+      reason === "" ? defaultReason(lang, expected) : reason,
       { ...read.inputs, optionalClauses: read.optionalClauses },
       { db: market.db, renderer: createDocumentRenderer({ db: getDb }), storage: { write: (key, bytes) => writeStored(key, bytes), remove: (keys) => deleteStored(keys) }, now: () => now },
     );

@@ -5,7 +5,8 @@ import { vaultText } from "@/lib/vault/dictionary";
 /*
  * One control of the form « Préparer », from the declaration of its variable in the template (storyboard L1.6, §4 E2):
  * radios for a list or yes and no (none preselected unless a value is already chosen), a number with its bounds, a
- * text area with its length. Labels, bounds and choices are the template's; a problem is said under the field, tied to
+ * text area with its length. A group of radios is a div with role="radiogroup", never a list (axe `listitem`,
+ * L1-159 B3). Labels, bounds and choices are the template's; a problem is said under the field, tied to
  * it by aria-describedby, with aria-invalid on the control. No `required`: the server's summary says every missing
  * choice at once, in the template's words, rather than the browser stopping at the first one.
  */
@@ -52,19 +53,17 @@ export function ChoiceField({ lang, field, value, problem, labelHidden = false }
         </p>
         {hint}
         {error}
-        <ul className="vault-choices" role="radiogroup" aria-labelledby={labelId} aria-describedby={describedBy} aria-invalid={invalid}>
+        <div className="vault-choices" role="radiogroup" aria-labelledby={labelId} aria-describedby={describedBy} aria-invalid={invalid}>
           {options.map((option, index) => {
             const id = index === 0 ? field.id : `${field.id}-${option.value}`;
             return (
-              <li key={option.value}>
-                <label className="vault-choice" htmlFor={id}>
-                  <input id={id} type="radio" name={field.name} value={option.value} defaultChecked={value === option.value} />
-                  <span>{option.label}</span>
-                </label>
-              </li>
+              <label key={option.value} className="vault-choice" htmlFor={id}>
+                <input id={id} type="radio" name={field.name} value={option.value} defaultChecked={value === option.value} />
+                <span>{option.label}</span>
+              </label>
             );
           })}
-        </ul>
+        </div>
       </div>
     );
   }

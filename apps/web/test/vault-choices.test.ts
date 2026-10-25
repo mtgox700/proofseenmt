@@ -181,7 +181,7 @@ describe("downloadFallback (T11)", () => {
   const id = "00000000-0000-4000-8000-0000000000d1";
   const failed = () => new Response(JSON.stringify({ ok: false, error: "erreur serveur" }), { status: 500 });
   it("sends a navigation that failed back to the document, with the error in words", () => {
-    const request = new Request(`https://exemple.test/api/documents/${id}/versions/2`, { headers: { "sec-fetch-mode": "navigate", referer: `https://exemple.test/en/app/documents/${id}` } });
+    const request = new Request(`https://exemple.test/api/documents/${id}/versions/2`, { headers: { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", referer: `https://exemple.test/en/app/documents/${id}` } });
     const response = downloadFallback(request, failed(), id, "2");
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(`/en/app/documents/${id}?version=2&erreur=telechargement`);
@@ -191,6 +191,6 @@ describe("downloadFallback (T11)", () => {
     const original = failed();
     expect(downloadFallback(fetchRequest, original, id, "2")).toBe(original);
     const ok = new Response("%PDF-", { status: 200 });
-    expect(downloadFallback(new Request("https://exemple.test/x", { headers: { "sec-fetch-mode": "navigate" } }), ok, id, "2")).toBe(ok);
+    expect(downloadFallback(new Request("https://exemple.test/x", { headers: { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document" } }), ok, id, "2")).toBe(ok);
   });
 });

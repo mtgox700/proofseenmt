@@ -9,10 +9,13 @@ const LANGS = new Set(["fr", "en"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NUMBER = /^[1-9][0-9]{0,5}$/;
 
-/** A person's browser opening a page (or a link with `download`), not a script fetching bytes. */
+/**
+ * A person's browser opening the link as a page: a navigation whose destination is a document (L1-159 B4). Not a frame,
+ * not a script fetching bytes. Old browsers without Fetch Metadata fall back on the Accept header.
+ */
 export function isNavigation(request: Request): boolean {
   const mode = request.headers.get("sec-fetch-mode");
-  if (mode !== null) return mode === "navigate";
+  if (mode !== null) return mode === "navigate" && request.headers.get("sec-fetch-dest") === "document";
   return (request.headers.get("accept") ?? "").includes("text/html");
 }
 

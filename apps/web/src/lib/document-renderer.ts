@@ -19,6 +19,11 @@ const OptionalClauses = z.record(z.string(), z.enum(["included", "excluded"]));
 
 export interface RendererDeps {
   readonly db: () => Db;
+  /**
+   * La page `/verifier` existe-t-elle (L2.7) ? Faux par défaut : tant qu'elle n'existe pas, aucun PDF figé ne porte son adresse
+   * (un PDF émis ne se réécrit jamais, une adresse fausse y resterait). A passer à vrai le jour où la page est en ligne.
+   */
+  readonly verifyPage?: boolean;
 }
 
 export interface SplitInputs {
@@ -78,8 +83,8 @@ export const createDocumentRenderer = (deps: RendererDeps): DocumentRenderer => 
       throw new RenderRefusedError(code, names.length > 0 ? names : clause === undefined ? [] : [clause]);
     }
     return {
-      // L'empreinte imprimée en pied de page est celle du CONTENU ; l'adresse dit où la vérifier (la page /verifier arrive avec L2).
-      bytes: await engine.renderPdf(rendered.value, { verifyUrl: `${siteOrigin()}/verifier` }),
+      // L'empreinte imprimée en pied de page est celle du CONTENU ; l'adresse de vérification ne s'imprime que si la page existe.
+      bytes: await engine.renderPdf(rendered.value, deps.verifyPage === true ? { verifyUrl: `${siteOrigin()}/verifier` } : {}),
       templateId: rendered.value.templateId,
       templateVersion: String(rendered.value.templateVersion),
       engine: engine.ENGINE_ID,

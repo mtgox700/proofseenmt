@@ -3,6 +3,7 @@ import type { Actor, DocumentDetail, Documents, VersionSummary } from "@proofsee
 import type { Lang } from "@/i18n/types";
 import type { VaultDictionary } from "@/i18n/market/vault-fr";
 import { attribute, type Attribution, type ChainLink } from "./attribution";
+import { choiceGroups, legendOf } from "./choices";
 import { compareModels, type Comparison } from "./compare";
 import { explainChanges, type Change, type Explanation } from "./explain";
 import { previewVersion } from "./replay";
@@ -47,7 +48,6 @@ export async function loadComparison(args: {
   readonly to: number;
   readonly lang: Lang;
   readonly t: VaultDictionary;
-  readonly legendOf: (name: string) => string | null;
 }): Promise<LoadedComparison> {
   const { repo, actor, document, from, to, lang, t } = args;
   const versions = [...document.versions].filter((v) => v.number >= from && v.number <= to).sort((a, b) => a.number - b.number);
@@ -62,11 +62,17 @@ export async function loadComparison(args: {
   const newer = previewVersion({ ...newerFrozen, contentDigest: newerVersion.contentDigest });
   if (older.kind !== "ready") return { kind: "unavailable", code: older.code };
   if (newer.kind !== "ready") return { kind: "unavailable", code: newer.code };
+  // Each version is read with its own template: labels, legends and clauses of the version that said them (L1-159).
   const template = defaultRegistry().find(newerFrozen.templateId, newer.model.templateVersion);
-  if (template === undefined) return { kind: "unavailable", code: "template_unavailable" };
+  const olderTemplate = defaultRegistry().find(olderFrozen.templateId, older.model.templateVersion);
+  if (template === undefined || olderTemplate === undefined) return { kind: "unavailable", code: "template_unavailable" };
+  const billing = frozenValues(newerFrozen.variables).values["contract.billing"];
+  const asBilling = billing === "fixed" || billing === "monthly" ? billing : null;
+  const groups = choiceGroups(template.decl, lang, t.prepare, asBilling);
+  const olderGroups = choiceGroups(olderTemplate.decl, lang, t.prepare, asBilling);
   const comparison = compareModels(older.model, newer.model);
   const facts = (index: number, model: DocumentModel) => ({ number: versions[index]?.number ?? 0, templateVersion: model.templateVersion, ...frozenValues(frozen[index]?.variables), model });
-  const explanation = explainChanges({ lang, template, older: facts(0, older.model), newer: facts(versions.length - 1, newer.model), comparison, t: t.compare, legendOf: args.legendOf });
+  const explanation = explainChanges({ lang, template, older: facts(0, older.model), newer: facts(versions.length - 1, newer.model), comparison, t: t.compare, olderTemplate, legendOf: (name) => legendOf(groups, name) ?? legendOf(olderGroups, name) });
   const chain: ChainLink[] = versions.map((version, index) => ({ number: version.number, by: authorLabel(version, t.who), ...frozenValues(frozen[index]?.variables) }));
   return {
     kind: "ready",

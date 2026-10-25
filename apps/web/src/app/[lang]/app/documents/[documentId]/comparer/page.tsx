@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { contractView, documents } from "@proofseen/db";
-import { defaultRegistry } from "@proofseen/documents";
 import { vaultOpen } from "@/app/api/documents/vault";
 import { EmptyState } from "@/components/EmptyState";
 import { MarketUnavailable } from "@/components/market/MarketUnavailable";
@@ -16,7 +15,6 @@ import { isLang } from "@/i18n";
 import { marketDictionary } from "@/i18n/market";
 import { logError } from "@/lib/log";
 import { pageMarket } from "@/lib/market";
-import { choiceGroups, legendOf } from "@/lib/vault/choices";
 import { groupIdentical } from "@/lib/vault/compare";
 import { vaultText } from "@/lib/vault/dictionary";
 import { loadComparison } from "@/lib/vault/load-compare";
@@ -75,9 +73,7 @@ export default async function ComparePage({ params, searchParams }: PageProps) {
       </div>
     );
   }
-  const template = defaultRegistry().latest(document.templateId);
-  const groups = template === undefined ? [] : choiceGroups(template.decl, lang, t.prepare);
-  const loaded = await loadComparison({ repo, actor: market.actor, document, from: asked.from, to: asked.to, lang, t, legendOf: (name) => legendOf(groups, name) });
+  const loaded = await loadComparison({ repo, actor: market.actor, document, from: asked.from, to: asked.to, lang, t });
   const older = document.versions.find((v) => v.number === asked.from);
   const newer = document.versions.find((v) => v.number === asked.to);
   if (older === undefined || newer === undefined) notFound();

@@ -1,5 +1,5 @@
 import { CHROME } from "./chrome";
-import { typography, type Lang } from "./format";
+import { formatDate, typography, type Lang } from "./format";
 import type { Block, ModelClause, ModelSignatory, Run } from "./model";
 import type { LoadedTemplate } from "./registry";
 import type { Selected } from "./select";
@@ -20,6 +20,12 @@ interface Context {
 }
 
 const valueOf = (name: string, context: Context): string => {
+  // Seul « placeholder » qui n'est pas une variable : la date de relecture, lue dans la donnée `review` du gabarit.
+  if (name === "review.reviewedOn") {
+    const reviewedOn = context.template.decl.review.reviewedOn;
+    if (reviewedOn === null) throw new Error("review.reviewedOn est nul : la relecture n'est pas attestée");
+    return formatDate(reviewedOn, context.lang);
+  }
   const decl = context.template.decl.variables[name];
   const value = context.values[name];
   if (decl === undefined || value === undefined) throw new Error(`placeholder sans valeur : ${name}`);
@@ -88,7 +94,12 @@ export const reviewTexts = (context: Context, shown?: boolean): { readonly notic
   // `shown` : un rejeu reprend ce que le document émis disait, pas l'état d'une relecture attestée depuis.
   const holds = shown === undefined ? decl.review.status === "reviewed" && decl.review.reviewedDigest === digest : !shown;
   const text = context.template.texts[context.lang];
-  if (holds || text === undefined) return { notice: null, footer: null };
+  if (text === undefined) return { notice: null, footer: null };
+  if (holds) {
+    // Relecture attestée : plus d'avertissement ; le pied dit « relu par un avocat le <date> » avec la date de la donnée `review`.
+    const footer = text.reviewedFooter !== undefined && decl.review.reviewedOn !== null ? resolveInline(text.reviewedFooter, context) : null;
+    return { notice: null, footer };
+  }
   return { notice: resolveInline(text.reviewNotice, context), footer: resolveInline(text.reviewFooter, context) };
 };
 
