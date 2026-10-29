@@ -1,4 +1,12 @@
 {
+  "extraKnownMarketplaces": {
+    "katana-forge": {
+      "source": {
+        "source": "github",
+        "repo": "Ayoubhm07/katana-forge"
+      }
+    }
+  },
   "enabledPlugins": {
     "katana-forge@katana-forge": true
   }
